@@ -61,6 +61,65 @@ enum ParserSmoke {
             // Expected.
         }
 
+        let icomonLive = try IcomonAFUScaleParser.parse(hexData(
+            "AC2900684E20020005400064000000000029D51F"
+        ))
+        precondition(icomonLive.phase == .live)
+        precondition(abs(icomonLive.measurement.weightKG - 68.35744) < 0.000_01)
+        precondition(!icomonLive.measurement.isStable)
+
+        let icomonStable = try IcomonAFUScaleParser.parse(hexData(
+            "AC298068EA60020005400064000000000029D51B"
+        ))
+        precondition(icomonStable.phase == .stable)
+        precondition(abs(icomonStable.measurement.weightKG - 68.75744) < 0.000_01)
+        precondition(icomonStable.measurement.isStable)
+
+        let finalFixtures = [
+            ("AC29020001F40258018068EA600000000029D603", 500.0, 600.0),
+            ("AC29020001FE0262018068EA600000000029D617", 510.0, 610.0),
+            ("AC2902000208026C018068EA600000000029D60C", 520.0, 620.0)
+        ]
+        for (fixture, primaryImpedance, secondaryImpedance) in finalFixtures {
+            let packet = try IcomonAFUScaleParser.parse(hexData(fixture))
+            precondition(packet.phase == .final)
+            precondition(abs(packet.measurement.weightKG - 68.75744) < 0.000_01)
+            precondition(packet.measurement.impedanceOhm == primaryImpedance)
+            precondition(packet.secondaryImpedanceOhm == secondaryImpedance)
+            precondition(packet.measurement.source == .icomonAFU)
+            precondition(packet.measurement.isStable)
+        }
+
+        do {
+            var invalidChecksum = hexData(finalFixtures[0].0)
+            invalidChecksum[invalidChecksum.index(before: invalidChecksum.endIndex)] ^= 0x01
+            _ = try IcomonAFUScaleParser.parse(invalidChecksum)
+            preconditionFailure("ICOMON 校验错误必须被拒绝")
+        } catch ScalePayloadError.unsupported {
+            // Expected.
+        }
+
+        do {
+            _ = try IcomonAFUScaleParser.parse(hexData("AC29020001F40258018068EA600000000029D6"))
+            preconditionFailure("截断的 ICOMON 帧必须被拒绝")
+        } catch ScalePayloadError.tooShort {
+            // Expected.
+        }
+
         print("Parser smoke tests passed")
+    }
+
+    private static func hexData(_ value: String) -> Data {
+        var result = Data()
+        var index = value.startIndex
+        while index < value.endIndex {
+            let next = value.index(index, offsetBy: 2)
+            guard let byte = UInt8(value[index..<next], radix: 16) else {
+                preconditionFailure("无效的十六进制测试数据")
+            }
+            result.append(byte)
+            index = next
+        }
+        return result
     }
 }

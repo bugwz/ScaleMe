@@ -1,8 +1,29 @@
 import Foundation
 
+enum IcomonAFUScaleAdapter {
+    static let serviceUUID = "FFB0"
+    static let measurementCharacteristicUUID = "FFB2"
+
+    static func matchesIdentity(name: String, advertisedServiceUUIDs: Set<String>) -> Bool {
+        let normalizedName = name.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
+        return normalizedName == "AFU-WL-TZ-A1"
+            && advertisedServiceUUIDs.map(normalizedUUID).contains(serviceUUID)
+    }
+
+    private static func normalizedUUID(_ value: String) -> String {
+        let uppercase = value.uppercased()
+        let bluetoothBaseSuffix = "-0000-1000-8000-00805F9B34FB"
+        guard uppercase.hasPrefix("0000"), uppercase.hasSuffix(bluetoothBaseSuffix) else {
+            return uppercase
+        }
+        return String(uppercase.dropFirst(4).prefix(4))
+    }
+}
+
 enum ScaleDiscoveryCompatibility: String, Equatable {
     case bluetoothSIG = "Bluetooth SIG 标准"
     case xiaomiAdvertisement = "0x181B 广播格式"
+    case icomonAFU = "ICOMON AFU 实机样本"
     case unverified = "协议待验证"
 
     var isVerified: Bool { self != .unverified }
@@ -13,10 +34,14 @@ struct ScaleDiscoveryAdvertisement {
     var advertisedServiceUUIDs: Set<String>
     var serviceDataUUIDs: Set<String>
     var hasVerifiedXiaomiPayload: Bool
+    var hasVerifiedIcomonAFUIdentity = false
 }
 
 enum ScaleDiscoveryClassifier {
     static func compatibility(for advertisement: ScaleDiscoveryAdvertisement) -> ScaleDiscoveryCompatibility {
+        if advertisement.hasVerifiedIcomonAFUIdentity {
+            return .icomonAFU
+        }
         if advertisement.hasVerifiedXiaomiPayload {
             return .xiaomiAdvertisement
         }

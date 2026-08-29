@@ -18,6 +18,7 @@ enum WeightUnit: String, Codable, CaseIterable, Identifiable {
 
 enum MeasurementSource: String, Codable {
     case xiaomi = "小米体重秤"
+    case icomonAFU = "ICOMON AFU 体脂秤"
     case bluetoothSIG = "标准蓝牙体重秤"
     case manual = "手动记录"
     case demo = "示例数据"

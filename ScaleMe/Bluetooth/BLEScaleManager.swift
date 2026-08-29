@@ -18,18 +18,6 @@ struct DiscoveredScale: Identifiable, Hashable {
     func hash(into hasher: inout Hasher) { hasher.combine(id) }
 }
 
-struct XiaomiDiagnosticSample: Identifiable {
-    let id = UUID()
-    var elapsedSeconds: TimeInterval
-    var source: String
-    var payloadHex: String
-    var summary: String
-
-    var reportLine: String {
-        String(format: "%7.3fs  %-10@  %@  %@", elapsedSeconds, source, payloadHex, summary)
-    }
-}
-
 struct ScaleDeviceSettingsSnapshot: Equatable {
     var firmwareRevision: String?
     var hardwareRevision: String?
@@ -42,8 +30,12 @@ struct ScaleDeviceSettingsSnapshot: Equatable {
     var writableCharacteristicUUIDs: [String] = []
 }
 
-struct DeviceSettingsBLEExchange: Identifiable, Equatable {
-    enum Direction: String {
+struct DeviceDiagnosticEvent: Identifiable, Equatable {
+    enum Kind: String {
+        case advertisement = "广播"
+        case service = "服务"
+        case characteristic = "特征"
+        case notification = "通知"
         case write = "写入"
         case acknowledgement = "回执"
         case read = "读取"
@@ -53,8 +45,8 @@ struct DeviceSettingsBLEExchange: Identifiable, Equatable {
 
     let id = UUID()
     var elapsedSeconds: TimeInterval
-    var direction: Direction
-    var characteristicUUID: String
+    var kind: Kind
+    var source: String
     var payloadHex: String?
     var summary: String
 
@@ -62,8 +54,8 @@ struct DeviceSettingsBLEExchange: Identifiable, Equatable {
         String(
             format: "%7.3fs  %-4@  %-36@  %-24@  %@",
             elapsedSeconds,
-            direction.rawValue,
-            characteristicUUID,
+            kind.rawValue,
+            source,
             payloadHex ?? "-",
             summary
         )
@@ -108,6 +100,7 @@ final class BLEScaleManager: NSObject, ObservableObject {
         case xiaomiAdvertisement
         case standardWeight
         case standardBodyComposition
+        case icomonAFU
     }
     enum State: Equatable {
         case idle, unavailable(String), scanning, connecting(String), connected(String), measuring, stabilizing, completed
@@ -130,14 +123,12 @@ final class BLEScaleManager: NSObject, ObservableObject {
     @Published private(set) var devices: [DiscoveredScale] = []
     @Published private(set) var latestMeasurement: BodyMeasurement?
     @Published private(set) var liveWeightKG: Double?
-    @Published private(set) var isCapturingXiaomiDiagnostics = false
-    @Published private(set) var xiaomiDiagnosticSamples: [XiaomiDiagnosticSample] = []
     @Published private(set) var settingsState: ScaleDeviceSettingsState = .idle
     @Published private(set) var settingsSnapshot = ScaleDeviceSettingsSnapshot()
     @Published private(set) var settingsOperationMessage: String?
     @Published private(set) var settingsOperationSucceeded = false
-    @Published private(set) var isSettingsBLECaptureEnabled = false
-    @Published private(set) var settingsBLEExchanges: [DeviceSettingsBLEExchange] = []
+    @Published private(set) var isDeviceDiagnosticCaptureEnabled = false
+    @Published private(set) var deviceDiagnosticEvents: [DeviceDiagnosticEvent] = []
 
     var currentScaleName: String? { activeScaleName }
 
@@ -147,12 +138,12 @@ final class BLEScaleManager: NSObject, ObservableObject {
     private var measurementSession = MeasurementSession()
     private var connectionTimeoutTask: Task<Void, Never>?
     private var settingsReadbackTask: Task<Void, Never>?
-    private var diagnosticCaptureStartedAt: Date?
     private var isWaitingForNextLoad = false
     private var minimumWeightAfterCompletionKG: Double?
     private var scanPurpose: ScanPurpose = .adding
     private var pairedScaleIDs: Set<UUID> = []
     private var pairedScaleNames: [UUID: String] = [:]
+    private var pairedScaleModelNames: [UUID: String] = [:]
     private var activeScaleID: UUID?
     private var activeScaleName: String?
     private var settingsScaleID: UUID?
@@ -160,14 +151,17 @@ final class BLEScaleManager: NSObject, ObservableObject {
     private var settingsCurrentTimeCharacteristic: CBCharacteristic?
     private var pendingSettingsServiceIDs: Set<ObjectIdentifier> = []
     private var pendingSettingsOperation: SettingsOperation?
-    private var settingsCaptureStartedAt: Date?
+    private var deviceDiagnosticCaptureStartedAt: Date?
     private var scanRequested = false
     private var discoverySequence = 0
+    private var didCompleteIcomonFinal = false
 
     private static let weightService = CBUUID(string: "181D")
     private static let bodyService = CBUUID(string: "181B")
     private static let weightMeasurement = CBUUID(string: "2A9D")
     private static let bodyMeasurement = CBUUID(string: "2A9C")
+    private static let icomonService = CBUUID(string: IcomonAFUScaleAdapter.serviceUUID)
+    private static let icomonMeasurement = CBUUID(string: IcomonAFUScaleAdapter.measurementCharacteristicUUID)
     private static let serialNumber = CBUUID(string: "2A25")
     private static let hardwareRevision = CBUUID(string: "2A27")
     private static let softwareRevision = CBUUID(string: "2A28")
@@ -196,6 +190,7 @@ final class BLEScaleManager: NSObject, ObservableObject {
     func startMeasurementMonitoring(scales: [PairedScale]) {
         pairedScaleIDs = Set(scales.map(\.id))
         pairedScaleNames = Dictionary(uniqueKeysWithValues: scales.map { ($0.id, $0.name) })
+        pairedScaleModelNames = Dictionary(uniqueKeysWithValues: scales.map { ($0.id, $0.modelName) })
         scanPurpose = .measuring
         liveWeightKG = nil
         latestMeasurement = nil
@@ -203,6 +198,7 @@ final class BLEScaleManager: NSObject, ObservableObject {
         measurementSession.reset()
         isWaitingForNextLoad = false
         minimumWeightAfterCompletionKG = nil
+        didCompleteIcomonFinal = false
         guard !scales.isEmpty else {
             scanRequested = false
             central.stopScan()
@@ -216,24 +212,10 @@ final class BLEScaleManager: NSObject, ObservableObject {
     func updatePairedScales(_ scales: [PairedScale]) {
         pairedScaleIDs = Set(scales.map(\.id))
         pairedScaleNames = Dictionary(uniqueKeysWithValues: scales.map { ($0.id, $0.name) })
+        pairedScaleModelNames = Dictionary(uniqueKeysWithValues: scales.map { ($0.id, $0.modelName) })
         if let activeScaleID, let scale = scales.first(where: { $0.id == activeScaleID }) {
             activeScaleName = scale.name
         }
-    }
-
-    func startXiaomiDiagnosticCapture() {
-        xiaomiDiagnosticSamples.removeAll(keepingCapacity: true)
-        diagnosticCaptureStartedAt = .now
-        isCapturingXiaomiDiagnostics = true
-    }
-
-    func stopXiaomiDiagnosticCapture() {
-        isCapturingXiaomiDiagnostics = false
-    }
-
-    var xiaomiDiagnosticReport: String {
-        let header = "ScaleMe BLE scale diagnostic\nelapsed  source      payload  parsed\n"
-        return header + xiaomiDiagnosticSamples.map(\.reportLine).joined(separator: "\n")
     }
 
     private func beginScanning(clearDevices: Bool) {
@@ -285,9 +267,10 @@ final class BLEScaleManager: NSObject, ObservableObject {
         settingsSnapshot = ScaleDeviceSettingsSnapshot()
         settingsOperationMessage = nil
         settingsOperationSucceeded = false
-        isSettingsBLECaptureEnabled = false
-        settingsBLEExchanges.removeAll(keepingCapacity: true)
-        settingsCaptureStartedAt = nil
+        if !isDeviceDiagnosticCaptureEnabled {
+            deviceDiagnosticEvents.removeAll(keepingCapacity: true)
+            deviceDiagnosticCaptureStartedAt = nil
+        }
         settingsState = .locating
         scanPurpose = .configuring(scale.id)
     }
@@ -303,21 +286,33 @@ final class BLEScaleManager: NSObject, ObservableObject {
         stopScanning()
         disconnectSettingsPeripheral()
         settingsScaleID = nil
-        isSettingsBLECaptureEnabled = false
-        settingsCaptureStartedAt = nil
+        isDeviceDiagnosticCaptureEnabled = false
+        deviceDiagnosticCaptureStartedAt = nil
         settingsState = .idle
     }
 
-    var settingsBLEReport: String {
+    var deviceDiagnosticReport: String {
         let services = settingsSnapshot.discoveredServiceUUIDs.joined(separator: ", ")
-        let header = "ScaleMe device settings BLE capture\nservices: \(services)\nelapsed  type  characteristic                        payload                   summary\n"
-        return header + settingsBLEExchanges.map(\.reportLine).joined(separator: "\n")
+        let device = settingsScaleID?.uuidString ?? "-"
+        let header = "ScaleMe device diagnostic capture\ndevice: \(device)\nservices: \(services)\nelapsed  type  source                                payload                   summary\n"
+        return header + deviceDiagnosticEvents.map(\.reportLine).joined(separator: "\n")
     }
 
-    func setSettingsBLECaptureEnabled(_ isEnabled: Bool) {
-        isSettingsBLECaptureEnabled = isEnabled
-        if isEnabled, settingsCaptureStartedAt == nil {
-            settingsCaptureStartedAt = .now
+    func startDeviceDiagnosticCapture(for scale: PairedScale) {
+        deviceDiagnosticEvents.removeAll(keepingCapacity: true)
+        deviceDiagnosticCaptureStartedAt = .now
+        isDeviceDiagnosticCaptureEnabled = true
+        inspectSettings(for: scale)
+        appendDiagnosticEvent(kind: .service, source: "SESSION", summary: "开始采集目标设备 \(scale.name)")
+        beginScanning(clearDevices: false)
+    }
+
+    func stopDeviceDiagnosticCapture() {
+        appendDiagnosticEvent(kind: .service, source: "SESSION", summary: "停止采集")
+        isDeviceDiagnosticCaptureEnabled = false
+        if connected?.identifier == settingsScaleID {
+            scanRequested = false
+            central.stopScan()
         }
     }
 
@@ -337,7 +332,7 @@ final class BLEScaleManager: NSObject, ObservableObject {
         settingsOperationSucceeded = false
         settingsOperationMessage = "正在写入秤端单位"
         let command = XiaomiScaleConfigurationProtocol.unitCommand(unit)
-        captureSettingsExchange(
+        captureCharacteristicEvent(
             direction: .write,
             characteristic: characteristic,
             payload: command,
@@ -365,7 +360,7 @@ final class BLEScaleManager: NSObject, ObservableObject {
         settingsOperationSucceeded = false
         settingsOperationMessage = "正在同步秤端时间"
         let command = BluetoothCurrentTimeProtocol.payload(for: .now)
-        captureSettingsExchange(
+        captureCharacteristicEvent(
             direction: .write,
             characteristic: characteristic,
             payload: command,
@@ -378,7 +373,10 @@ final class BLEScaleManager: NSObject, ObservableObject {
     }
 
     private func connectForSettings(_ peripheral: CBPeripheral, name: String) {
-        central.stopScan()
+        if !isDeviceDiagnosticCaptureEnabled {
+            scanRequested = false
+            central.stopScan()
+        }
         connected = peripheral
         activeScaleID = peripheral.identifier
         activeScaleName = name
@@ -425,7 +423,7 @@ final class BLEScaleManager: NSObject, ObservableObject {
                           case .unit(let pendingUnit) = self.pendingSettingsOperation,
                           pendingUnit == expected,
                           self.connected === peripheral else { return }
-                    self.captureSettingsExchange(
+                    self.captureCharacteristicEvent(
                         direction: .read,
                         characteristic: characteristic,
                         summary: "等待秤端处理后读取单位配置"
@@ -435,7 +433,7 @@ final class BLEScaleManager: NSObject, ObservableObject {
                 }
             } else {
                 settingsOperationMessage = wasAcknowledged ? "写入回执成功，正在读回分析" : "命令已发送，正在读回分析"
-                captureSettingsExchange(
+                captureCharacteristicEvent(
                     direction: .read,
                     characteristic: characteristic,
                     summary: "请求读取特征值以辅助分析"
@@ -449,22 +447,37 @@ final class BLEScaleManager: NSObject, ObservableObject {
         }
     }
 
-    private func captureSettingsExchange(
-        direction: DeviceSettingsBLEExchange.Direction,
+    private func captureCharacteristicEvent(
+        direction: DeviceDiagnosticEvent.Kind,
         characteristic: CBCharacteristic,
         payload: Data? = nil,
         summary: String
     ) {
-        guard isSettingsBLECaptureEnabled, let settingsCaptureStartedAt else { return }
-        settingsBLEExchanges.append(DeviceSettingsBLEExchange(
-            elapsedSeconds: Date.now.timeIntervalSince(settingsCaptureStartedAt),
-            direction: direction,
-            characteristicUUID: characteristic.uuid.uuidString.uppercased(),
-            payloadHex: payload.map { $0.map { String(format: "%02X", $0) }.joined() },
+        appendDiagnosticEvent(
+            kind: direction,
+            source: characteristic.uuid.uuidString.uppercased(),
+            payload: payload,
+            summary: summary
+        )
+    }
+
+    private func appendDiagnosticEvent(
+        kind: DeviceDiagnosticEvent.Kind,
+        source: String,
+        payload: Data? = nil,
+        summary: String,
+        receivedAt: Date = .now
+    ) {
+        guard isDeviceDiagnosticCaptureEnabled, let deviceDiagnosticCaptureStartedAt else { return }
+        deviceDiagnosticEvents.append(DeviceDiagnosticEvent(
+            elapsedSeconds: receivedAt.timeIntervalSince(deviceDiagnosticCaptureStartedAt),
+            kind: kind,
+            source: source,
+            payloadHex: payload.map(Self.hexString),
             summary: summary
         ))
-        if settingsBLEExchanges.count > 200 {
-            settingsBLEExchanges.removeFirst(settingsBLEExchanges.count - 200)
+        if deviceDiagnosticEvents.count > 500 {
+            deviceDiagnosticEvents.removeFirst(deviceDiagnosticEvents.count - 500)
         }
     }
 
@@ -559,17 +572,11 @@ final class BLEScaleManager: NSObject, ObservableObject {
         }
     }
 
-    private func captureDiagnosticPayload(
+    private func diagnosticSummary(
         _ payload: Data,
         kind: DiagnosticPayloadKind,
         receivedAt: Date
-    ) {
-        guard isCapturingXiaomiDiagnostics, let diagnosticCaptureStartedAt else { return }
-        let source = switch kind {
-        case .xiaomiAdvertisement: "ADV-181B"
-        case .standardWeight: "GATT-2A9D"
-        case .standardBodyComposition: "GATT-2A9C"
-        }
+    ) -> String {
         let summary: String
         do {
             switch kind {
@@ -609,19 +616,81 @@ final class BLEScaleManager: NSObject, ObservableObject {
                     measurement.bodyFatPercent.map { String(format: "%.1f", $0) } ?? "-",
                     measurement.impedanceOhm.map { String(format: "%.0f", $0) } ?? "-"
                 )
+            case .icomonAFU:
+                let packet = try IcomonAFUScaleParser.parse(payload, now: receivedAt)
+                summary = String(
+                    format: "phase=%@ weight=%.5fkg impedance=%@ secondaryImpedance=%@",
+                    packet.phase.rawValue,
+                    packet.measurement.weightKG,
+                    packet.measurement.impedanceOhm.map { String(format: "%.0f", $0) } ?? "-",
+                    packet.secondaryImpedanceOhm.map { String(format: "%.0f", $0) } ?? "-"
+                )
             }
         } catch {
             summary = "rejected=\(error.localizedDescription)"
         }
-        xiaomiDiagnosticSamples.append(XiaomiDiagnosticSample(
-            elapsedSeconds: receivedAt.timeIntervalSince(diagnosticCaptureStartedAt),
-            source: source,
-            payloadHex: payload.map { String(format: "%02X", $0) }.joined(),
-            summary: summary
-        ))
-        if xiaomiDiagnosticSamples.count > 300 {
-            xiaomiDiagnosticSamples.removeFirst(xiaomiDiagnosticSamples.count - 300)
+        return summary
+    }
+
+    private func captureAdvertisement(
+        from peripheral: CBPeripheral,
+        data: [String: Any],
+        rssi: Int,
+        receivedAt: Date
+    ) {
+        guard isDeviceDiagnosticCaptureEnabled, peripheral.identifier == settingsScaleID else { return }
+        let name = discoveredName(for: peripheral, advertisement: data)
+        let connectable = (data[CBAdvertisementDataIsConnectable] as? NSNumber)?.boolValue
+        let txPower = (data[CBAdvertisementDataTxPowerLevelKey] as? NSNumber)?.intValue
+        var metadata = "name=\(name) rssi=\(rssi)"
+        if let connectable { metadata += " connectable=\(connectable ? 1 : 0)" }
+        if let txPower { metadata += " txPower=\(txPower)" }
+        appendDiagnosticEvent(
+            kind: .advertisement,
+            source: "ADV",
+            summary: metadata,
+            receivedAt: receivedAt
+        )
+
+        let advertisedServices = [
+            CBAdvertisementDataServiceUUIDsKey,
+            CBAdvertisementDataOverflowServiceUUIDsKey,
+            CBAdvertisementDataSolicitedServiceUUIDsKey
+        ].flatMap { data[$0] as? [CBUUID] ?? [] }
+        if !advertisedServices.isEmpty {
+            appendDiagnosticEvent(
+                kind: .advertisement,
+                source: "ADV-SERVICES",
+                summary: advertisedServices.map { $0.uuidString.uppercased() }.joined(separator: ", "),
+                receivedAt: receivedAt
+            )
         }
+        if let manufacturerData = data[CBAdvertisementDataManufacturerDataKey] as? Data {
+            appendDiagnosticEvent(
+                kind: .advertisement,
+                source: "ADV-MANUFACTURER",
+                payload: manufacturerData,
+                summary: "厂商自定义数据",
+                receivedAt: receivedAt
+            )
+        }
+        let serviceData = data[CBAdvertisementDataServiceDataKey] as? [CBUUID: Data] ?? [:]
+        for (uuid, payload) in serviceData.sorted(by: { $0.key.uuidString < $1.key.uuidString }) {
+            let summary = uuid == Self.bodyService
+                ? diagnosticSummary(payload, kind: .xiaomiAdvertisement, receivedAt: receivedAt)
+                : "服务数据"
+            appendDiagnosticEvent(
+                kind: .advertisement,
+                source: "ADV-\(uuid.uuidString.uppercased())",
+                payload: payload,
+                summary: summary,
+                receivedAt: receivedAt
+            )
+        }
+    }
+
+    private static func hexString(_ data: Data) -> String {
+        data.map { String(format: "%02X", $0) }.joined()
     }
 
     private func connectKnownStandardScale(from scales: [PairedScale]) {
@@ -666,7 +735,11 @@ final class BLEScaleManager: NSObject, ObservableObject {
             name: name,
             advertisedServiceUUIDs: Set(advertisedServices.map(\.uuidString)),
             serviceDataUUIDs: Set(serviceData.keys.map(\.uuidString)),
-            hasVerifiedXiaomiPayload: hasVerifiedXiaomiPayload
+            hasVerifiedXiaomiPayload: hasVerifiedXiaomiPayload,
+            hasVerifiedIcomonAFUIdentity: IcomonAFUScaleAdapter.matchesIdentity(
+                name: name,
+                advertisedServiceUUIDs: Set(advertisedServices.map(\.uuidString))
+            )
         )
     }
 
@@ -728,18 +801,21 @@ extension BLEScaleManager: CBCentralManagerDelegate {
 
     nonisolated func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String: Any], rssi RSSI: NSNumber) {
         Task { @MainActor in
+            let receivedAt = Date.now
+            captureAdvertisement(
+                from: peripheral,
+                data: advertisementData,
+                rssi: RSSI.intValue,
+                receivedAt: receivedAt
+            )
             let serviceData = advertisementData[CBAdvertisementDataServiceDataKey] as? [CBUUID: Data]
             let xiaomiPayload = serviceData?[Self.bodyService]
             let hasVerifiedXiaomiPayload = xiaomiPayload.flatMap {
-                try? XiaomiScaleParser.parsePacket($0, now: .now)
+                try? XiaomiScaleParser.parsePacket($0, now: receivedAt)
             } != nil
-            if let payload = xiaomiPayload {
-                captureDiagnosticPayload(payload, kind: .xiaomiAdvertisement, receivedAt: .now)
-            }
             if case .measuring = scanPurpose,
                pairedScaleIDs.contains(peripheral.identifier),
                let payload = serviceData?[Self.bodyService] {
-                let receivedAt = Date.now
                 if let packet = try? XiaomiScaleParser.parsePacket(payload, now: receivedAt) {
                     switch packet {
                     case .measurement(let measurement):
@@ -763,7 +839,7 @@ extension BLEScaleManager: CBCentralManagerDelegate {
                 return
             }
             let discovery = discoveryAdvertisement(
-                name: name,
+                name: pairedScaleModelNames[peripheral.identifier] ?? name,
                 advertisement: advertisementData,
                 hasVerifiedXiaomiPayload: hasVerifiedXiaomiPayload
             )
@@ -796,13 +872,16 @@ extension BLEScaleManager: CBCentralManagerDelegate {
     nonisolated func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
         Task { @MainActor in
             connectionTimeoutTask?.cancel()
+            if settingsScaleID == peripheral.identifier {
+                appendDiagnosticEvent(kind: .service, source: "CONNECTION", summary: "设备已连接")
+            }
             state = .connected(peripheral.name ?? "体重秤")
             if settingsScaleID == peripheral.identifier {
                 settingsState = .discovering
                 armSettingsTimeout(for: peripheral.identifier)
                 peripheral.discoverServices(nil)
             } else {
-                peripheral.discoverServices([Self.weightService, Self.bodyService])
+                peripheral.discoverServices([Self.weightService, Self.bodyService, Self.icomonService])
             }
         }
     }
@@ -812,6 +891,11 @@ extension BLEScaleManager: CBCentralManagerDelegate {
             connectionTimeoutTask?.cancel()
             connected = nil
             if settingsScaleID == peripheral.identifier {
+                appendDiagnosticEvent(
+                    kind: .error,
+                    source: "CONNECTION",
+                    summary: "连接失败：\(error?.localizedDescription ?? "未知错误")"
+                )
                 settingsState = .failed(error?.localizedDescription ?? "无法连接设备，请唤醒秤后重试")
             } else if case .measuring = scanPurpose, !pairedScaleIDs.isEmpty {
                 beginScanning(clearDevices: false)
@@ -828,6 +912,11 @@ extension BLEScaleManager: CBCentralManagerDelegate {
             activeScaleID = nil
             activeScaleName = nil
             if settingsScaleID == peripheral.identifier {
+                appendDiagnosticEvent(
+                    kind: error == nil ? .service : .error,
+                    source: "CONNECTION",
+                    summary: error.map { "连接断开：\($0.localizedDescription)" } ?? "设备已断开"
+                )
                 if error != nil {
                     settingsState = .failed("设备连接已断开")
                 }
@@ -845,6 +934,11 @@ extension BLEScaleManager: CBPeripheralDelegate {
         Task { @MainActor in
             guard error == nil else {
                 if settingsScaleID == peripheral.identifier {
+                    appendDiagnosticEvent(
+                        kind: .error,
+                        source: "GATT-SERVICES",
+                        summary: "服务发现失败：\(error?.localizedDescription ?? "未知错误")"
+                    )
                     settingsState = .failed(error?.localizedDescription ?? "无法读取设备服务")
                 }
                 return
@@ -854,6 +948,13 @@ extension BLEScaleManager: CBPeripheralDelegate {
                 settingsSnapshot.discoveredServiceUUIDs = services
                     .map { $0.uuid.uuidString.uppercased() }
                     .sorted()
+                for service in services {
+                    appendDiagnosticEvent(
+                        kind: .service,
+                        source: service.uuid.uuidString.uppercased(),
+                        summary: "发现 GATT 服务"
+                    )
+                }
                 pendingSettingsServiceIDs = Set(services.map(ObjectIdentifier.init))
                 guard !services.isEmpty else {
                     settingsState = .failed("设备没有公开可发现的 GATT 服务")
@@ -868,16 +969,45 @@ extension BLEScaleManager: CBPeripheralDelegate {
         Task { @MainActor in
             guard error == nil else {
                 if settingsScaleID == peripheral.identifier {
+                    appendDiagnosticEvent(
+                        kind: .error,
+                        source: service.uuid.uuidString.uppercased(),
+                        summary: "特征发现失败：\(error?.localizedDescription ?? "未知错误")"
+                    )
                     settingsState = .failed(error?.localizedDescription ?? "无法读取设备特征")
                 }
                 return
             }
             for characteristic in service.characteristics ?? [] {
-                if characteristic.uuid == Self.weightMeasurement || characteristic.uuid == Self.bodyMeasurement {
+                let isDiagnosticTarget = settingsScaleID == peripheral.identifier
+                    && isDeviceDiagnosticCaptureEnabled
+                if characteristic.uuid == Self.weightMeasurement
+                    || characteristic.uuid == Self.bodyMeasurement
+                    || characteristic.uuid == Self.icomonMeasurement
+                    || isDiagnosticTarget && (characteristic.properties.contains(.notify) || characteristic.properties.contains(.indicate)) {
                     peripheral.setNotifyValue(true, for: characteristic)
                 }
                 guard settingsScaleID == peripheral.identifier else { continue }
+                appendDiagnosticEvent(
+                    kind: .characteristic,
+                    source: characteristic.uuid.uuidString.uppercased(),
+                    summary: "service=\(service.uuid.uuidString.uppercased()) properties=\(characteristicPropertiesDescription(characteristic.properties))"
+                )
                 inspectSettingsCharacteristic(characteristic, in: service, on: peripheral)
+                let isKnownAutoRead = characteristic.uuid == Self.softwareRevision
+                    || characteristic.uuid == Self.hardwareRevision
+                    || characteristic.uuid == Self.serialNumber
+                    || characteristic.uuid == Self.xiaomiConfiguration
+                if isDiagnosticTarget,
+                   characteristic.properties.contains(.read),
+                   !isKnownAutoRead {
+                    captureCharacteristicEvent(
+                        direction: .read,
+                        characteristic: characteristic,
+                        summary: "诊断读取可读特征"
+                    )
+                    peripheral.readValue(for: characteristic)
+                }
             }
             if settingsScaleID == peripheral.identifier {
                 pendingSettingsServiceIDs.remove(ObjectIdentifier(service))
@@ -891,14 +1021,16 @@ extension BLEScaleManager: CBPeripheralDelegate {
     nonisolated func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
         if let error {
             Task { @MainActor in
-                if settingsScaleID == peripheral.identifier,
-                   characteristic.uuid == Self.xiaomiConfiguration || characteristic.uuid == Self.currentTime,
-                   pendingSettingsOperation != nil {
-                    captureSettingsExchange(
+                if settingsScaleID == peripheral.identifier {
+                    captureCharacteristicEvent(
                         direction: .error,
                         characteristic: characteristic,
-                        summary: "读取失败：\(error.localizedDescription)"
+                        summary: "接收失败：\(error.localizedDescription)"
                     )
+                }
+                if settingsScaleID == peripheral.identifier,
+                   (characteristic.uuid == Self.xiaomiConfiguration || characteristic.uuid == Self.currentTime),
+                   pendingSettingsOperation != nil {
                     settingsOperationSucceeded = true
                     settingsOperationMessage = "命令已写入，但设备不支持可靠读回；请核对秤面显示"
                     pendingSettingsOperation = nil
@@ -909,23 +1041,36 @@ extension BLEScaleManager: CBPeripheralDelegate {
         guard let data = characteristic.value else { return }
         Task { @MainActor in
             if settingsScaleID == peripheral.identifier {
-                if characteristic.uuid == Self.xiaomiConfiguration || characteristic.uuid == Self.currentTime {
-                    captureSettingsExchange(
-                        direction: .received,
-                        characteristic: characteristic,
-                        payload: data,
-                        summary: settingsResponseSummary(data, characteristic: characteristic)
-                    )
-                }
+                captureCharacteristicEvent(
+                    direction: characteristic.isNotifying ? .notification : .received,
+                    characteristic: characteristic,
+                    payload: data,
+                    summary: diagnosticValueSummary(data, characteristic: characteristic)
+                )
                 consumeSettingsValue(data, from: characteristic)
             }
-            if characteristic.uuid == Self.weightMeasurement {
-                captureDiagnosticPayload(data, kind: .standardWeight, receivedAt: .now)
-            } else if characteristic.uuid == Self.bodyMeasurement {
-                captureDiagnosticPayload(data, kind: .standardBodyComposition, receivedAt: .now)
-            }
 
-            if characteristic.uuid == Self.weightMeasurement,
+            if characteristic.uuid == Self.icomonMeasurement,
+               let packet = try? IcomonAFUScaleParser.parse(data) {
+                guard case .measuring = scanPurpose else { return }
+                switch packet.phase {
+                case .live:
+                    if didCompleteIcomonFinal {
+                        measurementSession.reset()
+                        didCompleteIcomonFinal = false
+                    }
+                    liveWeightKG = packet.measurement.weightKG
+                    state = .measuring
+                case .stable:
+                    guard !didCompleteIcomonFinal else { return }
+                    liveWeightKG = packet.measurement.weightKG
+                    state = .stabilizing
+                case .final:
+                    guard !didCompleteIcomonFinal else { return }
+                    didCompleteIcomonFinal = true
+                    consume(packet.measurement, reliability: .protocolFinal)
+                }
+            } else if characteristic.uuid == Self.weightMeasurement,
                XiaomiGATTWeightParser.matches(data),
                let packet = try? XiaomiGATTWeightParser.parsePacket(data) {
                 switch packet {
@@ -956,12 +1101,31 @@ extension BLEScaleManager: CBPeripheralDelegate {
         }
     }
 
+    nonisolated func peripheral(_ peripheral: CBPeripheral, didUpdateNotificationStateFor characteristic: CBCharacteristic, error: Error?) {
+        Task { @MainActor in
+            guard settingsScaleID == peripheral.identifier else { return }
+            if let error {
+                captureCharacteristicEvent(
+                    direction: .error,
+                    characteristic: characteristic,
+                    summary: "订阅失败：\(error.localizedDescription)"
+                )
+            } else {
+                captureCharacteristicEvent(
+                    direction: .notification,
+                    characteristic: characteristic,
+                    summary: characteristic.isNotifying ? "通知已订阅" : "通知已取消"
+                )
+            }
+        }
+    }
+
     nonisolated func peripheral(_ peripheral: CBPeripheral, didWriteValueFor characteristic: CBCharacteristic, error: Error?) {
         Task { @MainActor in
             guard settingsScaleID == peripheral.identifier,
                   characteristic.uuid == Self.xiaomiConfiguration || characteristic.uuid == Self.currentTime else { return }
             if let error {
-                captureSettingsExchange(
+                captureCharacteristicEvent(
                     direction: .error,
                     characteristic: characteristic,
                     summary: "写入失败：\(error.localizedDescription)"
@@ -970,7 +1134,7 @@ extension BLEScaleManager: CBPeripheralDelegate {
                 settingsOperationMessage = "写入失败：\(error.localizedDescription)"
                 pendingSettingsOperation = nil
             } else {
-                captureSettingsExchange(
+                captureCharacteristicEvent(
                     direction: .acknowledgement,
                     characteristic: characteristic,
                     summary: "ATT 写入回执成功"
@@ -997,13 +1161,20 @@ extension BLEScaleManager: CBPeripheralDelegate {
 
         switch characteristic.uuid {
         case Self.softwareRevision, Self.hardwareRevision, Self.serialNumber:
-            if characteristic.properties.contains(.read) { peripheral.readValue(for: characteristic) }
+            if characteristic.properties.contains(.read) {
+                captureCharacteristicEvent(
+                    direction: .read,
+                    characteristic: characteristic,
+                    summary: "读取设备信息"
+                )
+                peripheral.readValue(for: characteristic)
+            }
         case Self.xiaomiConfiguration:
             if service.uuid == Self.xiaomiConfigurationService {
                 settingsConfigurationCharacteristic = characteristic
                 settingsSnapshot.canConfigureXiaomiUnit = isWritable
                 if characteristic.properties.contains(.read) {
-                    captureSettingsExchange(
+                    captureCharacteristicEvent(
                         direction: .read,
                         characteristic: characteristic,
                         summary: "读取当前配置"
@@ -1073,7 +1244,16 @@ extension BLEScaleManager: CBPeripheralDelegate {
         return value?.isEmpty == false ? value : nil
     }
 
-    private func settingsResponseSummary(_ data: Data, characteristic: CBCharacteristic) -> String {
+    private func diagnosticValueSummary(_ data: Data, characteristic: CBCharacteristic) -> String {
+        if characteristic.uuid == Self.weightMeasurement {
+            return diagnosticSummary(data, kind: .standardWeight, receivedAt: .now)
+        }
+        if characteristic.uuid == Self.bodyMeasurement {
+            return diagnosticSummary(data, kind: .standardBodyComposition, receivedAt: .now)
+        }
+        if characteristic.uuid == Self.icomonMeasurement {
+            return diagnosticSummary(data, kind: .icomonAFU, receivedAt: .now)
+        }
         if characteristic.uuid == Self.xiaomiConfiguration {
             if let unit = XiaomiScaleConfigurationProtocol.parseUnit(from: data) {
                 return "解析为单位配置：\(unit.title)"
@@ -1087,6 +1267,25 @@ extension BLEScaleManager: CBPeripheralDelegate {
            let date = BluetoothCurrentTimeProtocol.parseDate(from: data) {
             return "解析时间：\(date.formatted(.dateTime.year().month().day().hour().minute().second()))"
         }
-        return "未识别响应"
+        if let string = decodedDeviceInformationString(data),
+           string.unicodeScalars.allSatisfy({ !CharacterSet.controlCharacters.contains($0) }) {
+            return "UTF-8：\(string)"
+        }
+        return "未识别的原始值（\(data.count) 字节）"
+    }
+
+    private func characteristicPropertiesDescription(_ properties: CBCharacteristicProperties) -> String {
+        var values: [String] = []
+        if properties.contains(.broadcast) { values.append("broadcast") }
+        if properties.contains(.read) { values.append("read") }
+        if properties.contains(.writeWithoutResponse) { values.append("writeWithoutResponse") }
+        if properties.contains(.write) { values.append("write") }
+        if properties.contains(.notify) { values.append("notify") }
+        if properties.contains(.indicate) { values.append("indicate") }
+        if properties.contains(.authenticatedSignedWrites) { values.append("signedWrite") }
+        if properties.contains(.extendedProperties) { values.append("extended") }
+        if properties.contains(.notifyEncryptionRequired) { values.append("notifyEncrypted") }
+        if properties.contains(.indicateEncryptionRequired) { values.append("indicateEncrypted") }
+        return values.isEmpty ? "none" : values.joined(separator: "|")
     }
 }

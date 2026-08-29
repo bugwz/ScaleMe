@@ -469,50 +469,59 @@ private struct ScaleSettingsView: View {
     }
 
     private var capturePanel: some View {
-        DeviceSettingsPanel(title: "BLE 交互抓取", icon: "waveform.path.ecg") {
-            Toggle("开启抓取", isOn: Binding(
-                get: { bluetooth.isSettingsBLECaptureEnabled },
-                set: { bluetooth.setSettingsBLECaptureEnabled($0) }
+        DeviceSettingsPanel(title: "设备诊断采集", icon: "waveform.path.ecg") {
+            Toggle("开启采集", isOn: Binding(
+                get: { bluetooth.isDeviceDiagnosticCaptureEnabled },
+                set: { isEnabled in
+                    if isEnabled, let scale {
+                        bluetooth.startDeviceDiagnosticCapture(for: scale)
+                    } else {
+                        bluetooth.stopDeviceDiagnosticCapture()
+                    }
+                }
             ))
             .tint(AppColor.mint)
+
+            Text("开启后请唤醒并使用体重秤。观我会重新检测该设备，并记录原始广播、厂商数据、服务、特征、读写与通知，便于分析尚未支持的协议。数据仅保留在当前内存中。")
+                .font(.caption).foregroundStyle(AppColor.secondary).lineSpacing(3)
 
             Divider()
 
             HStack {
-                Text("最近 \(bluetooth.settingsBLEExchanges.count) 条")
+                Text("最近 \(bluetooth.deviceDiagnosticEvents.count) 条")
                     .font(.caption).foregroundStyle(AppColor.secondary)
                 Spacer()
-                ShareLink(item: bluetooth.settingsBLEReport) {
+                ShareLink(item: bluetooth.deviceDiagnosticReport) {
                     Label("导出", systemImage: "square.and.arrow.up")
                 }
-                .disabled(bluetooth.settingsBLEExchanges.isEmpty)
+                .disabled(bluetooth.deviceDiagnosticEvents.isEmpty)
             }
 
-            if !bluetooth.isSettingsBLECaptureEnabled, bluetooth.settingsBLEExchanges.isEmpty {
-                Text("抓取已关闭")
+            if !bluetooth.isDeviceDiagnosticCaptureEnabled, bluetooth.deviceDiagnosticEvents.isEmpty {
+                Text("采集已关闭")
                     .font(.caption).foregroundStyle(AppColor.secondary)
-            } else if bluetooth.settingsBLEExchanges.isEmpty {
-                Text("执行单位设置或时间同步后，这里会显示写入载荷、ATT 回执和设备返回值。")
+            } else if bluetooth.deviceDiagnosticEvents.isEmpty {
+                Text("等待设备广播或返回数据。")
                     .font(.caption).foregroundStyle(AppColor.secondary).lineSpacing(3)
             } else {
-                ForEach(Array(bluetooth.settingsBLEExchanges.suffix(12))) { exchange in
+                ForEach(Array(bluetooth.deviceDiagnosticEvents.suffix(16))) { event in
                     Divider()
                     VStack(alignment: .leading, spacing: 5) {
                         HStack {
-                            StatusPill(text: exchange.direction.rawValue, color: exchangeColor(exchange.direction))
-                            Text(shortUUID(exchange.characteristicUUID))
+                            StatusPill(text: event.kind.rawValue, color: diagnosticEventColor(event.kind))
+                            Text(shortUUID(event.source))
                                 .font(.system(.caption, design: .monospaced))
                             Spacer()
-                            Text("\(exchange.elapsedSeconds.formatted(3))s")
+                            Text("\(event.elapsedSeconds.formatted(3))s")
                                 .font(.caption2).foregroundStyle(AppColor.secondary)
                         }
-                        if let payload = exchange.payloadHex {
+                        if let payload = event.payloadHex {
                             Text(payload)
                                 .font(.system(.caption2, design: .monospaced))
                                 .foregroundStyle(AppColor.ink)
                                 .textSelection(.enabled)
                         }
-                        Text(exchange.summary)
+                        Text(event.summary)
                             .font(.caption).foregroundStyle(AppColor.secondary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
@@ -558,10 +567,12 @@ private struct ScaleSettingsView: View {
         }
     }
 
-    private func exchangeColor(_ direction: DeviceSettingsBLEExchange.Direction) -> Color {
-        switch direction {
+    private func diagnosticEventColor(_ kind: DeviceDiagnosticEvent.Kind) -> Color {
+        switch kind {
+        case .advertisement: AppColor.apricot
+        case .service, .characteristic: AppColor.violet
         case .write: AppColor.sky
-        case .acknowledgement, .received: AppColor.mint
+        case .acknowledgement, .notification, .received: AppColor.mint
         case .read: AppColor.violet
         case .error: AppColor.rose
         }

@@ -5,7 +5,6 @@ struct MeasureView: View {
     @EnvironmentObject private var bluetooth: BLEScaleManager
     @EnvironmentObject private var store: MeasurementStore
     @State private var showSafety = false
-    @State private var showXiaomiDiagnostics = false
     @State private var isPulsing = false
 
     private var liveMeasurement: BodyMeasurement? { bluetooth.latestMeasurement }
@@ -28,12 +27,6 @@ struct MeasureView: View {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button { showSafety = true } label: { Image(systemName: "info.circle") }
                 }
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button { showXiaomiDiagnostics = true } label: {
-                        Image(systemName: "antenna.radiowaves.left.and.right")
-                    }
-                    .accessibilityLabel("小米测量诊断")
-                }
             }
             .onAppear {
                 isPulsing = true
@@ -51,10 +44,6 @@ struct MeasureView: View {
                 Button("知道了") {}
             } message: {
                 Text("请确保地板、秤面和脚底干燥。孕期、植入心脏起搏器或其他医疗设备时，请勿依赖生物电阻抗体脂结果，并遵循设备厂商及医生建议。")
-            }
-            .sheet(isPresented: $showXiaomiDiagnostics) {
-                XiaomiDiagnosticsView()
-                    .environmentObject(bluetooth)
             }
         }
     }
@@ -176,75 +165,5 @@ struct MeasureView: View {
         }
         .font(.caption).foregroundStyle(AppColor.secondary)
         .multilineTextAlignment(.center)
-    }
-}
-
-private struct XiaomiDiagnosticsView: View {
-    @Environment(\.dismiss) private var dismiss
-    @EnvironmentObject private var bluetooth: BLEScaleManager
-
-    var body: some View {
-        NavigationStack {
-            VStack(alignment: .leading, spacing: 18) {
-                Label(
-                    bluetooth.isCapturingXiaomiDiagnostics ? "正在采集" : "已停止",
-                    systemImage: bluetooth.isCapturingXiaomiDiagnostics ? "record.circle" : "stop.circle"
-                )
-                .font(.headline)
-                .foregroundStyle(bluetooth.isCapturingXiaomiDiagnostics ? AppColor.rose : AppColor.secondary)
-
-                Text("诊断数据包含 0x181B 广播、0x2A9D/0x2A9C 特征值和测量读数，仅保留在当前内存中。")
-                    .font(.footnote)
-                    .foregroundStyle(AppColor.secondary)
-
-                HStack(spacing: 12) {
-                    Button {
-                        if bluetooth.isCapturingXiaomiDiagnostics {
-                            bluetooth.stopXiaomiDiagnosticCapture()
-                        } else {
-                            bluetooth.startXiaomiDiagnosticCapture()
-                        }
-                    } label: {
-                        Label(
-                            bluetooth.isCapturingXiaomiDiagnostics ? "停止采集" : "开始采集",
-                            systemImage: bluetooth.isCapturingXiaomiDiagnostics ? "stop.fill" : "record.circle"
-                        )
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .tint(bluetooth.isCapturingXiaomiDiagnostics ? AppColor.rose : AppColor.mint)
-
-                    ShareLink(item: bluetooth.xiaomiDiagnosticReport) {
-                        Label("导出", systemImage: "square.and.arrow.up")
-                    }
-                    .buttonStyle(.bordered)
-                    .disabled(bluetooth.xiaomiDiagnosticSamples.isEmpty)
-                }
-
-                Divider()
-
-                if bluetooth.xiaomiDiagnosticSamples.isEmpty {
-                    ContentUnavailableView("暂无诊断数据", systemImage: "waveform")
-                } else {
-                    ScrollView {
-                        LazyVStack(alignment: .leading, spacing: 6) {
-                            ForEach(bluetooth.xiaomiDiagnosticSamples.suffix(40)) { sample in
-                                Text(sample.reportLine)
-                                    .font(.system(.caption2, design: .monospaced))
-                                    .textSelection(.enabled)
-                            }
-                        }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    }
-                }
-            }
-            .padding(18)
-            .navigationTitle("小米测量诊断")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("完成") { dismiss() }
-                }
-            }
-        }
     }
 }
