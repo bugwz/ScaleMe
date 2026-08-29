@@ -46,6 +46,32 @@ struct StatusPill: View {
     }
 }
 
+struct ProfileSwitcher: View {
+    @EnvironmentObject private var store: MeasurementStore
+
+    var body: some View {
+        Menu {
+            ForEach(store.profiles) { profile in
+                Button {
+                    store.selectProfile(profile.id)
+                } label: {
+                    Label(profile.name, systemImage: profile.id == store.selectedProfileID ? "checkmark" : "person")
+                }
+            }
+        } label: {
+            HStack(spacing: 6) {
+                Text(String(store.selectedProfile.name.prefix(1)))
+                    .font(.caption.bold()).foregroundStyle(.white)
+                    .frame(width: 26, height: 26).background(AppColor.mint, in: Circle())
+                Text(store.selectedProfile.name).font(.subheadline.weight(.semibold)).lineLimit(1)
+                Image(systemName: "chevron.down").font(.caption2)
+            }
+            .foregroundStyle(AppColor.ink)
+            .accessibilityLabel("当前成员：\(store.selectedProfile.name)")
+        }
+    }
+}
+
 extension View {
     func pageBackground() -> some View {
         background(

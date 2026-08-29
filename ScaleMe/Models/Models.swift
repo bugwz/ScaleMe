@@ -36,6 +36,9 @@ struct BodyMeasurement: Identifiable, Codable, Hashable {
     var boneMassKG: Double?
     var source: MeasurementSource
     var isStable: Bool
+    var profileID: UUID? = nil
+    var deviceID: UUID? = nil
+    var deviceName: String? = nil
 
     func bmi(heightCM: Double) -> Double {
         guard heightCM > 0 else { return 0 }
@@ -43,8 +46,10 @@ struct BodyMeasurement: Identifiable, Codable, Hashable {
     }
 }
 
-struct UserProfile: Codable, Equatable {
+struct UserProfile: Identifiable, Codable, Equatable {
+    var id = UUID()
     var name = "我"
+    var relation = "本人"
     var heightCM = 168.0
     var birthDate = Calendar.current.date(byAdding: .year, value: -30, to: .now) ?? .now
     var biologicalSex = BiologicalSex.female
@@ -61,11 +66,29 @@ struct UserProfile: Codable, Equatable {
     }
 }
 
+struct PairedScale: Identifiable, Codable, Equatable, Hashable {
+    var id: UUID
+    var name: String
+    var modelName: String
+    var compatibility: String
+    var addedAt = Date.now
+}
+
 struct AppConfiguration: Codable, Equatable {
-    var profile: UserProfile
+    var profiles: [UserProfile]
+    var selectedProfileID: UUID
+    var pairedScales: [PairedScale]
     var unit: WeightUnit
 
-    static let standard = AppConfiguration(profile: UserProfile(), unit: .kilograms)
+    static var standard: AppConfiguration {
+        let profile = UserProfile()
+        return AppConfiguration(
+            profiles: [profile],
+            selectedProfileID: profile.id,
+            pairedScales: [],
+            unit: .kilograms
+        )
+    }
 }
 
 struct MeasurementArchive: Codable, Equatable {

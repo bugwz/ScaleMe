@@ -18,7 +18,7 @@
 
 </div>
 
-观我提供 SwiftUI 身体数据仪表盘、历史趋势、本地资料与加密记录、手动录入、BLE 扫描、可选 iCloud 文件同步，以及可扩展的体重秤协议解析层。
+观我提供 SwiftUI 身体数据仪表盘、多成员档案、多个体重秤管理、可交互历史趋势、本地加密记录、手动录入、BLE 扫描、可选 iCloud 文件同步，以及可扩展的体重秤协议解析层。
 
 界面内 Logo 使用纯薄荷绿圆形与白色对称 `M` 折线，由 [`Design/Logo/logo.svg`](Design/Logo/logo.svg) 生成并通过 Xcode Asset Catalog 管理；README 使用透明背景、无白色外圈的 [`readme-logo.svg`](Design/Logo/readme-logo.svg)。iOS 应用图标使用纯白外部区域，并将 Logo 居中呈现。
 
@@ -40,6 +40,8 @@
 3. 选择开发团队后安装到 iPhone，首次搜索设备时允许蓝牙权限。
 4. 如需使用 iCloud 同步，请在开发者账号为 App ID 启用 iCloud Documents，并确认 Xcode 中的 `iCloud.com.scaleme.app` 容器可用于当前团队。
 
+设备需先在“设备”页的独立扫描界面中添加并可自定义名称。进入“称重”页后，应用会自动监听已关联设备，不再展示或搜索任意附近设备。概览和趋势按当前成员展示数据；趋势默认聚合该成员的全部设备记录，也可筛选单台设备，并支持按住图表左右拖动查看具体时间点。
+
 协议解析烟雾测试可运行：
 
 ```sh
@@ -56,7 +58,7 @@ swiftc ScaleMe/Models/Models.swift ScaleMe/Storage/SecureAppRepository.swift Tes
 
 ## 数据与医学边界
 
-配置与记录默认保存在应用沙盒的 `ScaleMe/` 目录：`configuration.json` 保存应用配置，`measurements.enc` 使用 AES-GCM 加密保存测量记录。设置中可分别开启配置与数据的 iCloud 文件同步；配置策略只能选择单向推送或单向拉取，云端操作均异步执行。本机数据使用仅限当前设备的 Keychain 密钥；开启数据同步后，云端文件使用独立的可同步 iCloud Keychain 密钥，使同一 Apple 账户的设备能够解密数据文件。
+配置与记录默认保存在应用沙盒的 `ScaleMe/` 目录：`configuration-v2.json` 保存成员、设备和应用配置，`measurements-v2.enc` 使用 AES-GCM 加密保存带成员及设备归属的测量记录。设置中可分别开启配置与数据的 iCloud 文件同步；配置策略只能选择单向推送或单向拉取，云端操作均异步执行。本机数据使用仅限当前设备的 Keychain 密钥；开启数据同步后，云端文件使用独立的可同步 iCloud Keychain 密钥，使同一 Apple 账户的设备能够解密数据文件。
 
 阻抗推导的体脂等指标是消费级估算，不能用于诊断。正式发布前还应完成 HealthKit capability、隐私清单、iCloud 多设备实测、设备矩阵实测和 App Store 隐私申报。
 

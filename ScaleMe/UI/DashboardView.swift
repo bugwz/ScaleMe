@@ -5,9 +5,16 @@ struct DashboardView: View {
     @EnvironmentObject private var store: MeasurementStore
     let onMeasure: () -> Void
     @State private var showAdd = false
+    @State private var selectedTrendDate: Date?
 
     private var latest: BodyMeasurement { store.latest ?? MeasurementStore.demoMeasurements[0] }
     private var previous: BodyMeasurement? { store.displayMeasurements.dropFirst().first }
+    private var selectedTrend: BodyMeasurement? {
+        guard let selectedTrendDate else { return nil }
+        return store.displayMeasurements.prefix(12).min {
+            abs($0.date.timeIntervalSince(selectedTrendDate)) < abs($1.date.timeIntervalSince(selectedTrendDate))
+        }
+    }
 
     var body: some View {
         NavigationStack {
@@ -31,6 +38,7 @@ struct DashboardView: View {
             .navigationTitle("观我")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .topBarLeading) { ProfileSwitcher() }
                 ToolbarItem(placement: .principal) {
                     HStack(spacing: 9) {
                         Image("AppLogo")
@@ -77,6 +85,8 @@ struct DashboardView: View {
                     if let fat = latest.bodyFatPercent { Label("体脂 \(fat.formatted(1))%", systemImage: "drop.fill") }
                 }
                 .font(.caption).foregroundStyle(AppColor.secondary)
+                Label(sourceName(for: latest), systemImage: "scalemass")
+                    .font(.caption2).foregroundStyle(AppColor.secondary)
                 Button(action: onMeasure) {
                     Label("开始称重", systemImage: "wave.3.right")
                         .font(.subheadline.weight(.semibold))
@@ -107,11 +117,26 @@ struct DashboardView: View {
                     NavigationLink("全部") { HistoryView() }.font(.subheadline.weight(.semibold))
                 }
                 Chart(store.displayMeasurements.prefix(12).reversed()) { item in
-                    AreaMark(x: .value("日期", item.date), y: .value("体重", item.weightKG))
+                    AreaMark(x: .value("日期", item.date), y: .value("体重", store.unit.value(fromKilograms: item.weightKG)))
                         .foregroundStyle(LinearGradient(colors: [AppColor.mint.opacity(0.26), .clear], startPoint: .top, endPoint: .bottom))
-                    LineMark(x: .value("日期", item.date), y: .value("体重", item.weightKG))
+                    LineMark(x: .value("日期", item.date), y: .value("体重", store.unit.value(fromKilograms: item.weightKG)))
                         .foregroundStyle(AppColor.mint).lineStyle(.init(lineWidth: 3, lineCap: .round, lineJoin: .round))
+                    if selectedTrend?.id == item.id {
+                        RuleMark(x: .value("选中日期", item.date))
+                            .foregroundStyle(AppColor.secondary.opacity(0.45))
+                            .annotation(position: .top, overflowResolution: .init(x: .fit, y: .disabled)) {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("\(store.unit.value(fromKilograms: item.weightKG).formatted(1)) \(store.unit.rawValue)").font(.caption.bold())
+                                    Text(item.date, format: .dateTime.month().day()).font(.caption2)
+                                    Text(sourceName(for: item)).font(.caption2).foregroundStyle(AppColor.secondary)
+                                }
+                                .padding(7).background(.white, in: RoundedRectangle(cornerRadius: 7))
+                            }
+                        PointMark(x: .value("日期", item.date), y: .value("体重", store.unit.value(fromKilograms: item.weightKG)))
+                            .foregroundStyle(AppColor.mint).symbolSize(60)
+                    }
                 }
+                .chartXSelection(value: $selectedTrendDate)
                 .chartXAxis(.hidden)
                 .chartYAxis { AxisMarks(position: .trailing) { value in AxisGridLine().foregroundStyle(.gray.opacity(0.12)); AxisValueLabel() } }
                 .frame(height: 145)
@@ -121,10 +146,10 @@ struct DashboardView: View {
 
     private var metricsGrid: some View {
         LazyVGrid(columns: [.init(.flexible()), .init(.flexible())], spacing: 12) {
-            MetricTile(title: "体脂率", value: latest.bodyFatPercent?.formatted(1) ?? "—", unit: "%", icon: "drop.fill", color: AppColor.apricot)
-            MetricTile(title: "肌肉量", value: latest.muscleMassKG?.formatted(1) ?? "—", unit: "kg", icon: "figure.strengthtraining.traditional", color: AppColor.violet)
-            MetricTile(title: "身体水分", value: latest.waterPercent?.formatted(1) ?? "—", unit: "%", icon: "water.waves", color: AppColor.sky)
-            MetricTile(title: "基础代谢", value: latest.basalMetabolismKCal?.formatted(0) ?? "—", unit: "kcal", icon: "flame.fill", color: AppColor.rose)
+            MetricTile(title: "体脂率", value: latest.bodyFatPercent?.formatted(1) ?? "—", unit: "%", source: sourceName(for: latest), icon: "drop.fill", color: AppColor.apricot)
+            MetricTile(title: "肌肉量", value: latest.muscleMassKG?.formatted(1) ?? "—", unit: "kg", source: sourceName(for: latest), icon: "figure.strengthtraining.traditional", color: AppColor.violet)
+            MetricTile(title: "身体水分", value: latest.waterPercent?.formatted(1) ?? "—", unit: "%", source: sourceName(for: latest), icon: "water.waves", color: AppColor.sky)
+            MetricTile(title: "基础代谢", value: latest.basalMetabolismKCal?.formatted(0) ?? "—", unit: "kcal", source: sourceName(for: latest), icon: "flame.fill", color: AppColor.rose)
         }
     }
 
@@ -140,10 +165,18 @@ struct DashboardView: View {
             }
         }
     }
+
+    private func sourceName(for measurement: BodyMeasurement) -> String {
+        if let deviceID = measurement.deviceID,
+           let scale = store.pairedScales.first(where: { $0.id == deviceID }) {
+            return scale.name
+        }
+        return measurement.deviceName ?? measurement.source.rawValue
+    }
 }
 
 private struct MetricTile: View {
-    let title: String, value: String, unit: String, icon: String
+    let title: String, value: String, unit: String, source: String, icon: String
     let color: Color
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -153,6 +186,7 @@ private struct MetricTile: View {
                 Text(unit).font(.caption).foregroundStyle(AppColor.secondary)
             }
             Text(title).font(.caption).foregroundStyle(AppColor.secondary)
+            Text(source).font(.caption2).foregroundStyle(AppColor.secondary).lineLimit(1)
         }
         .padding(17).background(.white).clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
     }

@@ -11,12 +11,17 @@ enum StorageSmoke {
         precondition(encrypted != plaintext, "encrypted data must not expose plaintext")
         precondition(decrypted == plaintext, "AES-GCM round trip failed")
 
+        let profileID = UUID()
+        let scaleID = UUID()
         let retained = BodyMeasurement(
             id: UUID(),
             date: .now,
             weightKG: 58,
             source: .manual,
-            isStable: true
+            isStable: true,
+            profileID: profileID,
+            deviceID: scaleID,
+            deviceName: "浴室秤"
         )
         let removed = BodyMeasurement(
             id: UUID(),
@@ -38,6 +43,24 @@ enum StorageSmoke {
         let merged = local.merging(cloud)
 
         precondition(merged.measurements == [retained], "deleted records must not be resurrected")
+        precondition(merged.measurements[0].deviceName == "浴室秤", "measurement source attribution must survive archive merge")
+
+        let profile = UserProfile(name: "测试成员", relation: "本人")
+        let scale = PairedScale(
+            id: scaleID,
+            name: "浴室秤",
+            modelName: "Test Scale",
+            compatibility: "Bluetooth SIG 标准"
+        )
+        let configuration = AppConfiguration(
+            profiles: [profile],
+            selectedProfileID: profile.id,
+            pairedScales: [scale],
+            unit: .kilograms
+        )
+        let configurationData = try JSONEncoder().encode(configuration)
+        let decoded = try JSONDecoder().decode(AppConfiguration.self, from: configurationData)
+        precondition(decoded == configuration, "multi-profile and paired-device configuration round trip failed")
         print("Storage smoke tests passed")
     }
 }

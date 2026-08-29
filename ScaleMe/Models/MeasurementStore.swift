@@ -4,7 +4,9 @@ import Foundation
 final class MeasurementStore: ObservableObject {
     @Published private(set) var measurements: [BodyMeasurement]
     @Published private(set) var deletedMeasurementIDs: Set<UUID>
-    @Published var profile: UserProfile { didSet { persistConfigurationIfNeeded() } }
+    @Published private(set) var profiles: [UserProfile] { didSet { persistConfigurationIfNeeded() } }
+    @Published private(set) var selectedProfileID: UUID { didSet { persistConfigurationIfNeeded() } }
+    @Published private(set) var pairedScales: [PairedScale] { didSet { persistConfigurationIfNeeded() } }
     @Published var unit: WeightUnit { didSet { persistConfigurationIfNeeded() } }
     @Published private(set) var storageError: String?
 
@@ -38,7 +40,9 @@ final class MeasurementStore: ObservableObject {
         }
 
         repository = loadedRepository
-        profile = loadedConfiguration.profile
+        profiles = loadedConfiguration.profiles
+        selectedProfileID = loadedConfiguration.selectedProfileID
+        pairedScales = loadedConfiguration.pairedScales
         unit = loadedConfiguration.unit
         measurements = loadedArchive.measurements.sorted { $0.date > $1.date }
         deletedMeasurementIDs = loadedArchive.deletedMeasurementIDs
@@ -47,7 +51,12 @@ final class MeasurementStore: ObservableObject {
     }
 
     var configuration: AppConfiguration {
-        AppConfiguration(profile: profile, unit: unit)
+        AppConfiguration(
+            profiles: profiles,
+            selectedProfileID: selectedProfileID,
+            pairedScales: pairedScales,
+            unit: unit
+        )
     }
 
     var archive: MeasurementArchive {
@@ -58,13 +67,37 @@ final class MeasurementStore: ObservableObject {
         )
     }
 
-    var displayMeasurements: [BodyMeasurement] { measurements.isEmpty ? Self.demoMeasurements : measurements }
+    var selectedProfile: UserProfile {
+        profiles.first(where: { $0.id == selectedProfileID }) ?? profiles[0]
+    }
+
+    var profile: UserProfile { selectedProfile }
+
+    var selectedMeasurements: [BodyMeasurement] {
+        measurements.filter { $0.profileID == selectedProfileID }
+    }
+
+    var displayMeasurements: [BodyMeasurement] {
+        selectedMeasurements.isEmpty ? Self.demoMeasurements.map {
+            var value = $0
+            value.profileID = selectedProfileID
+            return value
+        } : selectedMeasurements
+    }
     var latest: BodyMeasurement? { displayMeasurements.first }
-    var isShowingDemoData: Bool { measurements.isEmpty }
+    var isShowingDemoData: Bool { selectedMeasurements.isEmpty }
 
     func add(_ measurement: BodyMeasurement) {
-        let enriched = BodyCompositionEstimator.enriching(measurement, profile: profile)
+        var attributed = measurement
+        attributed.profileID = selectedProfileID
+        if let deviceID = measurement.deviceID,
+           let scale = pairedScales.first(where: { $0.id == deviceID }) {
+            attributed.deviceName = scale.name
+        }
+        let enriched = BodyCompositionEstimator.enriching(attributed, profile: selectedProfile)
         if let first = measurements.first,
+           first.profileID == enriched.profileID,
+           first.deviceID == enriched.deviceID,
            first.source == enriched.source,
            abs(first.date.timeIntervalSince(enriched.date)) < 30,
            abs(first.weightKG - enriched.weightKG) < 0.05 {
@@ -80,6 +113,43 @@ final class MeasurementStore: ObservableObject {
         add(BodyMeasurement(date: .now, weightKG: weightKG, bodyFatPercent: bodyFat, source: .manual, isStable: true))
     }
 
+    func selectProfile(_ id: UUID) {
+        guard profiles.contains(where: { $0.id == id }) else { return }
+        selectedProfileID = id
+    }
+
+    func addProfile(_ profile: UserProfile) {
+        profiles.append(profile)
+        selectedProfileID = profile.id
+    }
+
+    func updateProfile(_ profile: UserProfile) {
+        guard let index = profiles.firstIndex(where: { $0.id == profile.id }) else { return }
+        profiles[index] = profile
+    }
+
+    func deleteProfile(_ id: UUID) {
+        guard profiles.count > 1, let index = profiles.firstIndex(where: { $0.id == id }) else { return }
+        profiles.remove(at: index)
+        if selectedProfileID == id { selectedProfileID = profiles[0].id }
+    }
+
+    func addScale(_ scale: PairedScale) {
+        guard !pairedScales.contains(where: { $0.id == scale.id }) else { return }
+        pairedScales.append(scale)
+    }
+
+    func renameScale(_ id: UUID, name: String) {
+        guard let index = pairedScales.firstIndex(where: { $0.id == id }) else { return }
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        pairedScales[index].name = trimmed
+    }
+
+    func removeScale(_ id: UUID) {
+        pairedScales.removeAll { $0.id == id }
+    }
+
     func delete(at offsets: IndexSet) {
         for offset in offsets where measurements.indices.contains(offset) {
             deletedMeasurementIDs.insert(measurements[offset].id)
@@ -90,8 +160,13 @@ final class MeasurementStore: ObservableObject {
 
     func apply(configuration: AppConfiguration) {
         guard configuration != self.configuration else { return }
+        guard !configuration.profiles.isEmpty else { return }
         isApplyingExternalState = true
-        profile = configuration.profile
+        profiles = configuration.profiles
+        selectedProfileID = configuration.profiles.contains(where: { $0.id == configuration.selectedProfileID })
+            ? configuration.selectedProfileID
+            : configuration.profiles[0].id
+        pairedScales = configuration.pairedScales
         unit = configuration.unit
         isApplyingExternalState = false
         persistConfiguration()

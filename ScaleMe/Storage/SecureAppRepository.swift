@@ -4,8 +4,8 @@ import Security
 
 enum AppStorageLayout {
     static let directoryName = "ScaleMe"
-    static let configurationFileName = "configuration.json"
-    static let measurementsFileName = "measurements.enc"
+    static let configurationFileName = "configuration-v2.json"
+    static let measurementsFileName = "measurements-v2.enc"
 }
 
 enum SecureStorageError: LocalizedError {
@@ -31,7 +31,7 @@ struct MeasurementFileCipher: Sendable {
         case cloud
     }
 
-    private static let authenticatedContext = Data("ScaleMe.measurements.v1".utf8)
+    private static let authenticatedContext = Data("ScaleMe.measurements.v2".utf8)
     private let keyData: Data
 
     init(scope: Scope = .local, createIfMissing: Bool = true) throws {
