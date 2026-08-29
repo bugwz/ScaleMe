@@ -1,0 +1,5 @@
+interface:
+  display_name: "Commit"
+  short_description: "Review changes and create confirmed Git commits"
+  brand_color: "#14AD8C"
+  default_prompt: "Use $commit to review all changes and prepare a commit."
