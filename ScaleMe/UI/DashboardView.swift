@@ -37,30 +37,7 @@ struct DashboardView: View {
                 .padding(.bottom, 28)
             }
             .pageBackground()
-            .navigationTitle("观我")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) { ProfileSwitcher() }
-                ToolbarItem(placement: .principal) {
-                    HStack(spacing: 9) {
-                        Image("AppLogo")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 30, height: 30)
-                            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-                            .accessibilityHidden(true)
-                        VStack(alignment: .leading, spacing: 0) {
-                            Text("观我").font(.headline)
-                            Text("ScaleMe").font(.caption2).foregroundStyle(AppColor.secondary)
-                        }
-                    }
-                    .accessibilityElement(children: .combine)
-                    .accessibilityLabel("观我 ScaleMe")
-                }
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button { showAdd = true } label: { Image(systemName: "plus").fontWeight(.semibold) }
-                }
-            }
+            .toolbar(.hidden, for: .navigationBar)
             .sheet(isPresented: $showAdd) { ManualEntryView() }
         }
     }
@@ -70,36 +47,55 @@ struct DashboardView: View {
             RoundedRectangle(cornerRadius: 32, style: .continuous)
                 .fill(LinearGradient(colors: [.white, AppColor.paleMint, AppColor.sky.opacity(0.22)], startPoint: .topLeading, endPoint: .bottomTrailing))
             Circle().fill(AppColor.sky.opacity(0.16)).frame(width: 190).offset(x: 65, y: 80)
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: 14) {
+                HStack(spacing: 9) {
+                    Image("AppLogo")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 34, height: 34)
+                        .clipShape(RoundedRectangle(cornerRadius: 9, style: .continuous))
+                        .accessibilityHidden(true)
+                    VStack(alignment: .leading, spacing: 0) {
+                        Text("观我").font(.headline)
+                        Text("ScaleMe").font(.caption2).foregroundStyle(AppColor.secondary)
+                    }
+                }
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel("观我 ScaleMe")
                 HStack {
                     Text("今天的身体状态").font(.subheadline).foregroundStyle(AppColor.secondary)
                     Spacer()
                     StatusPill(text: "稳定", color: AppColor.mint)
                 }
                 HStack(alignment: .firstTextBaseline, spacing: 8) {
-                    Text(store.unit.value(fromKilograms: latest.weightKG).formatted(1))
+                    Text(store.unit.value(fromKilograms: latest.weightKG).formatted(2))
                         .font(.system(size: 58, weight: .medium, design: .rounded))
                     Text(store.unit.rawValue).font(.title3)
                 }
                 .foregroundStyle(AppColor.ink)
                 HStack(spacing: 16) {
-                    Label("BMI \(latest.bmi(heightCM: store.profile.heightCM).formatted(1))", systemImage: "figure.stand")
-                    if let fat = latest.bodyFatPercent { Label("体脂 \(fat.formatted(1))%", systemImage: "drop.fill") }
+                    Label("BMI \(latest.bmi(heightCM: store.profile.heightCM).formatted(2))", systemImage: "figure.stand")
+                    if let fat = latest.bodyFatPercent { Label("体脂 \(fat.formatted(2))%", systemImage: "drop.fill") }
                 }
                 .font(.caption).foregroundStyle(AppColor.secondary)
                 Label(sourceName(for: latest), systemImage: "scalemass")
                     .font(.caption2).foregroundStyle(AppColor.secondary)
-                Button(action: onMeasure) {
-                    Label("开始测量", systemImage: "wave.3.right")
+                HStack(spacing: 14) {
+                    Button(action: onMeasure) {
+                        Label("开始测量", systemImage: "wave.3.right")
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 16).padding(.vertical, 11)
+                            .background(AppColor.mint, in: Capsule())
+                    }
+                    Button("手动记录") { showAdd = true }
                         .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, 16).padding(.vertical, 11)
-                        .background(AppColor.mint, in: Capsule())
+                        .foregroundStyle(AppColor.mint)
                 }
                 .padding(.top, 4)
             }
             .padding(24)
-            .frame(maxWidth: .infinity, minHeight: 245, alignment: .topLeading)
+            .frame(maxWidth: .infinity, minHeight: 295, alignment: .topLeading)
         }
     }
 
@@ -111,14 +107,14 @@ struct DashboardView: View {
                         Text("近期趋势").font(.title3.bold()).foregroundStyle(AppColor.ink)
                         if let previous {
                             let delta = latest.weightKG - previous.weightKG
-                            Text("较上次 \(delta >= 0 ? "+" : "")\(store.unit.value(fromKilograms: delta).formatted(1)) \(store.unit.rawValue)")
+                            Text("较上次 \(delta >= 0 ? "+" : "")\(store.unit.value(fromKilograms: delta).formatted(2)) \(store.unit.rawValue)")
                                 .font(.caption).foregroundStyle(AppColor.secondary)
                         }
                     }
                     Spacer()
                     NavigationLink("全部") { HistoryView() }.font(.subheadline.weight(.semibold))
                 }
-                Chart(store.displayMeasurements.prefix(12).reversed()) { item in
+                Chart(Array(store.displayMeasurements.prefix(12).reversed())) { item in
                     AreaMark(x: .value("日期", item.date), y: .value("体重", store.unit.value(fromKilograms: item.weightKG)))
                         .foregroundStyle(LinearGradient(colors: [AppColor.mint.opacity(0.26), .clear], startPoint: .top, endPoint: .bottom))
                     LineMark(x: .value("日期", item.date), y: .value("体重", store.unit.value(fromKilograms: item.weightKG)))
@@ -128,7 +124,7 @@ struct DashboardView: View {
                             .foregroundStyle(AppColor.secondary.opacity(0.45))
                             .annotation(position: .top, overflowResolution: .init(x: .fit, y: .disabled)) {
                                 VStack(alignment: .leading, spacing: 2) {
-                                    Text("\(store.unit.value(fromKilograms: item.weightKG).formatted(1)) \(store.unit.rawValue)").font(.caption.bold())
+                                    Text("\(store.unit.value(fromKilograms: item.weightKG).formatted(2)) \(store.unit.rawValue)").font(.caption.bold())
                                     Text(item.date, format: .dateTime.month().day()).font(.caption2)
                                     Text(sourceName(for: item)).font(.caption2).foregroundStyle(AppColor.secondary)
                                 }
@@ -140,7 +136,14 @@ struct DashboardView: View {
                 }
                 .chartXSelection(value: $selectedTrendDate)
                 .chartXAxis(.hidden)
-                .chartYAxis { AxisMarks(position: .trailing) { value in AxisGridLine().foregroundStyle(.gray.opacity(0.12)); AxisValueLabel() } }
+                .chartYAxis {
+                    AxisMarks(position: .trailing) { _ in
+                        AxisGridLine().foregroundStyle(.gray.opacity(0.12))
+                        AxisValueLabel(
+                            format: FloatingPointFormatStyle<Double>.number.precision(.fractionLength(2))
+                        )
+                    }
+                }
                 .frame(height: 145)
             }
         }
@@ -149,16 +152,16 @@ struct DashboardView: View {
     private var metricsGrid: some View {
         LazyVGrid(columns: [.init(.flexible()), .init(.flexible())], spacing: 12) {
             if let value = latest.bodyFatPercent {
-                MetricTile(title: "体脂率", value: value.formatted(1), unit: "%", source: sourceName(for: latest), icon: "drop.fill", color: AppColor.apricot)
+                MetricTile(title: "体脂率", value: value.formatted(2), unit: "%", source: sourceName(for: latest), icon: "drop.fill", color: AppColor.apricot)
             }
             if let value = latest.muscleMassKG {
-                MetricTile(title: "肌肉量", value: value.formatted(1), unit: "kg", source: sourceName(for: latest), icon: "figure.strengthtraining.traditional", color: AppColor.violet)
+                MetricTile(title: "肌肉量", value: value.formatted(2), unit: "kg", source: sourceName(for: latest), icon: "figure.strengthtraining.traditional", color: AppColor.violet)
             }
             if let value = latest.waterPercent {
-                MetricTile(title: "身体水分", value: value.formatted(1), unit: "%", source: sourceName(for: latest), icon: "water.waves", color: AppColor.sky)
+                MetricTile(title: "身体水分", value: value.formatted(2), unit: "%", source: sourceName(for: latest), icon: "water.waves", color: AppColor.sky)
             }
             if let value = latest.basalMetabolismKCal {
-                MetricTile(title: "基础代谢", value: value.formatted(0), unit: "kcal", source: sourceName(for: latest), icon: "flame.fill", color: AppColor.rose)
+                MetricTile(title: "基础代谢", value: value.formatted(2), unit: "kcal", source: sourceName(for: latest), icon: "flame.fill", color: AppColor.rose)
             }
         }
     }

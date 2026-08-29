@@ -46,29 +46,57 @@ struct StatusPill: View {
     }
 }
 
-struct ProfileSwitcher: View {
-    @EnvironmentObject private var store: MeasurementStore
+struct MainPageTitle: View {
+    let text: String
 
     var body: some View {
-        Menu {
-            ForEach(store.profiles) { profile in
-                Button {
-                    store.selectProfile(profile.id)
-                } label: {
-                    Label(profile.name, systemImage: profile.id == store.selectedProfileID ? "checkmark" : "person")
-                }
-            }
-        } label: {
-            HStack(spacing: 6) {
-                Text(String(store.selectedProfile.name.prefix(1)))
-                    .font(.caption.bold()).foregroundStyle(.white)
-                    .frame(width: 26, height: 26).background(AppColor.mint, in: Circle())
-                Text(store.selectedProfile.name).font(.subheadline.weight(.semibold)).lineLimit(1)
-                Image(systemName: "chevron.down").font(.caption2)
-            }
+        Text(text)
+            .font(.largeTitle.bold())
             .foregroundStyle(AppColor.ink)
-            .accessibilityLabel("当前成员：\(store.selectedProfile.name)")
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .accessibilityAddTraits(.isHeader)
+    }
+}
+
+struct SettingsPanel<Content: View>: View {
+    let title: String
+    let icon: String
+    @ViewBuilder let content: Content
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Label(title, systemImage: icon)
+                .font(.headline)
+                .foregroundStyle(AppColor.ink)
+            content
         }
+        .padding(18)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(.white.opacity(0.94), in: RoundedRectangle(cornerRadius: 20))
+        .overlay(RoundedRectangle(cornerRadius: 20).stroke(AppColor.mint.opacity(0.08)))
+    }
+}
+
+struct SettingsValueRow: View {
+    let title: String
+    let value: String
+
+    var body: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 16) {
+            Text(title)
+                .font(.subheadline)
+                .foregroundStyle(AppColor.secondary)
+                .fixedSize(horizontal: true, vertical: false)
+            Spacer(minLength: 0)
+            Text(value)
+                .font(.subheadline)
+                .foregroundStyle(AppColor.ink)
+                .multilineTextAlignment(.trailing)
+                .frame(maxWidth: .infinity, alignment: .trailing)
+                .textSelection(.enabled)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity)
     }
 }
 
@@ -86,5 +114,5 @@ extension View {
 }
 
 extension Double {
-    func formatted(_ digits: Int = 1) -> String { formatted(.number.precision(.fractionLength(digits))) }
+    func formatted(_ digits: Int = 2) -> String { formatted(.number.precision(.fractionLength(digits))) }
 }

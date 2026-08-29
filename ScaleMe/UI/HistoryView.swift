@@ -31,10 +31,15 @@ struct HistoryView: View {
         }
     }
 
+    private var chronologicalMeasurements: [BodyMeasurement] {
+        Array(filtered.reversed())
+    }
+
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 18) {
+                    MainPageTitle(text: "趋势")
                     Picker("时间范围", selection: $range) {
                         ForEach(TimeRange.allCases) { Text($0.rawValue).tag($0) }
                     }
@@ -44,11 +49,11 @@ struct HistoryView: View {
                     records
                 }
                 .padding(.horizontal, 18)
+                .padding(.top, 8)
                 .padding(.bottom, 28)
             }
             .pageBackground()
-            .navigationTitle("身体趋势")
-            .toolbar { ToolbarItem(placement: .topBarLeading) { ProfileSwitcher() } }
+            .toolbar(.hidden, for: .navigationBar)
             .onChange(of: store.selectedProfileID) {
                 selectedDate = nil
                 selectedDeviceID = nil
@@ -86,7 +91,7 @@ struct HistoryView: View {
                 }
                 if let first = filtered.last, let last = filtered.first {
                     HStack(alignment: .firstTextBaseline, spacing: 4) {
-                        Text(store.unit.value(fromKilograms: last.weightKG - first.weightKG).formatted(1))
+                        Text(store.unit.value(fromKilograms: last.weightKG - first.weightKG).formatted(2))
                             .font(.title.bold()).foregroundStyle(AppColor.ink)
                         Text(store.unit.rawValue).font(.caption).foregroundStyle(AppColor.secondary)
                     }
@@ -95,7 +100,7 @@ struct HistoryView: View {
                     ContentUnavailableView("暂无记录", systemImage: "chart.xyaxis.line")
                         .frame(maxWidth: .infinity, minHeight: 220)
                 } else {
-                    Chart(filtered.reversed()) { item in
+                    Chart(chronologicalMeasurements) { item in
                         LineMark(
                             x: .value("日期", item.date),
                             y: .value("体重", store.unit.value(fromKilograms: item.weightKG))
@@ -115,7 +120,7 @@ struct HistoryView: View {
                                 .foregroundStyle(AppColor.secondary.opacity(0.45))
                                 .annotation(position: .top, overflowResolution: .init(x: .fit, y: .disabled)) {
                                     VStack(alignment: .leading, spacing: 2) {
-                                        Text("\(store.unit.value(fromKilograms: item.weightKG).formatted(1)) \(store.unit.rawValue)")
+                                        Text("\(store.unit.value(fromKilograms: item.weightKG).formatted(2)) \(store.unit.rawValue)")
                                             .font(.caption.bold())
                                         Text(item.date, format: .dateTime.year().month().day().hour().minute())
                                             .font(.caption2)
@@ -127,7 +132,14 @@ struct HistoryView: View {
                         }
                     }
                     .chartXSelection(value: $selectedDate)
-                    .chartYAxis { AxisMarks(position: .trailing) }
+                    .chartYAxis {
+                        AxisMarks(position: .trailing) {
+                            AxisGridLine()
+                            AxisValueLabel(
+                                format: FloatingPointFormatStyle<Double>.number.precision(.fractionLength(2))
+                            )
+                        }
+                    }
                     .frame(height: 245)
                 }
             }
@@ -146,7 +158,7 @@ struct HistoryView: View {
                     NavigationLink { MeasurementDetailView(measurement: item) } label: {
                         HStack {
                             VStack(alignment: .leading, spacing: 4) {
-                                Text("\(store.unit.value(fromKilograms: item.weightKG).formatted(1)) \(store.unit.rawValue)")
+                                Text("\(store.unit.value(fromKilograms: item.weightKG).formatted(2)) \(store.unit.rawValue)")
                                     .font(.body.bold()).foregroundStyle(AppColor.ink)
                                 Label(sourceName(for: item), systemImage: "scalemass")
                                     .font(.caption).foregroundStyle(AppColor.secondary)
@@ -198,7 +210,7 @@ struct MeasurementDetailView: View {
                     Text(measurement.date, format: .dateTime.year().month().day().hour().minute())
                         .font(.subheadline).foregroundStyle(AppColor.secondary)
                     HStack(alignment: .firstTextBaseline, spacing: 6) {
-                        Text(store.unit.value(fromKilograms: measurement.weightKG).formatted(1))
+                        Text(store.unit.value(fromKilograms: measurement.weightKG).formatted(2))
                             .font(.system(size: 58, weight: .medium, design: .rounded))
                         Text(store.unit.rawValue).font(.headline)
                     }
@@ -227,7 +239,7 @@ struct MeasurementDetailView: View {
     }
 
     private var basicMetrics: [(String, String)] {
-        [("BMI", measurement.bmi(heightCM: profile.heightCM).formatted(1))]
+        [("BMI", measurement.bmi(heightCM: profile.heightCM).formatted(2))]
     }
 
     private var compositionMetrics: [(String, String)] {
@@ -244,7 +256,7 @@ struct MeasurementDetailView: View {
         append(measurement.boneMassKG, name: "骨量", suffix: " kg", to: &metrics)
         append(measurement.visceralFat, name: "内脏脂肪", suffix: "", to: &metrics)
         if let value = measurement.basalMetabolismKCal {
-            metrics.append(("基础代谢", "\(value.formatted(0)) kcal"))
+            metrics.append(("基础代谢", "\(value.formatted(2)) kcal"))
         }
         return metrics
     }
@@ -252,10 +264,10 @@ struct MeasurementDetailView: View {
     private var rawMetrics: [(String, String)] {
         var metrics: [(String, String)] = []
         if let value = measurement.impedanceOhm {
-            metrics.append(("阻抗通道 1", "\(value.formatted(0)) Ω"))
+            metrics.append(("阻抗通道 1", "\(value.formatted(2)) Ω"))
         }
         if let value = measurement.secondaryImpedanceOhm {
-            metrics.append(("阻抗通道 2", "\(value.formatted(0)) Ω"))
+            metrics.append(("阻抗通道 2", "\(value.formatted(2)) Ω"))
         }
         return metrics
     }
@@ -267,7 +279,7 @@ struct MeasurementDetailView: View {
         to metrics: inout [(String, String)]
     ) {
         guard let value else { return }
-        metrics.append((name, "\(value.formatted(1))\(suffix)"))
+        metrics.append((name, "\(value.formatted(2))\(suffix)"))
     }
 
     private func metricCard(title: String, metrics: [(String, String)]) -> some View {

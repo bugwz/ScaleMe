@@ -17,21 +17,17 @@ struct MeasureView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 24) {
+                    MainPageTitle(text: "测量")
                     scaleStage
                     measurementSummary
                     safetyNote
                 }
                 .padding(.horizontal, 18)
+                .padding(.top, 8)
                 .padding(.bottom, 28)
             }
             .pageBackground()
-            .navigationTitle("测量")
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) { ProfileSwitcher() }
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button { showSafety = true } label: { Image(systemName: "info.circle") }
-                }
-            }
+            .toolbar(.hidden, for: .navigationBar)
             .onAppear {
                 isPulsing = true
                 bluetooth.startMeasurementMonitoring(scales: store.pairedScales)
@@ -86,20 +82,20 @@ struct MeasureView: View {
                     }
                 }
             }
-            Text("轻踩唤醒秤后站稳，观我会自动接收读数")
+            Text("轻踩唤醒体重秤后站稳，观我会自动接收读数")
                 .font(.subheadline).foregroundStyle(AppColor.secondary)
                 .multilineTextAlignment(.center)
         }
-        .frame(maxWidth: .infinity, minHeight: 430)
+        .frame(maxWidth: .infinity, minHeight: 360)
     }
 
     private var liveWeightText: String {
         guard let weightKG = bluetooth.liveWeightKG else { return "— —" }
-        return store.unit.value(fromKilograms: weightKG).formatted(1)
+        return store.unit.value(fromKilograms: weightKG).formatted(2)
     }
 
     private var statusText: String {
-        if store.pairedScales.isEmpty { return "请先在“设备”中添加体重秤" }
+        if store.pairedScales.isEmpty { return "请先在“设备”页添加体重秤" }
         return bluetooth.state.title
     }
 
@@ -169,22 +165,22 @@ struct MeasureView: View {
 
     private func summaryMetrics(for measurement: BodyMeasurement) -> [(title: String, value: String)] {
         var metrics = [
-            ("BMI", measurement.bmi(heightCM: store.selectedProfile.heightCM).formatted(1))
+            ("BMI", measurement.bmi(heightCM: store.selectedProfile.heightCM).formatted(2))
         ]
         if let value = measurement.bodyFatPercent {
-            metrics.append(("体脂率", "\(value.formatted(1))%"))
+            metrics.append(("体脂率", "\(value.formatted(2))%"))
         }
         if let value = measurement.fatMassKG {
-            metrics.append(("脂肪量", "\(value.formatted(1)) kg"))
+            metrics.append(("脂肪量", "\(value.formatted(2)) kg"))
         }
         if let value = measurement.muscleMassKG {
-            metrics.append(("肌肉量", "\(value.formatted(1)) kg"))
+            metrics.append(("肌肉量", "\(value.formatted(2)) kg"))
         }
         if let value = measurement.waterPercent {
-            metrics.append(("身体水分", "\(value.formatted(1))%"))
+            metrics.append(("身体水分", "\(value.formatted(2))%"))
         }
         if let value = measurement.visceralFat {
-            metrics.append(("内脏脂肪", value.formatted(1)))
+            metrics.append(("内脏脂肪", value.formatted(2)))
         }
         return metrics
     }
@@ -193,6 +189,9 @@ struct MeasureView: View {
         VStack(spacing: 8) {
             Label("数据默认保存在本机", systemImage: "lock.shield.fill")
             Text("体脂等身体成分为消费级估算，仅用于观察长期趋势。")
+            Button("查看安全提醒") { showSafety = true }
+                .fontWeight(.semibold)
+                .foregroundStyle(AppColor.mint)
         }
         .font(.caption).foregroundStyle(AppColor.secondary)
         .multilineTextAlignment(.center)

@@ -9,21 +9,17 @@ struct ProfileView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 24) {
+                    MainPageTitle(text: "设置")
                     memberSection
                     settingsSection
                     privacySection
                 }
                 .padding(.horizontal, 18)
+                .padding(.top, 8)
                 .padding(.bottom, 28)
             }
             .pageBackground()
-            .navigationTitle("我的")
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button { showAddMember = true } label: { Image(systemName: "person.badge.plus") }
-                        .accessibilityLabel("添加成员")
-                }
-            }
+            .toolbar(.hidden, for: .navigationBar)
             .sheet(isPresented: $showAddMember) {
                 MemberEditorView(profile: nil)
             }
@@ -57,7 +53,7 @@ struct ProfileView: View {
                                     Text(profile.name).font(.body.weight(.semibold)).foregroundStyle(AppColor.ink)
                                     if profile.id == store.selectedProfileID { StatusPill(text: "当前") }
                                 }
-                                Text("\(profile.relation) · \(profile.heightCM.formatted(0)) cm · \(profile.age) 岁")
+                                Text("\(profile.relation) · \(profile.heightCM.formatted(2)) cm · \(profile.age) 岁")
                                     .font(.caption).foregroundStyle(AppColor.secondary)
                             }
                             Spacer()
@@ -102,7 +98,7 @@ struct ProfileView: View {
             NavigationLink {
                 SettingsView()
             } label: {
-                settingsRow("设置", icon: "gearshape.fill")
+                settingsRow("通用设置", icon: "gearshape.fill")
             }
             Divider().padding(.leading, 50)
             Button { showAbout = true } label: {
@@ -156,41 +152,80 @@ private struct MemberEditorView: View {
 
     var body: some View {
         NavigationStack {
-            Form {
-                Section("成员信息") {
-                    TextField("姓名或昵称", text: $draft.name)
-                        .focused($focusedField, equals: .name)
-                        .submitLabel(.next)
-                        .onSubmit { focusedField = .height }
-                    Picker("关系", selection: $draft.relation) {
-                        ForEach(relations, id: \.self) { Text($0).tag($0) }
+            ScrollView {
+                VStack(alignment: .leading, spacing: 18) {
+                    SettingsPanel(title: "成员信息", icon: "person.text.rectangle") {
+                        TextField("姓名或昵称", text: $draft.name)
+                            .textFieldStyle(.roundedBorder)
+                            .focused($focusedField, equals: .name)
+                            .submitLabel(.next)
+                            .onSubmit { focusedField = .height }
+                        Divider()
+                        HStack(spacing: 16) {
+                            Text("关系")
+                                .font(.subheadline)
+                                .foregroundStyle(AppColor.secondary)
+                            Spacer()
+                            Picker("", selection: $draft.relation) {
+                                ForEach(relations, id: \.self) { Text($0).tag($0) }
+                            }
+                            .labelsHidden()
+                            .pickerStyle(.menu)
+                            .tint(AppColor.ink)
+                        }
+                        Divider()
+                        HStack(spacing: 16) {
+                            Text("生理性别")
+                                .font(.subheadline)
+                                .foregroundStyle(AppColor.secondary)
+                            Spacer()
+                            Picker("", selection: $draft.biologicalSex) {
+                                ForEach(UserProfile.BiologicalSex.allCases) { Text($0.rawValue).tag($0) }
+                            }
+                            .labelsHidden()
+                            .pickerStyle(.menu)
+                            .tint(AppColor.ink)
+                        }
+                        Divider()
+                        DatePicker("出生日期", selection: $draft.birthDate, in: ...Date.now, displayedComponents: .date)
+                        Divider()
+                        HStack {
+                            Text("身高")
+                            Spacer()
+                            TextField("cm", value: $draft.heightCM, format: .number)
+                                .keyboardType(.decimalPad)
+                                .multilineTextAlignment(.trailing)
+                                .focused($focusedField, equals: .height)
+                                .frame(maxWidth: 100)
+                            Text("cm").foregroundStyle(AppColor.secondary)
+                        }
+                        Divider()
+                        Toggle("运动员模式", isOn: $draft.athleteMode)
+                            .tint(AppColor.mint)
                     }
-                    Picker("生理性别", selection: $draft.biologicalSex) {
-                        ForEach(UserProfile.BiologicalSex.allCases) { Text($0.rawValue).tag($0) }
+
+                    SettingsPanel(title: "资料用途", icon: "shield.lefthalf.filled") {
+                        Text("资料仅用于日常指标估算。生物电阻抗与推导结果不具备医疗诊断用途。")
+                            .font(.caption)
+                            .foregroundStyle(AppColor.secondary)
+                            .lineSpacing(3)
                     }
-                    DatePicker("出生日期", selection: $draft.birthDate, in: ...Date.now, displayedComponents: .date)
-                    HStack {
-                        Text("身高")
-                        Spacer()
-                        TextField("cm", value: $draft.heightCM, format: .number)
-                            .keyboardType(.decimalPad).multilineTextAlignment(.trailing)
-                            .focused($focusedField, equals: .height)
-                        Text("cm").foregroundStyle(.secondary)
+
+                    if !isNew, store.profiles.count > 1 {
+                        SettingsPanel(title: "成员管理", icon: "person.crop.circle.badge.minus") {
+                            Button("删除成员", role: .destructive) { confirmDelete = true }
+                                .frame(maxWidth: .infinity)
+                                .buttonStyle(.bordered)
+                            Text("删除成员不会自动删除其历史测量记录。")
+                                .font(.caption)
+                                .foregroundStyle(AppColor.secondary)
+                        }
                     }
-                    Toggle("运动员模式", isOn: $draft.athleteMode).tint(AppColor.mint)
                 }
-                Section {
-                    Text("资料仅用于日常指标估算。生物电阻抗与推导结果不具备医疗诊断用途。")
-                        .font(.caption).foregroundStyle(.secondary)
-                }
-                if !isNew, store.profiles.count > 1 {
-                    Section {
-                        Button("删除成员", role: .destructive) { confirmDelete = true }
-                    } footer: {
-                        Text("删除成员不会自动删除其历史测量记录。")
-                    }
-                }
+                .padding(.horizontal, 18)
+                .padding(.bottom, 28)
             }
+            .pageBackground()
             .navigationTitle(isNew ? "添加成员" : "成员资料")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

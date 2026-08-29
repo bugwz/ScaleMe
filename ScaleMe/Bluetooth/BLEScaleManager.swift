@@ -109,7 +109,7 @@ final class BLEScaleManager: NSObject, ObservableObject {
             switch self {
             case .idle: "准备连接"
             case .unavailable(let reason): reason
-            case .scanning: "正在等待已关联的秤"
+            case .scanning: "正在等待已关联的设备"
             case .connecting(let name): "正在连接 \(name)"
             case .connected(let name): "已连接 \(name)"
             case .measuring: "已感知到体重，正在测量"

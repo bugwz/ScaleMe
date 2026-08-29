@@ -7,14 +7,16 @@ struct DevicesView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 24) {
+                    MainPageTitle(text: "设备")
                     addDevice
                     deviceList
                 }
                 .padding(.horizontal, 18)
+                .padding(.top, 8)
                 .padding(.bottom, 28)
             }
             .pageBackground()
-            .navigationTitle("设备")
+            .toolbar(.hidden, for: .navigationBar)
         }
     }
 
@@ -132,12 +134,12 @@ private struct DeviceScannerView: View {
                     .font(.system(size: 38)).foregroundStyle(AppColor.mint)
             }
             Text(scanTitle).font(.title3.bold())
-            Text("正在搜索所有附近的低功耗蓝牙设备。部分秤只有被踩亮或站上去后才会广播。")
+            Text("正在搜索附近的低功耗蓝牙设备。部分体重秤只有被踩亮或站上去后才会广播。")
                 .font(.subheadline).foregroundStyle(AppColor.secondary)
                 .multilineTextAlignment(.center).lineSpacing(3)
 
             Label {
-                Text("标准秤和已验证的小米广播会优先显示；其余设备不代表已兼容。")
+                Text("符合标准协议的设备和已实现解析的小米体重秤广播会优先显示；其余设备不代表已兼容。")
             } icon: {
                 Image(systemName: "info.circle")
             }
@@ -158,7 +160,7 @@ private struct DeviceScannerView: View {
                     .padding(.top, 8)
                 } else {
                     ProgressView().tint(AppColor.mint).padding(.top, 12)
-                    Text("暂未发现设备，请唤醒秤并靠近手机")
+                    Text("暂未发现设备，请唤醒体重秤并靠近手机")
                         .font(.caption).foregroundStyle(AppColor.secondary)
                 }
             } else {
@@ -187,10 +189,10 @@ private struct DeviceScannerView: View {
     private var discoveryResults: some View {
         VStack(alignment: .leading, spacing: 12) {
             if likelyScaleDevices.isEmpty {
-                Text("暂未识别到明显的体重秤")
+                Text("暂未识别到体重秤")
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(AppColor.ink)
-                Text("请先唤醒秤；如果秤使用了普通名称，可在其他附近设备中查找。")
+                Text("请先唤醒体重秤；如果设备名称较为普通，可在其他附近设备中查找。")
                     .font(.caption)
                     .foregroundStyle(AppColor.secondary)
             } else {
@@ -300,7 +302,6 @@ private struct ScaleSettingsView: View {
     @State private var name = ""
     @State private var confirmDelete = false
     @State private var selectedHardwareUnit = XiaomiScaleHardwareUnit.kilograms
-    @State private var showsProtocolDetails = false
     @FocusState private var isNameFocused: Bool
 
     private var scale: PairedScale? { store.pairedScales.first { $0.id == scaleID } }
@@ -355,7 +356,7 @@ private struct ScaleSettingsView: View {
     }
 
     private var connectionPanel: some View {
-        DeviceSettingsPanel(title: "连接", icon: "dot.radiowaves.left.and.right") {
+        SettingsPanel(title: "连接", icon: "dot.radiowaves.left.and.right") {
             HStack(spacing: 14) {
                 Image(systemName: settingsStatusIcon)
                     .font(.title3)
@@ -383,14 +384,22 @@ private struct ScaleSettingsView: View {
     }
 
     private var hardwarePanel: some View {
-        DeviceSettingsPanel(title: "硬件设置", icon: "slider.horizontal.3") {
+        SettingsPanel(title: "硬件设置", icon: "slider.horizontal.3") {
             if bluetooth.settingsSnapshot.canConfigureXiaomiUnit {
-                Picker("秤端显示单位", selection: $selectedHardwareUnit) {
-                    ForEach(XiaomiScaleHardwareUnit.allCases) { unit in
-                        Text(unit.title).tag(unit)
+                HStack(spacing: 16) {
+                    Text("秤端显示单位")
+                        .font(.subheadline)
+                        .foregroundStyle(AppColor.secondary)
+                    Spacer()
+                    Picker("", selection: $selectedHardwareUnit) {
+                        ForEach(XiaomiScaleHardwareUnit.allCases) { unit in
+                            Text(unit.title).tag(unit)
+                        }
                     }
+                    .labelsHidden()
+                    .pickerStyle(.menu)
+                    .tint(AppColor.ink)
                 }
-                .pickerStyle(.menu)
 
                 Button {
                     bluetooth.configureHardwareUnit(selectedHardwareUnit)
@@ -401,7 +410,7 @@ private struct ScaleSettingsView: View {
                 .buttonStyle(.borderedProminent)
                 .tint(AppColor.mint)
             } else {
-                DeviceSettingsValueRow(title: "秤端显示单位", value: "未发现可写特征")
+                SettingsValueRow(title: "秤端显示单位", value: "未发现可写特征")
             }
 
             Divider()
@@ -416,7 +425,7 @@ private struct ScaleSettingsView: View {
                 .buttonStyle(.bordered)
                 .tint(AppColor.mint)
             } else {
-                DeviceSettingsValueRow(title: "秤端时间", value: "未发现可写特征")
+                SettingsValueRow(title: "秤端时间", value: "未发现可写特征")
             }
 
             if let message = bluetooth.settingsOperationMessage {
@@ -433,38 +442,40 @@ private struct ScaleSettingsView: View {
                 .font(.caption).foregroundStyle(AppColor.secondary).lineSpacing(3)
 
             Divider()
-            DeviceSettingsValueRow(
+            SettingsValueRow(
                 title: "历史记录通道",
                 value: bluetooth.settingsSnapshot.hasHistoryChannel ? "已发现，暂不导入" : "未发现"
             )
             Divider()
-            DeviceSettingsValueRow(title: "清空秤内数据", value: "无可信命令，未开放")
-            Divider()
-            DisclosureGroup("协议诊断", isExpanded: $showsProtocolDetails) {
-                diagnosticValues(title: "已发现服务", values: bluetooth.settingsSnapshot.discoveredServiceUUIDs)
-                diagnosticValues(title: "可写特征", values: bluetooth.settingsSnapshot.writableCharacteristicUUIDs)
-            }
-            .tint(AppColor.mint)
+            SettingsValueRow(title: "清空秤内数据", value: "无可信命令，未开放")
         }
     }
 
     @ViewBuilder
     private var protocolPanel: some View {
         if let scale {
-            DeviceSettingsPanel(title: "协议匹配", icon: "point.3.connected.trianglepath.dotted") {
-                Picker("通信规则", selection: Binding(
-                    get: { scale.communicationRuleID },
-                    set: { ruleID in
-                        store.setCommunicationRule(ruleID, for: scaleID)
-                        bluetooth.updatePairedScales(store.pairedScales, communicationRules: store.communicationRules)
+            SettingsPanel(title: "协议匹配", icon: "point.3.connected.trianglepath.dotted") {
+                HStack(spacing: 16) {
+                    Text("通信规则")
+                        .font(.subheadline)
+                        .foregroundStyle(AppColor.secondary)
+                    Spacer()
+                    Picker("", selection: Binding(
+                        get: { scale.communicationRuleID },
+                        set: { ruleID in
+                            store.setCommunicationRule(ruleID, for: scaleID)
+                            bluetooth.updatePairedScales(store.pairedScales, communicationRules: store.communicationRules)
+                        }
+                    )) {
+                        Text("自动识别（推荐）").tag(String?.none)
+                        ForEach(store.communicationRules) { rule in
+                            Text(rule.name).tag(Optional(rule.id))
+                        }
                     }
-                )) {
-                    Text("自动识别（推荐）").tag(String?.none)
-                    ForEach(store.communicationRules) { rule in
-                        Text(rule.name).tag(Optional(rule.id))
-                    }
+                    .labelsHidden()
+                    .pickerStyle(.menu)
+                    .tint(AppColor.ink)
                 }
-                .pickerStyle(.menu)
 
                 if let selected = store.communicationRule(for: scale) {
                     VStack(alignment: .leading, spacing: 5) {
@@ -497,26 +508,26 @@ private struct ScaleSettingsView: View {
     @ViewBuilder
     private var informationPanel: some View {
         if let scale {
-            DeviceSettingsPanel(title: "设备信息", icon: "info.circle") {
-                DeviceSettingsValueRow(title: "设备型号", value: scale.modelName)
+            SettingsPanel(title: "设备信息", icon: "info.circle") {
+                SettingsValueRow(title: "设备型号", value: scale.modelName)
                 Divider()
-                DeviceSettingsValueRow(title: "兼容状态", value: scale.compatibility)
+                SettingsValueRow(title: "兼容状态", value: scale.compatibility)
                 Divider()
-                DeviceSettingsValueRow(title: "固件版本", value: bluetooth.settingsSnapshot.firmwareRevision ?? "未读取")
+                SettingsValueRow(title: "固件版本", value: bluetooth.settingsSnapshot.firmwareRevision ?? "未读取")
                 if let hardware = bluetooth.settingsSnapshot.hardwareRevision {
                     Divider()
-                    DeviceSettingsValueRow(title: "硬件版本", value: hardware)
+                    SettingsValueRow(title: "硬件版本", value: hardware)
                 }
                 if let serial = bluetooth.settingsSnapshot.serialNumber {
                     Divider()
-                    DeviceSettingsValueRow(title: "序列号", value: serial)
+                    SettingsValueRow(title: "序列号", value: serial)
                 }
             }
         }
     }
 
     private var capturePanel: some View {
-        DeviceSettingsPanel(title: "设备诊断采集", icon: "waveform.path.ecg") {
+        SettingsPanel(title: "设备诊断采集", icon: "waveform.path.ecg") {
             Toggle("开启采集", isOn: Binding(
                 get: { bluetooth.isDeviceDiagnosticCaptureEnabled },
                 set: { isEnabled in
@@ -578,7 +589,7 @@ private struct ScaleSettingsView: View {
     }
 
     private var namePanel: some View {
-        DeviceSettingsPanel(title: "设备名称", icon: "pencil") {
+        SettingsPanel(title: "设备名称", icon: "pencil") {
             TextField("设备名称", text: $name)
                 .textFieldStyle(.roundedBorder)
                 .focused($isNameFocused)
@@ -636,59 +647,6 @@ private struct ScaleSettingsView: View {
         return normalized
     }
 
-    @ViewBuilder
-    private func diagnosticValues(title: String, values: [String]) -> some View {
-        VStack(alignment: .leading, spacing: 5) {
-            Text(title).font(.caption.weight(.semibold))
-            if values.isEmpty {
-                Text("暂无").font(.caption).foregroundStyle(AppColor.secondary)
-            } else {
-                ForEach(values, id: \.self) { value in
-                    Text(value)
-                        .font(.system(.caption2, design: .monospaced))
-                        .foregroundStyle(AppColor.secondary)
-                        .textSelection(.enabled)
-                }
-            }
-        }
-        .padding(.vertical, 4)
-    }
-}
-
-private struct DeviceSettingsPanel<Content: View>: View {
-    let title: String
-    let icon: String
-    @ViewBuilder let content: Content
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            Label(title, systemImage: icon)
-                .font(.headline)
-                .foregroundStyle(AppColor.ink)
-            content
-        }
-        .padding(18)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(.white.opacity(0.94), in: RoundedRectangle(cornerRadius: 20))
-        .overlay(RoundedRectangle(cornerRadius: 20).stroke(AppColor.mint.opacity(0.08)))
-    }
-}
-
-private struct DeviceSettingsValueRow: View {
-    let title: String
-    let value: String
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(title).font(.caption).foregroundStyle(AppColor.secondary)
-            Text(value)
-                .font(.subheadline)
-                .foregroundStyle(AppColor.ink)
-                .textSelection(.enabled)
-                .fixedSize(horizontal: false, vertical: true)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-    }
 }
 
 private struct CompatibilityRow: View {

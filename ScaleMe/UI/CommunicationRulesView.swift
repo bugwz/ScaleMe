@@ -14,81 +14,95 @@ struct CommunicationRulesView: View {
     }
 
     var body: some View {
-        Form {
-            Section {
-                ForEach(CommunicationRuleCatalog.builtIn) { rule in
-                    NavigationLink {
-                        CommunicationRuleDetailView(rule: rule)
-                    } label: {
-                        ruleRow(rule)
+        ScrollView {
+            VStack(alignment: .leading, spacing: 18) {
+                SettingsPanel(title: "应用已支持", icon: "checkmark.seal.fill") {
+                    ForEach(CommunicationRuleCatalog.builtIn) { rule in
+                        ruleLink(rule)
+                        if rule.id != CommunicationRuleCatalog.builtIn.last?.id { Divider() }
                     }
+                    Text("“应用内置”表示解析器已实现；具体设备是否可用仍以实机、固件和已捕获数据验证为准。")
+                        .font(.caption)
+                        .foregroundStyle(AppColor.secondary)
+                        .lineSpacing(3)
                 }
-            } header: {
-                Text("应用已支持")
-            } footer: {
-                Text("“应用内置”表示解析器已经实现；具体设备是否可用仍以实机、固件和已捕获数据验证为准。")
-            }
 
-            Section {
-                if store.customCommunicationRules.isEmpty {
-                    ContentUnavailableView(
-                        "尚无外部规则",
-                        systemImage: "doc.badge.plus",
-                        description: Text("可粘贴 JSON，或从可信的 HTTPS 地址拉取社区规则。")
-                    )
-                } else {
-                    ForEach(store.customCommunicationRules) { rule in
-                        NavigationLink {
-                            CommunicationRuleDetailView(rule: rule)
-                        } label: {
-                            ruleRow(rule)
-                        }
-                        .swipeActions {
-                            Button("删除", role: .destructive) {
-                                store.removeCommunicationRule(rule.id)
+                SettingsPanel(title: "自定义与社区规则", icon: "person.2.wave.2") {
+                    if store.customCommunicationRules.isEmpty {
+                        ContentUnavailableView(
+                            "尚无外部规则",
+                            systemImage: "doc.badge.plus",
+                            description: Text("可粘贴 JSON，或从可信的 HTTPS 地址拉取。")
+                        )
+                        .frame(maxWidth: .infinity, minHeight: 150)
+                    } else {
+                        ForEach(store.customCommunicationRules) { rule in
+                            HStack(spacing: 12) {
+                                ruleLink(rule)
+                                Button(role: .destructive) {
+                                    store.removeCommunicationRule(rule.id)
+                                } label: {
+                                    Image(systemName: "trash")
+                                }
+                                .buttonStyle(.borderless)
+                                .accessibilityLabel("删除\(rule.name)")
                             }
+                            if rule.id != store.customCommunicationRules.last?.id { Divider() }
                         }
                     }
+                    Text("删除正在使用的规则后，相关设备会恢复为自动识别。社区规则不是官方兼容性承诺。")
+                        .font(.caption)
+                        .foregroundStyle(AppColor.secondary)
+                        .lineSpacing(3)
                 }
-            } header: {
-                Text("自定义与社区规则")
-            } footer: {
-                Text("删除正在使用的规则后，相关设备会恢复为自动识别。社区规则不是官方兼容性承诺。")
-            }
 
-            Section("从远程地址导入") {
-                TextField("https://example.com/scaleme-rules.json", text: $remoteURL)
-                    .textInputAutocapitalization(.never)
-                    .keyboardType(.URL)
-                    .autocorrectionDisabled()
-                Button {
-                    importRemoteRules()
-                } label: {
-                    HStack {
-                        Label("拉取并校验规则", systemImage: "arrow.down.doc")
-                        Spacer()
-                        if isImportingRemote { ProgressView().tint(AppColor.mint) }
+                SettingsPanel(title: "从远程地址导入", icon: "link.badge.plus") {
+                    TextField("https://example.com/scaleme-rules.json", text: $remoteURL)
+                        .textInputAutocapitalization(.never)
+                        .keyboardType(.URL)
+                        .autocorrectionDisabled()
+                        .padding(12)
+                        .background(AppColor.canvas, in: RoundedRectangle(cornerRadius: 12))
+                        .overlay(RoundedRectangle(cornerRadius: 12).stroke(AppColor.mint.opacity(0.12)))
+                    Button {
+                        importRemoteRules()
+                    } label: {
+                        HStack {
+                            Label("拉取并校验规则", systemImage: "arrow.down.doc")
+                            Spacer()
+                            if isImportingRemote { ProgressView().tint(.white) }
+                        }
+                        .frame(maxWidth: .infinity)
                     }
+                    .buttonStyle(.borderedProminent)
+                    .tint(AppColor.mint)
+                    .disabled(remoteURL.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isImportingRemote)
                 }
-                .disabled(remoteURL.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isImportingRemote)
-            }
 
-            Section {
-                Button { showsJSONImporter = true } label: {
-                    Label("粘贴 JSON 规则", systemImage: "curlybraces")
+                SettingsPanel(title: "开发与调试", icon: "wrench.and.screwdriver.fill") {
+                    Button { showsJSONImporter = true } label: {
+                        Label("粘贴 JSON 规则", systemImage: "curlybraces")
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    Divider()
+                    NavigationLink {
+                        CommunicationRuleFormatView()
+                    } label: {
+                        HStack {
+                            Label("查看配置格式与示例", systemImage: "doc.text.magnifyingglass")
+                            Spacer()
+                            Image(systemName: "chevron.right").font(.caption.bold())
+                        }
+                    }
+                    Text("外部规则是受限的声明式字节映射，不能执行脚本，也不能主动写入体重秤。单个文件最大 512 KB。")
+                        .font(.caption)
+                        .foregroundStyle(AppColor.secondary)
+                        .lineSpacing(3)
                 }
-                NavigationLink {
-                    CommunicationRuleFormatView()
-                } label: {
-                    Label("查看配置格式与示例", systemImage: "doc.text.magnifyingglass")
-                }
-            } header: {
-                Text("开发与调试")
-            } footer: {
-                Text("外部规则是受限的声明式字节映射，不能执行脚本，也不能主动写入体重秤。单个文件最大 512 KB。")
             }
+            .padding(.horizontal, 18)
+            .padding(.bottom, 28)
         }
-        .scrollContentBackground(.hidden)
         .pageBackground()
         .navigationTitle("通信协议")
         .navigationBarTitleDisplayMode(.inline)
@@ -98,6 +112,22 @@ struct CommunicationRulesView: View {
         .alert(item: $message) { item in
             Alert(title: Text(item.title), message: Text(item.detail), dismissButton: .default(Text("好")))
         }
+    }
+
+    private func ruleLink(_ rule: CommunicationRule) -> some View {
+        NavigationLink {
+            CommunicationRuleDetailView(rule: rule)
+        } label: {
+            HStack(spacing: 10) {
+                ruleRow(rule)
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.caption.bold())
+                    .foregroundStyle(AppColor.secondary)
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
     }
 
     private func ruleRow(_ rule: CommunicationRule) -> some View {
@@ -194,36 +224,59 @@ private struct CommunicationRuleDetailView: View {
     let rule: CommunicationRule
 
     var body: some View {
-        Form {
-            Section("规则") {
-                LabeledContent("名称", value: rule.name)
-                LabeledContent("ID", value: rule.id)
-                LabeledContent("版本", value: String(rule.version))
-                LabeledContent("来源", value: rule.origin.title)
-                if let author = rule.author { LabeledContent("作者", value: author) }
-                if let sourceURL = rule.sourceURL {
-                    Link("打开来源地址", destination: sourceURL)
+        ScrollView {
+            VStack(alignment: .leading, spacing: 18) {
+                SettingsPanel(title: "规则", icon: "doc.text.fill") {
+                    SettingsValueRow(title: "名称", value: rule.name)
+                    Divider()
+                    SettingsValueRow(title: "ID", value: rule.id)
+                    Divider()
+                    SettingsValueRow(title: "版本", value: String(rule.version))
+                    Divider()
+                    SettingsValueRow(title: "来源", value: rule.origin.title)
+                    if let author = rule.author {
+                        Divider()
+                        SettingsValueRow(title: "作者", value: author)
+                    }
+                    if let sourceURL = rule.sourceURL {
+                        Divider()
+                        Link(destination: sourceURL) {
+                            Label("打开来源地址", systemImage: "arrow.up.right.square")
+                        }
+                    }
+                }
+
+                SettingsPanel(title: "传输匹配", icon: "antenna.radiowaves.left.and.right") {
+                    SettingsValueRow(title: "方式", value: transportTitle(rule.match.transport))
+                    Divider()
+                    SettingsValueRow(title: "服务 UUID", value: rule.match.serviceUUID)
+                    if let characteristic = rule.match.characteristicUUID {
+                        Divider()
+                        SettingsValueRow(title: "特征 UUID", value: characteristic)
+                    }
+                    Divider()
+                    SettingsValueRow(title: "长度", value: lengthDescription(rule.match))
+                    if let prefix = rule.match.prefixHex {
+                        Divider()
+                        SettingsValueRow(title: "帧前缀", value: prefix)
+                    }
+                }
+
+                SettingsPanel(title: "说明", icon: "info.circle.fill") {
+                    Text(rule.summary)
+                        .font(.subheadline)
+                        .foregroundStyle(AppColor.ink)
+                        .lineSpacing(3)
+                    if rule.origin != .builtIn {
+                        Label("该规则未经观我硬件验证，结果仅供协议调试和趋势参考。", systemImage: "exclamationmark.shield")
+                            .font(.caption)
+                            .foregroundStyle(AppColor.apricot)
+                    }
                 }
             }
-            Section("传输匹配") {
-                LabeledContent("方式", value: transportTitle(rule.match.transport))
-                LabeledContent("服务 UUID", value: rule.match.serviceUUID)
-                if let characteristic = rule.match.characteristicUUID {
-                    LabeledContent("特征 UUID", value: characteristic)
-                }
-                LabeledContent("长度", value: lengthDescription(rule.match))
-                if let prefix = rule.match.prefixHex { LabeledContent("帧前缀", value: prefix) }
-            }
-            Section("说明") {
-                Text(rule.summary)
-                if rule.origin != .builtIn {
-                    Label("该规则未经观我硬件验证，结果仅供协议调试和趋势参考。", systemImage: "exclamationmark.shield")
-                        .font(.caption)
-                        .foregroundStyle(AppColor.apricot)
-                }
-            }
+            .padding(.horizontal, 18)
+            .padding(.bottom, 28)
         }
-        .scrollContentBackground(.hidden)
         .pageBackground()
         .navigationTitle("协议详情")
         .navigationBarTitleDisplayMode(.inline)

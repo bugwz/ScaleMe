@@ -15,10 +15,10 @@ struct RootView: View {
                 .tabItem { Label("趋势", systemImage: "chart.xyaxis.line") }
                 .tag(2)
             DevicesView()
-                .tabItem { Label("设备", systemImage: "scalemass.fill") }
+                .tabItem { Label("设备", image: "ScaleDeviceTabIcon") }
                 .tag(3)
             ProfileView()
-                .tabItem { Label("我的", systemImage: "person.crop.circle") }
+                .tabItem { Label("设置", systemImage: "gearshape.fill") }
                 .tag(4)
         }
         .tint(AppColor.mint)
