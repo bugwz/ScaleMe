@@ -233,10 +233,12 @@ private struct DeviceScannerView: View {
                 .buttonStyle(.plain)
                 .accessibilityValue(showsOtherDevices ? "已展开" : "已折叠")
 
-                if showsOtherDevices {
-                    deviceRows(otherDevices)
-                        .transition(.opacity.combined(with: .move(edge: .top)))
-                }
+                deviceRows(otherDevices)
+                    .frame(height: showsOtherDevices ? nil : 0, alignment: .top)
+                    .clipped()
+                    .opacity(showsOtherDevices ? 1 : 0)
+                    .allowsHitTesting(showsOtherDevices)
+                    .accessibilityHidden(!showsOtherDevices)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
