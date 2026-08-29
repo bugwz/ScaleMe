@@ -40,6 +40,8 @@
 3. 选择开发团队后安装到 iPhone，首次搜索设备时允许蓝牙权限。
 4. 如需使用 iCloud 同步，请在开发者账号为 App ID 启用 iCloud Documents，并确认 Xcode 中的 `iCloud.com.scaleme.app` 容器可用于当前团队。
 
+添加设备时会扫描并展示所有附近正在广播的低功耗蓝牙设备，标准秤和已验证的旧款小米广播会优先排列，其余设备标记为“协议待验证”。如果进入页面时蓝牙仍在初始化，应用会在蓝牙可用后自动继续扫描。设备被发现不代表其测量协议已经兼容。
+
 设备需先在“设备”页的独立扫描界面中添加并可自定义名称。进入“称重”页后，应用会自动监听已关联设备，不再展示或搜索任意附近设备。概览和趋势按当前成员展示数据；趋势默认聚合该成员的全部设备记录，也可筛选单台设备，并支持按住图表左右拖动查看具体时间点。
 
 设备设置页会在用户进入时按需连接所选秤并发现完整 GATT 服务，而不是根据设备名称猜测功能。当前可读取标准 Device Information `0x180A` 中公开的固件、硬件和序列号；发现可写的标准 Current Time `0x2A2B` 后可同步秤端时间。仅当设备实际公开小米二代配置特征 `00001542-0000-3512-2118-0009AF100700` 且带写权限时，才开放秤端单位设置，使用公开记录的 `06 04 00 00/01/02` 命令分别设置 kg、lb 和斤。观我显示单位与本地记录行为统一位于“我的 → 设置”，不混入单台硬件设置。
@@ -80,6 +82,13 @@ swiftc ScaleMe/Models/Models.swift ScaleMe/Bluetooth/ScalePayloadParsers.swift T
 
 swiftc ScaleMe/Models/Models.swift ScaleMe/Bluetooth/MeasurementSession.swift Tests/MeasurementSessionSmoke.swift -o /tmp/scaleme-session-smoke
 /tmp/scaleme-session-smoke
+```
+
+设备发现分类测试：
+
+```bash
+swiftc ScaleMe/Bluetooth/ScaleDiscoveryClassifier.swift Tests/DiscoveryClassifierSmoke.swift -o /tmp/scaleme-discovery-smoke
+/tmp/scaleme-discovery-smoke
 ```
 
 加密与数据合并烟雾测试可运行：

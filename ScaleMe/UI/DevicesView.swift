@@ -95,13 +95,13 @@ private struct DeviceScannerView: View {
     @EnvironmentObject private var bluetooth: BLEScaleManager
     @EnvironmentObject private var store: MeasurementStore
     @Environment(\.dismiss) private var dismiss
+    @State private var showsOtherDevices = false
 
     var body: some View {
         GeometryReader { geometry in
             ScrollView {
                 VStack(spacing: 18) {
                     scanArea.frame(minHeight: max(390, geometry.size.height * 0.58))
-                    compatibilityArea
                 }
                 .padding(.horizontal, 18)
                 .padding(.bottom, 28)
@@ -110,6 +110,15 @@ private struct DeviceScannerView: View {
         .pageBackground()
         .navigationTitle("添加设备")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button { bluetooth.startScanning() } label: {
+                    Image(systemName: "arrow.clockwise")
+                }
+                .accessibilityLabel("重新扫描")
+                .help("重新扫描")
+            }
+        }
         .onAppear { bluetooth.startScanning() }
         .onDisappear { bluetooth.stopScanning() }
     }
@@ -122,29 +131,112 @@ private struct DeviceScannerView: View {
                 Image(systemName: "dot.radiowaves.left.and.right")
                     .font(.system(size: 38)).foregroundStyle(AppColor.mint)
             }
-            Text("正在扫描周围设备").font(.title3.bold())
-            Text("部分秤只有被踩亮或站上去后才会广播。请唤醒秤，并将手机靠近设备。")
+            Text(scanTitle).font(.title3.bold())
+            Text("正在搜索所有附近的低功耗蓝牙设备。部分秤只有被踩亮或站上去后才会广播。")
                 .font(.subheadline).foregroundStyle(AppColor.secondary)
                 .multilineTextAlignment(.center).lineSpacing(3)
 
+            Label {
+                Text("标准秤和已验证的小米广播会优先显示；其余设备不代表已兼容。")
+            } icon: {
+                Image(systemName: "info.circle")
+            }
+            .font(.caption)
+            .foregroundStyle(AppColor.secondary)
+            .multilineTextAlignment(.leading)
+            .padding(12)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(.white.opacity(0.72), in: RoundedRectangle(cornerRadius: 8))
+
             if bluetooth.devices.isEmpty {
-                ProgressView().tint(AppColor.mint).padding(.top, 12)
-                Text("暂未发现设备").font(.caption).foregroundStyle(AppColor.secondary)
-            } else {
-                VStack(spacing: 0) {
-                    ForEach(bluetooth.devices) { device in
-                        discoveredRow(device)
-                        if device.id != bluetooth.devices.last?.id { Divider().padding(.leading, 52) }
+                if case .unavailable = bluetooth.state {
+                    Button { bluetooth.startScanning() } label: {
+                        Label("重试", systemImage: "arrow.clockwise")
                     }
+                    .buttonStyle(.borderedProminent)
+                    .tint(AppColor.mint)
+                    .padding(.top, 8)
+                } else {
+                    ProgressView().tint(AppColor.mint).padding(.top, 12)
+                    Text("暂未发现设备，请唤醒秤并靠近手机")
+                        .font(.caption).foregroundStyle(AppColor.secondary)
                 }
-                .padding(.horizontal, 14)
-                .background(.white, in: RoundedRectangle(cornerRadius: 18))
+            } else {
+                discoveryResults
             }
             Spacer(minLength: 0)
         }
         .frame(maxWidth: .infinity)
         .padding(20)
         .background(AppColor.paleMint.opacity(0.7), in: RoundedRectangle(cornerRadius: 24))
+    }
+
+    private var scanTitle: String {
+        if case .unavailable(let reason) = bluetooth.state { return reason }
+        return "正在扫描周围设备"
+    }
+
+    private var likelyScaleDevices: [DiscoveredScale] {
+        bluetooth.devices.filter { $0.discoveryPriority < 2 }
+    }
+
+    private var otherDevices: [DiscoveredScale] {
+        bluetooth.devices.filter { $0.discoveryPriority == 2 }
+    }
+
+    private var discoveryResults: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            if likelyScaleDevices.isEmpty {
+                Text("暂未识别到明显的体重秤")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(AppColor.ink)
+                Text("请先唤醒秤；如果秤使用了普通名称，可在其他附近设备中查找。")
+                    .font(.caption)
+                    .foregroundStyle(AppColor.secondary)
+            } else {
+                Text("优先查看")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(AppColor.secondary)
+                deviceRows(likelyScaleDevices)
+            }
+
+            if !otherDevices.isEmpty {
+                Button {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        showsOtherDevices.toggle()
+                    }
+                } label: {
+                    HStack {
+                        Text("其他附近设备（\(otherDevices.count)）")
+                            .font(.subheadline.weight(.semibold))
+                        Spacer()
+                        Image(systemName: showsOtherDevices ? "chevron.up" : "chevron.down")
+                            .font(.caption.bold())
+                    }
+                    .foregroundStyle(AppColor.secondary)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityValue(showsOtherDevices ? "已展开" : "已折叠")
+
+                if showsOtherDevices {
+                    deviceRows(otherDevices)
+                        .transition(.opacity.combined(with: .move(edge: .top)))
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func deviceRows(_ devices: [DiscoveredScale]) -> some View {
+        VStack(spacing: 0) {
+            ForEach(devices) { device in
+                discoveredRow(device)
+                if device.id != devices.last?.id { Divider().padding(.leading, 52) }
+            }
+        }
+        .padding(.horizontal, 14)
+        .background(.white, in: RoundedRectangle(cornerRadius: 8))
     }
 
     private func discoveredRow(_ device: DiscoveredScale) -> some View {
@@ -161,13 +253,19 @@ private struct DeviceScannerView: View {
             dismiss()
         } label: {
             HStack(spacing: 12) {
-                Image(systemName: "scalemass").foregroundStyle(AppColor.mint).frame(width: 38, height: 38)
+                Image(systemName: device.isVerifiedCompatible ? "scalemass" : "antenna.radiowaves.left.and.right")
+                    .foregroundStyle(device.isVerifiedCompatible ? AppColor.mint : AppColor.secondary)
+                    .frame(width: 38, height: 38)
                     .background(AppColor.paleMint, in: RoundedRectangle(cornerRadius: 12))
                 VStack(alignment: .leading, spacing: 3) {
                     Text(device.name).foregroundStyle(AppColor.ink).lineLimit(1)
                     Text(device.compatibility).font(.caption).foregroundStyle(AppColor.secondary)
                 }
                 Spacer()
+                Image(systemName: signalSymbol(for: device.rssi))
+                    .font(.caption)
+                    .foregroundStyle(AppColor.secondary)
+                    .accessibilityLabel(signalDescription(for: device.rssi))
                 Text(existing ? "已添加" : "添加")
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(existing ? AppColor.secondary : AppColor.mint)
@@ -178,18 +276,20 @@ private struct DeviceScannerView: View {
         .disabled(existing)
     }
 
-    private var compatibilityArea: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("兼容性").font(.headline)
-            CompatibilityRow(title: "Bluetooth SIG 标准秤", detail: "标准体重与身体成分服务", state: "已实现", color: AppColor.mint)
-            CompatibilityRow(title: "小米旧款体重秤 / 体脂秤", detail: "公开 0x181B 广播格式", state: "已实现", color: AppColor.mint)
-            CompatibilityRow(title: "其他私有或加密型号", detail: "可以发现，但需协议与实机验证", state: "待验证", color: AppColor.apricot)
-            Text("发现设备不代表已经兼容。待验证设备可以保存名称，但在完成协议适配前可能无法读取数据。")
-                .font(.caption).foregroundStyle(AppColor.secondary).lineSpacing(3)
-        }
-        .padding(18)
-        .background(.white.opacity(0.94), in: RoundedRectangle(cornerRadius: 20))
+    private func signalSymbol(for rssi: Int) -> String {
+        if rssi == 127 { return "wifi.slash" }
+        if rssi >= -60 { return "wifi" }
+        if rssi >= -78 { return "wifi.exclamationmark" }
+        return "wifi.slash"
     }
+
+    private func signalDescription(for rssi: Int) -> String {
+        if rssi == 127 { return "信号未知" }
+        if rssi >= -60 { return "信号强" }
+        if rssi >= -78 { return "信号中等" }
+        return "信号较弱"
+    }
+
 }
 
 private struct ScaleSettingsView: View {

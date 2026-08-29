@@ -6,9 +6,13 @@ struct DiscoveredScale: Identifiable, Hashable {
     var name: String
     var rssi: Int
     var compatibility: String
+    var discoveryPriority: Int
+    var discoveryOrder = 0
     var peripheral: CBPeripheral
 
-    var isVerifiedCompatible: Bool { compatibility != "协议待验证" }
+    var isVerifiedCompatible: Bool {
+        ScaleDiscoveryCompatibility(rawValue: compatibility)?.isVerified == true
+    }
 
     static func == (lhs: Self, rhs: Self) -> Bool { lhs.id == rhs.id && lhs.rssi == rhs.rssi }
     func hash(into hasher: inout Hasher) { hasher.combine(id) }
@@ -157,6 +161,8 @@ final class BLEScaleManager: NSObject, ObservableObject {
     private var pendingSettingsServiceIDs: Set<ObjectIdentifier> = []
     private var pendingSettingsOperation: SettingsOperation?
     private var settingsCaptureStartedAt: Date?
+    private var scanRequested = false
+    private var discoverySequence = 0
 
     private static let weightService = CBUUID(string: "181D")
     private static let bodyService = CBUUID(string: "181B")
@@ -183,6 +189,7 @@ final class BLEScaleManager: NSObject, ObservableObject {
 
     func startScanning() {
         scanPurpose = .adding
+        discoverySequence = 0
         beginScanning(clearDevices: true)
     }
 
@@ -197,6 +204,7 @@ final class BLEScaleManager: NSObject, ObservableObject {
         isWaitingForNextLoad = false
         minimumWeightAfterCompletionKG = nil
         guard !scales.isEmpty else {
+            scanRequested = false
             central.stopScan()
             state = .idle
             return
@@ -229,6 +237,7 @@ final class BLEScaleManager: NSObject, ObservableObject {
     }
 
     private func beginScanning(clearDevices: Bool) {
+        scanRequested = true
         guard central.state == .poweredOn else {
             state = .unavailable(bluetoothStateText(central.state)); return
         }
@@ -240,6 +249,7 @@ final class BLEScaleManager: NSObject, ObservableObject {
     }
 
     func stopScanning() {
+        scanRequested = false
         central.stopScan()
         if case .scanning = state { state = .idle }
     }
@@ -290,7 +300,7 @@ final class BLEScaleManager: NSObject, ObservableObject {
         settingsConfigurationCharacteristic = nil
         settingsCurrentTimeCharacteristic = nil
         pendingSettingsServiceIDs.removeAll()
-        central.stopScan()
+        stopScanning()
         disconnectSettingsPeripheral()
         settingsScaleID = nil
         isSettingsBLECaptureEnabled = false
@@ -625,6 +635,8 @@ final class BLEScaleManager: NSObject, ObservableObject {
             name: scale.name,
             rssi: 0,
             compatibility: scale.compatibility,
+            discoveryPriority: 0,
+            discoveryOrder: 0,
             peripheral: peripheral
         ))
     }
@@ -639,28 +651,89 @@ final class BLEScaleManager: NSObject, ObservableObject {
         }
     }
 
-    private func compatibility(name: String, advertisement: [String: Any]) -> String {
-        let lower = name.lowercased()
-        if lower.contains("mi scale") || lower.contains("mibody") || lower.contains("xiaomi") { return "小米广播协议" }
-        let serviceData = (advertisement[CBAdvertisementDataServiceDataKey] as? [CBUUID: Data]) ?? [:]
-        if serviceData[Self.bodyService] != nil { return "0x181B 广播格式" }
-        let services = (advertisement[CBAdvertisementDataServiceUUIDsKey] as? [CBUUID]) ?? []
-        if services.contains(Self.weightService) || services.contains(Self.bodyService) { return "Bluetooth SIG 标准" }
-        return "协议待验证"
+    private func discoveryAdvertisement(
+        name: String,
+        advertisement: [String: Any],
+        hasVerifiedXiaomiPayload: Bool
+    ) -> ScaleDiscoveryAdvertisement {
+        let advertisedServices = [
+            CBAdvertisementDataServiceUUIDsKey,
+            CBAdvertisementDataOverflowServiceUUIDsKey,
+            CBAdvertisementDataSolicitedServiceUUIDsKey
+        ].flatMap { advertisement[$0] as? [CBUUID] ?? [] }
+        let serviceData = advertisement[CBAdvertisementDataServiceDataKey] as? [CBUUID: Data] ?? [:]
+        return ScaleDiscoveryAdvertisement(
+            name: name,
+            advertisedServiceUUIDs: Set(advertisedServices.map(\.uuidString)),
+            serviceDataUUIDs: Set(serviceData.keys.map(\.uuidString)),
+            hasVerifiedXiaomiPayload: hasVerifiedXiaomiPayload
+        )
+    }
+
+    private func discoveredName(for peripheral: CBPeripheral, advertisement: [String: Any]) -> String {
+        let advertisedName = (advertisement[CBAdvertisementDataLocalNameKey] as? String)?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        if let advertisedName, !advertisedName.isEmpty { return advertisedName }
+        if let peripheralName = peripheral.name?.trimmingCharacters(in: .whitespacesAndNewlines),
+           !peripheralName.isEmpty {
+            return peripheralName
+        }
+        return "未命名设备 \(peripheral.identifier.uuidString.suffix(4))"
+    }
+
+    private func upsertDiscoveredScale(_ item: DiscoveredScale) {
+        if let index = devices.firstIndex(where: { $0.id == item.id }) {
+            let previous = devices[index]
+            var updated = item
+            updated.discoveryOrder = previous.discoveryOrder
+            updated.discoveryPriority = min(previous.discoveryPriority, item.discoveryPriority)
+            if previous.isVerifiedCompatible {
+                updated.compatibility = previous.compatibility
+            }
+            if !previous.name.hasPrefix("未命名设备"),
+               previous.discoveryPriority <= item.discoveryPriority {
+                updated.name = previous.name
+            }
+            if item.rssi == 127 {
+                updated.rssi = previous.rssi
+            } else if previous.rssi != 127 {
+                updated.rssi = Int((Double(previous.rssi) * 0.75 + Double(item.rssi) * 0.25).rounded())
+            }
+            devices[index] = updated
+        } else {
+            var inserted = item
+            inserted.discoveryOrder = discoverySequence
+            discoverySequence += 1
+            devices.append(inserted)
+        }
+        devices.sort {
+            if $0.discoveryPriority != $1.discoveryPriority {
+                return $0.discoveryPriority < $1.discoveryPriority
+            }
+            return $0.discoveryOrder < $1.discoveryOrder
+        }
     }
 }
 
 extension BLEScaleManager: CBCentralManagerDelegate {
     nonisolated func centralManagerDidUpdateState(_ central: CBCentralManager) {
         Task { @MainActor in
-            state = central.state == .poweredOn ? .idle : .unavailable(bluetoothStateText(central.state))
+            if central.state == .poweredOn, scanRequested {
+                beginScanning(clearDevices: false)
+            } else {
+                state = central.state == .poweredOn ? .idle : .unavailable(bluetoothStateText(central.state))
+            }
         }
     }
 
     nonisolated func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String: Any], rssi RSSI: NSNumber) {
         Task { @MainActor in
             let serviceData = advertisementData[CBAdvertisementDataServiceDataKey] as? [CBUUID: Data]
-            if let payload = serviceData?[Self.bodyService] {
+            let xiaomiPayload = serviceData?[Self.bodyService]
+            let hasVerifiedXiaomiPayload = xiaomiPayload.flatMap {
+                try? XiaomiScaleParser.parsePacket($0, now: .now)
+            } != nil
+            if let payload = xiaomiPayload {
                 captureDiagnosticPayload(payload, kind: .xiaomiAdvertisement, receivedAt: .now)
             }
             if case .measuring = scanPurpose,
@@ -682,27 +755,39 @@ extension BLEScaleManager: CBCentralManagerDelegate {
                 }
             }
 
-            let name = (advertisementData[CBAdvertisementDataLocalNameKey] as? String) ?? peripheral.name ?? "未命名蓝牙设备"
+            let name = discoveredName(for: peripheral, advertisement: advertisementData)
             if case .configuring(let scaleID) = scanPurpose,
                scaleID == peripheral.identifier,
                connected?.identifier != peripheral.identifier {
                 connectForSettings(peripheral, name: pairedScaleNames[scaleID] ?? name)
                 return
             }
-            let isLikelyScale = serviceData?[Self.bodyService] != nil
-                || name.localizedCaseInsensitiveContains("scale")
-                || name.localizedCaseInsensitiveContains("body")
-                || name.contains("秤")
-            guard isLikelyScale else { return }
-            let item = DiscoveredScale(id: peripheral.identifier, name: name, rssi: RSSI.intValue, compatibility: compatibility(name: name, advertisement: advertisementData), peripheral: peripheral)
-            if let index = devices.firstIndex(where: { $0.id == item.id }) { devices[index] = item }
-            else { devices.append(item); devices.sort { $0.rssi > $1.rssi } }
+            let discovery = discoveryAdvertisement(
+                name: name,
+                advertisement: advertisementData,
+                hasVerifiedXiaomiPayload: hasVerifiedXiaomiPayload
+            )
+            let compatibility = ScaleDiscoveryClassifier.compatibility(for: discovery)
+            let item = DiscoveredScale(
+                id: peripheral.identifier,
+                name: name,
+                rssi: RSSI.intValue,
+                compatibility: compatibility.rawValue,
+                discoveryPriority: ScaleDiscoveryClassifier.discoveryPriority(
+                    for: discovery,
+                    compatibility: compatibility
+                ),
+                peripheral: peripheral
+            )
+            if case .adding = scanPurpose {
+                upsertDiscoveredScale(item)
+            }
 
             if case .measuring = scanPurpose,
                pairedScaleIDs.contains(peripheral.identifier),
                connected?.identifier != peripheral.identifier,
                item.isVerifiedCompatible,
-               serviceData?[Self.bodyService] == nil {
+               !hasVerifiedXiaomiPayload {
                 connect(item)
             }
         }
