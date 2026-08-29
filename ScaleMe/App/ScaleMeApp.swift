@@ -1,7 +1,35 @@
 import SwiftUI
+import UIKit
+
+final class AppDelegate: NSObject, UIApplicationDelegate {
+    static var supportedOrientations: UIInterfaceOrientationMask = .portrait
+
+    func application(
+        _ application: UIApplication,
+        supportedInterfaceOrientationsFor window: UIWindow?
+    ) -> UIInterfaceOrientationMask {
+        Self.supportedOrientations
+    }
+}
+
+@MainActor
+enum AppOrientation {
+    static func request(_ orientations: UIInterfaceOrientationMask) {
+        guard AppDelegate.supportedOrientations != orientations else { return }
+        AppDelegate.supportedOrientations = orientations
+        guard let windowScene = UIApplication.shared.connectedScenes
+            .compactMap({ $0 as? UIWindowScene })
+            .first(where: { $0.activationState == .foregroundActive }) else {
+            return
+        }
+        windowScene.windows.first?.rootViewController?.setNeedsUpdateOfSupportedInterfaceOrientations()
+        windowScene.requestGeometryUpdate(.iOS(interfaceOrientations: orientations)) { _ in }
+    }
+}
 
 @main
 struct ScaleMeApp: App {
+    @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @Environment(\.scenePhase) private var scenePhase
     @StateObject private var store = MeasurementStore()
     @StateObject private var bluetooth = BLEScaleManager()

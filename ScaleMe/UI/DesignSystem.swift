@@ -16,6 +16,22 @@ enum AppColor {
     static let violet = Color(red: 0.58, green: 0.66, blue: 0.88)
     static let apricot = Color(red: 0.98, green: 0.67, blue: 0.43)
     static let rose = Color(red: 0.94, green: 0.55, blue: 0.61)
+
+    // Distinct, calm series colors keep adjacent body-metric charts easy to scan.
+    static let trendWeight = mint
+    static let trendBMI = sky
+    static let trendBodyFat = apricot
+    static let trendFatMass = Color(red: 0.91, green: 0.47, blue: 0.43)
+    static let trendMuscleMass = Color(red: 0.32, green: 0.66, blue: 0.41)
+    static let trendMusclePercent = Color(red: 0.12, green: 0.62, blue: 0.63)
+    static let trendWaterPercent = Color(red: 0.25, green: 0.56, blue: 0.82)
+    static let trendWaterMass = Color(red: 0.31, green: 0.70, blue: 0.78)
+    static let trendProteinPercent = Color(red: 0.67, green: 0.70, blue: 0.29)
+    static let trendProteinMass = Color(red: 0.47, green: 0.64, blue: 0.22)
+    static let trendBoneMass = violet
+    static let trendBonePercent = Color(red: 0.67, green: 0.52, blue: 0.79)
+    static let trendVisceralFat = rose
+    static let trendBasalMetabolism = Color(red: 0.86, green: 0.50, blue: 0.24)
 }
 
 struct SoftCard<Content: View>: View {
@@ -43,6 +59,23 @@ struct StatusPill: View {
             .padding(.horizontal, 10)
             .padding(.vertical, 5)
             .background(color.opacity(0.11), in: Capsule())
+    }
+}
+
+struct ScaleDeviceLabel: View {
+    let title: String
+    var iconSize: CGFloat = 13
+
+    var body: some View {
+        Label {
+            Text(title)
+        } icon: {
+            Image("ScaleDeviceTabIcon")
+                .renderingMode(.template)
+                .resizable()
+                .scaledToFit()
+                .frame(width: iconSize, height: iconSize)
+        }
     }
 }
 

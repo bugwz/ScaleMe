@@ -62,8 +62,8 @@ struct MeasureView: View {
                     .frame(width: 230, height: 230)
                     .shadow(color: AppColor.mint.opacity(0.12), radius: 24, y: 10)
                 VStack(spacing: 10) {
-                    Image(systemName: stageSymbol)
-                        .font(.title2).foregroundStyle(AppColor.mint)
+                    stageIcon
+                        .foregroundStyle(AppColor.mint)
                         .contentTransition(.symbolEffect(.replace))
                     HStack(alignment: .firstTextBaseline, spacing: 5) {
                         Text(liveWeightText)
@@ -99,11 +99,21 @@ struct MeasureView: View {
         return bluetooth.state.title
     }
 
-    private var stageSymbol: String {
+    @ViewBuilder
+    private var stageIcon: some View {
         switch bluetooth.state {
-        case .completed: "checkmark.circle.fill"
-        case .measuring, .stabilizing: "waveform"
-        default: "scalemass"
+        case .completed:
+            Image(systemName: "checkmark.circle.fill")
+                .font(.title2)
+        case .measuring, .stabilizing:
+            Image(systemName: "waveform")
+                .font(.title2)
+        default:
+            Image("ScaleDeviceTabIcon")
+                .renderingMode(.template)
+                .resizable()
+                .scaledToFit()
+                .frame(width: 22, height: 22)
         }
     }
 
@@ -148,7 +158,10 @@ struct MeasureView: View {
                             .font(.caption)
                             .foregroundStyle(AppColor.secondary)
                     }
-                    Label(measurement.deviceName ?? bluetooth.currentScaleName ?? measurement.source.rawValue, systemImage: "scalemass")
+                    ScaleDeviceLabel(
+                        title: measurement.deviceName ?? bluetooth.currentScaleName ?? measurement.source.rawValue,
+                        iconSize: 13
+                    )
                         .font(.caption).foregroundStyle(AppColor.secondary)
                 }
             }

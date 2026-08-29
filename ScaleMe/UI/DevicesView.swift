@@ -52,11 +52,19 @@ struct DevicesView: View {
                 Text("\(store.pairedScales.count) 台").font(.caption).foregroundStyle(AppColor.secondary)
             }
             if store.pairedScales.isEmpty {
-                ContentUnavailableView(
-                    "还没有设备",
-                    systemImage: "scalemass",
-                    description: Text("添加后，测量页会自动等待这些设备的数据。")
-                )
+                ContentUnavailableView {
+                    VStack(spacing: 8) {
+                        Image("ScaleDeviceTabIcon")
+                            .renderingMode(.template)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 42, height: 42)
+                        Text("还没有设备")
+                            .font(.title3.weight(.semibold))
+                    }
+                } description: {
+                    Text("添加后，测量页会自动等待这些设备的数据。")
+                }
                 .frame(maxWidth: .infinity, minHeight: 230)
             } else {
                 VStack(spacing: 0) {
@@ -65,7 +73,11 @@ struct DevicesView: View {
                             ScaleSettingsView(scaleID: scale.id)
                         } label: {
                             HStack(spacing: 14) {
-                                Image(systemName: "scalemass.fill")
+                                Image("ScaleDeviceTabIcon")
+                                    .renderingMode(.template)
+                                    .resizable()
+                                    .scaledToFit()
+                                    .padding(14)
                                     .foregroundStyle(AppColor.mint)
                                     .frame(width: 46, height: 46)
                                     .background(AppColor.paleMint, in: RoundedRectangle(cornerRadius: 14))
@@ -255,7 +267,11 @@ private struct DeviceScannerView: View {
             dismiss()
         } label: {
             HStack(spacing: 12) {
-                Image(systemName: device.isVerifiedCompatible ? "scalemass" : "antenna.radiowaves.left.and.right")
+                Image("ScaleDeviceTabIcon")
+                    .renderingMode(.template)
+                    .resizable()
+                    .scaledToFit()
+                    .padding(10.5)
                     .foregroundStyle(device.isVerifiedCompatible ? AppColor.mint : AppColor.secondary)
                     .frame(width: 38, height: 38)
                     .background(AppColor.paleMint, in: RoundedRectangle(cornerRadius: 12))
@@ -404,7 +420,7 @@ private struct ScaleSettingsView: View {
                 Button {
                     bluetooth.configureHardwareUnit(selectedHardwareUnit)
                 } label: {
-                    Label("写入体重秤", systemImage: "scalemass")
+                    ScaleDeviceLabel(title: "写入体重秤", iconSize: 17)
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.borderedProminent)

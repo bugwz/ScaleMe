@@ -78,7 +78,7 @@ struct DashboardView: View {
                     if let fat = latest.bodyFatPercent { Label("体脂 \(fat.formatted(2))%", systemImage: "drop.fill") }
                 }
                 .font(.caption).foregroundStyle(AppColor.secondary)
-                Label(sourceName(for: latest), systemImage: "scalemass")
+                ScaleDeviceLabel(title: sourceName(for: latest), iconSize: 11)
                     .font(.caption2).foregroundStyle(AppColor.secondary)
                 HStack(spacing: 14) {
                     Button(action: onMeasure) {
