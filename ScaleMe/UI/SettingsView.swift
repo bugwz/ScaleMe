@@ -55,7 +55,7 @@ struct SettingsView: View {
             } header: {
                 Text("iCloud 同步")
             } footer: {
-                Text("配置和测量数据可分别控制。推送会在本地配置变更后写入 iCloud；拉取始终以 iCloud 配置替换本机配置。同步在后台异步完成，不会阻塞称重和浏览。")
+                Text("配置和测量数据可分别控制。推送会在本地配置变更后写入 iCloud；拉取始终以 iCloud 配置替换本机配置。同步在后台异步完成，不会阻塞测量和浏览。")
             }
 
             if cloudSync.isEnabled {

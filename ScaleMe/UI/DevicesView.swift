@@ -53,7 +53,7 @@ struct DevicesView: View {
                 ContentUnavailableView(
                     "还没有设备",
                     systemImage: "scalemass",
-                    description: Text("添加后，称重页会自动等待这些设备的数据。")
+                    description: Text("添加后，测量页会自动等待这些设备的数据。")
                 )
                 .frame(maxWidth: .infinity, minHeight: 230)
             } else {

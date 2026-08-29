@@ -22,7 +22,7 @@ struct DashboardView: View {
                 VStack(spacing: 18) {
                     hero
                     if store.isShowingDemoData {
-                        Label("当前展示示例数据，首次称重后自动替换", systemImage: "sparkles")
+                        Label("当前展示示例数据，首次测量后自动替换", systemImage: "sparkles")
                             .font(.caption)
                             .foregroundStyle(AppColor.secondary)
                             .frame(maxWidth: .infinity, alignment: .leading)
@@ -88,7 +88,7 @@ struct DashboardView: View {
                 Label(sourceName(for: latest), systemImage: "scalemass")
                     .font(.caption2).foregroundStyle(AppColor.secondary)
                 Button(action: onMeasure) {
-                    Label("开始称重", systemImage: "wave.3.right")
+                    Label("开始测量", systemImage: "wave.3.right")
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(.white)
                         .padding(.horizontal, 16).padding(.vertical, 11)

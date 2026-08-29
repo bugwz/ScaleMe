@@ -21,7 +21,7 @@ struct MeasureView: View {
                 .padding(.bottom, 28)
             }
             .pageBackground()
-            .navigationTitle("称重")
+            .navigationTitle("测量")
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) { ProfileSwitcher() }
                 ToolbarItem(placement: .topBarTrailing) {

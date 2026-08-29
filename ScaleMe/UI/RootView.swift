@@ -9,7 +9,7 @@ struct RootView: View {
                 .tabItem { Label("概览", systemImage: "circle.grid.2x2.fill") }
                 .tag(0)
             MeasureView()
-                .tabItem { Label("称重", systemImage: "dot.radiowaves.left.and.right") }
+                .tabItem { Label("测量", systemImage: "dot.radiowaves.left.and.right") }
                 .tag(1)
             HistoryView()
                 .tabItem { Label("趋势", systemImage: "chart.xyaxis.line") }
