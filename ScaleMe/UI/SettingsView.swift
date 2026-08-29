@@ -3,145 +3,228 @@ import SwiftUI
 struct SettingsView: View {
     @EnvironmentObject private var store: MeasurementStore
     @EnvironmentObject private var cloudSync: ICloudSyncManager
+    @State private var pendingCloudAction: PendingCloudAction?
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
-                SettingsPanel(title: "通信协议", icon: "point.3.connected.trianglepath.dotted") {
-                    NavigationLink {
-                        CommunicationRulesView()
-                    } label: {
-                        HStack(spacing: 10) {
-                            Text("协议库与社区规则")
-                                .font(.subheadline.weight(.semibold))
-                                .foregroundStyle(AppColor.ink)
-                            Spacer()
-                            Text("\(store.communicationRules.count) 条")
-                                .font(.subheadline)
-                                .foregroundStyle(AppColor.secondary)
-                            Image(systemName: "chevron.right")
-                                .font(.caption.bold())
-                                .foregroundStyle(AppColor.secondary)
-                        }
-                    }
-                    .buttonStyle(.plain)
-                }
-
-                SettingsPanel(title: "通用", icon: "slider.horizontal.3") {
-                    HStack(spacing: 16) {
-                        Text("显示单位")
-                            .font(.subheadline)
-                            .foregroundStyle(AppColor.secondary)
-                        Spacer()
-                        Picker("", selection: $store.unit) {
-                            ForEach(WeightUnit.allCases) { unit in
-                                Text(unit.rawValue).tag(unit)
-                            }
-                        }
-                        .labelsHidden()
-                        .pickerStyle(.menu)
-                        .tint(AppColor.ink)
-                    }
-                }
-
-                SettingsPanel(title: "记录", icon: "list.bullet.clipboard") {
-                    Toggle("合并频繁称重记录", isOn: $store.mergeFrequentMeasurements)
-                        .tint(AppColor.mint)
-                    Divider()
-                    SettingsValueRow(title: "小物称重", value: "尚未实现独立记录模式")
-                    Text("开启后，同一成员和设备在 30 秒内连续完成的称重只保留后一条。小物称重不会保存为人体测量。")
-                        .font(.caption)
-                        .foregroundStyle(AppColor.secondary)
-                        .lineSpacing(3)
-                }
-
-                SettingsPanel(title: "iCloud 同步", icon: "icloud") {
-                    Toggle("同步应用配置", isOn: $cloudSync.isConfigurationSyncEnabled)
-                        .tint(AppColor.mint)
-
-                    if cloudSync.isConfigurationSyncEnabled {
-                        Divider()
-                        Text("配置策略")
-                            .font(.subheadline)
-                            .foregroundStyle(AppColor.secondary)
-                        Picker("配置策略", selection: $cloudSync.configurationStrategy) {
-                            ForEach(ConfigurationSyncStrategy.allCases) { strategy in
-                                Text(strategy.title).tag(strategy)
-                            }
-                        }
-                        .pickerStyle(.segmented)
-
-                        Label(cloudSync.configurationStrategy.detail, systemImage: strategyIcon)
-                            .font(.caption)
-                            .foregroundStyle(AppColor.secondary)
-                    }
-
-                    Divider()
-                    Toggle("同步测量数据", isOn: $cloudSync.isDataSyncEnabled)
-                        .tint(AppColor.mint)
-                    Text("配置和测量数据可分别控制。推送会将本地配置写入 iCloud；拉取始终以 iCloud 配置替换本机配置。")
-                        .font(.caption)
-                        .foregroundStyle(AppColor.secondary)
-                        .lineSpacing(3)
-                }
-
-                if cloudSync.isEnabled {
-                    SettingsPanel(title: "同步状态", icon: statusIcon) {
-                        HStack(spacing: 12) {
-                            Image(systemName: statusIcon)
-                                .foregroundStyle(statusColor)
-                                .frame(width: 24)
-                            VStack(alignment: .leading, spacing: 3) {
-                                Text(cloudSync.state.title)
-                                    .font(.subheadline.weight(.semibold))
-                                if let detail = cloudSync.state.detail {
-                                    Text(detail).font(.caption).foregroundStyle(AppColor.secondary)
-                                }
-                            }
-                            Spacer()
-                            if cloudSync.state == .syncing {
-                                ProgressView().tint(AppColor.mint)
-                            }
-                        }
-
-                        Button {
-                            cloudSync.syncNow()
-                        } label: {
-                            Label("立即同步", systemImage: "arrow.triangle.2.circlepath")
-                                .frame(maxWidth: .infinity)
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .tint(AppColor.mint)
-                        .disabled(cloudSync.state == .syncing)
-                    }
-                }
-
-                SettingsPanel(title: "文件与安全", icon: "lock.shield.fill") {
-                    SettingsValueRow(title: "iCloud 目录", value: "ScaleMe/")
-                    Divider()
-                    SettingsValueRow(title: "配置文件", value: AppStorageLayout.configurationFileName)
-                    Divider()
-                    SettingsValueRow(title: "数据文件", value: AppStorageLayout.measurementsFileName)
-                    Divider()
-                    Label("测量数据使用 AES-GCM 加密", systemImage: "checkmark.shield.fill")
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(AppColor.ink)
-                }
-
                 if let storageError = store.storageError {
-                    SettingsPanel(title: "本地存储", icon: "exclamationmark.triangle.fill") {
-                        Text(storageError)
-                            .font(.subheadline)
-                            .foregroundStyle(AppColor.rose)
-                    }
+                    storageErrorBanner(storageError)
                 }
+
+                preferencesPanel
+                cloudPanel
+                dataAndPrivacyLink
             }
             .padding(.horizontal, 18)
+            .padding(.top, 8)
             .padding(.bottom, 28)
         }
         .pageBackground()
-        .navigationTitle("设置")
+        .navigationTitle("偏好与同步")
         .navigationBarTitleDisplayMode(.inline)
+        .alert(item: $pendingCloudAction) { action in
+            Alert(
+                title: Text("从 iCloud 拉取配置？"),
+                message: Text("iCloud 中的成员、设备、显示单位和通信规则将替换本机配置。测量记录不受影响。"),
+                primaryButton: .destructive(Text("拉取并替换")) {
+                    cloudSync.configurationStrategy = .pull
+                    if action == .enableConfigurationSync {
+                        cloudSync.isConfigurationSyncEnabled = true
+                    }
+                },
+                secondaryButton: .cancel(Text("取消"))
+            )
+        }
+    }
+
+    private var preferencesPanel: some View {
+        SettingsPanel(title: "显示与记录", icon: "slider.horizontal.3") {
+            VStack(alignment: .leading, spacing: 10) {
+                Text("体重单位")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(AppColor.ink)
+                Picker("体重单位", selection: $store.unit) {
+                    ForEach(WeightUnit.allCases) { unit in
+                        Text(unit.rawValue).tag(unit)
+                    }
+                }
+                .pickerStyle(.segmented)
+            }
+
+            Divider()
+
+            SettingsToggleRow(
+                title: "合并连续称重",
+                detail: "同一成员和设备在 30 秒内连续完成的称重，只保留最新一条。",
+                isOn: $store.mergeFrequentMeasurements
+            )
+        }
+    }
+
+    private var cloudPanel: some View {
+        SettingsPanel(title: "iCloud", icon: "icloud") {
+            cloudStatusRow
+
+            Divider()
+
+            SettingsToggleRow(
+                title: "同步应用配置",
+                detail: "成员、设备、显示单位和通信规则。",
+                isOn: configurationSyncBinding
+            )
+
+            if cloudSync.isConfigurationSyncEnabled {
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("配置同步方向")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(AppColor.secondary)
+                    Picker("配置同步方向", selection: configurationStrategyBinding) {
+                        ForEach(ConfigurationSyncStrategy.allCases) { strategy in
+                            Text(strategy.title).tag(strategy)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+
+                    Label(cloudSync.configurationStrategy.detail, systemImage: strategyIcon)
+                        .font(.caption)
+                        .foregroundStyle(AppColor.secondary)
+                }
+                .padding(12)
+                .background(AppColor.paleMint.opacity(0.7), in: RoundedRectangle(cornerRadius: 14))
+                .transition(.opacity.combined(with: .move(edge: .top)))
+            }
+
+            Divider()
+
+            SettingsToggleRow(
+                title: "同步测量数据",
+                detail: "加密同步称重和身体成分记录，可与配置同步分开关闭。",
+                isOn: $cloudSync.isDataSyncEnabled
+            )
+
+            if cloudSync.isEnabled {
+                Button {
+                    cloudSync.syncNow()
+                } label: {
+                    Label(
+                        cloudSync.state == .syncing ? "正在同步" : "立即同步",
+                        systemImage: "arrow.triangle.2.circlepath"
+                    )
+                    .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(AppColor.mint)
+                .disabled(cloudSync.state == .syncing)
+            }
+        }
+        .animation(.easeInOut(duration: 0.2), value: cloudSync.isConfigurationSyncEnabled)
+        .animation(.easeInOut(duration: 0.2), value: cloudSync.isEnabled)
+    }
+
+    private var cloudStatusRow: some View {
+        HStack(spacing: 12) {
+            Image(systemName: statusIcon)
+                .font(.title3)
+                .foregroundStyle(statusColor)
+                .frame(width: 28)
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 3) {
+                Text(cloudSync.isEnabled ? cloudSync.state.title : "未开启同步")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(AppColor.ink)
+                Text(cloudStatusDetail)
+                    .font(.caption)
+                    .foregroundStyle(AppColor.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            Spacer()
+            if cloudSync.state == .syncing {
+                ProgressView()
+                    .tint(AppColor.mint)
+            }
+        }
+    }
+
+    private var dataAndPrivacyLink: some View {
+        NavigationLink {
+            DataAndPrivacySettingsView()
+        } label: {
+            HStack(spacing: 14) {
+                Image(systemName: "lock.shield.fill")
+                    .font(.title3)
+                    .foregroundStyle(AppColor.mint)
+                    .frame(width: 34)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("数据与隐私")
+                        .font(.headline)
+                        .foregroundStyle(AppColor.ink)
+                    Text("了解本地存储、加密和文件位置")
+                        .font(.caption)
+                        .foregroundStyle(AppColor.secondary)
+                }
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.caption.bold())
+                    .foregroundStyle(AppColor.secondary)
+            }
+            .padding(18)
+            .background(.white.opacity(0.94), in: RoundedRectangle(cornerRadius: 20))
+            .overlay(RoundedRectangle(cornerRadius: 20).stroke(AppColor.mint.opacity(0.08)))
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func storageErrorBanner(_ message: String) -> some View {
+        HStack(alignment: .top, spacing: 12) {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .foregroundStyle(AppColor.rose)
+            VStack(alignment: .leading, spacing: 4) {
+                Text("本地存储异常")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(AppColor.ink)
+                Text(message)
+                    .font(.caption)
+                    .foregroundStyle(AppColor.secondary)
+            }
+        }
+        .padding(16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(AppColor.rose.opacity(0.1), in: RoundedRectangle(cornerRadius: 18))
+        .accessibilityElement(children: .combine)
+    }
+
+    private var configurationSyncBinding: Binding<Bool> {
+        Binding(
+            get: { cloudSync.isConfigurationSyncEnabled },
+            set: { isEnabled in
+                if isEnabled, cloudSync.configurationStrategy == .pull {
+                    pendingCloudAction = .enableConfigurationSync
+                } else {
+                    cloudSync.isConfigurationSyncEnabled = isEnabled
+                }
+            }
+        )
+    }
+
+    private var configurationStrategyBinding: Binding<ConfigurationSyncStrategy> {
+        Binding(
+            get: { cloudSync.configurationStrategy },
+            set: { strategy in
+                if strategy == .pull {
+                    pendingCloudAction = .selectPull
+                } else {
+                    cloudSync.configurationStrategy = strategy
+                }
+            }
+        )
+    }
+
+    private var cloudStatusDetail: String {
+        if !cloudSync.isEnabled {
+            return "数据默认只保存在本机，按需开启下方项目。"
+        }
+        return cloudSync.state.detail ?? "配置与测量数据可独立同步。"
     }
 
     private var strategyIcon: String {
@@ -149,19 +232,114 @@ struct SettingsView: View {
     }
 
     private var statusIcon: String {
-        switch cloudSync.state {
+        guard cloudSync.isEnabled else { return "icloud.slash" }
+        return switch cloudSync.state {
         case .idle: "icloud"
-        case .syncing: "icloud.and.arrow.up"
+        case .syncing: "arrow.triangle.2.circlepath.icloud"
         case .success: "checkmark.icloud.fill"
         case .unavailable, .failed: "exclamationmark.icloud.fill"
         }
     }
 
     private var statusColor: Color {
-        switch cloudSync.state {
+        guard cloudSync.isEnabled else { return AppColor.secondary }
+        return switch cloudSync.state {
         case .success: AppColor.mint
         case .unavailable, .failed: AppColor.apricot
         case .idle, .syncing: AppColor.sky
         }
+    }
+
+    private enum PendingCloudAction: String, Identifiable {
+        case selectPull
+        case enableConfigurationSync
+
+        var id: String { rawValue }
+    }
+}
+
+private struct SettingsToggleRow: View {
+    let title: String
+    let detail: String
+    @Binding var isOn: Bool
+
+    var body: some View {
+        Toggle(isOn: $isOn) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(AppColor.ink)
+                Text(detail)
+                    .font(.caption)
+                    .foregroundStyle(AppColor.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .tint(AppColor.mint)
+    }
+}
+
+private struct DataAndPrivacySettingsView: View {
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 18) {
+                SettingsPanel(title: "隐私保护", icon: "hand.raised.fill") {
+                    privacyRow(
+                        icon: "iphone",
+                        title: "本地优先",
+                        detail: "不开启 iCloud 同步时，成员资料和测量数据只保存在本机。"
+                    )
+                    Divider()
+                    privacyRow(
+                        icon: "checkmark.shield.fill",
+                        title: "测量数据已加密",
+                        detail: "测量文件使用 AES-GCM 认证加密，密钥单独保存在钥匙串中。"
+                    )
+                    Divider()
+                    privacyRow(
+                        icon: "heart.text.square",
+                        title: "仅作趋势参考",
+                        detail: "身体成分结果会受水分、进食和接触状态影响，不构成医疗诊断。"
+                    )
+                }
+
+                SettingsPanel(title: "存储位置", icon: "folder.fill") {
+                    SettingsValueRow(title: "目录", value: "ScaleMe/")
+                    Divider()
+                    SettingsValueRow(title: "应用配置", value: AppStorageLayout.configurationFileName)
+                    Divider()
+                    SettingsValueRow(title: "测量数据", value: AppStorageLayout.measurementsFileName)
+                    Text("开启相应同步项目后，同名文件会存放在观我的 iCloud 容器中。")
+                        .font(.caption)
+                        .foregroundStyle(AppColor.secondary)
+                        .lineSpacing(3)
+                }
+            }
+            .padding(.horizontal, 18)
+            .padding(.top, 8)
+            .padding(.bottom, 28)
+        }
+        .pageBackground()
+        .navigationTitle("数据与隐私")
+        .navigationBarTitleDisplayMode(.inline)
+    }
+
+    private func privacyRow(icon: String, title: String, detail: String) -> some View {
+        HStack(alignment: .top, spacing: 12) {
+            Image(systemName: icon)
+                .foregroundStyle(AppColor.mint)
+                .frame(width: 24)
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(AppColor.ink)
+                Text(detail)
+                    .font(.caption)
+                    .foregroundStyle(AppColor.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .accessibilityElement(children: .combine)
     }
 }

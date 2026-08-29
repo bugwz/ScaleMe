@@ -2,7 +2,6 @@ import SwiftUI
 
 struct ProfileView: View {
     @EnvironmentObject private var store: MeasurementStore
-    @State private var showAbout = false
     @State private var showAddMember = false
 
     var body: some View {
@@ -22,11 +21,6 @@ struct ProfileView: View {
             .toolbar(.hidden, for: .navigationBar)
             .sheet(isPresented: $showAddMember) {
                 MemberEditorView(profile: nil)
-            }
-            .alert("观我 · ScaleMe", isPresented: $showAbout) {
-                Button("好") {}
-            } message: {
-                Text("从细微变化里，看见身体长期的方向。\n\n版本 0.1.0")
             }
         }
     }
@@ -88,26 +82,34 @@ struct ProfileView: View {
     }
 
     private var settingsSection: some View {
-        VStack(spacing: 0) {
-            NavigationLink {
-                CommunicationRulesView()
-            } label: {
-                settingsRow("通信协议", icon: "point.3.connected.trianglepath.dotted")
+        VStack(alignment: .leading, spacing: 12) {
+            Text("应用设置")
+                .font(.title3.bold())
+                .foregroundStyle(AppColor.ink)
+                .accessibilityAddTraits(.isHeader)
+
+            VStack(spacing: 0) {
+                NavigationLink {
+                    CommunicationRulesView()
+                } label: {
+                    settingsRow("通信协议", icon: "point.3.connected.trianglepath.dotted")
+                }
+                Divider().padding(.leading, 50)
+                NavigationLink {
+                    SettingsView()
+                } label: {
+                    settingsRow("偏好与同步", icon: "gearshape.fill")
+                }
+                Divider().padding(.leading, 50)
+                NavigationLink {
+                    AboutView()
+                } label: {
+                    settingsRow("关于观我 / ScaleMe", icon: "info.circle.fill")
+                }
             }
-            Divider().padding(.leading, 50)
-            NavigationLink {
-                SettingsView()
-            } label: {
-                settingsRow("通用设置", icon: "gearshape.fill")
-            }
-            Divider().padding(.leading, 50)
-            Button { showAbout = true } label: {
-                settingsRow("关于观我 / ScaleMe", icon: "info.circle.fill")
-            }
-            .buttonStyle(.plain)
+            .padding(.horizontal, 16)
+            .background(.white.opacity(0.94), in: RoundedRectangle(cornerRadius: 20))
         }
-        .padding(.horizontal, 16)
-        .background(.white.opacity(0.94), in: RoundedRectangle(cornerRadius: 20))
     }
 
     private func settingsRow(_ title: String, icon: String) -> some View {
@@ -155,11 +157,16 @@ private struct MemberEditorView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 18) {
                     SettingsPanel(title: "成员信息", icon: "person.text.rectangle") {
-                        TextField("姓名或昵称", text: $draft.name)
-                            .textFieldStyle(.roundedBorder)
-                            .focused($focusedField, equals: .name)
-                            .submitLabel(.next)
-                            .onSubmit { focusedField = .height }
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("姓名或昵称")
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(AppColor.secondary)
+                            TextField("请输入姓名或昵称", text: $draft.name)
+                                .textFieldStyle(.roundedBorder)
+                                .focused($focusedField, equals: .name)
+                                .submitLabel(.next)
+                                .onSubmit { focusedField = .height }
+                        }
                         Divider()
                         HStack(spacing: 16) {
                             Text("关系")
