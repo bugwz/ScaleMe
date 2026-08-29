@@ -65,14 +65,14 @@ enum ParserSmoke {
             "AC2900684E20020005400064000000000029D51F"
         ))
         precondition(icomonLive.phase == .live)
-        precondition(abs(icomonLive.measurement.weightKG - 68.35744) < 0.000_01)
+        precondition(abs(icomonLive.measurement.weightKG - 20.0) < 0.000_01)
         precondition(!icomonLive.measurement.isStable)
 
         let icomonStable = try IcomonAFUScaleParser.parse(hexData(
             "AC298068EA60020005400064000000000029D51B"
         ))
         precondition(icomonStable.phase == .stable)
-        precondition(abs(icomonStable.measurement.weightKG - 68.75744) < 0.000_01)
+        precondition(abs(icomonStable.measurement.weightKG - 60.0) < 0.000_01)
         precondition(icomonStable.measurement.isStable)
 
         let finalFixtures = [
@@ -83,12 +83,35 @@ enum ParserSmoke {
         for (fixture, primaryImpedance, secondaryImpedance) in finalFixtures {
             let packet = try IcomonAFUScaleParser.parse(hexData(fixture))
             precondition(packet.phase == .final)
-            precondition(abs(packet.measurement.weightKG - 68.75744) < 0.000_01)
+            precondition(abs(packet.measurement.weightKG - 60.0) < 0.000_01)
             precondition(packet.measurement.impedanceOhm == primaryImpedance)
-            precondition(packet.secondaryImpedanceOhm == secondaryImpedance)
+            precondition(packet.measurement.secondaryImpedanceOhm == secondaryImpedance)
             precondition(packet.measurement.source == .icomonAFU)
             precondition(packet.measurement.isStable)
         }
+
+        let latestCapture = try IcomonAFUScaleParser.parse(hexData(
+            "AC2902000226028A018068FDE80000000029D603"
+        ))
+        precondition(abs(latestCapture.measurement.weightKG - 65.0) < 0.000_01)
+        precondition(latestCapture.measurement.impedanceOhm == 550)
+        precondition(latestCapture.measurement.secondaryImpedanceOhm == 650)
+
+        let enriched = BodyCompositionEstimator.enriching(
+            latestCapture.measurement,
+            profile: UserProfile(
+                heightCM: 174,
+                birthDate: Calendar.current.date(byAdding: .year, value: -30, to: .now) ?? .now,
+                biologicalSex: .male
+            )
+        )
+        guard let bodyFatPercent = enriched.bodyFatPercent,
+              let waterPercent = enriched.waterPercent,
+              let proteinMassKG = enriched.proteinMassKG else {
+            preconditionFailure("阻抗测量应生成完整的派生体成分")
+        }
+        precondition(abs(waterPercent - (100 - bodyFatPercent) * 0.732) < 0.000_01)
+        precondition(proteinMassKG > 0)
 
         do {
             var invalidChecksum = hexData(finalFixtures[0].0)

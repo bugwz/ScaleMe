@@ -674,7 +674,7 @@ final class BLEScaleManager: NSObject, ObservableObject {
                     packet.phase.rawValue,
                     packet.measurement.weightKG,
                     packet.measurement.impedanceOhm.map { String(format: "%.0f", $0) } ?? "-",
-                    packet.secondaryImpedanceOhm.map { String(format: "%.0f", $0) } ?? "-"
+                    packet.measurement.secondaryImpedanceOhm.map { String(format: "%.0f", $0) } ?? "-"
                 )
             }
         } catch {

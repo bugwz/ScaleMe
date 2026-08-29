@@ -207,24 +207,78 @@ struct MeasurementDetailView: View {
                     StatusPill(text: profile.name)
                 }
                 .padding(.vertical, 28)
-                SoftCard {
-                    VStack(spacing: 0) {
-                        DetailRow(name: "BMI", value: measurement.bmi(heightCM: profile.heightCM).formatted(1))
-                        DetailRow(name: "体脂率", value: measurement.bodyFatPercent.map { "\($0.formatted(1))%" } ?? "—")
-                        DetailRow(name: "肌肉量", value: measurement.muscleMassKG.map { "\($0.formatted(1)) kg" } ?? "—")
-                        DetailRow(name: "身体水分", value: measurement.waterPercent.map { "\($0.formatted(1))%" } ?? "—")
-                        DetailRow(name: "内脏脂肪", value: measurement.visceralFat?.formatted(1) ?? "—")
-                        DetailRow(name: "基础代谢", value: measurement.basalMetabolismKCal.map { "\($0.formatted(0)) kcal" } ?? "—", divider: false)
-                    }
+                metricCard(title: "基础指标", metrics: basicMetrics)
+                if measurement.hasBodyComposition {
+                    metricCard(title: "身体成分估算", metrics: compositionMetrics)
+                    Text("体脂及相关指标是基于生物电阻抗和个人资料的消费级估算值，仅用于日常趋势参考，不构成医疗诊断。")
+                        .font(.caption).foregroundStyle(AppColor.secondary).padding(.horizontal)
                 }
-                Text("体脂及相关指标是基于生物电阻抗和个人资料的估算值，仅用于日常趋势参考，不构成医疗诊断。")
-                    .font(.caption).foregroundStyle(AppColor.secondary).padding(.horizontal)
+                if !rawMetrics.isEmpty {
+                    metricCard(title: "设备原始数据", metrics: rawMetrics)
+                    Text("阻抗通道名称和频率尚未获得厂商定义，因此仅保留原始读数，不据此声称具体频率。")
+                        .font(.caption).foregroundStyle(AppColor.secondary).padding(.horizontal)
+                }
             }
             .padding(18)
         }
         .pageBackground()
         .navigationTitle("测量详情")
         .navigationBarTitleDisplayMode(.inline)
+    }
+
+    private var basicMetrics: [(String, String)] {
+        [("BMI", measurement.bmi(heightCM: profile.heightCM).formatted(1))]
+    }
+
+    private var compositionMetrics: [(String, String)] {
+        var metrics: [(String, String)] = []
+        append(measurement.bodyFatPercent, name: "体脂率", suffix: "%", to: &metrics)
+        append(measurement.fatMassKG, name: "脂肪量", suffix: " kg", to: &metrics)
+        append(measurement.musclePercent, name: "肌肉率", suffix: "%", to: &metrics)
+        append(measurement.muscleMassKG, name: "肌肉量", suffix: " kg", to: &metrics)
+        append(measurement.waterPercent, name: "身体水分", suffix: "%", to: &metrics)
+        append(measurement.waterMassKG, name: "水分量", suffix: " kg", to: &metrics)
+        append(measurement.proteinPercent, name: "蛋白质占比", suffix: "%", to: &metrics)
+        append(measurement.proteinMassKG, name: "蛋白质量", suffix: " kg", to: &metrics)
+        append(measurement.bonePercent, name: "骨量占比", suffix: "%", to: &metrics)
+        append(measurement.boneMassKG, name: "骨量", suffix: " kg", to: &metrics)
+        append(measurement.visceralFat, name: "内脏脂肪", suffix: "", to: &metrics)
+        if let value = measurement.basalMetabolismKCal {
+            metrics.append(("基础代谢", "\(value.formatted(0)) kcal"))
+        }
+        return metrics
+    }
+
+    private var rawMetrics: [(String, String)] {
+        var metrics: [(String, String)] = []
+        if let value = measurement.impedanceOhm {
+            metrics.append(("阻抗通道 1", "\(value.formatted(0)) Ω"))
+        }
+        if let value = measurement.secondaryImpedanceOhm {
+            metrics.append(("阻抗通道 2", "\(value.formatted(0)) Ω"))
+        }
+        return metrics
+    }
+
+    private func append(
+        _ value: Double?,
+        name: String,
+        suffix: String,
+        to metrics: inout [(String, String)]
+    ) {
+        guard let value else { return }
+        metrics.append((name, "\(value.formatted(1))\(suffix)"))
+    }
+
+    private func metricCard(title: String, metrics: [(String, String)]) -> some View {
+        SoftCard {
+            VStack(alignment: .leading, spacing: 0) {
+                Text(title).font(.headline).padding(.bottom, 4)
+                ForEach(Array(metrics.enumerated()), id: \.offset) { index, metric in
+                    DetailRow(name: metric.0, value: metric.1, divider: index < metrics.count - 1)
+                }
+            }
+        }
     }
 }
 

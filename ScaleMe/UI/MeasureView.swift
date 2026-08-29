@@ -7,7 +7,11 @@ struct MeasureView: View {
     @State private var showSafety = false
     @State private var isPulsing = false
 
-    private var liveMeasurement: BodyMeasurement? { bluetooth.latestMeasurement }
+    private var liveMeasurement: BodyMeasurement? {
+        bluetooth.latestMeasurement.map {
+            BodyCompositionEstimator.enriching($0, profile: store.selectedProfile)
+        }
+    }
 
     var body: some View {
         NavigationStack {
@@ -138,10 +142,15 @@ struct MeasureView: View {
                         Spacer()
                         StatusPill(text: "最终值")
                     }
-                    HStack(spacing: 20) {
-                        liveMetric("BMI", measurement.bmi(heightCM: store.selectedProfile.heightCM).formatted(1))
-                        liveMetric("体脂率", measurement.bodyFatPercent.map { "\($0.formatted(1))%" } ?? "—")
-                        liveMetric("身体水分", measurement.waterPercent.map { "\($0.formatted(1))%" } ?? "—")
+                    LazyVGrid(columns: [.init(.flexible()), .init(.flexible())], spacing: 16) {
+                        ForEach(Array(summaryMetrics(for: measurement).enumerated()), id: \.offset) { _, metric in
+                            liveMetric(metric.title, metric.value)
+                        }
+                    }
+                    if measurement.hasBodyComposition {
+                        Label("身体成分由阻抗与当前成员资料估算", systemImage: "function")
+                            .font(.caption)
+                            .foregroundStyle(AppColor.secondary)
                     }
                     Label(measurement.deviceName ?? bluetooth.currentScaleName ?? measurement.source.rawValue, systemImage: "scalemass")
                         .font(.caption).foregroundStyle(AppColor.secondary)
@@ -156,6 +165,28 @@ struct MeasureView: View {
             Text(title).font(.caption2).foregroundStyle(AppColor.secondary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func summaryMetrics(for measurement: BodyMeasurement) -> [(title: String, value: String)] {
+        var metrics = [
+            ("BMI", measurement.bmi(heightCM: store.selectedProfile.heightCM).formatted(1))
+        ]
+        if let value = measurement.bodyFatPercent {
+            metrics.append(("体脂率", "\(value.formatted(1))%"))
+        }
+        if let value = measurement.fatMassKG {
+            metrics.append(("脂肪量", "\(value.formatted(1)) kg"))
+        }
+        if let value = measurement.muscleMassKG {
+            metrics.append(("肌肉量", "\(value.formatted(1)) kg"))
+        }
+        if let value = measurement.waterPercent {
+            metrics.append(("身体水分", "\(value.formatted(1))%"))
+        }
+        if let value = measurement.visceralFat {
+            metrics.append(("内脏脂肪", value.formatted(1)))
+        }
+        return metrics
     }
 
     private var safetyNote: some View {

@@ -30,6 +30,9 @@ struct BodyMeasurement: Identifiable, Codable, Hashable {
     var date: Date
     var weightKG: Double
     var impedanceOhm: Double?
+    /// A second raw impedance channel when the scale reports one. Its frequency
+    /// is intentionally not named until the hardware protocol is verified.
+    var secondaryImpedanceOhm: Double? = nil
     var bodyFatPercent: Double?
     var muscleMassKG: Double?
     var waterPercent: Double?
@@ -45,6 +48,36 @@ struct BodyMeasurement: Identifiable, Codable, Hashable {
     func bmi(heightCM: Double) -> Double {
         guard heightCM > 0 else { return 0 }
         return weightKG / pow(heightCM / 100, 2)
+    }
+
+    var hasBodyComposition: Bool {
+        impedanceOhm != nil || bodyFatPercent != nil || muscleMassKG != nil || waterPercent != nil
+    }
+
+    var fatMassKG: Double? {
+        bodyFatPercent.map { weightKG * $0 / 100 }
+    }
+
+    var musclePercent: Double? {
+        muscleMassKG.map { $0 / weightKG * 100 }
+    }
+
+    var waterMassKG: Double? {
+        waterPercent.map { weightKG * $0 / 100 }
+    }
+
+    var bonePercent: Double? {
+        boneMassKG.map { $0 / weightKG * 100 }
+    }
+
+    var proteinMassKG: Double? {
+        guard let bodyFatPercent, let waterMassKG, let boneMassKG else { return nil }
+        let fatFreeMassKG = weightKG * (100 - bodyFatPercent) / 100
+        return max(0, fatFreeMassKG - waterMassKG - boneMassKG)
+    }
+
+    var proteinPercent: Double? {
+        proteinMassKG.map { $0 / weightKG * 100 }
     }
 }
 
@@ -150,7 +183,8 @@ struct BodyCompositionEstimator {
         let fat = min(60, max(3, (measurement.weightKG - lbm) / measurement.weightKG * 100))
         result.bodyFatPercent = result.bodyFatPercent ?? fat
         result.muscleMassKG = result.muscleMassKG ?? max(0, lbm * 0.94)
-        result.waterPercent = result.waterPercent ?? min(75, max(30, 65 - fat * 0.65))
+        // A commonly used BIA relationship assumes fat-free mass is 73.2% water.
+        result.waterPercent = result.waterPercent ?? min(75, max(30, (100 - fat) * 0.732))
         result.boneMassKG = result.boneMassKG ?? max(1.5, min(5, lbm * 0.052))
         result.visceralFat = result.visceralFat ?? max(1, min(30, (fat - 12) * 0.45 + age * 0.03))
         result.basalMetabolismKCal = result.basalMetabolismKCal ?? (10 * measurement.weightKG + 6.25 * height - 5 * age + (profile.biologicalSex == .male ? 5 : -161))

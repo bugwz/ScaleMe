@@ -28,7 +28,9 @@ struct DashboardView: View {
                             .frame(maxWidth: .infinity, alignment: .leading)
                     }
                     trendCard
-                    metricsGrid
+                    if latest.hasBodyComposition {
+                        metricsGrid
+                    }
                     insightCard
                 }
                 .padding(.horizontal, 18)
@@ -146,10 +148,18 @@ struct DashboardView: View {
 
     private var metricsGrid: some View {
         LazyVGrid(columns: [.init(.flexible()), .init(.flexible())], spacing: 12) {
-            MetricTile(title: "体脂率", value: latest.bodyFatPercent?.formatted(1) ?? "—", unit: "%", source: sourceName(for: latest), icon: "drop.fill", color: AppColor.apricot)
-            MetricTile(title: "肌肉量", value: latest.muscleMassKG?.formatted(1) ?? "—", unit: "kg", source: sourceName(for: latest), icon: "figure.strengthtraining.traditional", color: AppColor.violet)
-            MetricTile(title: "身体水分", value: latest.waterPercent?.formatted(1) ?? "—", unit: "%", source: sourceName(for: latest), icon: "water.waves", color: AppColor.sky)
-            MetricTile(title: "基础代谢", value: latest.basalMetabolismKCal?.formatted(0) ?? "—", unit: "kcal", source: sourceName(for: latest), icon: "flame.fill", color: AppColor.rose)
+            if let value = latest.bodyFatPercent {
+                MetricTile(title: "体脂率", value: value.formatted(1), unit: "%", source: sourceName(for: latest), icon: "drop.fill", color: AppColor.apricot)
+            }
+            if let value = latest.muscleMassKG {
+                MetricTile(title: "肌肉量", value: value.formatted(1), unit: "kg", source: sourceName(for: latest), icon: "figure.strengthtraining.traditional", color: AppColor.violet)
+            }
+            if let value = latest.waterPercent {
+                MetricTile(title: "身体水分", value: value.formatted(1), unit: "%", source: sourceName(for: latest), icon: "water.waves", color: AppColor.sky)
+            }
+            if let value = latest.basalMetabolismKCal {
+                MetricTile(title: "基础代谢", value: value.formatted(0), unit: "kcal", source: sourceName(for: latest), icon: "flame.fill", color: AppColor.rose)
+            }
         }
     }
 

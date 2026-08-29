@@ -156,7 +156,6 @@ struct IcomonAFUScaleParser {
     struct Packet {
         var phase: Phase
         var measurement: BodyMeasurement
-        var secondaryImpedanceOhm: Double?
     }
 
     /// Captured AFU-WL-TZ-A1 / FG2313UWB-D frames notified on FFB2.
@@ -182,10 +181,10 @@ struct IcomonAFUScaleParser {
                 measurement: try measurement(
                     weightRaw: readUInt24BE(bytes, at: 3),
                     impedanceOhm: nil,
+                    secondaryImpedanceOhm: nil,
                     isStable: phase == .stable,
                     now: now
-                ),
-                secondaryImpedanceOhm: nil
+                )
             )
 
         case (0x02, 0xD6):
@@ -206,10 +205,10 @@ struct IcomonAFUScaleParser {
                 measurement: try measurement(
                     weightRaw: readUInt24BE(bytes, at: 10),
                     impedanceOhm: primaryImpedance,
+                    secondaryImpedanceOhm: secondaryImpedance,
                     isStable: true,
                     now: now
-                ),
-                secondaryImpedanceOhm: secondaryImpedance
+                )
             )
 
         default:
@@ -220,15 +219,22 @@ struct IcomonAFUScaleParser {
     private static func measurement(
         weightRaw: UInt32,
         impedanceOhm: Double?,
+        secondaryImpedanceOhm: Double?,
         isStable: Bool,
         now: Date
     ) throws -> BodyMeasurement {
-        let weightKG = Double(weightRaw) / 100_000
+        // This AFU variant reports a load-cell count with a fixed zero offset.
+        // Captured values therefore need their 0x680000 tare removed before the
+        // remaining gram count can be converted to kilograms.
+        let zeroOffset: UInt32 = 0x68_00_00
+        guard weightRaw >= zeroOffset else { throw ScalePayloadError.unsupported }
+        let weightKG = Double(weightRaw - zeroOffset) / 1_000
         guard (5...350).contains(weightKG) else { throw ScalePayloadError.unsupported }
         return BodyMeasurement(
             date: now,
             weightKG: weightKG,
             impedanceOhm: impedanceOhm,
+            secondaryImpedanceOhm: secondaryImpedanceOhm,
             source: .icomonAFU,
             isStable: isStable
         )

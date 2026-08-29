@@ -29,7 +29,7 @@
 - Bluetooth SIG Weight Scale Service `0x181D` / Weight Measurement `0x2A9D`
 - Bluetooth SIG Body Composition Service `0x181B` / Body Composition Measurement `0x2A9C`
 - 小米体重秤、体脂秤旧款常见 `0x181B` 广播数据（重量、稳定状态、阻抗）
-- ICOMON `AFU-WL-TZ-A1` / `FG2313UWB-D` 的 `FFB0` / `FFB2` 私有协议（基于同一真机三次完整测量采集；接入后仍待真机回归验证）
+- ICOMON `AFU-WL-TZ-A1` / `FG2313UWB-D` 的 `FFB0` / `FFB2` 私有协议（已用同一真机多轮采集验证实时、稳定、最终重量及双阻抗原始通道；改动后仍待真机回归验证）
 - 其他可发现设备会显示为“协议待验证”，不会误报为已兼容
 
 不同品牌甚至同品牌不同型号常使用不同私有协议。新增品牌时，应在 `ScaleMe/Bluetooth` 下增加独立 parser/adapter，并使用真实设备数据与固件版本做回归测试。
@@ -77,7 +77,9 @@ swiftc -module-cache-path /tmp/scaleme-swift-module-cache \
 /tmp/scaleme-device-configuration-smoke
 ```
 
-测量页会在收到首个有效载荷时立即进入测量态，但只提交最终值：小米旧款广播及在 `0x2A9D` RFU 位中携带小米状态的 GATT 变体，均要求离秤位未设置，并同时满足协议稳定位、最短上秤时间和连续读数收敛；ICOMON AFU 使用 `AC 29` 帧中的实时、锁定和最终阶段，只在最终体成分帧到达时保存，并忽略同次测量重复发送的最终帧；符合 Bluetooth SIG 的标准 indication 视为完成的测量；对少数以 notify 连续发送过程值的设备，则要求短时间内多个读数收敛后才保存。一次测量完成后会锁定最终值，离秤期间的回落读数不会覆盖记录。
+测量页会在收到首个有效载荷时立即进入测量态，但只提交最终值：小米旧款广播及在 `0x2A9D` RFU 位中携带小米状态的 GATT 变体，均要求离秤位未设置，并同时满足协议稳定位、最短上秤时间和连续读数收敛；ICOMON AFU 使用 `AC 29` 帧中的实时、锁定和最终阶段，只在 `D6` 最终体成分帧到达时保存，并忽略同次测量重复发送的最终帧。AFU 的三字节载荷是带 `0x680000` 零点偏移的克数，两个阻抗字段作为厂商频率定义尚未确认的原始通道保存。符合 Bluetooth SIG 的标准 indication 视为完成的测量；对少数以 notify 连续发送过程值的设备，则要求短时间内多个读数收敛后才保存。一次测量完成后会锁定最终值，离秤期间的回落读数不会覆盖记录。
+
+测量完成后的内容按数据能力展示：纯体重记录只展示体重和 BMI；带阻抗的体脂秤会增加体脂、脂肪量、肌肉、水分、蛋白质、骨量、内脏脂肪和基础代谢等估算项，同时单独展示硬件直接上报的原始阻抗。不会用空占位暗示设备支持未上报的项目，也不会把估算项表述为秤的直接测量值。
 
 测量页持续停留时可以连续完成多次测量。小米设备若未发送离秤标志，应用会根据完成值后的明显下降进入等待重新加载状态，忽略下降过程，并在重量再次上升时开启下一次会话；标准 indication 则按每个独立事件直接完成测量。
 
@@ -124,6 +126,7 @@ swiftc ScaleMe/Models/Models.swift ScaleMe/Bluetooth/ScaleDiscoveryClassifier.sw
 - [openScale 当前 Mi Scale v1/v2 GATT 实现](https://github.com/oliexdev/openScale/blob/master/android_app/app/src/main/java/com/health/openscale/core/bluetooth/scales/MiScaleHandler.kt)
 - [Mi Scale 2 BLE 数据布局参考](https://github.com/NeMaksym/mi-scale-2)
 - [openScale MGB/ICOMON 处理器（`FFB0` / `FFB1` / `FFB2` 服务族参考）](https://github.com/oliexdev/openScale/blob/master/android_app/app/src/main/java/com/health/openscale/core/bluetooth/scales/MGBHandler.kt)
+- [E.volve / Fitdays `AC 29` 帧零点偏移逆向记录](https://community.home-assistant.io/t/e-volve-fitdays-smart-scale-solved/923243)
 
 本项目的 ICOMON `AC 29 ... D5/D6` 布局来自上述型号的本地真机采集分析，与 openScale 当前记录的复合帧布局不同；第三方仓库只用于确认服务族，未作为该帧字段定义。品牌名称用于兼容性描述，不代表厂商背书。
 
