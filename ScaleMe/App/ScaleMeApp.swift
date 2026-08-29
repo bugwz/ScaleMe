@@ -33,7 +33,7 @@ struct ScaleMeApp: App {
                 store.add(measurement)
             }
             .onChange(of: store.configuration) {
-                bluetooth.updatePairedScales(store.pairedScales)
+                bluetooth.updatePairedScales(store.pairedScales, communicationRules: store.communicationRules)
                 cloudSync.configurationDidChange()
             }
             .onChange(of: store.archive) {
@@ -45,7 +45,7 @@ struct ScaleMeApp: App {
                 }
             }
             .task {
-                bluetooth.updatePairedScales(store.pairedScales)
+                bluetooth.updatePairedScales(store.pairedScales, communicationRules: store.communicationRules)
                 cloudSync.attach(to: store)
                 guard isShowingLaunchScreen else { return }
                 try? await Task.sleep(for: .seconds(2.75))

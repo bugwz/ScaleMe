@@ -6,6 +6,15 @@ struct SettingsView: View {
 
     var body: some View {
         Form {
+            Section("通信协议") {
+                NavigationLink {
+                    CommunicationRulesView()
+                } label: {
+                    Label("协议库与社区规则", systemImage: "point.3.connected.trianglepath.dotted")
+                }
+                LabeledContent("可用规则", value: "\(store.communicationRules.count) 条")
+            }
+
             Section("通用") {
                 Picker("显示单位", selection: $store.unit) {
                     ForEach(WeightUnit.allCases) { unit in

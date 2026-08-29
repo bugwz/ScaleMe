@@ -20,6 +20,7 @@ enum MeasurementSource: String, Codable {
     case xiaomi = "小米体重秤"
     case icomonAFU = "ICOMON AFU 体脂秤"
     case bluetoothSIG = "标准蓝牙体重秤"
+    case customProtocol = "自定义通信协议"
     case manual = "手动记录"
     case demo = "示例数据"
 }
@@ -72,6 +73,7 @@ struct PairedScale: Identifiable, Codable, Equatable, Hashable {
     var name: String
     var modelName: String
     var compatibility: String
+    var communicationRuleID: String? = nil
     var addedAt = Date.now
 }
 
@@ -81,6 +83,7 @@ struct AppConfiguration: Codable, Equatable {
     var pairedScales: [PairedScale]
     var unit: WeightUnit
     var mergeFrequentMeasurements: Bool
+    var customCommunicationRules: [CommunicationRule]
 
     static var standard: AppConfiguration {
         let profile = UserProfile()
@@ -89,7 +92,8 @@ struct AppConfiguration: Codable, Equatable {
             selectedProfileID: profile.id,
             pairedScales: [],
             unit: .kilograms,
-            mergeFrequentMeasurements: false
+            mergeFrequentMeasurements: false,
+            customCommunicationRules: []
         )
     }
 }

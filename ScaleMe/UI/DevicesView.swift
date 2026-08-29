@@ -249,7 +249,7 @@ private struct DeviceScannerView: View {
                 modelName: device.name,
                 compatibility: device.compatibility
             ))
-            bluetooth.updatePairedScales(store.pairedScales)
+            bluetooth.updatePairedScales(store.pairedScales, communicationRules: store.communicationRules)
             dismiss()
         } label: {
             HStack(spacing: 12) {
@@ -312,6 +312,7 @@ private struct ScaleSettingsView: View {
                 namePanel
                 informationPanel
                 hardwarePanel
+                protocolPanel
                 capturePanel
                 Button(role: .destructive) { confirmDelete = true } label: {
                     Label("删除设备", systemImage: "trash")
@@ -347,7 +348,7 @@ private struct ScaleSettingsView: View {
         .confirmationDialog("确定删除这个设备？", isPresented: $confirmDelete, titleVisibility: .visible) {
             Button("删除设备", role: .destructive) {
                 store.removeScale(scaleID)
-                bluetooth.updatePairedScales(store.pairedScales)
+                bluetooth.updatePairedScales(store.pairedScales, communicationRules: store.communicationRules)
                 dismiss()
             }
         }
@@ -448,6 +449,52 @@ private struct ScaleSettingsView: View {
     }
 
     @ViewBuilder
+    private var protocolPanel: some View {
+        if let scale {
+            DeviceSettingsPanel(title: "协议匹配", icon: "point.3.connected.trianglepath.dotted") {
+                Picker("通信规则", selection: Binding(
+                    get: { scale.communicationRuleID },
+                    set: { ruleID in
+                        store.setCommunicationRule(ruleID, for: scaleID)
+                        bluetooth.updatePairedScales(store.pairedScales, communicationRules: store.communicationRules)
+                    }
+                )) {
+                    Text("自动识别（推荐）").tag(String?.none)
+                    ForEach(store.communicationRules) { rule in
+                        Text(rule.name).tag(Optional(rule.id))
+                    }
+                }
+                .pickerStyle(.menu)
+
+                if let selected = store.communicationRule(for: scale) {
+                    VStack(alignment: .leading, spacing: 5) {
+                        Label(selected.origin.title, systemImage: selected.origin == .builtIn ? "checkmark.shield.fill" : "person.2.wave.2")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(selected.origin == .builtIn ? AppColor.mint : AppColor.apricot)
+                        Text(selected.summary)
+                            .font(.caption)
+                            .foregroundStyle(AppColor.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                } else {
+                    Text("自动识别会使用观我已有的标准与已实现解析器。固定规则后，只使用该规则处理此设备的广播或通知。")
+                        .font(.caption)
+                        .foregroundStyle(AppColor.secondary)
+                        .lineSpacing(3)
+                }
+
+                Divider()
+                NavigationLink {
+                    CommunicationRulesView()
+                } label: {
+                    Label("查看与导入通信规则", systemImage: "books.vertical")
+                }
+                .tint(AppColor.mint)
+            }
+        }
+    }
+
+    @ViewBuilder
     private var informationPanel: some View {
         if let scale {
             DeviceSettingsPanel(title: "设备信息", icon: "info.circle") {
@@ -540,7 +587,7 @@ private struct ScaleSettingsView: View {
             Button {
                 isNameFocused = false
                 store.renameScale(scaleID, name: name)
-                bluetooth.updatePairedScales(store.pairedScales)
+                bluetooth.updatePairedScales(store.pairedScales, communicationRules: store.communicationRules)
             } label: {
                 Label("保存名称", systemImage: "checkmark")
                     .frame(maxWidth: .infinity)

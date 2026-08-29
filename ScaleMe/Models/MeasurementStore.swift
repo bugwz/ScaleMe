@@ -9,6 +9,7 @@ final class MeasurementStore: ObservableObject {
     @Published private(set) var pairedScales: [PairedScale] { didSet { persistConfigurationIfNeeded() } }
     @Published var unit: WeightUnit { didSet { persistConfigurationIfNeeded() } }
     @Published var mergeFrequentMeasurements: Bool { didSet { persistConfigurationIfNeeded() } }
+    @Published private(set) var customCommunicationRules: [CommunicationRule] { didSet { persistConfigurationIfNeeded() } }
     @Published private(set) var storageError: String?
 
     private let repository: LocalAppRepository?
@@ -46,6 +47,7 @@ final class MeasurementStore: ObservableObject {
         pairedScales = loadedConfiguration.pairedScales
         unit = loadedConfiguration.unit
         mergeFrequentMeasurements = loadedConfiguration.mergeFrequentMeasurements
+        customCommunicationRules = loadedConfiguration.customCommunicationRules
         measurements = loadedArchive.measurements.sorted { $0.date > $1.date }
         deletedMeasurementIDs = loadedArchive.deletedMeasurementIDs
         archiveUpdatedAt = loadedArchive.updatedAt
@@ -58,7 +60,8 @@ final class MeasurementStore: ObservableObject {
             selectedProfileID: selectedProfileID,
             pairedScales: pairedScales,
             unit: unit,
-            mergeFrequentMeasurements: mergeFrequentMeasurements
+            mergeFrequentMeasurements: mergeFrequentMeasurements,
+            customCommunicationRules: customCommunicationRules
         )
     }
 
@@ -150,6 +153,43 @@ final class MeasurementStore: ObservableObject {
         pairedScales[index].name = trimmed
     }
 
+    var communicationRules: [CommunicationRule] {
+        CommunicationRuleCatalog.rules(custom: customCommunicationRules)
+    }
+
+    func communicationRule(for scale: PairedScale) -> CommunicationRule? {
+        guard let id = scale.communicationRuleID else { return nil }
+        return communicationRules.first { $0.id == id }
+    }
+
+    func setCommunicationRule(_ ruleID: String?, for scaleID: UUID) {
+        guard ruleID == nil || communicationRules.contains(where: { $0.id == ruleID }),
+              let index = pairedScales.firstIndex(where: { $0.id == scaleID }) else { return }
+        pairedScales[index].communicationRuleID = ruleID
+    }
+
+    @discardableResult
+    func importCommunicationRules(_ data: Data, sourceURL: URL? = nil) throws -> Int {
+        let imported = try CommunicationRuleCodec.decode(data, importedFrom: sourceURL)
+        var updated = customCommunicationRules
+        for rule in imported {
+            if let index = updated.firstIndex(where: { $0.id == rule.id }) {
+                updated[index] = rule
+            } else {
+                updated.append(rule)
+            }
+        }
+        customCommunicationRules = updated.sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
+        return imported.count
+    }
+
+    func removeCommunicationRule(_ id: String) {
+        customCommunicationRules.removeAll { $0.id == id }
+        for index in pairedScales.indices where pairedScales[index].communicationRuleID == id {
+            pairedScales[index].communicationRuleID = nil
+        }
+    }
+
     func removeScale(_ id: UUID) {
         pairedScales.removeAll { $0.id == id }
     }
@@ -173,6 +213,7 @@ final class MeasurementStore: ObservableObject {
         pairedScales = configuration.pairedScales
         unit = configuration.unit
         mergeFrequentMeasurements = configuration.mergeFrequentMeasurements
+        customCommunicationRules = configuration.customCommunicationRules
         isApplyingExternalState = false
         persistConfiguration()
     }

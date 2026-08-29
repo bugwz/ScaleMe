@@ -37,7 +37,7 @@ struct MeasureView: View {
                 bluetooth.stopScanning()
             }
             .onChange(of: store.pairedScales) {
-                bluetooth.updatePairedScales(store.pairedScales)
+                bluetooth.updatePairedScales(store.pairedScales, communicationRules: store.communicationRules)
                 bluetooth.startMeasurementMonitoring(scales: store.pairedScales)
             }
             .alert("安全提醒", isPresented: $showSafety) {

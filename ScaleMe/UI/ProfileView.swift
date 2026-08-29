@@ -94,6 +94,12 @@ struct ProfileView: View {
     private var settingsSection: some View {
         VStack(spacing: 0) {
             NavigationLink {
+                CommunicationRulesView()
+            } label: {
+                settingsRow("通信协议", icon: "point.3.connected.trianglepath.dotted")
+            }
+            Divider().padding(.leading, 50)
+            NavigationLink {
                 SettingsView()
             } label: {
                 settingsRow("设置", icon: "gearshape.fill")

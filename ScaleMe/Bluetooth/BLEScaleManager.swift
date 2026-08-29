@@ -144,6 +144,8 @@ final class BLEScaleManager: NSObject, ObservableObject {
     private var pairedScaleIDs: Set<UUID> = []
     private var pairedScaleNames: [UUID: String] = [:]
     private var pairedScaleModelNames: [UUID: String] = [:]
+    private var pairedScaleRuleIDs: [UUID: String] = [:]
+    private var communicationRulesByID: [String: CommunicationRule] = [:]
     private var activeScaleID: UUID?
     private var activeScaleName: String?
     private var settingsScaleID: UUID?
@@ -191,6 +193,9 @@ final class BLEScaleManager: NSObject, ObservableObject {
         pairedScaleIDs = Set(scales.map(\.id))
         pairedScaleNames = Dictionary(uniqueKeysWithValues: scales.map { ($0.id, $0.name) })
         pairedScaleModelNames = Dictionary(uniqueKeysWithValues: scales.map { ($0.id, $0.modelName) })
+        pairedScaleRuleIDs = Dictionary(uniqueKeysWithValues: scales.compactMap { scale in
+            scale.communicationRuleID.map { (scale.id, $0) }
+        })
         scanPurpose = .measuring
         liveWeightKG = nil
         latestMeasurement = nil
@@ -209,12 +214,58 @@ final class BLEScaleManager: NSObject, ObservableObject {
         connectKnownStandardScale(from: scales)
     }
 
-    func updatePairedScales(_ scales: [PairedScale]) {
+    func updatePairedScales(
+        _ scales: [PairedScale],
+        communicationRules: [CommunicationRule] = CommunicationRuleCatalog.builtIn
+    ) {
         pairedScaleIDs = Set(scales.map(\.id))
         pairedScaleNames = Dictionary(uniqueKeysWithValues: scales.map { ($0.id, $0.name) })
         pairedScaleModelNames = Dictionary(uniqueKeysWithValues: scales.map { ($0.id, $0.modelName) })
+        pairedScaleRuleIDs = Dictionary(uniqueKeysWithValues: scales.compactMap { scale in
+            scale.communicationRuleID.map { (scale.id, $0) }
+        })
+        communicationRulesByID = Dictionary(uniqueKeysWithValues: communicationRules.map { ($0.id, $0) })
         if let activeScaleID, let scale = scales.first(where: { $0.id == activeScaleID }) {
             activeScaleName = scale.name
+        }
+    }
+
+    private func selectedRule(for deviceID: UUID) -> CommunicationRule? {
+        pairedScaleRuleIDs[deviceID].flatMap { communicationRulesByID[$0] }
+    }
+
+    private func allowsBuiltInParser(_ parser: String, for deviceID: UUID) -> Bool {
+        guard let selected = selectedRule(for: deviceID) else { return true }
+        return selected.builtInParser == parser
+    }
+
+    private func customRule(
+        for deviceID: UUID,
+        transport: CommunicationTransport,
+        serviceUUID: String,
+        characteristicUUID: String? = nil
+    ) -> CommunicationRule? {
+        guard let selected = selectedRule(for: deviceID), selected.isDeclarative,
+              selected.match.transport == transport,
+              selected.match.serviceUUID == CommunicationRuleCodec.normalizeUUID(serviceUUID) else { return nil }
+        if transport == .characteristicNotification {
+            guard selected.match.characteristicUUID == characteristicUUID.map(CommunicationRuleCodec.normalizeUUID) else { return nil }
+        }
+        return selected
+    }
+
+    private func consumeCustomPacket(_ data: Data, rule: CommunicationRule, deviceID: UUID) {
+        guard let packet = try? DeclarativeCommunicationRuleParser.parse(data, rule: rule) else { return }
+        switch packet {
+        case .measurement(let measurement):
+            consume(
+                measurement,
+                reliability: measurement.isStable ? .protocolStable : .requiresStability,
+                deviceID: deviceID,
+                deviceName: pairedScaleNames[deviceID]
+            )
+        case .weightRemoved:
+            weightWasRemoved()
         }
     }
 
@@ -696,7 +747,10 @@ final class BLEScaleManager: NSObject, ObservableObject {
     private func connectKnownStandardScale(from scales: [PairedScale]) {
         guard central.state == .poweredOn,
               connected == nil,
-              let scale = scales.first(where: { $0.compatibility == "Bluetooth SIG 标准" }) else { return }
+              let scale = scales.first(where: {
+                  $0.compatibility == "Bluetooth SIG 标准"
+                      || selectedRule(for: $0.id)?.match.transport == .characteristicNotification
+              }) else { return }
         let peripherals = central.retrievePeripherals(withIdentifiers: [scale.id])
         guard let peripheral = peripherals.first else { return }
         connect(DiscoveredScale(
@@ -814,8 +868,15 @@ extension BLEScaleManager: CBCentralManagerDelegate {
                 try? XiaomiScaleParser.parsePacket($0, now: receivedAt)
             } != nil
             if case .measuring = scanPurpose,
-               pairedScaleIDs.contains(peripheral.identifier),
-               let payload = serviceData?[Self.bodyService] {
+               pairedScaleIDs.contains(peripheral.identifier) {
+                if let custom = selectedRule(for: peripheral.identifier), custom.isDeclarative,
+                   custom.match.transport == .advertisementServiceData,
+                   let payload = serviceData?.first(where: {
+                       CommunicationRuleCodec.normalizeUUID($0.key.uuidString) == custom.match.serviceUUID
+                   })?.value {
+                    consumeCustomPacket(payload, rule: custom, deviceID: peripheral.identifier)
+                } else if allowsBuiltInParser("xiaomiLegacyAdvertisement", for: peripheral.identifier),
+                          let payload = serviceData?[Self.bodyService] {
                 if let packet = try? XiaomiScaleParser.parsePacket(payload, now: receivedAt) {
                     switch packet {
                     case .measurement(let measurement):
@@ -828,6 +889,7 @@ extension BLEScaleManager: CBCentralManagerDelegate {
                     case .weightRemoved:
                         weightWasRemoved()
                     }
+                }
                 }
             }
 
@@ -862,8 +924,10 @@ extension BLEScaleManager: CBCentralManagerDelegate {
             if case .measuring = scanPurpose,
                pairedScaleIDs.contains(peripheral.identifier),
                connected?.identifier != peripheral.identifier,
-               item.isVerifiedCompatible,
-               !hasVerifiedXiaomiPayload {
+               (item.isVerifiedCompatible
+                    || selectedRule(for: peripheral.identifier)?.match.transport == .characteristicNotification),
+               (!hasVerifiedXiaomiPayload
+                    || selectedRule(for: peripheral.identifier)?.match.transport == .characteristicNotification) {
                 connect(item)
             }
         }
@@ -881,7 +945,12 @@ extension BLEScaleManager: CBCentralManagerDelegate {
                 armSettingsTimeout(for: peripheral.identifier)
                 peripheral.discoverServices(nil)
             } else {
-                peripheral.discoverServices([Self.weightService, Self.bodyService, Self.icomonService])
+                let selected = selectedRule(for: peripheral.identifier)
+                if selected?.isDeclarative == true {
+                    peripheral.discoverServices(nil)
+                } else {
+                    peripheral.discoverServices([Self.weightService, Self.bodyService, Self.icomonService])
+                }
             }
         }
     }
@@ -984,6 +1053,12 @@ extension BLEScaleManager: CBPeripheralDelegate {
                 if characteristic.uuid == Self.weightMeasurement
                     || characteristic.uuid == Self.bodyMeasurement
                     || characteristic.uuid == Self.icomonMeasurement
+                    || customRule(
+                        for: peripheral.identifier,
+                        transport: .characteristicNotification,
+                        serviceUUID: service.uuid.uuidString,
+                        characteristicUUID: characteristic.uuid.uuidString
+                    ) != nil
                     || isDiagnosticTarget && (characteristic.properties.contains(.notify) || characteristic.properties.contains(.indicate)) {
                     peripheral.setNotifyValue(true, for: characteristic)
                 }
@@ -1050,7 +1125,20 @@ extension BLEScaleManager: CBPeripheralDelegate {
                 consumeSettingsValue(data, from: characteristic)
             }
 
+            if let serviceUUID = characteristic.service?.uuid.uuidString,
+               let custom = customRule(
+                   for: peripheral.identifier,
+                   transport: .characteristicNotification,
+                   serviceUUID: serviceUUID,
+                   characteristicUUID: characteristic.uuid.uuidString
+               ) {
+                guard case .measuring = scanPurpose else { return }
+                consumeCustomPacket(data, rule: custom, deviceID: peripheral.identifier)
+                return
+            }
+
             if characteristic.uuid == Self.icomonMeasurement,
+               allowsBuiltInParser("icomonAFU", for: peripheral.identifier),
                let packet = try? IcomonAFUScaleParser.parse(data) {
                 guard case .measuring = scanPurpose else { return }
                 switch packet.phase {
@@ -1071,6 +1159,7 @@ extension BLEScaleManager: CBPeripheralDelegate {
                     consume(packet.measurement, reliability: .protocolFinal)
                 }
             } else if characteristic.uuid == Self.weightMeasurement,
+               allowsBuiltInParser("bluetoothSIGWeight", for: peripheral.identifier),
                XiaomiGATTWeightParser.matches(data),
                let packet = try? XiaomiGATTWeightParser.parsePacket(data) {
                 switch packet {
@@ -1079,7 +1168,9 @@ extension BLEScaleManager: CBPeripheralDelegate {
                 case .weightRemoved:
                     weightWasRemoved()
                 }
-            } else if characteristic.uuid == Self.weightMeasurement, let value = try? StandardWeightScaleParser.parse(data) {
+            } else if characteristic.uuid == Self.weightMeasurement,
+                      allowsBuiltInParser("bluetoothSIGWeight", for: peripheral.identifier),
+                      let value = try? StandardWeightScaleParser.parse(data) {
                 let reliability: MeasurementSampleReliability = characteristic.properties.contains(.indicate)
                     ? .protocolFinal
                     : .requiresStability
@@ -1091,7 +1182,9 @@ extension BLEScaleManager: CBPeripheralDelegate {
                 } else {
                     consume(value, reliability: reliability)
                 }
-            } else if characteristic.uuid == Self.bodyMeasurement, let value = try? StandardBodyCompositionParser.parse(data) {
+            } else if characteristic.uuid == Self.bodyMeasurement,
+                      allowsBuiltInParser("bluetoothSIGBodyComposition", for: peripheral.identifier),
+                      let value = try? StandardBodyCompositionParser.parse(data) {
                 pendingBodyComposition = value
                 let reliability: MeasurementSampleReliability = characteristic.properties.contains(.indicate)
                     ? .protocolFinal

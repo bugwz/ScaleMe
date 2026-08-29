@@ -34,6 +34,12 @@
 
 不同品牌甚至同品牌不同型号常使用不同私有协议。新增品牌时，应在 `ScaleMe/Bluetooth` 下增加独立 parser/adapter，并使用真实设备数据与固件版本做回归测试。
 
+### 通信规则文件
+
+每台已关联设备都可在“设备设置 → 协议匹配”中选择通信规则。协议库会列出内置解析器，也支持粘贴 JSON，或从 HTTPS 地址拉取声明式社区规则。外部规则不能执行脚本或向秤写命令，只能匹配已经收到的服务广播 / GATT 特征通知，并读取经过边界约束的无符号字节字段。
+
+规则文件使用 `schemaVersion: 1`，可包含一条或多条规则。每条规则声明稳定 ID、传输方式、服务与可选特征 UUID、载荷长度/前缀、必需的体重字段，以及可选的阻抗、身体成分和状态字段。应用内可从“我的 → 通信协议 → 查看配置格式与示例”复制完整示例。社区规则在具有数据夹具和真机验证前始终标记为未经硬件验证。
+
 ## 运行
 
 1. 使用 Xcode 26 或更新版本打开 `ScaleMe.xcodeproj`。
@@ -78,11 +84,14 @@ swiftc -module-cache-path /tmp/scaleme-swift-module-cache \
 协议解析烟雾测试可运行：
 
 ```sh
-swiftc ScaleMe/Models/Models.swift ScaleMe/Bluetooth/ScalePayloadParsers.swift Tests/ParserSmoke.swift -o /tmp/scaleme-parser-smoke
+swiftc ScaleMe/Models/Models.swift ScaleMe/Bluetooth/ScaleDiscoveryClassifier.swift ScaleMe/Bluetooth/ScalePayloadParsers.swift ScaleMe/Bluetooth/CommunicationRules.swift Tests/ParserSmoke.swift -o /tmp/scaleme-parser-smoke
 /tmp/scaleme-parser-smoke
 
-swiftc ScaleMe/Models/Models.swift ScaleMe/Bluetooth/MeasurementSession.swift Tests/MeasurementSessionSmoke.swift -o /tmp/scaleme-session-smoke
+swiftc ScaleMe/Models/Models.swift ScaleMe/Bluetooth/ScaleDiscoveryClassifier.swift ScaleMe/Bluetooth/ScalePayloadParsers.swift ScaleMe/Bluetooth/CommunicationRules.swift ScaleMe/Bluetooth/MeasurementSession.swift Tests/MeasurementSessionSmoke.swift -o /tmp/scaleme-session-smoke
 /tmp/scaleme-session-smoke
+
+swiftc ScaleMe/Models/Models.swift ScaleMe/Bluetooth/ScaleDiscoveryClassifier.swift ScaleMe/Bluetooth/ScalePayloadParsers.swift ScaleMe/Bluetooth/CommunicationRules.swift Tests/CommunicationRuleSmoke.swift -o /tmp/scaleme-rule-smoke
+/tmp/scaleme-rule-smoke
 ```
 
 设备发现分类测试：
@@ -95,7 +104,7 @@ swiftc ScaleMe/Bluetooth/ScaleDiscoveryClassifier.swift Tests/DiscoveryClassifie
 加密与数据合并烟雾测试可运行：
 
 ```sh
-swiftc ScaleMe/Models/Models.swift ScaleMe/Storage/SecureAppRepository.swift Tests/StorageSmoke.swift -o /tmp/scaleme-storage-smoke
+swiftc ScaleMe/Models/Models.swift ScaleMe/Bluetooth/ScaleDiscoveryClassifier.swift ScaleMe/Bluetooth/ScalePayloadParsers.swift ScaleMe/Bluetooth/CommunicationRules.swift ScaleMe/Storage/SecureAppRepository.swift Tests/StorageSmoke.swift -o /tmp/scaleme-storage-smoke
 /tmp/scaleme-storage-smoke
 ```
 

@@ -119,10 +119,21 @@ Protocol smoke test:
 ```sh
 swiftc -module-cache-path /tmp/scaleme-swift-module-cache \
   ScaleMe/Models/Models.swift \
+  ScaleMe/Bluetooth/ScaleDiscoveryClassifier.swift \
   ScaleMe/Bluetooth/ScalePayloadParsers.swift \
+  ScaleMe/Bluetooth/CommunicationRules.swift \
   Tests/ParserSmoke.swift \
   -o /tmp/scaleme-parser-smoke
 /tmp/scaleme-parser-smoke
+
+swiftc -module-cache-path /tmp/scaleme-swift-module-cache \
+  ScaleMe/Models/Models.swift \
+  ScaleMe/Bluetooth/ScaleDiscoveryClassifier.swift \
+  ScaleMe/Bluetooth/ScalePayloadParsers.swift \
+  ScaleMe/Bluetooth/CommunicationRules.swift \
+  Tests/CommunicationRuleSmoke.swift \
+  -o /tmp/scaleme-rule-smoke
+/tmp/scaleme-rule-smoke
 ```
 
 - Bluetooth discovery and measurement require a physical iPhone and real scale; simulator success is not hardware validation.
