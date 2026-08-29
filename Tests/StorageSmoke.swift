@@ -56,7 +56,8 @@ enum StorageSmoke {
             profiles: [profile],
             selectedProfileID: profile.id,
             pairedScales: [scale],
-            unit: .kilograms
+            unit: .kilograms,
+            mergeFrequentMeasurements: true
         )
         let configurationData = try JSONEncoder().encode(configuration)
         let decoded = try JSONDecoder().decode(AppConfiguration.self, from: configurationData)

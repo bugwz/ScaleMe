@@ -4,7 +4,7 @@ import Security
 
 enum AppStorageLayout {
     static let directoryName = "ScaleMe"
-    static let configurationFileName = "configuration-v2.json"
+    static let configurationFileName = "configuration-v3.json"
     static let measurementsFileName = "measurements-v2.enc"
 }
 

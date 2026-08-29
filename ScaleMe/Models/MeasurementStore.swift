@@ -8,6 +8,7 @@ final class MeasurementStore: ObservableObject {
     @Published private(set) var selectedProfileID: UUID { didSet { persistConfigurationIfNeeded() } }
     @Published private(set) var pairedScales: [PairedScale] { didSet { persistConfigurationIfNeeded() } }
     @Published var unit: WeightUnit { didSet { persistConfigurationIfNeeded() } }
+    @Published var mergeFrequentMeasurements: Bool { didSet { persistConfigurationIfNeeded() } }
     @Published private(set) var storageError: String?
 
     private let repository: LocalAppRepository?
@@ -44,6 +45,7 @@ final class MeasurementStore: ObservableObject {
         selectedProfileID = loadedConfiguration.selectedProfileID
         pairedScales = loadedConfiguration.pairedScales
         unit = loadedConfiguration.unit
+        mergeFrequentMeasurements = loadedConfiguration.mergeFrequentMeasurements
         measurements = loadedArchive.measurements.sorted { $0.date > $1.date }
         deletedMeasurementIDs = loadedArchive.deletedMeasurementIDs
         archiveUpdatedAt = loadedArchive.updatedAt
@@ -55,7 +57,8 @@ final class MeasurementStore: ObservableObject {
             profiles: profiles,
             selectedProfileID: selectedProfileID,
             pairedScales: pairedScales,
-            unit: unit
+            unit: unit,
+            mergeFrequentMeasurements: mergeFrequentMeasurements
         )
     }
 
@@ -95,12 +98,13 @@ final class MeasurementStore: ObservableObject {
             attributed.deviceName = scale.name
         }
         let enriched = BodyCompositionEstimator.enriching(attributed, profile: selectedProfile)
-        if let first = measurements.first,
+        if mergeFrequentMeasurements,
+           let first = measurements.first,
            first.profileID == enriched.profileID,
            first.deviceID == enriched.deviceID,
            first.source == enriched.source,
-           abs(first.date.timeIntervalSince(enriched.date)) < 30,
-           abs(first.weightKG - enriched.weightKG) < 0.05 {
+           abs(first.date.timeIntervalSince(enriched.date)) < 30 {
+            deletedMeasurementIDs.insert(first.id)
             measurements[0] = enriched
         } else {
             measurements.insert(enriched, at: 0)
@@ -168,6 +172,7 @@ final class MeasurementStore: ObservableObject {
             : configuration.profiles[0].id
         pairedScales = configuration.pairedScales
         unit = configuration.unit
+        mergeFrequentMeasurements = configuration.mergeFrequentMeasurements
         isApplyingExternalState = false
         persistConfiguration()
     }

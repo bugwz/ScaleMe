@@ -15,6 +15,16 @@ struct SettingsView: View {
             }
 
             Section {
+                Toggle("合并频繁称重记录", isOn: $store.mergeFrequentMeasurements)
+                    .tint(AppColor.mint)
+                LabeledContent("小物称重", value: "尚未实现独立记录模式")
+            } header: {
+                Text("记录")
+            } footer: {
+                Text("开启后，同一成员和设备在 30 秒内连续完成的称重只保留后一条。小物称重需要独立的数据类型，不会保存为人体测量。")
+            }
+
+            Section {
                 Toggle("同步应用配置", isOn: $cloudSync.isConfigurationSyncEnabled)
                     .tint(AppColor.mint)
 

@@ -79,6 +79,7 @@ struct AppConfiguration: Codable, Equatable {
     var selectedProfileID: UUID
     var pairedScales: [PairedScale]
     var unit: WeightUnit
+    var mergeFrequentMeasurements: Bool
 
     static var standard: AppConfiguration {
         let profile = UserProfile()
@@ -86,7 +87,8 @@ struct AppConfiguration: Codable, Equatable {
             profiles: [profile],
             selectedProfileID: profile.id,
             pairedScales: [],
-            unit: .kilograms
+            unit: .kilograms,
+            mergeFrequentMeasurements: false
         )
     }
 }

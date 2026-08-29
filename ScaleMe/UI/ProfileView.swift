@@ -129,11 +129,17 @@ struct ProfileView: View {
 }
 
 private struct MemberEditorView: View {
+    private enum InputField: Hashable {
+        case name
+        case height
+    }
+
     @EnvironmentObject private var store: MeasurementStore
     @Environment(\.dismiss) private var dismiss
     private let isNew: Bool
     @State private var draft: UserProfile
     @State private var confirmDelete = false
+    @FocusState private var focusedField: InputField?
 
     private let relations = ["本人", "伴侣", "父母", "子女", "其他"]
 
@@ -147,6 +153,9 @@ private struct MemberEditorView: View {
             Form {
                 Section("成员信息") {
                     TextField("姓名或昵称", text: $draft.name)
+                        .focused($focusedField, equals: .name)
+                        .submitLabel(.next)
+                        .onSubmit { focusedField = .height }
                     Picker("关系", selection: $draft.relation) {
                         ForEach(relations, id: \.self) { Text($0).tag($0) }
                     }
@@ -159,6 +168,7 @@ private struct MemberEditorView: View {
                         Spacer()
                         TextField("cm", value: $draft.heightCM, format: .number)
                             .keyboardType(.decimalPad).multilineTextAlignment(.trailing)
+                            .focused($focusedField, equals: .height)
                         Text("cm").foregroundStyle(.secondary)
                     }
                     Toggle("运动员模式", isOn: $draft.athleteMode).tint(AppColor.mint)
@@ -181,10 +191,15 @@ private struct MemberEditorView: View {
                 ToolbarItem(placement: .cancellationAction) { Button("取消") { dismiss() } }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("保存") {
+                        focusedField = nil
                         if isNew { store.addProfile(draft) } else { store.updateProfile(draft) }
                         dismiss()
                     }
                     .disabled(draft.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || !(50...250).contains(draft.heightCM))
+                }
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+                    Button("完成") { focusedField = nil }
                 }
             }
             .confirmationDialog("确定删除这个成员？", isPresented: $confirmDelete, titleVisibility: .visible) {

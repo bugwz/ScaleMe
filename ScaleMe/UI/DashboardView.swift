@@ -193,17 +193,27 @@ private struct MetricTile: View {
 }
 
 struct ManualEntryView: View {
+    private enum InputField: Hashable {
+        case weight
+        case bodyFat
+    }
+
     @EnvironmentObject private var store: MeasurementStore
     @Environment(\.dismiss) private var dismiss
     @State private var weight = ""
     @State private var bodyFat = ""
+    @FocusState private var focusedField: InputField?
 
     var body: some View {
         NavigationStack {
             Form {
                 Section("测量结果") {
-                    TextField("体重（kg）", text: $weight).keyboardType(.decimalPad)
-                    TextField("体脂率（可选）", text: $bodyFat).keyboardType(.decimalPad)
+                    TextField("体重（kg）", text: $weight)
+                        .keyboardType(.decimalPad)
+                        .focused($focusedField, equals: .weight)
+                    TextField("体脂率（可选）", text: $bodyFat)
+                        .keyboardType(.decimalPad)
+                        .focused($focusedField, equals: .bodyFat)
                 }
                 Section { Text("手动记录会保存在本机，不会伪装成蓝牙秤数据。") }.font(.caption)
             }
@@ -213,9 +223,14 @@ struct ManualEntryView: View {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("保存") {
                         if let kg = Double(weight), (5...350).contains(kg) {
+                            focusedField = nil
                             store.addManual(weightKG: kg, bodyFat: Double(bodyFat)); dismiss()
                         }
                     }.disabled(Double(weight) == nil)
+                }
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+                    Button("完成") { focusedField = nil }
                 }
             }
         }

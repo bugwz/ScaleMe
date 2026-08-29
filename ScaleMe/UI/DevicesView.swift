@@ -199,34 +199,51 @@ private struct ScaleSettingsView: View {
     let scaleID: UUID
     @State private var name = ""
     @State private var confirmDelete = false
+    @State private var selectedHardwareUnit = XiaomiScaleHardwareUnit.kilograms
+    @State private var showsProtocolDetails = false
+    @FocusState private var isNameFocused: Bool
 
     private var scale: PairedScale? { store.pairedScales.first { $0.id == scaleID } }
 
     var body: some View {
-        Form {
-            Section("设备名称") {
-                TextField("设备名称", text: $name)
-                Button("保存名称") {
-                    store.renameScale(scaleID, name: name)
-                    bluetooth.updatePairedScales(store.pairedScales)
+        ScrollView {
+            VStack(alignment: .leading, spacing: 22) {
+                connectionPanel
+                namePanel
+                informationPanel
+                hardwarePanel
+                capturePanel
+                Button(role: .destructive) { confirmDelete = true } label: {
+                    Label("删除设备", systemImage: "trash")
+                        .frame(maxWidth: .infinity)
                 }
-                .disabled(name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-            }
-            if let scale {
-                Section("设备信息") {
-                    LabeledContent("设备型号", value: scale.modelName)
-                    LabeledContent("兼容状态", value: scale.compatibility)
-                }
-            }
-            Section {
-                Button("删除设备", role: .destructive) { confirmDelete = true }
-            } footer: {
+                .buttonStyle(.bordered)
+                .tint(AppColor.rose)
                 Text("删除设备不会删除它过去产生的测量记录。")
+                    .font(.caption)
+                    .foregroundStyle(AppColor.secondary)
+                    .frame(maxWidth: .infinity)
             }
+            .padding(.horizontal, 18)
+            .padding(.bottom, 28)
         }
+        .pageBackground()
         .navigationTitle("设备设置")
         .navigationBarTitleDisplayMode(.inline)
-        .onAppear { name = scale?.name ?? "" }
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button("完成") { isNameFocused = false }
+            }
+        }
+        .onAppear {
+            name = scale?.name ?? ""
+            if let scale { bluetooth.inspectSettings(for: scale) }
+        }
+        .onDisappear { bluetooth.endSettingsInspection() }
+        .onChange(of: bluetooth.settingsSnapshot.hardwareUnit) { _, unit in
+            if let unit { selectedHardwareUnit = unit }
+        }
         .confirmationDialog("确定删除这个设备？", isPresented: $confirmDelete, titleVisibility: .visible) {
             Button("删除设备", role: .destructive) {
                 store.removeScale(scaleID)
@@ -234,6 +251,285 @@ private struct ScaleSettingsView: View {
                 dismiss()
             }
         }
+    }
+
+    private var connectionPanel: some View {
+        DeviceSettingsPanel(title: "连接", icon: "dot.radiowaves.left.and.right") {
+            HStack(spacing: 14) {
+                Image(systemName: settingsStatusIcon)
+                    .font(.title3)
+                    .foregroundStyle(settingsStatusColor)
+                    .frame(width: 44, height: 44)
+                    .background(settingsStatusColor.opacity(0.12), in: RoundedRectangle(cornerRadius: 13))
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(bluetooth.settingsState.title).font(.body.weight(.semibold))
+                    Text("唤醒体重秤并让手机保持在附近")
+                        .font(.caption).foregroundStyle(AppColor.secondary)
+                }
+                Spacer()
+                if bluetooth.settingsState.isBusy { ProgressView().tint(AppColor.mint) }
+            }
+            Button {
+                if let scale { bluetooth.inspectSettings(for: scale) }
+            } label: {
+                Label("重新检测", systemImage: "arrow.clockwise")
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.bordered)
+            .tint(AppColor.mint)
+            .disabled(bluetooth.settingsState.isBusy)
+        }
+    }
+
+    private var hardwarePanel: some View {
+        DeviceSettingsPanel(title: "硬件设置", icon: "slider.horizontal.3") {
+            if bluetooth.settingsSnapshot.canConfigureXiaomiUnit {
+                Picker("秤端显示单位", selection: $selectedHardwareUnit) {
+                    ForEach(XiaomiScaleHardwareUnit.allCases) { unit in
+                        Text(unit.title).tag(unit)
+                    }
+                }
+                .pickerStyle(.menu)
+
+                Button {
+                    bluetooth.configureHardwareUnit(selectedHardwareUnit)
+                } label: {
+                    Label("写入体重秤", systemImage: "scalemass")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(AppColor.mint)
+            } else {
+                DeviceSettingsValueRow(title: "秤端显示单位", value: "未发现可写特征")
+            }
+
+            Divider()
+
+            if bluetooth.settingsSnapshot.canSynchronizeTime {
+                Button {
+                    bluetooth.synchronizeScaleTime()
+                } label: {
+                    Label("同步当前时间", systemImage: "clock.arrow.circlepath")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.bordered)
+                .tint(AppColor.mint)
+            } else {
+                DeviceSettingsValueRow(title: "秤端时间", value: "未发现可写特征")
+            }
+
+            if let message = bluetooth.settingsOperationMessage {
+                Label(
+                    message,
+                    systemImage: bluetooth.settingsOperationSucceeded ? "checkmark.circle.fill" : "info.circle"
+                )
+                .font(.caption)
+                .foregroundStyle(bluetooth.settingsOperationSucceeded ? AppColor.mint : AppColor.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+            }
+
+            Text("单位写入仅在检测到小米二代 0x1542 可写特征后开放。ATT 回执和读回内容会记录在下方抓取结果中。")
+                .font(.caption).foregroundStyle(AppColor.secondary).lineSpacing(3)
+
+            Divider()
+            DeviceSettingsValueRow(
+                title: "历史记录通道",
+                value: bluetooth.settingsSnapshot.hasHistoryChannel ? "已发现，暂不导入" : "未发现"
+            )
+            Divider()
+            DeviceSettingsValueRow(title: "清空秤内数据", value: "无可信命令，未开放")
+            Divider()
+            DisclosureGroup("协议诊断", isExpanded: $showsProtocolDetails) {
+                diagnosticValues(title: "已发现服务", values: bluetooth.settingsSnapshot.discoveredServiceUUIDs)
+                diagnosticValues(title: "可写特征", values: bluetooth.settingsSnapshot.writableCharacteristicUUIDs)
+            }
+            .tint(AppColor.mint)
+        }
+    }
+
+    @ViewBuilder
+    private var informationPanel: some View {
+        if let scale {
+            DeviceSettingsPanel(title: "设备信息", icon: "info.circle") {
+                DeviceSettingsValueRow(title: "设备型号", value: scale.modelName)
+                Divider()
+                DeviceSettingsValueRow(title: "兼容状态", value: scale.compatibility)
+                Divider()
+                DeviceSettingsValueRow(title: "固件版本", value: bluetooth.settingsSnapshot.firmwareRevision ?? "未读取")
+                if let hardware = bluetooth.settingsSnapshot.hardwareRevision {
+                    Divider()
+                    DeviceSettingsValueRow(title: "硬件版本", value: hardware)
+                }
+                if let serial = bluetooth.settingsSnapshot.serialNumber {
+                    Divider()
+                    DeviceSettingsValueRow(title: "序列号", value: serial)
+                }
+            }
+        }
+    }
+
+    private var capturePanel: some View {
+        DeviceSettingsPanel(title: "BLE 交互抓取", icon: "waveform.path.ecg") {
+            Toggle("开启抓取", isOn: Binding(
+                get: { bluetooth.isSettingsBLECaptureEnabled },
+                set: { bluetooth.setSettingsBLECaptureEnabled($0) }
+            ))
+            .tint(AppColor.mint)
+
+            Divider()
+
+            HStack {
+                Text("最近 \(bluetooth.settingsBLEExchanges.count) 条")
+                    .font(.caption).foregroundStyle(AppColor.secondary)
+                Spacer()
+                ShareLink(item: bluetooth.settingsBLEReport) {
+                    Label("导出", systemImage: "square.and.arrow.up")
+                }
+                .disabled(bluetooth.settingsBLEExchanges.isEmpty)
+            }
+
+            if !bluetooth.isSettingsBLECaptureEnabled, bluetooth.settingsBLEExchanges.isEmpty {
+                Text("抓取已关闭")
+                    .font(.caption).foregroundStyle(AppColor.secondary)
+            } else if bluetooth.settingsBLEExchanges.isEmpty {
+                Text("执行单位设置或时间同步后，这里会显示写入载荷、ATT 回执和设备返回值。")
+                    .font(.caption).foregroundStyle(AppColor.secondary).lineSpacing(3)
+            } else {
+                ForEach(Array(bluetooth.settingsBLEExchanges.suffix(12))) { exchange in
+                    Divider()
+                    VStack(alignment: .leading, spacing: 5) {
+                        HStack {
+                            StatusPill(text: exchange.direction.rawValue, color: exchangeColor(exchange.direction))
+                            Text(shortUUID(exchange.characteristicUUID))
+                                .font(.system(.caption, design: .monospaced))
+                            Spacer()
+                            Text("\(exchange.elapsedSeconds.formatted(3))s")
+                                .font(.caption2).foregroundStyle(AppColor.secondary)
+                        }
+                        if let payload = exchange.payloadHex {
+                            Text(payload)
+                                .font(.system(.caption2, design: .monospaced))
+                                .foregroundStyle(AppColor.ink)
+                                .textSelection(.enabled)
+                        }
+                        Text(exchange.summary)
+                            .font(.caption).foregroundStyle(AppColor.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                }
+            }
+        }
+    }
+
+    private var namePanel: some View {
+        DeviceSettingsPanel(title: "设备名称", icon: "pencil") {
+            TextField("设备名称", text: $name)
+                .textFieldStyle(.roundedBorder)
+                .focused($isNameFocused)
+                .submitLabel(.done)
+                .onSubmit { isNameFocused = false }
+            Button {
+                isNameFocused = false
+                store.renameScale(scaleID, name: name)
+                bluetooth.updatePairedScales(store.pairedScales)
+            } label: {
+                Label("保存名称", systemImage: "checkmark")
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.bordered)
+            .tint(AppColor.mint)
+            .disabled(name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+        }
+    }
+
+    private var settingsStatusIcon: String {
+        switch bluetooth.settingsState {
+        case .ready: "checkmark.circle.fill"
+        case .failed: "exclamationmark.triangle.fill"
+        default: "dot.radiowaves.left.and.right"
+        }
+    }
+
+    private var settingsStatusColor: Color {
+        switch bluetooth.settingsState {
+        case .ready: AppColor.mint
+        case .failed: AppColor.apricot
+        default: AppColor.sky
+        }
+    }
+
+    private func exchangeColor(_ direction: DeviceSettingsBLEExchange.Direction) -> Color {
+        switch direction {
+        case .write: AppColor.sky
+        case .acknowledgement, .received: AppColor.mint
+        case .read: AppColor.violet
+        case .error: AppColor.rose
+        }
+    }
+
+    private func shortUUID(_ uuid: String) -> String {
+        let normalized = uuid.uppercased()
+        if normalized.hasPrefix("0000"), normalized.contains("-0000-1000-") {
+            return "0x" + normalized.dropFirst(4).prefix(4)
+        }
+        if normalized.hasPrefix("0000"), normalized.contains("-0000-3512-") {
+            return "0x" + normalized.dropFirst(4).prefix(4)
+        }
+        return normalized
+    }
+
+    @ViewBuilder
+    private func diagnosticValues(title: String, values: [String]) -> some View {
+        VStack(alignment: .leading, spacing: 5) {
+            Text(title).font(.caption.weight(.semibold))
+            if values.isEmpty {
+                Text("暂无").font(.caption).foregroundStyle(AppColor.secondary)
+            } else {
+                ForEach(values, id: \.self) { value in
+                    Text(value)
+                        .font(.system(.caption2, design: .monospaced))
+                        .foregroundStyle(AppColor.secondary)
+                        .textSelection(.enabled)
+                }
+            }
+        }
+        .padding(.vertical, 4)
+    }
+}
+
+private struct DeviceSettingsPanel<Content: View>: View {
+    let title: String
+    let icon: String
+    @ViewBuilder let content: Content
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Label(title, systemImage: icon)
+                .font(.headline)
+                .foregroundStyle(AppColor.ink)
+            content
+        }
+        .padding(18)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(.white.opacity(0.94), in: RoundedRectangle(cornerRadius: 20))
+        .overlay(RoundedRectangle(cornerRadius: 20).stroke(AppColor.mint.opacity(0.08)))
+    }
+}
+
+private struct DeviceSettingsValueRow: View {
+    let title: String
+    let value: String
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(title).font(.caption).foregroundStyle(AppColor.secondary)
+            Text(value)
+                .font(.subheadline)
+                .foregroundStyle(AppColor.ink)
+                .textSelection(.enabled)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 
