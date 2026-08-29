@@ -42,11 +42,20 @@
 
 设备需先在“设备”页的独立扫描界面中添加并可自定义名称。进入“称重”页后，应用会自动监听已关联设备，不再展示或搜索任意附近设备。概览和趋势按当前成员展示数据；趋势默认聚合该成员的全部设备记录，也可筛选单台设备，并支持按住图表左右拖动查看具体时间点。
 
+称重页会在收到首个有效载荷时立即进入测量态，但只提交最终值：小米旧款广播及在 `0x2A9D` RFU 位中携带小米状态的 GATT 变体，均要求离秤位未设置，并同时满足协议稳定位、最短上秤时间和连续读数收敛；符合 Bluetooth SIG 的标准 indication 视为完成的测量；对少数以 notify 连续发送过程值的设备，则要求短时间内多个读数收敛后才保存。一次测量完成后会锁定最终值，离秤期间的回落读数不会覆盖记录。
+
+称重页持续停留时可以连续完成多次测量。小米设备若未发送离秤标志，应用会根据完成值后的明显下降进入等待重新加载状态，忽略下降过程，并在重量再次上升时开启下一次会话；标准 indication 则按每个独立事件直接完成测量。
+
+称重页提供按需开启的小米测量诊断。诊断覆盖 `0x181B` 广播和当前连接设备的 `0x2A9D` / `0x2A9C` 特征值，仅在内存中保留最近 300 条原始数据、相对时间与解析状态，不自动写入文件；用户停止采集后可主动导出，用于针对具体型号和固件验证稳定及离秤标志。
+
 协议解析烟雾测试可运行：
 
 ```sh
 swiftc ScaleMe/Models/Models.swift ScaleMe/Bluetooth/ScalePayloadParsers.swift Tests/ParserSmoke.swift -o /tmp/scaleme-parser-smoke
 /tmp/scaleme-parser-smoke
+
+swiftc ScaleMe/Models/Models.swift ScaleMe/Bluetooth/MeasurementSession.swift Tests/MeasurementSessionSmoke.swift -o /tmp/scaleme-session-smoke
+/tmp/scaleme-session-smoke
 ```
 
 加密与数据合并烟雾测试可运行：
@@ -66,6 +75,7 @@ swiftc ScaleMe/Models/Models.swift ScaleMe/Storage/SecureAppRepository.swift Tes
 
 - [Bluetooth SIG Weight Scale Service 1.0.1](https://www.bluetooth.com/wp-content/uploads/Files/Specification/HTML/WSS_v1.0.1/out/en/index-en.html)
 - [Bluetooth SIG Body Composition Service 1.0](https://www.bluetooth.com/specifications/specs/body-composition-service-1-0/)
+- [openScale: Xiaomi Bluetooth Mi Scale reverse engineering](https://github.com/oliexdev/openScale/wiki/Xiaomi-Bluetooth-Mi-Scale)
 - [openScale 支持设备与协议实现](https://github.com/oliexdev/openScale)
 - [Mi Scale 2 BLE 数据布局参考](https://github.com/NeMaksym/mi-scale-2)
 
