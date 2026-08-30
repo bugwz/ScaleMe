@@ -5,7 +5,10 @@ struct RootView: View {
 
     var body: some View {
         TabView(selection: $selection) {
-            DashboardView(onMeasure: { selection = 1 })
+            DashboardView(
+                onMeasure: { selection = 1 },
+                onShowTrends: { selection = 2 }
+            )
                 .tabItem { Label("概览", systemImage: "circle.grid.2x2.fill") }
                 .tag(0)
             MeasureView()

@@ -91,6 +91,16 @@ struct MainPageTitle: View {
     }
 }
 
+private enum MainPageLayout {
+    static let topInset: CGFloat = 8
+}
+
+extension View {
+    func mainPageTopInset() -> some View {
+        contentMargins(.top, MainPageLayout.topInset, for: .scrollContent)
+    }
+}
+
 struct SettingsPanel<Content: View>: View {
     let title: String
     let icon: String

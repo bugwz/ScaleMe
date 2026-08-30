@@ -43,7 +43,7 @@
 ## 运行
 
 1. 使用 Xcode 26 或更新版本打开 `ScaleMe.xcodeproj`。
-2. 模拟器可查看界面和示例趋势；蓝牙扫描必须使用真机。
+2. 模拟器可查看界面；在“设置 → 偏好与同步”开启模拟数据后，全界面会使用覆盖儿童、青少年、父母和祖辈角色的 10 位三代家庭模拟成员、2 台模拟设备和近一年不等间隔的早晚测量记录。模拟快照不会写入或替换真实资料与加密测量档案；蓝牙扫描仍必须使用真机。
 3. 选择开发团队后安装到 iPhone，首次搜索设备时允许蓝牙权限。
 4. 如需使用 iCloud 同步，请在开发者账号为 App ID 启用 iCloud Documents，并确认 Xcode 中的 `iCloud.com.scaleme.app` 容器可用于当前团队。
 
@@ -112,7 +112,7 @@ swiftc ScaleMe/Models/Models.swift ScaleMe/Bluetooth/ScaleDiscoveryClassifier.sw
 
 ## 数据与医学边界
 
-配置与记录默认保存在应用沙盒的 `ScaleMe/` 目录：`configuration-v3.json` 保存成员、设备和应用配置，`measurements-v2.enc` 使用 AES-GCM 加密保存带成员及设备归属的测量记录。设置中可分别开启配置与数据的 iCloud 文件同步；配置策略只能选择单向推送或单向拉取，云端操作均异步执行。本机数据使用仅限当前设备的 Keychain 密钥；开启数据同步后，云端文件使用独立的可同步 iCloud Keychain 密钥，使同一 Apple 账户的设备能够解密数据文件。
+配置与记录默认保存在应用沙盒的 `ScaleMe/` 目录：`configuration-v4.json` 保存成员、设备和应用配置，`measurements-v2.enc` 使用 AES-GCM 加密保存带成员及设备归属的测量记录。设置中可分别开启配置与数据的 iCloud 文件同步；配置策略只能选择单向推送或单向拉取，云端操作均异步执行。本机数据使用仅限当前设备的 Keychain 密钥；开启数据同步后，云端文件使用独立的可同步 iCloud Keychain 密钥，使同一 Apple 账户的设备能够解密数据文件。
 
 阻抗推导的体脂等指标是消费级估算，不能用于诊断。正式发布前还应完成 HealthKit capability、隐私清单、iCloud 多设备实测、设备矩阵实测和 App Store 隐私申报。
 

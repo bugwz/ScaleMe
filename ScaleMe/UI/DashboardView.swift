@@ -4,30 +4,22 @@ import SwiftUI
 struct DashboardView: View {
     @EnvironmentObject private var store: MeasurementStore
     let onMeasure: () -> Void
-    @State private var showAdd = false
-    @State private var selectedTrendDate: Date?
+    let onShowTrends: () -> Void
 
     private var latest: BodyMeasurement { store.latest ?? MeasurementStore.demoMeasurements[0] }
-    private var previous: BodyMeasurement? { store.displayMeasurements.dropFirst().first }
-    private var selectedTrend: BodyMeasurement? {
-        guard let selectedTrendDate else { return nil }
-        return store.displayMeasurements.prefix(12).min {
-            abs($0.date.timeIntervalSince(selectedTrendDate)) < abs($1.date.timeIntervalSince(selectedTrendDate))
-        }
-    }
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 18) {
-                    hero
+                    brandTitle
+                    memberPager
                     if store.isShowingDemoData {
-                        Label("当前展示示例数据，首次测量后自动替换", systemImage: "sparkles")
+                        Label("模拟数据模式已开启，真实资料和记录保持不变", systemImage: "sparkles")
                             .font(.caption)
                             .foregroundStyle(AppColor.secondary)
                             .frame(maxWidth: .infinity, alignment: .leading)
                     }
-                    trendCard
                     if latest.hasBodyComposition {
                         metricsGrid
                     }
@@ -36,116 +28,222 @@ struct DashboardView: View {
                 .padding(.horizontal, 18)
                 .padding(.bottom, 28)
             }
+            .mainPageTopInset()
             .pageBackground()
             .toolbar(.hidden, for: .navigationBar)
-            .sheet(isPresented: $showAdd) { ManualEntryView() }
         }
     }
 
-    private var hero: some View {
-        ZStack(alignment: .bottomTrailing) {
-            RoundedRectangle(cornerRadius: 32, style: .continuous)
-                .fill(LinearGradient(colors: [.white, AppColor.paleMint, AppColor.sky.opacity(0.22)], startPoint: .topLeading, endPoint: .bottomTrailing))
-            Circle().fill(AppColor.sky.opacity(0.16)).frame(width: 190).offset(x: 65, y: 80)
-            VStack(alignment: .leading, spacing: 14) {
-                HStack(spacing: 9) {
-                    Image("AppLogo")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 34, height: 34)
-                        .clipShape(RoundedRectangle(cornerRadius: 9, style: .continuous))
-                        .accessibilityHidden(true)
-                    VStack(alignment: .leading, spacing: 0) {
-                        Text("观我").font(.headline)
-                        Text("ScaleMe").font(.caption2).foregroundStyle(AppColor.secondary)
-                    }
-                }
-                .accessibilityElement(children: .combine)
-                .accessibilityLabel("观我 ScaleMe")
-                HStack {
-                    Text("今天的身体状态").font(.subheadline).foregroundStyle(AppColor.secondary)
-                    Spacer()
-                    StatusPill(text: "稳定", color: AppColor.mint)
-                }
-                HStack(alignment: .firstTextBaseline, spacing: 8) {
-                    Text(store.unit.value(fromKilograms: latest.weightKG).formatted(2))
-                        .font(.system(size: 58, weight: .medium, design: .rounded))
-                    Text(store.unit.rawValue).font(.title3)
-                }
-                .foregroundStyle(AppColor.ink)
-                HStack(spacing: 16) {
-                    Label("BMI \(latest.bmi(heightCM: store.profile.heightCM).formatted(2))", systemImage: "figure.stand")
-                    if let fat = latest.bodyFatPercent { Label("体脂 \(fat.formatted(2))%", systemImage: "drop.fill") }
-                }
-                .font(.caption).foregroundStyle(AppColor.secondary)
-                ScaleDeviceLabel(title: sourceName(for: latest), iconSize: 11)
-                    .font(.caption2).foregroundStyle(AppColor.secondary)
-                HStack(spacing: 14) {
-                    Button(action: onMeasure) {
-                        Label("开始测量", systemImage: "wave.3.right")
-                            .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(.white)
-                            .padding(.horizontal, 16).padding(.vertical, 11)
-                            .background(AppColor.mint, in: Capsule())
-                    }
-                    Button("手动记录") { showAdd = true }
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(AppColor.mint)
-                }
-                .padding(.top, 4)
+    private var brandTitle: some View {
+        HStack(spacing: 11) {
+            Image("AppLogo")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 38, height: 38)
+                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 0) {
+                Text("观我")
+                    .font(.title.bold())
+                    .foregroundStyle(AppColor.ink)
+                Text("ScaleMe")
+                    .font(.caption2)
+                    .foregroundStyle(AppColor.secondary)
             }
-            .padding(24)
-            .frame(maxWidth: .infinity, minHeight: 295, alignment: .topLeading)
+            Spacer()
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("观我 ScaleMe")
+    }
+
+    private var memberPager: some View {
+        VStack(spacing: 10) {
+            TabView(
+                selection: Binding(
+                    get: { store.displaySelectedProfileID },
+                    set: { store.selectDisplayProfile($0) }
+                )
+            ) {
+                ForEach(store.displayProfiles) { profile in
+                    memberCard(for: profile)
+                        .tag(profile.id)
+                }
+            }
+            .tabViewStyle(.page(indexDisplayMode: .never))
+            .frame(height: 410)
+
+            if store.displayProfiles.count > 1 {
+                HStack(spacing: 7) {
+                    ForEach(store.displayProfiles) { profile in
+                        let theme = memberCardTheme(for: profile.avatar)
+                        Capsule()
+                            .fill(
+                                profile.id == store.displaySelectedProfileID
+                                    ? theme.primary
+                                    : theme.primary.opacity(0.22)
+                            )
+                            .frame(width: profile.id == store.displaySelectedProfileID ? 20 : 7, height: 7)
+                            .animation(.easeOut(duration: 0.2), value: store.displaySelectedProfileID)
+                    }
+                }
+                .accessibilityHidden(true)
+            }
         }
     }
 
-    private var trendCard: some View {
-        SoftCard {
-            VStack(alignment: .leading, spacing: 16) {
-                HStack {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("近期趋势").font(.title3.bold()).foregroundStyle(AppColor.ink)
-                        if let previous {
-                            let delta = latest.weightKG - previous.weightKG
-                            Text("较上次 \(delta >= 0 ? "+" : "")\(store.unit.value(fromKilograms: delta).formatted(2)) \(store.unit.rawValue)")
-                                .font(.caption).foregroundStyle(AppColor.secondary)
+    private func memberCard(for profile: UserProfile) -> some View {
+        let measurements = store.displayMeasurements(for: profile.id)
+        let current = measurements.first ?? MeasurementStore.demoMeasurements[0]
+        let theme = memberCardTheme(for: profile.avatar)
+
+        return ZStack {
+            RoundedRectangle(cornerRadius: 28, style: .continuous)
+                .fill(
+                    LinearGradient(
+                        colors: [
+                            .white,
+                            theme.primary.opacity(0.12),
+                            theme.secondary.opacity(0.22)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+
+            HStack(alignment: .bottom, spacing: -12) {
+                VStack(alignment: .leading, spacing: 0) {
+                    Text(profile.name)
+                        .font(.title2.bold())
+                        .foregroundStyle(AppColor.ink)
+                    Text("\(profile.relation) · \(profile.age) 岁")
+                        .font(.caption)
+                        .foregroundStyle(AppColor.secondary)
+
+                    Text("最近体重")
+                        .font(.caption)
+                        .foregroundStyle(AppColor.secondary)
+                        .padding(.top, 18)
+                    HStack(alignment: .firstTextBaseline, spacing: 5) {
+                        Text(store.unit.value(fromKilograms: current.weightKG).formatted(2))
+                            .font(.system(size: 46, weight: .medium, design: .rounded))
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.75)
+                        Text(store.unit.rawValue)
+                            .font(.subheadline.weight(.semibold))
+                    }
+                    .foregroundStyle(AppColor.ink)
+
+                    VStack(alignment: .leading, spacing: 7) {
+                        Label("BMI \(current.bmi(heightCM: profile.heightCM).formatted(2))", systemImage: "figure.stand")
+                        if let fat = current.bodyFatPercent {
+                            Label("体脂 \(fat.formatted(2))%", systemImage: "drop.fill")
                         }
                     }
-                    Spacer()
-                    NavigationLink("全部") { HistoryView() }.font(.subheadline.weight(.semibold))
-                }
-                Chart(Array(store.displayMeasurements.prefix(12).reversed())) { item in
-                    AreaMark(x: .value("日期", item.date), y: .value("体重", store.unit.value(fromKilograms: item.weightKG)))
-                        .foregroundStyle(LinearGradient(colors: [AppColor.mint.opacity(0.26), .clear], startPoint: .top, endPoint: .bottom))
-                    LineMark(x: .value("日期", item.date), y: .value("体重", store.unit.value(fromKilograms: item.weightKG)))
-                        .foregroundStyle(AppColor.mint).lineStyle(.init(lineWidth: 3, lineCap: .round, lineJoin: .round))
-                    if selectedTrend?.id == item.id {
-                        RuleMark(x: .value("选中日期", item.date))
-                            .foregroundStyle(AppColor.secondary.opacity(0.45))
-                            .annotation(position: .top, overflowResolution: .init(x: .fit, y: .disabled)) {
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text("\(store.unit.value(fromKilograms: item.weightKG).formatted(2)) \(store.unit.rawValue)").font(.caption.bold())
-                                    Text(item.date, format: .dateTime.month().day()).font(.caption2)
-                                    Text(sourceName(for: item)).font(.caption2).foregroundStyle(AppColor.secondary)
-                                }
-                                .padding(7).background(.white, in: RoundedRectangle(cornerRadius: 7))
-                            }
-                        PointMark(x: .value("日期", item.date), y: .value("体重", store.unit.value(fromKilograms: item.weightKG)))
-                            .foregroundStyle(AppColor.mint).symbolSize(60)
+                    .font(.caption)
+                    .foregroundStyle(AppColor.secondary)
+                    .lineLimit(1)
+
+                    compactTrend(
+                        measurements: measurements,
+                        theme: theme
+                    )
+                    .padding(.top, 12)
+
+                    Button(action: onMeasure) {
+                        Label("开始测量", systemImage: "wave.3.right")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 9)
+                            .background(theme.primary, in: Capsule())
                     }
+                    .padding(.top, 4)
                 }
-                .chartXSelection(value: $selectedTrendDate)
-                .chartXAxis(.hidden)
-                .chartYAxis {
-                    AxisMarks(position: .trailing) { _ in
-                        AxisGridLine().foregroundStyle(.gray.opacity(0.12))
-                        AxisValueLabel(
-                            format: FloatingPointFormatStyle<Double>.number.precision(.fractionLength(2))
-                        )
-                    }
-                }
-                .frame(height: 145)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .offset(y: -78)
+
+                MemberAvatarView(
+                    avatar: profile.avatar,
+                    width: 202,
+                    height: 380,
+                    showsBackdrop: false
+                )
+                .offset(x: 14)
+                .accessibilityHidden(true)
             }
+            .frame(height: 362)
+            .padding(20)
+        }
+        .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 28, style: .continuous).stroke(theme.primary.opacity(0.10)))
+        .shadow(color: theme.primary.opacity(0.12), radius: 18, y: 8)
+        .padding(.vertical, 4)
+    }
+
+    private func compactTrend(
+        measurements: [BodyMeasurement],
+        theme: MemberCardTheme
+    ) -> some View {
+        let recentMeasurements = lastWeekMeasurements(from: measurements)
+        let weightDomain = compactWeightDomain(for: recentMeasurements)
+
+        return Button(action: onShowTrends) {
+            Chart(recentMeasurements) { item in
+                LineMark(
+                    x: .value("日期", item.date),
+                    y: .value("体重", store.unit.value(fromKilograms: item.weightKG))
+                )
+                .foregroundStyle(theme.primary)
+                .lineStyle(.init(lineWidth: 2.5, lineCap: .round, lineJoin: .round))
+                .interpolationMethod(.catmullRom)
+            }
+            .chartXAxis(.hidden)
+            .chartYAxis(.hidden)
+            .chartYScale(domain: weightDomain)
+            .frame(height: 34)
+            .frame(minHeight: 44)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("查看近期趋势")
+        .accessibilityHint("切换到趋势页面")
+    }
+
+    private func lastWeekMeasurements(from measurements: [BodyMeasurement]) -> [BodyMeasurement] {
+        let start = Calendar.current.date(byAdding: .day, value: -7, to: .now) ?? .distantPast
+        return measurements
+            .filter { $0.date >= start && $0.date <= .now }
+            .sorted { $0.date < $1.date }
+    }
+
+    private func compactWeightDomain(
+        for measurements: [BodyMeasurement]
+    ) -> ClosedRange<Double> {
+        let values = measurements.map { store.unit.value(fromKilograms: $0.weightKG) }
+        guard let minimum = values.min(), let maximum = values.max() else { return 0...1 }
+
+        let spread = maximum - minimum
+        let minimumPadding = store.unit.value(fromKilograms: 0.05)
+        let padding = spread > 0
+            ? max(spread * 0.16, minimumPadding)
+            : max(abs(minimum) * 0.002, minimumPadding)
+        return (minimum - padding)...(maximum + padding)
+    }
+
+    private func memberCardTheme(for avatar: MemberAvatar) -> MemberCardTheme {
+        switch avatar {
+        case .child, .childDaughter:
+            MemberCardTheme(primary: AppColor.apricot, secondary: AppColor.rose)
+        case .youth, .teenDaughter:
+            MemberCardTheme(primary: AppColor.sky, secondary: AppColor.violet)
+        case .adult, .father:
+            MemberCardTheme(primary: AppColor.mint, secondary: AppColor.sky)
+        case .senior, .paternalGrandfather:
+            MemberCardTheme(primary: AppColor.violet, secondary: AppColor.rose)
+        case .maternalGrandfather:
+            MemberCardTheme(primary: AppColor.sky, secondary: AppColor.mint)
+        case .maternalGrandmother:
+            MemberCardTheme(primary: AppColor.rose, secondary: AppColor.mint)
         }
     }
 
@@ -181,11 +279,16 @@ struct DashboardView: View {
 
     private func sourceName(for measurement: BodyMeasurement) -> String {
         if let deviceID = measurement.deviceID,
-           let scale = store.pairedScales.first(where: { $0.id == deviceID }) {
+           let scale = store.displayPairedScales.first(where: { $0.id == deviceID }) {
             return scale.name
         }
         return measurement.deviceName ?? measurement.source.rawValue
     }
+}
+
+private struct MemberCardTheme {
+    let primary: Color
+    let secondary: Color
 }
 
 private struct MetricTile: View {
@@ -202,50 +305,5 @@ private struct MetricTile: View {
             Text(source).font(.caption2).foregroundStyle(AppColor.secondary).lineLimit(1)
         }
         .padding(17).background(.white).clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
-    }
-}
-
-struct ManualEntryView: View {
-    private enum InputField: Hashable {
-        case weight
-        case bodyFat
-    }
-
-    @EnvironmentObject private var store: MeasurementStore
-    @Environment(\.dismiss) private var dismiss
-    @State private var weight = ""
-    @State private var bodyFat = ""
-    @FocusState private var focusedField: InputField?
-
-    var body: some View {
-        NavigationStack {
-            Form {
-                Section("测量结果") {
-                    TextField("体重（kg）", text: $weight)
-                        .keyboardType(.decimalPad)
-                        .focused($focusedField, equals: .weight)
-                    TextField("体脂率（可选）", text: $bodyFat)
-                        .keyboardType(.decimalPad)
-                        .focused($focusedField, equals: .bodyFat)
-                }
-                Section { Text("手动记录会保存在本机，不会伪装成蓝牙秤数据。") }.font(.caption)
-            }
-            .navigationTitle("添加记录")
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) { Button("取消") { dismiss() } }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("保存") {
-                        if let kg = Double(weight), (5...350).contains(kg) {
-                            focusedField = nil
-                            store.addManual(weightKG: kg, bodyFat: Double(bodyFat)); dismiss()
-                        }
-                    }.disabled(Double(weight) == nil)
-                }
-                ToolbarItemGroup(placement: .keyboard) {
-                    Spacer()
-                    Button("完成") { focusedField = nil }
-                }
-            }
-        }
     }
 }

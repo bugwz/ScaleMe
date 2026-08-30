@@ -20,17 +20,14 @@ struct HistoryView: View {
 
     private var trendProfile: UserProfile {
         guard let selectedTrendProfileID,
-              let profile = store.profiles.first(where: { $0.id == selectedTrendProfileID }) else {
-            return store.selectedProfile
+              let profile = store.displayProfiles.first(where: { $0.id == selectedTrendProfileID }) else {
+            return store.displaySelectedProfile
         }
         return profile
     }
 
     private var profileMeasurements: [BodyMeasurement] {
-        if trendProfile.id == store.selectedProfileID {
-            return store.displayMeasurements
-        }
-        return store.measurements.filter { $0.profileID == trendProfile.id }
+        store.displayMeasurements(for: trendProfile.id)
     }
 
     private var deviceMeasurements: [BodyMeasurement] {
@@ -106,17 +103,17 @@ struct HistoryView: View {
                     records
                 }
                 .padding(.horizontal, 18)
-                .padding(.top, 8)
                 .padding(.bottom, 28)
             }
+            .mainPageTopInset()
             .pageBackground()
             .toolbar(.hidden, for: .navigationBar)
-            .onChange(of: store.selectedProfileID) {
+            .onChange(of: store.displaySelectedProfileID) {
                 selectedDeviceID = nil
             }
-            .onChange(of: store.profiles) {
+            .onChange(of: store.displayProfiles) {
                 if let profileID = selectedTrendProfileID,
-                   !store.profiles.contains(where: { $0.id == profileID }) {
+                   !store.displayProfiles.contains(where: { $0.id == profileID }) {
                     selectedTrendProfileID = nil
                 }
             }
@@ -297,7 +294,7 @@ struct HistoryView: View {
             title: "全部设备",
             icon: .asset("ScaleDeviceTabIcon")
         )
-        return [allDevices] + store.pairedScales.map { scale in
+        return [allDevices] + store.displayPairedScales.map { scale in
             TrendDropdownOption(
                 id: scale.id.uuidString,
                 value: Optional(scale.id),
@@ -309,7 +306,7 @@ struct HistoryView: View {
     }
 
     private var profileOptions: [TrendDropdownOption<UUID>] {
-        store.profiles.map { profile in
+        store.displayProfiles.map { profile in
             TrendDropdownOption(
                 id: profile.id.uuidString,
                 value: profile.id,
@@ -332,7 +329,7 @@ struct HistoryView: View {
 
     private var selectedSourceTitle: String {
         guard let selectedDeviceID else { return "全部设备" }
-        return store.pairedScales.first(where: { $0.id == selectedDeviceID })?.name ?? "所选设备"
+        return store.displayPairedScales.first(where: { $0.id == selectedDeviceID })?.name ?? "所选设备"
     }
 
     private func dismissFilterPopover() {
@@ -392,7 +389,7 @@ struct HistoryView: View {
 
     private func sourceName(for measurement: BodyMeasurement) -> String {
         if let deviceID = measurement.deviceID,
-           let scale = store.pairedScales.first(where: { $0.id == deviceID }) {
+           let scale = store.displayPairedScales.first(where: { $0.id == deviceID }) {
             return scale.name
         }
         return measurement.deviceName ?? measurement.source.rawValue
@@ -444,16 +441,12 @@ private struct FilteredMeasurementRecordsView: View {
     let sourceTitle: String
 
     private var profile: UserProfile {
-        store.profiles.first(where: { $0.id == selectedProfileID }) ?? store.selectedProfile
+        store.displayProfiles.first(where: { $0.id == selectedProfileID }) ?? store.displaySelectedProfile
     }
 
     private var measurements: [BodyMeasurement] {
         let profileMeasurements: [BodyMeasurement]
-        if selectedProfileID == store.selectedProfileID {
-            profileMeasurements = store.displayMeasurements
-        } else {
-            profileMeasurements = store.measurements.filter { $0.profileID == selectedProfileID }
-        }
+        profileMeasurements = store.displayMeasurements(for: selectedProfileID)
         let deviceMeasurements = profileMeasurements.filter { measurement in
             guard let selectedDeviceID else { return true }
             return measurement.deviceID == selectedDeviceID
@@ -509,7 +502,7 @@ private struct FilteredMeasurementRecordsView: View {
 
     private func sourceName(for measurement: BodyMeasurement) -> String {
         if let deviceID = measurement.deviceID,
-           let scale = store.pairedScales.first(where: { $0.id == deviceID }) {
+           let scale = store.displayPairedScales.first(where: { $0.id == deviceID }) {
             return scale.name
         }
         return measurement.deviceName ?? measurement.source.rawValue
@@ -521,12 +514,12 @@ struct MeasurementDetailView: View {
     let measurement: BodyMeasurement
 
     private var profile: UserProfile {
-        store.profiles.first(where: { $0.id == measurement.profileID }) ?? store.selectedProfile
+        store.displayProfiles.first(where: { $0.id == measurement.profileID }) ?? store.displaySelectedProfile
     }
 
     private var sourceName: String {
         if let deviceID = measurement.deviceID,
-           let scale = store.pairedScales.first(where: { $0.id == deviceID }) {
+           let scale = store.displayPairedScales.first(where: { $0.id == deviceID }) {
             return scale.name
         }
         return measurement.deviceName ?? measurement.source.rawValue

@@ -59,6 +59,23 @@ struct SettingsView: View {
                 detail: "同一成员和设备在 30 秒内连续完成的称重，只保留最新一条。",
                 isOn: $store.mergeFrequentMeasurements
             )
+
+            Divider()
+
+            SettingsToggleRow(
+                title: "启用模拟数据",
+                detail: "全界面展示模拟成员、设备和近一年记录；真实资料与测量数据不会被删除或替换。",
+                isOn: $store.isSimulationEnabled
+            )
+
+            if store.isSimulationEnabled {
+                Label("模拟数据不会写入本机档案或同步到 iCloud。", systemImage: "sparkles")
+                    .font(.caption)
+                    .foregroundStyle(AppColor.secondary)
+                    .padding(12)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(AppColor.paleMint.opacity(0.7), in: RoundedRectangle(cornerRadius: 14))
+            }
         }
     }
 

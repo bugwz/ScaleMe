@@ -14,9 +14,9 @@ struct ProfileView: View {
                     privacySection
                 }
                 .padding(.horizontal, 18)
-                .padding(.top, 8)
                 .padding(.bottom, 28)
             }
+            .mainPageTopInset()
             .pageBackground()
             .toolbar(.hidden, for: .navigationBar)
             .sheet(isPresented: $showAddMember) {
@@ -30,42 +30,26 @@ struct ProfileView: View {
             HStack {
                 Text("成员").font(.title3.bold())
                 Spacer()
-                Text("\(store.profiles.count) 人").font(.caption).foregroundStyle(AppColor.secondary)
+                Text("\(store.displayProfiles.count) 人").font(.caption).foregroundStyle(AppColor.secondary)
             }
             VStack(spacing: 0) {
-                ForEach(store.profiles) { profile in
-                    NavigationLink {
-                        MemberEditorView(profile: profile)
-                    } label: {
-                        HStack(spacing: 14) {
-                            Text(String(profile.name.prefix(1)))
-                                .font(.headline).foregroundStyle(.white)
-                                .frame(width: 48, height: 48)
-                                .background(profile.id == store.selectedProfileID ? AppColor.mint : AppColor.violet, in: Circle())
-                            VStack(alignment: .leading, spacing: 4) {
-                                HStack(spacing: 7) {
-                                    Text(profile.name).font(.body.weight(.semibold)).foregroundStyle(AppColor.ink)
-                                    if profile.id == store.selectedProfileID { StatusPill(text: "当前") }
-                                }
-                                Text("\(profile.relation) · \(profile.heightCM.formatted(2)) cm · \(profile.age) 岁")
-                                    .font(.caption).foregroundStyle(AppColor.secondary)
-                            }
-                            Spacer()
-                            Button {
-                                store.selectProfile(profile.id)
-                            } label: {
-                                Image(systemName: profile.id == store.selectedProfileID ? "checkmark.circle.fill" : "circle")
-                                    .foregroundStyle(profile.id == store.selectedProfileID ? AppColor.mint : AppColor.secondary)
-                                    .font(.title3)
-                            }
-                            .buttonStyle(.plain)
-                            .accessibilityLabel("切换到\(profile.name)")
-                            Image(systemName: "chevron.right").font(.caption).foregroundStyle(AppColor.secondary)
+                ForEach(store.displayProfiles) { profile in
+                    if store.isSimulationEnabled {
+                        Button {
+                            store.selectDisplayProfile(profile.id)
+                        } label: {
+                            memberRow(profile, showsDisclosure: false)
                         }
-                        .padding(.vertical, 14)
+                        .buttonStyle(.plain)
+                    } else {
+                        NavigationLink {
+                            MemberEditorView(profile: profile)
+                        } label: {
+                            memberRow(profile, showsDisclosure: true)
+                        }
+                        .buttonStyle(.plain)
                     }
-                    .buttonStyle(.plain)
-                    if profile.id != store.profiles.last?.id { Divider().padding(.leading, 62) }
+                    if profile.id != store.displayProfiles.last?.id { Divider().padding(.leading, 62) }
                 }
                 Button { showAddMember = true } label: {
                     Label("添加成员", systemImage: "plus.circle.fill")
@@ -75,10 +59,37 @@ struct ProfileView: View {
                         .padding(.vertical, 16)
                 }
                 .buttonStyle(.plain)
+                .disabled(store.isSimulationEnabled)
             }
             .padding(.horizontal, 16)
             .background(.white.opacity(0.94), in: RoundedRectangle(cornerRadius: 20))
         }
+    }
+
+    private func memberRow(_ profile: UserProfile, showsDisclosure: Bool) -> some View {
+        HStack(spacing: 14) {
+            MemberAvatarView(avatar: profile.avatar, width: 48, height: 48)
+            VStack(alignment: .leading, spacing: 4) {
+                HStack(spacing: 7) {
+                    Text(profile.name).font(.body.weight(.semibold)).foregroundStyle(AppColor.ink)
+                    if profile.id == store.displaySelectedProfileID { StatusPill(text: "当前") }
+                }
+                Text("\(profile.relation) · \(profile.heightCM.formatted(2)) cm · \(profile.age) 岁")
+                    .font(.caption).foregroundStyle(AppColor.secondary)
+            }
+            Spacer()
+            Image(systemName: profile.id == store.displaySelectedProfileID ? "checkmark.circle.fill" : "circle")
+                .foregroundStyle(profile.id == store.displaySelectedProfileID ? AppColor.mint : AppColor.secondary)
+                .font(.title3)
+            if showsDisclosure {
+                Image(systemName: "chevron.right").font(.caption).foregroundStyle(AppColor.secondary)
+            }
+        }
+        .padding(.vertical, 14)
+        .contentShape(Rectangle())
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(profile.name)，\(profile.relation)")
+        .accessibilityValue(profile.id == store.displaySelectedProfileID ? "当前成员" : "")
     }
 
     private var settingsSection: some View {
@@ -156,6 +167,45 @@ private struct MemberEditorView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 18) {
+                    SettingsPanel(title: "人物形象", icon: "person.crop.rectangle.stack") {
+                        ScrollView(.horizontal) {
+                            HStack(spacing: 12) {
+                                ForEach(MemberAvatar.allCases) { avatar in
+                                    Button {
+                                        draft.avatar = avatar
+                                    } label: {
+                                        ZStack(alignment: .topTrailing) {
+                                            MemberAvatarView(
+                                                avatar: avatar,
+                                                width: 104,
+                                                height: 142,
+                                                showsLabel: true
+                                            )
+                                            if draft.avatar == avatar {
+                                                Image(systemName: "checkmark.circle.fill")
+                                                    .font(.title3)
+                                                    .symbolRenderingMode(.palette)
+                                                    .foregroundStyle(.white, AppColor.mint)
+                                                    .padding(7)
+                                            }
+                                        }
+                                        .overlay {
+                                            RoundedRectangle(cornerRadius: 19, style: .continuous)
+                                                .stroke(
+                                                    draft.avatar == avatar ? AppColor.mint : .clear,
+                                                    lineWidth: 2
+                                                )
+                                        }
+                                    }
+                                    .buttonStyle(.plain)
+                                    .accessibilityLabel("选择\(avatar.ageHint)人物形象")
+                                    .accessibilityAddTraits(draft.avatar == avatar ? .isSelected : [])
+                                }
+                            }
+                        }
+                        .scrollIndicators(.hidden)
+                    }
+
                     SettingsPanel(title: "成员信息", icon: "person.text.rectangle") {
                         VStack(alignment: .leading, spacing: 8) {
                             Text("姓名或昵称")

@@ -12,9 +12,9 @@ struct DevicesView: View {
                     deviceList
                 }
                 .padding(.horizontal, 18)
-                .padding(.top, 8)
                 .padding(.bottom, 28)
             }
+            .mainPageTopInset()
             .pageBackground()
             .toolbar(.hidden, for: .navigationBar)
         }
@@ -42,6 +42,7 @@ struct DevicesView: View {
             .background(.white.opacity(0.94), in: RoundedRectangle(cornerRadius: 20))
         }
         .buttonStyle(.plain)
+        .disabled(store.isSimulationEnabled)
     }
 
     private var deviceList: some View {
@@ -49,9 +50,9 @@ struct DevicesView: View {
             HStack {
                 Text("我的设备").font(.title3.bold())
                 Spacer()
-                Text("\(store.pairedScales.count) 台").font(.caption).foregroundStyle(AppColor.secondary)
+                Text("\(store.displayPairedScales.count) 台").font(.caption).foregroundStyle(AppColor.secondary)
             }
-            if store.pairedScales.isEmpty {
+            if store.displayPairedScales.isEmpty {
                 ContentUnavailableView {
                     VStack(spacing: 8) {
                         Image("ScaleDeviceTabIcon")
@@ -68,7 +69,7 @@ struct DevicesView: View {
                 .frame(maxWidth: .infinity, minHeight: 230)
             } else {
                 VStack(spacing: 0) {
-                    ForEach(store.pairedScales) { scale in
+                    ForEach(store.displayPairedScales) { scale in
                         NavigationLink {
                             ScaleSettingsView(scaleID: scale.id)
                         } label: {
@@ -95,7 +96,8 @@ struct DevicesView: View {
                             .padding(.vertical, 14)
                         }
                         .buttonStyle(.plain)
-                        if scale.id != store.pairedScales.last?.id { Divider().padding(.leading, 60) }
+                        .disabled(store.isSimulationEnabled)
+                        if scale.id != store.displayPairedScales.last?.id { Divider().padding(.leading, 60) }
                     }
                 }
                 .padding(.horizontal, 16)

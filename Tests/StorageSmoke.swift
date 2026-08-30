@@ -45,7 +45,7 @@ enum StorageSmoke {
         precondition(merged.measurements == [retained], "deleted records must not be resurrected")
         precondition(merged.measurements[0].deviceName == "浴室秤", "measurement source attribution must survive archive merge")
 
-        let profile = UserProfile(name: "测试成员", relation: "本人")
+        let profile = UserProfile(name: "测试成员", relation: "本人", avatar: .senior)
         let scale = PairedScale(
             id: scaleID,
             name: "浴室秤",
@@ -58,11 +58,14 @@ enum StorageSmoke {
             pairedScales: [scale],
             unit: .kilograms,
             mergeFrequentMeasurements: true,
+            isSimulationEnabled: true,
             customCommunicationRules: []
         )
         let configurationData = try JSONEncoder().encode(configuration)
         let decoded = try JSONDecoder().decode(AppConfiguration.self, from: configurationData)
         precondition(decoded == configuration, "multi-profile and paired-device configuration round trip failed")
+        precondition(decoded.profiles[0].avatar == .senior, "member avatar selection must survive configuration round trip")
+        precondition(decoded.isSimulationEnabled, "simulation preference must survive configuration round trip")
         print("Storage smoke tests passed")
     }
 }

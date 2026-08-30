@@ -89,6 +89,7 @@ struct UserProfile: Identifiable, Codable, Equatable {
     var birthDate = Calendar.current.date(byAdding: .year, value: -30, to: .now) ?? .now
     var biologicalSex = BiologicalSex.female
     var athleteMode = false
+    var avatar = MemberAvatar.adult
 
     enum BiologicalSex: String, Codable, CaseIterable, Identifiable {
         case female = "女"
@@ -98,6 +99,51 @@ struct UserProfile: Identifiable, Codable, Equatable {
 
     var age: Int {
         Calendar.current.dateComponents([.year], from: birthDate, to: .now).year ?? 30
+    }
+}
+
+enum MemberAvatar: String, Codable, CaseIterable, Identifiable, Hashable {
+    case child
+    case childDaughter
+    case youth
+    case teenDaughter
+    case adult
+    case father
+    case senior
+    case paternalGrandfather
+    case maternalGrandfather
+    case maternalGrandmother
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .child: "童真"
+        case .childDaughter: "女儿童真"
+        case .youth: "活力"
+        case .teenDaughter: "女儿青春"
+        case .adult: "从容"
+        case .father: "爸爸"
+        case .senior: "舒展"
+        case .paternalGrandfather: "爷爷"
+        case .maternalGrandfather: "外公"
+        case .maternalGrandmother: "外婆"
+        }
+    }
+
+    var ageHint: String {
+        switch self {
+        case .child: "儿童"
+        case .childDaughter: "儿童女儿"
+        case .youth: "青少年"
+        case .teenDaughter: "青少年女儿"
+        case .adult: "成年人"
+        case .father: "成年人"
+        case .senior: "长辈"
+        case .paternalGrandfather: "长辈"
+        case .maternalGrandfather: "长辈"
+        case .maternalGrandmother: "长辈"
+        }
     }
 }
 
@@ -116,7 +162,47 @@ struct AppConfiguration: Codable, Equatable {
     var pairedScales: [PairedScale]
     var unit: WeightUnit
     var mergeFrequentMeasurements: Bool
+    var isSimulationEnabled: Bool
     var customCommunicationRules: [CommunicationRule]
+
+    init(
+        profiles: [UserProfile],
+        selectedProfileID: UUID,
+        pairedScales: [PairedScale],
+        unit: WeightUnit,
+        mergeFrequentMeasurements: Bool,
+        isSimulationEnabled: Bool = false,
+        customCommunicationRules: [CommunicationRule]
+    ) {
+        self.profiles = profiles
+        self.selectedProfileID = selectedProfileID
+        self.pairedScales = pairedScales
+        self.unit = unit
+        self.mergeFrequentMeasurements = mergeFrequentMeasurements
+        self.isSimulationEnabled = isSimulationEnabled
+        self.customCommunicationRules = customCommunicationRules
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case profiles
+        case selectedProfileID
+        case pairedScales
+        case unit
+        case mergeFrequentMeasurements
+        case isSimulationEnabled
+        case customCommunicationRules
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        profiles = try container.decode([UserProfile].self, forKey: .profiles)
+        selectedProfileID = try container.decode(UUID.self, forKey: .selectedProfileID)
+        pairedScales = try container.decode([PairedScale].self, forKey: .pairedScales)
+        unit = try container.decode(WeightUnit.self, forKey: .unit)
+        mergeFrequentMeasurements = try container.decode(Bool.self, forKey: .mergeFrequentMeasurements)
+        isSimulationEnabled = try container.decodeIfPresent(Bool.self, forKey: .isSimulationEnabled) ?? false
+        customCommunicationRules = try container.decode([CommunicationRule].self, forKey: .customCommunicationRules)
+    }
 
     static var standard: AppConfiguration {
         let profile = UserProfile()
@@ -126,6 +212,7 @@ struct AppConfiguration: Codable, Equatable {
             pairedScales: [],
             unit: .kilograms,
             mergeFrequentMeasurements: false,
+            isSimulationEnabled: false,
             customCommunicationRules: []
         )
     }
