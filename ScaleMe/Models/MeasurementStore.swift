@@ -11,11 +11,15 @@ final class MeasurementStore: ObservableObject {
     @Published var mergeFrequentMeasurements: Bool { didSet { persistConfigurationIfNeeded() } }
     @Published var isSimulationEnabled: Bool { didSet { simulationModeDidChange() } }
     @Published private(set) var customCommunicationRules: [CommunicationRule] { didSet { persistConfigurationIfNeeded() } }
+    @Published private(set) var dashboardMetricOrder: [DashboardMetricKind] { didSet { persistConfigurationIfNeeded() } }
+    @Published private(set) var dashboardVisibleMetrics: Set<DashboardMetricKind> { didSet { persistConfigurationIfNeeded() } }
     @Published private(set) var storageError: String?
 
-    private let repository: LocalAppRepository?
+    private let persistenceWriter: LocalPersistenceWriter?
     private var archiveUpdatedAt: Date
     private var isApplyingExternalState = false
+    private var configurationRevision = 0
+    private var archiveRevision = 0
     private let simulationData: SimulationDataSnapshot
     private var simulationSelectedProfileID: UUID
 
@@ -54,7 +58,7 @@ final class MeasurementStore: ObservableObject {
             calibrationProfile: calibrationProfile,
             calibrationMeasurement: calibrationMeasurement
         )
-        repository = loadedRepository
+        persistenceWriter = loadedRepository.map(LocalPersistenceWriter.init(repository:))
         self.simulationData = simulationData
         simulationSelectedProfileID = simulationData.selectedProfileID
         profiles = loadedConfiguration.profiles
@@ -64,6 +68,8 @@ final class MeasurementStore: ObservableObject {
         mergeFrequentMeasurements = loadedConfiguration.mergeFrequentMeasurements
         isSimulationEnabled = loadedConfiguration.isSimulationEnabled
         customCommunicationRules = loadedConfiguration.customCommunicationRules
+        dashboardMetricOrder = MeasurementStore.sanitizedMetricOrder(loadedConfiguration.dashboardMetricOrder)
+        dashboardVisibleMetrics = loadedConfiguration.dashboardVisibleMetrics
         measurements = loadedArchive.measurements.sorted { $0.date > $1.date }
         deletedMeasurementIDs = loadedArchive.deletedMeasurementIDs
         archiveUpdatedAt = loadedArchive.updatedAt
@@ -78,7 +84,9 @@ final class MeasurementStore: ObservableObject {
             unit: unit,
             mergeFrequentMeasurements: mergeFrequentMeasurements,
             isSimulationEnabled: isSimulationEnabled,
-            customCommunicationRules: customCommunicationRules
+            customCommunicationRules: customCommunicationRules,
+            dashboardMetricOrder: dashboardMetricOrder,
+            dashboardVisibleMetrics: dashboardVisibleMetrics
         )
     }
 
@@ -213,6 +221,16 @@ final class MeasurementStore: ObservableObject {
         profiles[index] = profile
     }
 
+    func moveProfile(_ profileID: UUID, onto targetProfileID: UUID) {
+        guard profileID != targetProfileID,
+              let sourceIndex = profiles.firstIndex(where: { $0.id == profileID }),
+              let targetIndex = profiles.firstIndex(where: { $0.id == targetProfileID }) else { return }
+        profiles.move(
+            fromOffsets: IndexSet(integer: sourceIndex),
+            toOffset: targetIndex > sourceIndex ? targetIndex + 1 : targetIndex
+        )
+    }
+
     func deleteProfile(_ id: UUID) {
         guard profiles.count > 1, let index = profiles.firstIndex(where: { $0.id == id }) else { return }
         profiles.remove(at: index)
@@ -272,6 +290,20 @@ final class MeasurementStore: ObservableObject {
         pairedScales.removeAll { $0.id == id }
     }
 
+    func updateDashboardMetrics(order: [DashboardMetricKind], visible: Set<DashboardMetricKind>) {
+        dashboardMetricOrder = MeasurementStore.sanitizedMetricOrder(order)
+        dashboardVisibleMetrics = visible
+    }
+
+    private static func sanitizedMetricOrder(_ order: [DashboardMetricKind]) -> [DashboardMetricKind] {
+        var seen = Set<DashboardMetricKind>()
+        var sanitized = order.filter { seen.insert($0).inserted }
+        for kind in DashboardMetricKind.allCases where !seen.contains(kind) {
+            sanitized.append(kind)
+        }
+        return sanitized
+    }
+
     func delete(at offsets: IndexSet) {
         for offset in offsets where measurements.indices.contains(offset) {
             deletedMeasurementIDs.insert(measurements[offset].id)
@@ -293,6 +325,8 @@ final class MeasurementStore: ObservableObject {
         mergeFrequentMeasurements = configuration.mergeFrequentMeasurements
         isSimulationEnabled = configuration.isSimulationEnabled
         customCommunicationRules = configuration.customCommunicationRules
+        dashboardMetricOrder = MeasurementStore.sanitizedMetricOrder(configuration.dashboardMetricOrder)
+        dashboardVisibleMetrics = configuration.dashboardVisibleMetrics
         isApplyingExternalState = false
         persistConfiguration()
     }
@@ -324,29 +358,43 @@ final class MeasurementStore: ObservableObject {
     }
 
     private func persistConfiguration() {
-        guard let repository else {
+        guard let persistenceWriter else {
             storageError = "无法初始化本地加密存储"
             return
         }
-        do {
-            try repository.saveConfiguration(configuration)
-            storageError = nil
-        } catch {
-            storageError = error.localizedDescription
+        configurationRevision += 1
+        let revision = configurationRevision
+        let snapshot = configuration
+        Task {
+            do {
+                try await persistenceWriter.saveConfiguration(snapshot, revision: revision)
+                guard revision == configurationRevision else { return }
+                storageError = nil
+            } catch {
+                guard revision == configurationRevision else { return }
+                storageError = error.localizedDescription
+            }
         }
     }
 
     private func persistArchive(markAsChanged: Bool = true) {
         if markAsChanged { archiveUpdatedAt = .now }
-        guard let repository else {
+        guard let persistenceWriter else {
             storageError = "无法初始化本地加密存储"
             return
         }
-        do {
-            try repository.saveArchive(archive)
-            storageError = nil
-        } catch {
-            storageError = error.localizedDescription
+        archiveRevision += 1
+        let revision = archiveRevision
+        let snapshot = archive
+        Task {
+            do {
+                try await persistenceWriter.saveArchive(snapshot, revision: revision)
+                guard revision == archiveRevision else { return }
+                storageError = nil
+            } catch {
+                guard revision == archiveRevision else { return }
+                storageError = error.localizedDescription
+            }
         }
     }
 

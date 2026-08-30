@@ -3,6 +3,7 @@ import SwiftUI
 struct CommunicationRulesView: View {
     @EnvironmentObject private var store: MeasurementStore
     @State private var remoteURL = ""
+    @State private var isRemoteURLFocused = false
     @State private var isImportingRemote = false
     @State private var showsJSONImporter = false
     @State private var message: ImportMessage?
@@ -16,18 +17,18 @@ struct CommunicationRulesView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
-                SettingsPanel(title: "应用已支持", icon: "checkmark.seal.fill") {
+                SettingsPanel(title: "内置协议", icon: "checkmark.seal.fill") {
                     ForEach(CommunicationRuleCatalog.builtIn) { rule in
                         ruleLink(rule)
-                        if rule.id != CommunicationRuleCatalog.builtIn.last?.id { Divider() }
+                        if rule.id != CommunicationRuleCatalog.builtIn.last?.id { SettingsSeparator() }
                     }
-                    Text("“应用内置”表示解析器已实现；具体设备是否可用仍以实机、固件和已捕获数据验证为准。")
+                    Text("“内置”表示解析器已实现；具体设备是否可用仍以实机、固件和已捕获数据验证为准。")
                         .font(.caption)
                         .foregroundStyle(AppColor.secondary)
                         .lineSpacing(3)
                 }
 
-                SettingsPanel(title: "自定义与社区规则", icon: "person.2.wave.2") {
+                SettingsPanel(title: "外部协议", icon: "person.2.wave.2") {
                     if store.customCommunicationRules.isEmpty {
                         ContentUnavailableView(
                             "尚无外部规则",
@@ -47,7 +48,7 @@ struct CommunicationRulesView: View {
                                 .buttonStyle(.borderless)
                                 .accessibilityLabel("删除\(rule.name)")
                             }
-                            if rule.id != store.customCommunicationRules.last?.id { Divider() }
+                            if rule.id != store.customCommunicationRules.last?.id { SettingsSeparator() }
                         }
                     }
                     Text("删除正在使用的规则后，相关设备会恢复为自动识别。社区规则不是官方兼容性承诺。")
@@ -56,35 +57,51 @@ struct CommunicationRulesView: View {
                         .lineSpacing(3)
                 }
 
-                SettingsPanel(title: "从远程地址导入", icon: "link.badge.plus") {
-                    TextField("https://example.com/scaleme-rules.json", text: $remoteURL)
-                        .textInputAutocapitalization(.never)
-                        .keyboardType(.URL)
-                        .autocorrectionDisabled()
+                SettingsPanel(title: "在线导入", icon: "link.badge.plus") {
+                    ResponsiveTextField(
+                        text: $remoteURL,
+                        isFocused: $isRemoteURLFocused,
+                        placeholder: "https://example.com/scaleme-rules.json",
+                        keyboardType: .URL,
+                        returnKeyType: .done,
+                        autocapitalizationType: .none,
+                        autocorrectionType: .no,
+                        spellCheckingType: .no,
+                        onSubmit: { isRemoteURLFocused = false }
+                    )
                         .padding(12)
-                        .background(AppColor.canvas, in: RoundedRectangle(cornerRadius: 12))
-                        .overlay(RoundedRectangle(cornerRadius: 12).stroke(AppColor.mint.opacity(0.12)))
+                        .background(AppColor.canvas, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                .stroke(AppColor.mint.opacity(0.18))
+                                .allowsHitTesting(false)
+                        )
+
                     Button {
                         importRemoteRules()
                     } label: {
                         HStack {
                             Label("拉取并校验规则", systemImage: "arrow.down.doc")
+                                .font(.caption.weight(.bold))
+                                .foregroundStyle(.white)
                             Spacer()
                             if isImportingRemote { ProgressView().tint(.white) }
                         }
                         .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                        .padding(.horizontal, 16)
+                        .background(AppColor.mint, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
                     }
-                    .buttonStyle(.borderedProminent)
-                    .tint(AppColor.mint)
+                    .buttonStyle(.plain)
                     .disabled(remoteURL.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isImportingRemote)
                 }
 
-                SettingsPanel(title: "开发与调试", icon: "wrench.and.screwdriver.fill") {
+                SettingsPanel(title: "开发工具", icon: "wrench.and.screwdriver.fill") {
                     Button { showsJSONImporter = true } label: {
                         Label("粘贴 JSON 规则", systemImage: "curlybraces")
                             .frame(maxWidth: .infinity, alignment: .leading)
                     }
-                    Divider()
+                    SettingsSeparator()
                     NavigationLink {
                         CommunicationRuleFormatView()
                     } label: {
@@ -104,8 +121,9 @@ struct CommunicationRulesView: View {
             .padding(.bottom, 28)
         }
         .pageBackground()
-        .navigationTitle("通信协议")
+        .navigationTitle("通信规则")
         .navigationBarTitleDisplayMode(.inline)
+        .scrollDismissesKeyboard(.interactively)
         .sheet(isPresented: $showsJSONImporter) {
             CommunicationRuleJSONImporter()
         }
@@ -179,6 +197,7 @@ private struct CommunicationRuleJSONImporter: View {
     @Environment(\.dismiss) private var dismiss
     @State private var json = CommunicationRuleFormatView.exampleJSON
     @State private var errorMessage: String?
+    @State private var isJSONFocused = false
 
     var body: some View {
         NavigationStack {
@@ -186,13 +205,24 @@ private struct CommunicationRuleJSONImporter: View {
                 Text("粘贴完整的 ScaleMe 通信规则文件。示例可直接修改。")
                     .font(.caption)
                     .foregroundStyle(AppColor.secondary)
-                TextEditor(text: $json)
-                    .font(.system(.caption, design: .monospaced))
-                    .autocorrectionDisabled()
-                    .textInputAutocapitalization(.never)
+                ResponsiveTextEditor(
+                    text: $json,
+                    isFocused: $isJSONFocused,
+                    autocapitalizationType: .none,
+                    autocorrectionType: .no,
+                    spellCheckingType: .no,
+                    usesMonospacedFont: true,
+                    showsDoneAccessory: true
+                )
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .frame(minHeight: 280)
                     .padding(8)
                     .background(.white, in: RoundedRectangle(cornerRadius: 12))
-                    .overlay(RoundedRectangle(cornerRadius: 12).stroke(AppColor.mint.opacity(0.18)))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(AppColor.mint.opacity(0.18))
+                            .allowsHitTesting(false)
+                    )
                 if let errorMessage {
                     Label(errorMessage, systemImage: "exclamationmark.triangle.fill")
                         .font(.caption)

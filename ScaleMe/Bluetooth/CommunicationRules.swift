@@ -7,9 +7,9 @@ enum CommunicationRuleOrigin: String, Codable, CaseIterable {
 
     var title: String {
         switch self {
-        case .builtIn: "应用内置"
-        case .custom: "用户导入"
-        case .community: "社区来源"
+        case .builtIn: "内置"
+        case .custom: "本地导入"
+        case .community: "在线导入"
         }
     }
 }
@@ -114,9 +114,9 @@ enum CommunicationRuleCatalog {
     static let builtIn: [CommunicationRule] = [
         CommunicationRule(
             id: bluetoothSIGWeightID,
-            name: "Bluetooth SIG 体重秤",
+            name: "标准体重",
             version: 1,
-            summary: "Weight Scale Service 0x181D / Weight Measurement 0x2A9D。",
+            summary: "Bluetooth SIG 标准体重服务（181D / 2A9D）。",
             origin: .builtIn,
             match: .init(transport: .characteristicNotification, serviceUUID: "181D", characteristicUUID: "2A9D", minimumLength: 3),
             decoder: nil,
@@ -124,9 +124,9 @@ enum CommunicationRuleCatalog {
         ),
         CommunicationRule(
             id: bluetoothSIGBodyID,
-            name: "Bluetooth SIG 身体成分秤",
+            name: "标准体成分",
             version: 1,
-            summary: "Body Composition Service 0x181B / Measurement 0x2A9C。",
+            summary: "Bluetooth SIG 标准体成分服务（181B / 2A9C）。",
             origin: .builtIn,
             match: .init(transport: .characteristicNotification, serviceUUID: "181B", characteristicUUID: "2A9C", minimumLength: 4),
             decoder: nil,
@@ -134,7 +134,7 @@ enum CommunicationRuleCatalog {
         ),
         CommunicationRule(
             id: xiaomiLegacyID,
-            name: "小米传统广播协议",
+            name: "小米广播",
             version: 1,
             summary: "解析 0x181B 服务广播中的体重、稳定状态、时间与阻抗。",
             origin: .builtIn,
@@ -144,7 +144,7 @@ enum CommunicationRuleCatalog {
         ),
         CommunicationRule(
             id: icomonAFUID,
-            name: "ICOMON AFU 协议",
+            name: "ICOMON AFU",
             version: 1,
             summary: "适用于已有实测帧夹具的 AFU-WL-TZ-A1 / FG2313UWB-D。",
             origin: .builtIn,

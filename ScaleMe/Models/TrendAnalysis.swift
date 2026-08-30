@@ -41,7 +41,7 @@ enum TrendMetric: String, CaseIterable, Identifiable {
         switch self {
         case .weight: "scalemass.fill"
         case .bmi: "ruler"
-        case .bodyFat: "percent"
+        case .bodyFat: "drop.fill"
         case .fatMass: "circle.dashed.inset.filled"
         case .muscleMass: "figure.strengthtraining.traditional"
         case .musclePercent: "figure.strengthtraining.functional"
@@ -51,7 +51,7 @@ enum TrendMetric: String, CaseIterable, Identifiable {
         case .proteinMass: "fork.knife"
         case .boneMass: "figure.walk.motion"
         case .bonePercent: "figure.stand"
-        case .visceralFat: "figure.core.training"
+        case .visceralFat: "circle.circle"
         case .basalMetabolism: "flame.fill"
         }
     }

@@ -312,7 +312,7 @@ struct HistoryView: View {
                 value: profile.id,
                 title: profile.name,
                 subtitle: profile.relation,
-                icon: .system("person.crop.circle")
+                icon: .avatar(profile.avatar)
             )
         }
     }

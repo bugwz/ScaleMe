@@ -1,5 +1,12 @@
 import SwiftUI
 
+private struct MeasureProfileAnchorKey: PreferenceKey {
+    static var defaultValue: Anchor<CGRect>? = nil
+    static func reduce(value: inout Anchor<CGRect>?, nextValue: () -> Anchor<CGRect>?) {
+        value = nextValue() ?? value
+    }
+}
+
 struct MeasureView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @EnvironmentObject private var bluetooth: BLEScaleManager
@@ -7,19 +14,39 @@ struct MeasureView: View {
     @State private var showSafety = false
     @State private var showManualEntry = false
     @State private var isPulsing = false
+    @State private var isMeasurementViewActive = false
+    @State private var showProfileDropdown = false
 
     private var liveMeasurement: BodyMeasurement? {
         if store.isSimulationEnabled { return store.latest }
         return bluetooth.latestMeasurement.map {
-            BodyCompositionEstimator.enriching($0, profile: store.selectedProfile)
+            BodyCompositionEstimator.enriching($0, profile: store.displaySelectedProfile)
+        }
+    }
+
+    private var profileOptions: [TrendDropdownOption<UUID>] {
+        store.displayProfiles.map { profile in
+            TrendDropdownOption(
+                id: profile.id.uuidString,
+                value: profile.id,
+                title: profile.name,
+                subtitle: "\(profile.relation) · \(profile.heightCM.formatted(2)) cm",
+                icon: .avatar(profile.avatar)
+            )
         }
     }
 
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(spacing: 24) {
-                    MainPageTitle(text: "测量")
+                VStack(spacing: 20) {
+                    VStack(alignment: .leading, spacing: 6) {
+                        MainPageTitle(text: "测量")
+                        HStack {
+                            Spacer()
+                            userSwitchButton
+                        }
+                    }
                     scaleStage
                     manualEntryButton
                     measurementSummary
@@ -33,12 +60,14 @@ struct MeasureView: View {
             .toolbar(.hidden, for: .navigationBar)
             .sheet(isPresented: $showManualEntry) { ManualEntryView() }
             .onAppear {
+                isMeasurementViewActive = true
                 isPulsing = true
                 if !store.isSimulationEnabled {
                     bluetooth.startMeasurementMonitoring(scales: store.pairedScales)
                 }
             }
             .onDisappear {
+                isMeasurementViewActive = false
                 isPulsing = false
                 bluetooth.stopScanning()
             }
@@ -54,16 +83,63 @@ struct MeasureView: View {
                     bluetooth.startMeasurementMonitoring(scales: store.pairedScales)
                 }
             }
+            .onChange(of: store.selectedProfileID) {
+                guard isMeasurementViewActive, !store.isSimulationEnabled else { return }
+                bluetooth.startMeasurementMonitoring(scales: store.pairedScales)
+            }
             .alert("安全提醒", isPresented: $showSafety) {
                 Button("知道了") {}
             } message: {
                 Text("请确保地板、秤面和脚底干燥。孕期、植入心脏起搏器或其他医疗设备时，请勿依赖生物电阻抗体脂结果，并遵循设备厂商及医生建议。")
             }
         }
+        .overlayPreferenceValue(MeasureProfileAnchorKey.self) { anchor in
+            GeometryReader { proxy in
+                if showProfileDropdown, let anchor {
+                    let buttonFrame = proxy[anchor]
+                    let dropdownWidth: CGFloat = min(300, proxy.size.width - 36)
+                    let dropdownX = min(
+                        max(buttonFrame.maxX - dropdownWidth, 18),
+                        proxy.size.width - dropdownWidth - 18
+                    )
+
+                    ZStack(alignment: .topLeading) {
+                        Color.black.opacity(0.001)
+                            .ignoresSafeArea()
+                            .contentShape(Rectangle())
+                            .onTapGesture {
+                                withAnimation(.easeOut(duration: 0.18)) {
+                                    showProfileDropdown = false
+                                }
+                            }
+
+                        TrendSingleChoiceDropdown(
+                            title: "选择测量成员",
+                            options: profileOptions,
+                            selection: Binding(
+                                get: { store.displaySelectedProfileID },
+                                set: { store.selectDisplayProfile($0) }
+                            ),
+                            onDismiss: {
+                                withAnimation(.easeOut(duration: 0.18)) {
+                                    showProfileDropdown = false
+                                }
+                            }
+                        )
+                        .frame(width: dropdownWidth)
+                        .offset(x: dropdownX, y: buttonFrame.maxY + 8)
+                        .transition(.scale(scale: 0.96, anchor: .topTrailing).combined(with: .opacity))
+                    }
+                }
+            }
+        }
     }
 
     private var manualEntryButton: some View {
-        Button { showManualEntry = true } label: {
+        Button {
+            InputDiagnosticsRecorder.shared.recordManualEntryButtonTapped()
+            showManualEntry = true
+        } label: {
             Label("手动录入测量数据", systemImage: "square.and.pencil")
                 .font(.subheadline.weight(.semibold))
                 .foregroundStyle(AppColor.mint)
@@ -114,13 +190,55 @@ struct MeasureView: View {
                     }
                 }
             }
+            .frame(maxWidth: .infinity)
+
             Text(store.isSimulationEnabled
                  ? "当前显示最近一条模拟测量，关闭模拟数据后恢复真实设备监听"
                  : "轻踩唤醒体重秤后站稳，观我会自动接收读数")
                 .font(.subheadline).foregroundStyle(AppColor.secondary)
                 .multilineTextAlignment(.center)
         }
-        .frame(maxWidth: .infinity, minHeight: 360)
+        .frame(maxWidth: .infinity, minHeight: 330)
+    }
+
+    private var userSwitchButton: some View {
+        Button {
+            withAnimation(.easeOut(duration: 0.18)) {
+                showProfileDropdown.toggle()
+            }
+        } label: {
+            HStack(spacing: 6) {
+                Text(store.displaySelectedProfile.name)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(AppColor.ink)
+                    .lineLimit(1)
+
+                MemberAvatarView(
+                    avatar: store.displaySelectedProfile.avatar,
+                    width: 24,
+                    height: 24,
+                    showsBackdrop: false
+                )
+                .clipShape(Circle())
+                .overlay(Circle().stroke(AppColor.mint.opacity(0.25), lineWidth: 1))
+            }
+            .padding(.leading, 12)
+            .padding(.trailing, 6)
+            .padding(.vertical, 5)
+            .background(
+                showProfileDropdown ? AppColor.paleMint : Color.white.opacity(0.92),
+                in: Capsule()
+            )
+            .overlay(
+                Capsule()
+                    .stroke(AppColor.mint.opacity(showProfileDropdown ? 0.35 : 0.16), lineWidth: 1)
+            )
+            .shadow(color: AppColor.mint.opacity(0.08), radius: 8, y: 3)
+        }
+        .buttonStyle(.plain)
+        .anchorPreference(key: MeasureProfileAnchorKey.self, value: .bounds) { $0 }
+        .accessibilityLabel("切换测量成员，当前为 \(store.displaySelectedProfile.name)")
+        .accessibilityHint("点击选择本次测量数据所属的成员")
     }
 
     private var liveWeightText: String {
@@ -222,7 +340,7 @@ struct MeasureView: View {
 
     private func summaryMetrics(for measurement: BodyMeasurement) -> [(title: String, value: String)] {
         var metrics = [
-            ("BMI", measurement.bmi(heightCM: store.selectedProfile.heightCM).formatted(2))
+            ("BMI", measurement.bmi(heightCM: store.displaySelectedProfile.heightCM).formatted(2))
         ]
         if let value = measurement.bodyFatPercent {
             metrics.append(("体脂率", "\(value.formatted(2))%"))
@@ -255,18 +373,14 @@ struct MeasureView: View {
     }
 }
 
-struct ManualEntryView: View {
-    private enum InputField: Hashable {
-        case weight
-        case impedance
-        case bodyFat
-        case muscleMass
-        case water
-        case visceralFat
-        case basalMetabolism
-        case boneMass
+private struct ManualEntryProfileAnchorKey: PreferenceKey {
+    static var defaultValue: Anchor<CGRect>? = nil
+    static func reduce(value: inout Anchor<CGRect>?, nextValue: () -> Anchor<CGRect>?) {
+        value = nextValue() ?? value
     }
+}
 
+struct ManualEntryView: View {
     @EnvironmentObject private var store: MeasurementStore
     @Environment(\.dismiss) private var dismiss
     @State private var weight = ""
@@ -277,7 +391,19 @@ struct ManualEntryView: View {
     @State private var visceralFat = ""
     @State private var basalMetabolism = ""
     @State private var boneMass = ""
-    @FocusState private var focusedField: InputField?
+    @State private var showProfileDropdown = false
+
+    private var profileOptions: [TrendDropdownOption<UUID>] {
+        store.displayProfiles.map { profile in
+            TrendDropdownOption(
+                id: profile.id.uuidString,
+                value: profile.id,
+                title: profile.name,
+                subtitle: "\(profile.relation) · \(profile.heightCM.formatted(2)) cm",
+                icon: .avatar(profile.avatar)
+            )
+        }
+    }
 
     private var parsedWeight: Double? {
         guard let value = numericValue(weight), (5...350).contains(value) else { return nil }
@@ -297,59 +423,313 @@ struct ManualEntryView: View {
 
     var body: some View {
         NavigationStack {
-            Form {
-                Section("基础测量") {
-                    measurementField("体重（kg，必填）", text: $weight, field: .weight)
-                    measurementField("阻抗（Ω，可选）", text: $impedance, field: .impedance)
+            ScrollView {
+                VStack(spacing: 18) {
+                    memberCard
+                    basicMeasurementPanel
+                    bodyCompositionPanel
+                    calculationNoticePanel
+                    saveActionButton
                 }
-
-                Section("设备指标（均可选）") {
-                    measurementField("体脂率（%）", text: $bodyFat, field: .bodyFat)
-                    measurementField("肌肉量（kg）", text: $muscleMass, field: .muscleMass)
-                    measurementField("身体水分（%）", text: $water, field: .water)
-                    measurementField("内脏脂肪等级", text: $visceralFat, field: .visceralFat)
-                    measurementField("基础代谢（kcal）", text: $basalMetabolism, field: .basalMetabolism)
-                    measurementField("骨量（kg）", text: $boneMass, field: .boneMass)
-                }
-
-                Section("自动计算") {
-                    Text("BMI、脂肪量、肌肉占比、水分量、骨量占比和蛋白质等指标会根据测量数据与当前人物资料自动计算，不能手动编辑。")
-                        .font(.caption)
-                        .foregroundStyle(AppColor.secondary)
-                }
-
-                Section {
-                    Text("手动记录仅保存在本机，并会明确标记为“手动记录”。")
-                        .font(.caption)
-                        .foregroundStyle(AppColor.secondary)
-                }
+                .padding(.horizontal, 18)
+                .padding(.top, 8)
+                .padding(.bottom, 28)
             }
+            .scrollDismissesKeyboard(.interactively)
+            .pageBackground()
             .navigationTitle("手动录入")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("取消") { dismiss() }
+                        .foregroundStyle(AppColor.secondary)
                 }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("保存", action: save)
-                        .disabled(!canSave)
+            }
+        }
+        .overlayPreferenceValue(ManualEntryProfileAnchorKey.self) { anchor in
+            GeometryReader { proxy in
+                if showProfileDropdown, let anchor {
+                    let buttonFrame = proxy[anchor]
+                    let dropdownWidth = buttonFrame.width
+                    let dropdownX = buttonFrame.minX
+
+                    ZStack(alignment: .topLeading) {
+                        Color.black.opacity(0.001)
+                            .ignoresSafeArea()
+                            .contentShape(Rectangle())
+                            .onTapGesture {
+                                withAnimation(.easeOut(duration: 0.18)) {
+                                    showProfileDropdown = false
+                                }
+                            }
+
+                        TrendSingleChoiceDropdown(
+                            title: "选择记录成员",
+                            options: profileOptions,
+                            selection: Binding(
+                                get: { store.displaySelectedProfileID },
+                                set: { store.selectDisplayProfile($0) }
+                            ),
+                            onDismiss: {
+                                withAnimation(.easeOut(duration: 0.18)) {
+                                    showProfileDropdown = false
+                                }
+                            }
+                        )
+                        .frame(width: dropdownWidth)
+                        .offset(x: dropdownX, y: buttonFrame.maxY + 6)
+                        .transition(.scale(scale: 0.98, anchor: .top).combined(with: .opacity))
+                    }
                 }
-                ToolbarItemGroup(placement: .keyboard) {
-                    Spacer()
-                    Button("完成") { focusedField = nil }
+            }
+        }
+        .onAppear {
+            InputDiagnosticsRecorder.shared.recordManualEntryPresented()
+        }
+    }
+
+    private var memberCard: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("记录成员")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(AppColor.ink)
+
+            Button {
+                KeyboardFocus.dismiss()
+                withAnimation(.easeOut(duration: 0.18)) {
+                    showProfileDropdown.toggle()
+                }
+            } label: {
+                HStack(spacing: 10) {
+                    MemberAvatarView(
+                        avatar: store.displaySelectedProfile.avatar,
+                        width: 28,
+                        height: 28,
+                        showsBackdrop: false
+                    )
+                    .clipShape(Circle())
+                    .overlay(Circle().stroke(AppColor.mint.opacity(0.25), lineWidth: 1))
+
+                    Text(store.displaySelectedProfile.name)
+                        .font(.body.weight(.medium))
+                        .foregroundStyle(AppColor.ink)
+
+                    StatusPill(text: store.displaySelectedProfile.relation)
+
+                    Spacer(minLength: 8)
+
+                    Image(systemName: "chevron.up.chevron.down")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(showProfileDropdown ? AppColor.mint : AppColor.secondary)
+                }
+                .padding(.horizontal, 14)
+                .frame(maxWidth: .infinity)
+                .frame(height: 48)
+                .background(Color.white, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .stroke(
+                            showProfileDropdown ? AppColor.mint : AppColor.mint.opacity(0.14),
+                            lineWidth: showProfileDropdown ? 1.5 : 1
+                        )
+                )
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .anchorPreference(key: ManualEntryProfileAnchorKey.self, value: .bounds) { $0 }
+            .accessibilityLabel("记录成员，当前为 \(store.displaySelectedProfile.name)，\(store.displaySelectedProfile.relation)")
+            .accessibilityHint("点击展开选择记录成员")
+        }
+    }
+
+    private var basicMeasurementPanel: some View {
+        SettingsPanel(title: "基础测量", icon: "scalemass.fill") {
+            VStack(spacing: 14) {
+                manualInputField(
+                    title: "体重",
+                    diagnosticFieldID: "manual.weight",
+                    unit: "kg",
+                    placeholder: "必填，5.00 ~ 350.00",
+                    text: $weight,
+                    isRequired: true,
+                    isValid: isOptionalValid(weight, range: 5...350)
+                )
+
+                manualInputField(
+                    title: "生物电阻抗",
+                    diagnosticFieldID: "manual.impedance",
+                    unit: "Ω",
+                    placeholder: "可选，50 ~ 2000",
+                    text: $impedance,
+                    isRequired: false,
+                    isValid: isOptionalValid(impedance, range: 50...2_000)
+                )
+            }
+        }
+    }
+
+    private var bodyCompositionPanel: some View {
+        SettingsPanel(title: "身体成分指标（可选）", icon: "waveform.path.ecg") {
+            VStack(alignment: .leading, spacing: 14) {
+                Text("若体重秤或第三方设备显示了具体数据，可在此补充录入：")
+                    .font(.caption)
+                    .foregroundStyle(AppColor.secondary)
+
+                LazyVGrid(columns: [.init(.flexible()), .init(.flexible())], spacing: 12) {
+                    manualGridField(
+                        title: "体脂率",
+                        diagnosticFieldID: "manual.bodyFat",
+                        unit: "%",
+                        placeholder: "1 ~ 75",
+                        text: $bodyFat,
+                        isValid: isOptionalValid(bodyFat, range: 1...75)
+                    )
+
+                    manualGridField(
+                        title: "肌肉量",
+                        diagnosticFieldID: "manual.muscleMass",
+                        unit: "kg",
+                        placeholder: "1 ~ 200",
+                        text: $muscleMass,
+                        isValid: isOptionalValid(muscleMass, range: 1...200)
+                    )
+
+                    manualGridField(
+                        title: "身体水分",
+                        diagnosticFieldID: "manual.water",
+                        unit: "%",
+                        placeholder: "10 ~ 85",
+                        text: $water,
+                        isValid: isOptionalValid(water, range: 10...85)
+                    )
+
+                    manualGridField(
+                        title: "内脏脂肪",
+                        diagnosticFieldID: "manual.visceralFat",
+                        unit: "级",
+                        placeholder: "1 ~ 60",
+                        text: $visceralFat,
+                        isValid: isOptionalValid(visceralFat, range: 1...60)
+                    )
+
+                    manualGridField(
+                        title: "基础代谢",
+                        diagnosticFieldID: "manual.basalMetabolism",
+                        unit: "kcal",
+                        placeholder: "300 ~ 5000",
+                        text: $basalMetabolism,
+                        isValid: isOptionalValid(basalMetabolism, range: 300...5_000)
+                    )
+
+                    manualGridField(
+                        title: "骨量",
+                        diagnosticFieldID: "manual.boneMass",
+                        unit: "kg",
+                        placeholder: "0.5 ~ 10",
+                        text: $boneMass,
+                        isValid: isOptionalValid(boneMass, range: 0.5...10)
+                    )
                 }
             }
         }
     }
 
-    private func measurementField(
-        _ title: String,
+    private var calculationNoticePanel: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Label("自动计算与隐私说明", systemImage: "info.circle.fill")
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(AppColor.ink)
+
+            VStack(alignment: .leading, spacing: 6) {
+                HStack(alignment: .top, spacing: 8) {
+                    Image(systemName: "function")
+                        .font(.caption)
+                        .foregroundStyle(AppColor.mint)
+                    Text("BMI、脂肪量、肌肉占比、水分量、骨量占比和蛋白质等指标，将根据测量值与当前成员 \(store.displaySelectedProfile.name) 的身体资料自动计算。")
+                        .font(.caption)
+                        .foregroundStyle(AppColor.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+
+                HStack(alignment: .top, spacing: 8) {
+                    Image(systemName: "lock.shield.fill")
+                        .font(.caption)
+                        .foregroundStyle(AppColor.mint)
+                    Text("手动记录仅保存在本机，并会清晰标记为“手动记录”来源。")
+                        .font(.caption)
+                        .foregroundStyle(AppColor.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+        }
+        .padding(16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(AppColor.paleMint.opacity(0.6), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .stroke(AppColor.mint.opacity(0.12))
+        )
+    }
+
+    private var saveActionButton: some View {
+        Button(action: save) {
+            HStack(spacing: 8) {
+                Image(systemName: "checkmark.circle.fill")
+                Text("保存测量数据")
+            }
+            .font(.headline)
+            .foregroundStyle(canSave ? .white : AppColor.secondary.opacity(0.5))
+            .frame(maxWidth: .infinity)
+            .frame(height: 52)
+            .background(
+                canSave ? AppColor.mint : AppColor.secondary.opacity(0.12),
+                in: RoundedRectangle(cornerRadius: 16, style: .continuous)
+            )
+            .shadow(color: canSave ? AppColor.mint.opacity(0.24) : .clear, radius: 12, y: 4)
+        }
+        .buttonStyle(.plain)
+        .disabled(!canSave)
+    }
+
+    private func manualInputField(
+        title: String,
+        diagnosticFieldID: String,
+        unit: String,
+        placeholder: String,
         text: Binding<String>,
-        field: InputField
+        isRequired: Bool,
+        isValid: Bool
     ) -> some View {
-        TextField(title, text: text)
-            .keyboardType(.decimalPad)
-            .focused($focusedField, equals: field)
+        ManualNumericInputField(
+            title: title,
+            diagnosticFieldID: diagnosticFieldID,
+            unit: unit,
+            placeholder: placeholder,
+            text: text,
+            isRequired: isRequired,
+            isValid: isValid,
+            layout: .regular
+        )
+    }
+
+    private func manualGridField(
+        title: String,
+        diagnosticFieldID: String,
+        unit: String,
+        placeholder: String,
+        text: Binding<String>,
+        isValid: Bool
+    ) -> some View {
+        ManualNumericInputField(
+            title: title,
+            diagnosticFieldID: diagnosticFieldID,
+            unit: unit,
+            placeholder: placeholder,
+            text: text,
+            isRequired: false,
+            isValid: isValid,
+            layout: .grid
+        )
     }
 
     private func numericValue(_ text: String) -> Double? {
@@ -358,14 +738,18 @@ struct ManualEntryView: View {
         return Double(value.replacingOccurrences(of: ",", with: "."))
     }
 
-    private func isValidOptional(_ text: String, range: ClosedRange<Double>) -> Bool {
+    private func isOptionalValid(_ text: String, range: ClosedRange<Double>) -> Bool {
         let value = text.trimmingCharacters(in: .whitespacesAndNewlines)
         return value.isEmpty || numericValue(value).map(range.contains) == true
     }
 
+    private func isValidOptional(_ text: String, range: ClosedRange<Double>) -> Bool {
+        isOptionalValid(text, range: range)
+    }
+
     private func save() {
         guard let weightKG = parsedWeight, canSave else { return }
-        focusedField = nil
+        KeyboardFocus.dismiss()
         store.addManual(
             weightKG: weightKG,
             impedanceOhm: numericValue(impedance),
@@ -377,5 +761,113 @@ struct ManualEntryView: View {
             boneMassKG: numericValue(boneMass)
         )
         dismiss()
+    }
+}
+
+private struct ManualNumericInputField: View {
+    enum Layout {
+        case regular
+        case grid
+    }
+
+    let title: String
+    let diagnosticFieldID: String
+    let unit: String
+    let placeholder: String
+    @Binding var text: String
+    let isRequired: Bool
+    let isValid: Bool
+    let layout: Layout
+    @State private var isFocused = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: layout == .regular ? 6 : 5) {
+            HStack {
+                Text(title)
+                    .font(layout == .regular ? .caption.weight(.semibold) : .caption2.weight(.semibold))
+                    .foregroundStyle(AppColor.ink)
+                    .lineLimit(1)
+                if isRequired {
+                    Text("*")
+                        .font(.caption.bold())
+                        .foregroundStyle(AppColor.rose)
+                }
+                Spacer(minLength: 2)
+                Text(unit)
+                    .font(layout == .regular ? .caption2.weight(.medium) : .caption2)
+                    .foregroundStyle(AppColor.secondary)
+            }
+
+            HStack(spacing: layout == .regular ? 8 : 4) {
+                ResponsiveTextField(
+                    text: $text,
+                    isFocused: $isFocused,
+                    placeholder: placeholder,
+                    keyboardType: .asciiCapableNumberPad,
+                    returnKeyType: .done,
+                    textStyle: layout == .regular ? .body : .subheadline,
+                    fontWeight: .medium,
+                    autocapitalizationType: .none,
+                    autocorrectionType: .no,
+                    spellCheckingType: .no,
+                    textContentType: .none,
+                    smartDashesType: .no,
+                    smartQuotesType: .no,
+                    smartInsertDeleteType: .no,
+                    inputSurface: .appDecimalPad,
+                    synchronizesFocusFromBinding: false,
+                    showsDoneAccessory: true,
+                    onTouchDown: {
+                        InputDiagnosticsRecorder.shared.recordInputTouch(fieldID: diagnosticFieldID)
+                    },
+                    onWillBeginEditing: { inputLanguage in
+                        InputDiagnosticsRecorder.shared.recordInputWillBeginEditing(
+                            fieldID: diagnosticFieldID,
+                            inputLanguage: inputLanguage
+                        )
+                    },
+                    onDidBeginEditing: { inputLanguage in
+                        InputDiagnosticsRecorder.shared.recordInputDidBeginEditing(
+                            fieldID: diagnosticFieldID,
+                            inputLanguage: inputLanguage
+                        )
+                    },
+                    onFirstTextChange: { inputLanguage in
+                        InputDiagnosticsRecorder.shared.recordFirstTextChange(
+                            fieldID: diagnosticFieldID,
+                            inputLanguage: inputLanguage
+                        )
+                    }
+                )
+                .frame(minHeight: layout == .regular ? 24 : 21)
+
+                if !text.isEmpty {
+                    Button {
+                        text = ""
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(layout == .regular ? .caption : .caption2)
+                            .foregroundStyle(AppColor.secondary.opacity(0.5))
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("清除\(title)")
+                }
+
+            }
+            .padding(.horizontal, layout == .regular ? 14 : 10)
+            .padding(.vertical, layout == .regular ? 11 : 9)
+            .background(
+                Color.white,
+                in: RoundedRectangle(cornerRadius: layout == .regular ? 12 : 10, style: .continuous)
+            )
+            .overlay {
+                RoundedRectangle(cornerRadius: layout == .regular ? 12 : 10, style: .continuous)
+                    .stroke(
+                        !isValid ? AppColor.rose : (isFocused ? AppColor.mint : AppColor.mint.opacity(0.14)),
+                        lineWidth: isFocused || !isValid ? 1.5 : 1
+                    )
+                    .allowsHitTesting(false)
+            }
+        }
     }
 }

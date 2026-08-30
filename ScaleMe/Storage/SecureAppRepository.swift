@@ -166,3 +166,25 @@ struct LocalAppRepository {
         )
     }
 }
+
+actor LocalPersistenceWriter {
+    private let repository: LocalAppRepository
+    private var latestConfigurationRevision = 0
+    private var latestArchiveRevision = 0
+
+    init(repository: LocalAppRepository) {
+        self.repository = repository
+    }
+
+    func saveConfiguration(_ configuration: AppConfiguration, revision: Int) throws {
+        guard revision > latestConfigurationRevision else { return }
+        latestConfigurationRevision = revision
+        try repository.saveConfiguration(configuration)
+    }
+
+    func saveArchive(_ archive: MeasurementArchive, revision: Int) throws {
+        guard revision > latestArchiveRevision else { return }
+        latestArchiveRevision = revision
+        try repository.saveArchive(archive)
+    }
+}

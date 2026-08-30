@@ -1,41 +1,43 @@
+import CoreTransferable
 import SwiftUI
 
-struct SettingsView: View {
+struct DisplaySettingsView: View {
     @EnvironmentObject private var store: MeasurementStore
-    @EnvironmentObject private var cloudSync: ICloudSyncManager
-    @State private var pendingCloudAction: PendingCloudAction?
+    @State private var isWeightUnitDropdownExpanded = false
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
-                if let storageError = store.storageError {
-                    storageErrorBanner(storageError)
-                }
-
                 preferencesPanel
-                cloudPanel
-                dataAndPrivacyLink
             }
             .padding(.horizontal, 18)
             .padding(.top, 8)
             .padding(.bottom, 28)
         }
         .pageBackground()
-        .navigationTitle("偏好与同步")
+        .navigationTitle("显示设置")
         .navigationBarTitleDisplayMode(.inline)
-        .alert(item: $pendingCloudAction) { action in
-            Alert(
-                title: Text("从 iCloud 拉取配置？"),
-                message: Text("iCloud 中的成员、设备、显示单位和通信规则将替换本机配置。测量记录不受影响。"),
-                primaryButton: .destructive(Text("拉取并替换")) {
-                    cloudSync.configurationStrategy = .pull
-                    if action == .enableConfigurationSync {
-                        cloudSync.isConfigurationSyncEnabled = true
-                    }
-                },
-                secondaryButton: .cancel(Text("取消"))
-            )
+        .accessibilityHidden(isWeightUnitDropdownExpanded)
+        .overlayPreferenceValue(AppDropdownAnchorPreferenceKey.self) { anchor in
+            GeometryReader { proxy in
+                if let anchor, isWeightUnitDropdownExpanded {
+                    AppDropdownMenuLayer(
+                        anchorFrame: proxy[anchor],
+                        availableSize: proxy.size,
+                        options: WeightUnit.allCases,
+                        selection: store.unit,
+                        title: { $0.settingsTitle },
+                        appearance: .compact,
+                        onSelect: { unit in
+                            store.unit = unit
+                            dismissWeightUnitDropdown()
+                        },
+                        onDismiss: dismissWeightUnitDropdown
+                    )
+                }
+            }
         }
+        .onDisappear { isWeightUnitDropdownExpanded = false }
     }
 
     private var preferencesPanel: some View {
@@ -44,15 +46,17 @@ struct SettingsView: View {
                 Text("体重单位")
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(AppColor.ink)
-                Picker("体重单位", selection: $store.unit) {
-                    ForEach(WeightUnit.allCases) { unit in
-                        Text(unit.rawValue).tag(unit)
-                    }
-                }
-                .pickerStyle(.segmented)
+                AppDropdownField(
+                    value: store.unit.settingsTitle,
+                    icon: "scalemass.fill",
+                    accessibilityLabel: "体重单位",
+                    isExpanded: isWeightUnitDropdownExpanded,
+                    appearance: .compact,
+                    onToggle: toggleWeightUnitDropdown
+                )
             }
 
-            Divider()
+            SettingsSeparator()
 
             SettingsToggleRow(
                 title: "合并连续称重",
@@ -60,7 +64,7 @@ struct SettingsView: View {
                 isOn: $store.mergeFrequentMeasurements
             )
 
-            Divider()
+            SettingsSeparator()
 
             SettingsToggleRow(
                 title: "启用模拟数据",
@@ -79,11 +83,71 @@ struct SettingsView: View {
         }
     }
 
+    private func toggleWeightUnitDropdown() {
+        KeyboardFocus.dismiss()
+        withAnimation(.easeInOut(duration: 0.18)) {
+            isWeightUnitDropdownExpanded.toggle()
+        }
+    }
+
+    private func dismissWeightUnitDropdown() {
+        withAnimation(.easeInOut(duration: 0.16)) {
+            isWeightUnitDropdownExpanded = false
+        }
+    }
+}
+
+private extension WeightUnit {
+    var settingsTitle: String {
+        switch self {
+        case .kilograms: "千克（kg）"
+        case .jin: "市斤（斤）"
+        case .pounds: "磅（lb）"
+        }
+    }
+}
+
+struct DataSyncSettingsView: View {
+    @EnvironmentObject private var store: MeasurementStore
+    @EnvironmentObject private var cloudSync: ICloudSyncManager
+    @State private var pendingCloudAction: PendingCloudAction?
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 18) {
+                if let storageError = store.storageError {
+                    storageErrorBanner(storageError)
+                }
+
+                cloudPanel
+            }
+            .padding(.horizontal, 18)
+            .padding(.top, 8)
+            .padding(.bottom, 28)
+        }
+        .pageBackground()
+        .navigationTitle("数据同步")
+        .navigationBarTitleDisplayMode(.inline)
+        .alert(item: $pendingCloudAction) { action in
+            Alert(
+                title: Text("从 iCloud 拉取配置？"),
+                message: Text("iCloud 中的成员、设备、显示单位和通信规则将替换本机配置。测量记录不受影响。"),
+                primaryButton: .destructive(Text("拉取并替换")) {
+                    cloudSync.configurationStrategy = .pull
+                    if action == .enableConfigurationSync {
+                        cloudSync.isConfigurationSyncEnabled = true
+                    }
+                },
+                secondaryButton: .cancel(Text("取消"))
+            )
+        }
+    }
+
     private var cloudPanel: some View {
         SettingsPanel(title: "iCloud", icon: "icloud") {
             cloudStatusRow
 
-            Divider()
+            SettingsSeparator()
 
             SettingsToggleRow(
                 title: "同步应用配置",
@@ -96,12 +160,11 @@ struct SettingsView: View {
                     Text("配置同步方向")
                         .font(.caption.weight(.semibold))
                         .foregroundStyle(AppColor.secondary)
-                    Picker("配置同步方向", selection: configurationStrategyBinding) {
-                        ForEach(ConfigurationSyncStrategy.allCases) { strategy in
-                            Text(strategy.title).tag(strategy)
-                        }
-                    }
-                    .pickerStyle(.segmented)
+                    SettingsChoiceBar(
+                        options: ConfigurationSyncStrategy.allCases,
+                        selection: configurationStrategyBinding,
+                        title: { $0.title }
+                    )
 
                     Label(cloudSync.configurationStrategy.detail, systemImage: strategyIcon)
                         .font(.caption)
@@ -112,7 +175,7 @@ struct SettingsView: View {
                 .transition(.opacity.combined(with: .move(edge: .top)))
             }
 
-            Divider()
+            SettingsSeparator()
 
             SettingsToggleRow(
                 title: "同步测量数据",
@@ -128,11 +191,10 @@ struct SettingsView: View {
                         cloudSync.state == .syncing ? "正在同步" : "立即同步",
                         systemImage: "arrow.triangle.2.circlepath"
                     )
-                    .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.borderedProminent)
-                .tint(AppColor.mint)
+                .buttonStyle(MintActionButtonStyle())
                 .disabled(cloudSync.state == .syncing)
+                .opacity(cloudSync.state == .syncing ? 0.65 : 1)
             }
         }
         .animation(.easeInOut(duration: 0.2), value: cloudSync.isConfigurationSyncEnabled)
@@ -161,35 +223,6 @@ struct SettingsView: View {
                     .tint(AppColor.mint)
             }
         }
-    }
-
-    private var dataAndPrivacyLink: some View {
-        NavigationLink {
-            DataAndPrivacySettingsView()
-        } label: {
-            HStack(spacing: 14) {
-                Image(systemName: "lock.shield.fill")
-                    .font(.title3)
-                    .foregroundStyle(AppColor.mint)
-                    .frame(width: 34)
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("数据与隐私")
-                        .font(.headline)
-                        .foregroundStyle(AppColor.ink)
-                    Text("了解本地存储、加密和文件位置")
-                        .font(.caption)
-                        .foregroundStyle(AppColor.secondary)
-                }
-                Spacer()
-                Image(systemName: "chevron.right")
-                    .font(.caption.bold())
-                    .foregroundStyle(AppColor.secondary)
-            }
-            .padding(18)
-            .background(.white.opacity(0.94), in: RoundedRectangle(cornerRadius: 20))
-            .overlay(RoundedRectangle(cornerRadius: 20).stroke(AppColor.mint.opacity(0.08)))
-        }
-        .buttonStyle(.plain)
     }
 
     private func storageErrorBanner(_ message: String) -> some View {
@@ -275,61 +308,18 @@ struct SettingsView: View {
     }
 }
 
-private struct SettingsToggleRow: View {
-    let title: String
-    let detail: String
-    @Binding var isOn: Bool
+struct DeveloperDiagnosticsView: View {
+    private let inputDiagnostics = InputDiagnosticsRecorder.shared
+    @State private var isDiagnosticsEnabled = false
+    @State private var displayedEventCount = 0
+    @State private var displayedLatestAttempt: InputDiagnosticAttemptSummary?
 
-    var body: some View {
-        Toggle(isOn: $isOn) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(title)
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(AppColor.ink)
-                Text(detail)
-                    .font(.caption)
-                    .foregroundStyle(AppColor.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-        }
-        .tint(AppColor.mint)
-    }
-}
-
-private struct DataAndPrivacySettingsView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
-                SettingsPanel(title: "隐私保护", icon: "hand.raised.fill") {
-                    privacyRow(
-                        icon: "iphone",
-                        title: "本地优先",
-                        detail: "不开启 iCloud 同步时，成员资料和测量数据只保存在本机。"
-                    )
-                    Divider()
-                    privacyRow(
-                        icon: "checkmark.shield.fill",
-                        title: "测量数据已加密",
-                        detail: "测量文件使用 AES-GCM 认证加密，密钥单独保存在钥匙串中。"
-                    )
-                    Divider()
-                    privacyRow(
-                        icon: "heart.text.square",
-                        title: "仅作趋势参考",
-                        detail: "身体成分结果会受水分、进食和接触状态影响，不构成医疗诊断。"
-                    )
-                }
-
-                SettingsPanel(title: "存储位置", icon: "folder.fill") {
-                    SettingsValueRow(title: "目录", value: "ScaleMe/")
-                    Divider()
-                    SettingsValueRow(title: "应用配置", value: AppStorageLayout.configurationFileName)
-                    Divider()
-                    SettingsValueRow(title: "测量数据", value: AppStorageLayout.measurementsFileName)
-                    Text("开启相应同步项目后，同名文件会存放在观我的 iCloud 容器中。")
-                        .font(.caption)
-                        .foregroundStyle(AppColor.secondary)
-                        .lineSpacing(3)
+                diagnosticsPanel
+                if let summary = displayedLatestAttempt {
+                    latestAttemptPanel(summary)
                 }
             }
             .padding(.horizontal, 18)
@@ -337,26 +327,121 @@ private struct DataAndPrivacySettingsView: View {
             .padding(.bottom, 28)
         }
         .pageBackground()
-        .navigationTitle("数据与隐私")
+        .navigationTitle("开发诊断")
         .navigationBarTitleDisplayMode(.inline)
+        .onAppear(perform: refreshSnapshot)
     }
 
-    private func privacyRow(icon: String, title: String, detail: String) -> some View {
-        HStack(alignment: .top, spacing: 12) {
-            Image(systemName: icon)
-                .foregroundStyle(AppColor.mint)
-                .frame(width: 24)
-                .accessibilityHidden(true)
-            VStack(alignment: .leading, spacing: 4) {
-                Text(title)
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(AppColor.ink)
-                Text(detail)
-                    .font(.caption)
-                    .foregroundStyle(AppColor.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
+    private var diagnosticsPanel: some View {
+        SettingsPanel(title: "输入响应记录", icon: "stopwatch.fill") {
+            SettingsToggleRow(
+                title: "开启开发诊断",
+                detail: "记录手动录入输入框和系统键盘的响应时间。每次开启都会开始新的诊断会话。",
+                isOn: diagnosticsEnabledBinding
+            )
+
+            SettingsSeparator()
+
+            HStack(spacing: 12) {
+                Image(systemName: isDiagnosticsEnabled ? "record.circle.fill" : "pause.circle")
+                    .font(.title3)
+                    .foregroundStyle(isDiagnosticsEnabled ? AppColor.mint : AppColor.secondary)
+                    .accessibilityHidden(true)
+
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(isDiagnosticsEnabled ? "正在记录" : "记录已暂停")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(AppColor.ink)
+                    Text("当前会话 \(displayedEventCount) 个事件")
+                        .font(.caption)
+                        .foregroundStyle(AppColor.secondary)
+                }
+
+                Spacer()
             }
+
+            HStack(spacing: 10) {
+                ShareLink(
+                    item: inputDiagnostics.export,
+                    preview: SharePreview("观我输入响应诊断")
+                ) {
+                    Label("导出 JSON", systemImage: "square.and.arrow.up")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(MintActionButtonStyle())
+                .disabled(displayedEventCount == 0)
+
+                Button {
+                    inputDiagnostics.clear()
+                    refreshSnapshot()
+                } label: {
+                    Image(systemName: "trash")
+                        .frame(width: 44, height: 44)
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(AppColor.rose)
+                .background(AppColor.rose.opacity(0.10), in: RoundedRectangle(cornerRadius: 12))
+                .disabled(displayedEventCount == 0)
+                .accessibilityLabel("清空诊断记录")
+            }
+
+            Label(
+                "日志不包含输入内容、体重、成员资料或设备标识。",
+                systemImage: "hand.raised.fill"
+            )
+            .font(.caption)
+            .foregroundStyle(AppColor.secondary)
         }
-        .accessibilityElement(children: .combine)
+    }
+
+    private func latestAttemptPanel(_ summary: InputDiagnosticAttemptSummary) -> some View {
+        SettingsPanel(title: "最近一次输入", icon: "timer") {
+            SettingsValueRow(title: "字段", value: summary.fieldID)
+            SettingsSeparator()
+            timingRow("触摸 → 准备编辑", milliseconds: summary.touchToWillBeginEditingMilliseconds)
+            SettingsSeparator()
+            timingRow("触摸 → 开始编辑", milliseconds: summary.touchToDidBeginEditingMilliseconds)
+            SettingsSeparator()
+            timingRow("触摸 → 键盘准备显示", milliseconds: summary.touchToKeyboardWillShowMilliseconds)
+            SettingsSeparator()
+            timingRow("触摸 → 键盘显示完成", milliseconds: summary.touchToKeyboardDidShowMilliseconds)
+            SettingsSeparator()
+            timingRow("键盘显示过程", milliseconds: summary.keyboardPresentationMilliseconds)
+            SettingsSeparator()
+            timingRow("触摸 → 首次输入变化", milliseconds: summary.touchToFirstTextChangeMilliseconds)
+        }
+    }
+
+    private func timingRow(_ title: String, milliseconds: Double?) -> some View {
+        SettingsValueRow(
+            title: title,
+            value: milliseconds.map { "\($0.formatted(.number.precision(.fractionLength(1)))) ms" } ?? "未发生"
+        )
+    }
+
+    private var diagnosticsEnabledBinding: Binding<Bool> {
+        Binding(
+            get: { isDiagnosticsEnabled },
+            set: { isEnabled in
+                inputDiagnostics.isEnabled = isEnabled
+                refreshSnapshot()
+            }
+        )
+    }
+
+    private func refreshSnapshot() {
+        isDiagnosticsEnabled = inputDiagnostics.isEnabled
+        displayedEventCount = inputDiagnostics.eventCount
+        displayedLatestAttempt = inputDiagnostics.latestAttemptSummary
+    }
+}
+
+private struct SettingsToggleRow: View {
+    let title: String
+    let detail: String
+    @Binding var isOn: Bool
+
+    var body: some View {
+        SettingsSwitch(title: title, detail: detail, isOn: $isOn)
     }
 }

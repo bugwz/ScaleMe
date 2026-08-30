@@ -55,7 +55,11 @@ struct TrendChartCard: View {
         return SoftCard(padding: 12) {
             VStack(alignment: .leading, spacing: 6) {
                 HStack(spacing: 8) {
-                    Label(metric.title, systemImage: metric.systemImage)
+                    Label {
+                        Text(metric.title)
+                    } icon: {
+                        trendMetricIcon(metric, size: 18)
+                    }
                         .font(.headline)
                         .foregroundStyle(metricTint(metric))
                         .lineLimit(1)
@@ -270,8 +274,7 @@ struct TrendMetricDropdown: View {
                             toggle(metric)
                         } label: {
                             HStack(spacing: 12) {
-                                Image(systemName: metric.systemImage)
-                                    .font(.subheadline.weight(.semibold))
+                                trendMetricIcon(metric, size: 16)
                                     .foregroundStyle(metricTint(metric))
                                     .frame(width: 32, height: 32)
                                     .background(metricTint(metric).opacity(0.11), in: RoundedRectangle(cornerRadius: 9))
@@ -580,6 +583,7 @@ struct TrendDropdownOption<Value: Hashable>: Identifiable {
 enum TrendDropdownIcon {
     case system(String)
     case asset(String)
+    case avatar(MemberAvatar)
 }
 
 struct TrendDisplayDropdown: View {
@@ -808,6 +812,8 @@ struct TrendSingleChoiceDropdown<Value: Hashable>: View {
                 .resizable()
                 .scaledToFit()
                 .padding(8.5)
+        case let .avatar(avatar):
+            MemberAvatarView(avatar: avatar, width: 28, height: 28, showsBackdrop: false)
         }
     }
 }
@@ -1222,5 +1228,17 @@ private func metricTint(_ metric: TrendMetric) -> Color {
     case .bonePercent: AppColor.trendBonePercent
     case .visceralFat: AppColor.trendVisceralFat
     case .basalMetabolism: AppColor.trendBasalMetabolism
+    }
+}
+
+@ViewBuilder
+private func trendMetricIcon(_ metric: TrendMetric, size: CGFloat) -> some View {
+    if metric == .bodyFat {
+        BodyFatRateIcon(size: size)
+    } else if metric == .visceralFat {
+        VisceralFatIcon(size: size)
+    } else {
+        Image(systemName: metric.systemImage)
+            .font(.system(size: size, weight: .semibold))
     }
 }

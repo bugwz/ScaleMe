@@ -66,6 +66,7 @@ This project is pre-release and in rapid development. Optimize for a clean curre
 ## Visual language
 
 - The interface should feel fresh, calm, clean, and health-oriented—not like a dense medical dashboard or a high-contrast sports console.
+- Do not rely on stock iOS system chrome (default `List`/`Form` styling, system edit-mode reorder handles, default navigation bar/list backgrounds, unstyled `Toggle`/`Picker` rows, etc.) for user-facing screens. Compose new UI from this project's own components (`SoftCard`, `SettingsPanel`, `pageBackground()`, custom rows built from `ScrollView`/`VStack`) and the shared palette below, matching the existing screens' look. Reserve system controls for cases with no reasonable custom equivalent (e.g. `DatePicker`, keyboard, share sheet).
 - Use the centralized palette in `ScaleMe/UI/DesignSystem.swift`; do not scatter new literal brand colors through views.
 - Core palette:
   - Ink `#12332E`

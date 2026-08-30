@@ -147,6 +147,86 @@ enum MemberAvatar: String, Codable, CaseIterable, Identifiable, Hashable {
     }
 }
 
+enum DashboardMetricKind: String, Codable, CaseIterable, Identifiable, Hashable {
+    case bodyFatPercent
+    case fatMassKG
+    case muscleMassKG
+    case musclePercent
+    case waterPercent
+    case waterMassKG
+    case proteinPercent
+    case proteinMassKG
+    case boneMassKG
+    case bonePercent
+    case visceralFat
+    case basalMetabolismKCal
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .bodyFatPercent: "体脂率"
+        case .fatMassKG: "脂肪量"
+        case .muscleMassKG: "肌肉量"
+        case .musclePercent: "肌肉率"
+        case .waterPercent: "身体水分"
+        case .waterMassKG: "水分量"
+        case .proteinPercent: "蛋白质占比"
+        case .proteinMassKG: "蛋白质量"
+        case .boneMassKG: "骨量"
+        case .bonePercent: "骨量占比"
+        case .visceralFat: "内脏脂肪"
+        case .basalMetabolismKCal: "基础代谢"
+        }
+    }
+
+    var unit: String {
+        switch self {
+        case .bodyFatPercent, .musclePercent, .waterPercent, .proteinPercent, .bonePercent: "%"
+        case .fatMassKG, .muscleMassKG, .waterMassKG, .proteinMassKG, .boneMassKG: "kg"
+        case .basalMetabolismKCal: "kcal"
+        case .visceralFat: "级"
+        }
+    }
+
+    /// Kept identical to `TrendMetric.systemImage` so the same category reads consistently across screens.
+    var icon: String {
+        switch self {
+        case .bodyFatPercent: "drop.fill"
+        case .fatMassKG: "circle.dashed.inset.filled"
+        case .muscleMassKG: "figure.strengthtraining.traditional"
+        case .musclePercent: "figure.strengthtraining.functional"
+        case .waterPercent: "humidity.fill"
+        case .waterMassKG: "water.waves"
+        case .proteinPercent: "chart.pie.fill"
+        case .proteinMassKG: "fork.knife"
+        case .boneMassKG: "figure.walk.motion"
+        case .bonePercent: "figure.stand"
+        case .visceralFat: "circle.circle"
+        case .basalMetabolismKCal: "flame.fill"
+        }
+    }
+
+    static let defaultVisible: Set<DashboardMetricKind> = [.bodyFatPercent, .muscleMassKG, .waterPercent, .basalMetabolismKCal]
+
+    func value(in measurement: BodyMeasurement) -> Double? {
+        switch self {
+        case .bodyFatPercent: measurement.bodyFatPercent
+        case .fatMassKG: measurement.fatMassKG
+        case .muscleMassKG: measurement.muscleMassKG
+        case .musclePercent: measurement.musclePercent
+        case .waterPercent: measurement.waterPercent
+        case .waterMassKG: measurement.waterMassKG
+        case .proteinPercent: measurement.proteinPercent
+        case .proteinMassKG: measurement.proteinMassKG
+        case .boneMassKG: measurement.boneMassKG
+        case .bonePercent: measurement.bonePercent
+        case .visceralFat: measurement.visceralFat
+        case .basalMetabolismKCal: measurement.basalMetabolismKCal
+        }
+    }
+}
+
 struct PairedScale: Identifiable, Codable, Equatable, Hashable {
     var id: UUID
     var name: String
@@ -164,6 +244,8 @@ struct AppConfiguration: Codable, Equatable {
     var mergeFrequentMeasurements: Bool
     var isSimulationEnabled: Bool
     var customCommunicationRules: [CommunicationRule]
+    var dashboardMetricOrder: [DashboardMetricKind]
+    var dashboardVisibleMetrics: Set<DashboardMetricKind>
 
     init(
         profiles: [UserProfile],
@@ -172,7 +254,9 @@ struct AppConfiguration: Codable, Equatable {
         unit: WeightUnit,
         mergeFrequentMeasurements: Bool,
         isSimulationEnabled: Bool = false,
-        customCommunicationRules: [CommunicationRule]
+        customCommunicationRules: [CommunicationRule],
+        dashboardMetricOrder: [DashboardMetricKind] = DashboardMetricKind.allCases,
+        dashboardVisibleMetrics: Set<DashboardMetricKind> = DashboardMetricKind.defaultVisible
     ) {
         self.profiles = profiles
         self.selectedProfileID = selectedProfileID
@@ -181,6 +265,8 @@ struct AppConfiguration: Codable, Equatable {
         self.mergeFrequentMeasurements = mergeFrequentMeasurements
         self.isSimulationEnabled = isSimulationEnabled
         self.customCommunicationRules = customCommunicationRules
+        self.dashboardMetricOrder = dashboardMetricOrder
+        self.dashboardVisibleMetrics = dashboardVisibleMetrics
     }
 
     private enum CodingKeys: String, CodingKey {
@@ -191,6 +277,8 @@ struct AppConfiguration: Codable, Equatable {
         case mergeFrequentMeasurements
         case isSimulationEnabled
         case customCommunicationRules
+        case dashboardMetricOrder
+        case dashboardVisibleMetrics
     }
 
     init(from decoder: Decoder) throws {
@@ -202,6 +290,8 @@ struct AppConfiguration: Codable, Equatable {
         mergeFrequentMeasurements = try container.decode(Bool.self, forKey: .mergeFrequentMeasurements)
         isSimulationEnabled = try container.decodeIfPresent(Bool.self, forKey: .isSimulationEnabled) ?? false
         customCommunicationRules = try container.decode([CommunicationRule].self, forKey: .customCommunicationRules)
+        dashboardMetricOrder = try container.decodeIfPresent([DashboardMetricKind].self, forKey: .dashboardMetricOrder) ?? DashboardMetricKind.allCases
+        dashboardVisibleMetrics = try container.decodeIfPresent(Set<DashboardMetricKind>.self, forKey: .dashboardVisibleMetrics) ?? DashboardMetricKind.defaultVisible
     }
 
     static var standard: AppConfiguration {

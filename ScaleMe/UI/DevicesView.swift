@@ -1,15 +1,23 @@
 import SwiftUI
 
+private struct ScaleProtocolMenuAnchorKey: PreferenceKey {
+    static var defaultValue: Anchor<CGRect>? = nil
+
+    static func reduce(value: inout Anchor<CGRect>?, nextValue: () -> Anchor<CGRect>?) {
+        value = nextValue() ?? value
+    }
+}
+
 struct DevicesView: View {
     @EnvironmentObject private var store: MeasurementStore
 
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(alignment: .leading, spacing: 24) {
+                VStack(alignment: .leading, spacing: 22) {
                     MainPageTitle(text: "设备")
-                    addDevice
-                    deviceList
+                    addDeviceCard
+                    deviceSection
                 }
                 .padding(.horizontal, 18)
                 .padding(.bottom, 28)
@@ -20,90 +28,143 @@ struct DevicesView: View {
         }
     }
 
-    private var addDevice: some View {
+    private var addDeviceCard: some View {
         NavigationLink {
             DeviceScannerView()
         } label: {
-            HStack(spacing: 16) {
-                Image(systemName: "plus")
-                    .font(.title2.weight(.semibold))
-                    .foregroundStyle(.white)
-                    .frame(width: 54, height: 54)
-                    .background(AppColor.mint, in: RoundedRectangle(cornerRadius: 16))
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("添加设备").font(.headline).foregroundStyle(AppColor.ink)
-                    Text("扫描并关联附近的体重秤或体脂秤")
-                        .font(.subheadline).foregroundStyle(AppColor.secondary)
+            ZStack {
+                RoundedRectangle(cornerRadius: 24, style: .continuous)
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                .white,
+                                AppColor.paleMint.opacity(0.6),
+                                AppColor.sky.opacity(0.15)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+
+                HStack(spacing: 16) {
+                    ScaleAvatarIconView(size: 54, iconSize: 26, accent: AppColor.mint)
+
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("添加设备")
+                            .font(.headline.weight(.bold))
+                            .foregroundStyle(AppColor.ink)
+                        Text("扫描并关联附近的体重秤或体脂秤")
+                            .font(.caption)
+                            .foregroundStyle(AppColor.secondary)
+                    }
+                    Spacer()
+
+                    Image(systemName: "chevron.right")
+                        .font(.caption.bold())
+                        .foregroundStyle(AppColor.secondary)
+                        .padding(10)
+                        .background(Color.white.opacity(0.8), in: Circle())
                 }
-                Spacer()
-                Image(systemName: "chevron.right").font(.caption.bold()).foregroundStyle(AppColor.secondary)
+                .padding(18)
             }
-            .padding(18)
-            .background(.white.opacity(0.94), in: RoundedRectangle(cornerRadius: 20))
+            .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 24, style: .continuous).stroke(AppColor.mint.opacity(0.12)))
+            .shadow(color: AppColor.mint.opacity(0.08), radius: 14, y: 6)
         }
         .buttonStyle(.plain)
         .disabled(store.isSimulationEnabled)
     }
 
-    private var deviceList: some View {
-        VStack(alignment: .leading, spacing: 12) {
+    private var deviceSection: some View {
+        VStack(alignment: .leading, spacing: 14) {
             HStack {
-                Text("我的设备").font(.title3.bold())
+                Text("我的设备")
+                    .font(.title3.bold())
+                    .foregroundStyle(AppColor.ink)
                 Spacer()
-                Text("\(store.displayPairedScales.count) 台").font(.caption).foregroundStyle(AppColor.secondary)
+                StatusPill(text: "\(store.displayPairedScales.count) 台", color: AppColor.sky)
             }
+
             if store.displayPairedScales.isEmpty {
-                ContentUnavailableView {
-                    VStack(spacing: 8) {
-                        Image("ScaleDeviceTabIcon")
-                            .renderingMode(.template)
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 42, height: 42)
-                        Text("还没有设备")
-                            .font(.title3.weight(.semibold))
-                    }
-                } description: {
-                    Text("添加后，测量页会自动等待这些设备的数据。")
-                }
-                .frame(maxWidth: .infinity, minHeight: 230)
+                emptyDevicesCard
             } else {
-                VStack(spacing: 0) {
+                VStack(spacing: 12) {
                     ForEach(store.displayPairedScales) { scale in
-                        NavigationLink {
-                            ScaleSettingsView(scaleID: scale.id)
-                        } label: {
-                            HStack(spacing: 14) {
-                                Image("ScaleDeviceTabIcon")
-                                    .renderingMode(.template)
-                                    .resizable()
-                                    .scaledToFit()
-                                    .padding(14)
-                                    .foregroundStyle(AppColor.mint)
-                                    .frame(width: 46, height: 46)
-                                    .background(AppColor.paleMint, in: RoundedRectangle(cornerRadius: 14))
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text(scale.name).font(.body.weight(.semibold)).foregroundStyle(AppColor.ink)
-                                    Text(scale.modelName).font(.caption).foregroundStyle(AppColor.secondary).lineLimit(1)
-                                }
-                                Spacer()
-                                StatusPill(
-                                    text: scale.compatibility == "协议待验证" ? "待验证" : "已关联",
-                                    color: scale.compatibility == "协议待验证" ? AppColor.apricot : AppColor.mint
-                                )
-                                Image(systemName: "chevron.right").font(.caption).foregroundStyle(AppColor.secondary)
-                            }
-                            .padding(.vertical, 14)
-                        }
-                        .buttonStyle(.plain)
-                        .disabled(store.isSimulationEnabled)
-                        if scale.id != store.displayPairedScales.last?.id { Divider().padding(.leading, 60) }
+                        singleDeviceCard(for: scale)
                     }
                 }
-                .padding(.horizontal, 16)
-                .background(.white.opacity(0.94), in: RoundedRectangle(cornerRadius: 20))
             }
         }
+    }
+
+    private var emptyDevicesCard: some View {
+        SoftCard(padding: 28) {
+            VStack(spacing: 14) {
+                ZStack {
+                    Circle()
+                        .fill(AppColor.paleMint)
+                        .frame(width: 72, height: 72)
+                    ScaleAvatarIconView(size: 52, iconSize: 24, accent: AppColor.mint)
+                }
+
+                VStack(spacing: 6) {
+                    Text("还没有绑定设备")
+                        .font(.headline.weight(.semibold))
+                        .foregroundStyle(AppColor.ink)
+                    Text("添加设备后，测量页会自动接收并关联这些设备上报的健康数据。")
+                        .font(.caption)
+                        .foregroundStyle(AppColor.secondary)
+                        .multilineTextAlignment(.center)
+                        .lineSpacing(3)
+                }
+            }
+            .frame(maxWidth: .infinity)
+        }
+    }
+
+    private func singleDeviceCard(for scale: PairedScale) -> some View {
+        let isUnverified = scale.compatibility == "协议待验证"
+        let accentColor = isUnverified ? AppColor.apricot : AppColor.mint
+
+        return NavigationLink {
+            ScaleSettingsView(scaleID: scale.id)
+        } label: {
+            ZStack {
+                RoundedRectangle(cornerRadius: 22, style: .continuous)
+                    .fill(Color.white.opacity(0.94))
+
+                HStack(spacing: 14) {
+                    ScaleAvatarIconView(size: 50, iconSize: 24, accent: accentColor)
+
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(scale.name)
+                            .font(.body.weight(.bold))
+                            .foregroundStyle(AppColor.ink)
+                        Text(scale.modelName)
+                            .font(.caption)
+                            .foregroundStyle(AppColor.secondary)
+                            .lineLimit(1)
+                    }
+
+                    Spacer()
+
+                    StatusPill(
+                        text: isUnverified ? "待验证" : "已关联",
+                        color: accentColor
+                    )
+
+                    Image(systemName: "chevron.right")
+                        .font(.caption.bold())
+                        .foregroundStyle(AppColor.secondary)
+                }
+                .padding(16)
+            }
+            .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 22, style: .continuous).stroke(accentColor.opacity(0.10)))
+            .shadow(color: accentColor.opacity(0.06), radius: 12, y: 4)
+        }
+        .buttonStyle(.plain)
+        .disabled(store.isSimulationEnabled)
     }
 }
 
@@ -111,17 +172,17 @@ private struct DeviceScannerView: View {
     @EnvironmentObject private var bluetooth: BLEScaleManager
     @EnvironmentObject private var store: MeasurementStore
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var showsOtherDevices = false
+    @State private var isPulsing = false
 
     var body: some View {
-        GeometryReader { geometry in
-            ScrollView {
-                VStack(spacing: 18) {
-                    scanArea.frame(minHeight: max(390, geometry.size.height * 0.58))
-                }
-                .padding(.horizontal, 18)
-                .padding(.bottom, 28)
+        ScrollView {
+            VStack(spacing: 20) {
+                scanArea
             }
+            .padding(.horizontal, 18)
+            .padding(.bottom, 28)
         }
         .pageBackground()
         .navigationTitle("添加设备")
@@ -130,61 +191,103 @@ private struct DeviceScannerView: View {
             ToolbarItem(placement: .topBarTrailing) {
                 Button { bluetooth.startScanning() } label: {
                     Image(systemName: "arrow.clockwise")
+                        .font(.body.weight(.semibold))
+                        .foregroundStyle(AppColor.mint)
                 }
                 .accessibilityLabel("重新扫描")
-                .help("重新扫描")
             }
         }
-        .onAppear { bluetooth.startScanning() }
+        .onAppear {
+            bluetooth.startScanning()
+            isPulsing = true
+        }
         .onDisappear { bluetooth.stopScanning() }
     }
 
     private var scanArea: some View {
-        VStack(spacing: 16) {
-            ZStack {
-                Circle().stroke(AppColor.mint.opacity(0.12), lineWidth: 18).frame(width: 138, height: 138)
-                Circle().stroke(AppColor.mint.opacity(0.25), lineWidth: 2).frame(width: 104, height: 104)
-                Image(systemName: "dot.radiowaves.left.and.right")
-                    .font(.system(size: 38)).foregroundStyle(AppColor.mint)
-            }
-            Text(scanTitle).font(.title3.bold())
-            Text("正在搜索附近的低功耗蓝牙设备。部分体重秤只有被踩亮或站上去后才会广播。")
-                .font(.subheadline).foregroundStyle(AppColor.secondary)
-                .multilineTextAlignment(.center).lineSpacing(3)
+        SoftCard(padding: 24) {
+            VStack(spacing: 18) {
+                ZStack {
+                    Circle()
+                        .stroke(AppColor.mint.opacity(0.08), lineWidth: 24)
+                        .frame(width: 154, height: 154)
+                        .scaleEffect(isPulsing && !reduceMotion ? 1.08 : 0.95)
+                        .opacity(isPulsing && !reduceMotion ? 0.3 : 0.7)
+                        .animation(
+                            reduceMotion ? nil : .easeInOut(duration: 1.5).repeatForever(autoreverses: true),
+                            value: isPulsing
+                        )
 
-            Label {
-                Text("符合标准协议的设备和已实现解析的小米体重秤广播会优先显示；其余设备不代表已兼容。")
-            } icon: {
-                Image(systemName: "info.circle")
-            }
-            .font(.caption)
-            .foregroundStyle(AppColor.secondary)
-            .multilineTextAlignment(.leading)
-            .padding(12)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(.white.opacity(0.72), in: RoundedRectangle(cornerRadius: 8))
+                    Circle()
+                        .stroke(
+                            LinearGradient(
+                                colors: [AppColor.mint.opacity(0.35), AppColor.sky.opacity(0.25)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 3
+                        )
+                        .frame(width: 112, height: 112)
+                        .scaleEffect(isPulsing && !reduceMotion ? 1.04 : 0.96)
+                        .opacity(isPulsing && !reduceMotion ? 0.8 : 0.4)
+                        .animation(
+                            reduceMotion ? nil : .easeInOut(duration: 1.2).repeatForever(autoreverses: true),
+                            value: isPulsing
+                        )
 
-            if bluetooth.devices.isEmpty {
-                if case .unavailable = bluetooth.state {
-                    Button { bluetooth.startScanning() } label: {
-                        Label("重试", systemImage: "arrow.clockwise")
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .tint(AppColor.mint)
-                    .padding(.top, 8)
-                } else {
-                    ProgressView().tint(AppColor.mint).padding(.top, 12)
-                    Text("暂未发现设备，请唤醒体重秤并靠近手机")
-                        .font(.caption).foregroundStyle(AppColor.secondary)
+                    ScaleAvatarIconView(size: 72, iconSize: 34, accent: AppColor.mint)
                 }
-            } else {
-                discoveryResults
+
+                VStack(spacing: 6) {
+                    Text(scanTitle)
+                        .font(.title3.bold())
+                        .foregroundStyle(AppColor.ink)
+
+                    Text("正在搜索附近的低功耗蓝牙设备。部分体重秤只有踩亮屏幕或站上去后才会广播。")
+                        .font(.caption)
+                        .foregroundStyle(AppColor.secondary)
+                        .multilineTextAlignment(.center)
+                        .lineSpacing(3)
+                }
+
+                HStack(alignment: .top, spacing: 8) {
+                    Image(systemName: "info.circle.fill")
+                        .foregroundStyle(AppColor.mint)
+                        .font(.caption)
+                    Text("标准 BLE Weight 协议及已知的小米广播设备会优先置顶，其余设备需验证兼容性。")
+                        .font(.caption2)
+                        .foregroundStyle(AppColor.secondary)
+                        .lineSpacing(2)
+                }
+                .padding(12)
+                .background(AppColor.paleMint.opacity(0.6), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+
+                if bluetooth.devices.isEmpty {
+                    if case .unavailable = bluetooth.state {
+                        Button { bluetooth.startScanning() } label: {
+                            Label("重试扫描", systemImage: "arrow.clockwise")
+                                .font(.subheadline.weight(.semibold))
+                                .foregroundStyle(.white)
+                                .padding(.horizontal, 20)
+                                .padding(.vertical, 10)
+                                .background(AppColor.mint, in: Capsule())
+                        }
+                        .padding(.top, 6)
+                    } else {
+                        VStack(spacing: 8) {
+                            ProgressView().tint(AppColor.mint)
+                            Text("暂未发现设备，请唤醒体重秤并靠近手机")
+                                .font(.caption2)
+                                .foregroundStyle(AppColor.secondary)
+                        }
+                        .padding(.top, 8)
+                    }
+                } else {
+                    discoveryResults
+                }
             }
-            Spacer(minLength: 0)
+            .frame(maxWidth: .infinity)
         }
-        .frame(maxWidth: .infinity)
-        .padding(20)
-        .background(AppColor.paleMint.opacity(0.7), in: RoundedRectangle(cornerRadius: 24))
     }
 
     private var scanTitle: String {
@@ -201,101 +304,106 @@ private struct DeviceScannerView: View {
     }
 
     private var discoveryResults: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 14) {
             if likelyScaleDevices.isEmpty {
-                Text("暂未识别到体重秤")
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(AppColor.ink)
-                Text("请先唤醒体重秤；如果设备名称较为普通，可在其他附近设备中查找。")
-                    .font(.caption)
-                    .foregroundStyle(AppColor.secondary)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("暂未识别到体重秤")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(AppColor.ink)
+                    Text("请先踩亮体重秤。如果名称较普通，可在下方展开附近设备查找。")
+                        .font(.caption)
+                        .foregroundStyle(AppColor.secondary)
+                }
             } else {
-                Text("优先查看")
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(AppColor.secondary)
+                Text("推荐识别")
+                    .font(.caption.weight(.bold))
+                    .foregroundStyle(AppColor.mint)
                 deviceRows(likelyScaleDevices)
             }
 
             if !otherDevices.isEmpty {
-                Button {
-                    withAnimation(.easeInOut(duration: 0.2)) {
+                VStack(alignment: .leading, spacing: 10) {
+                    Button {
                         showsOtherDevices.toggle()
+                    } label: {
+                        HStack {
+                            Text("其他附近蓝牙设备（\(otherDevices.count)）")
+                                .font(.subheadline.weight(.semibold))
+                            Spacer()
+                            Image(systemName: showsOtherDevices ? "chevron.up" : "chevron.down")
+                                .font(.caption.bold())
+                        }
+                        .foregroundStyle(AppColor.secondary)
+                        .contentShape(Rectangle())
                     }
-                } label: {
-                    HStack {
-                        Text("其他附近设备（\(otherDevices.count)）")
-                            .font(.subheadline.weight(.semibold))
-                        Spacer()
-                        Image(systemName: showsOtherDevices ? "chevron.up" : "chevron.down")
-                            .font(.caption.bold())
-                    }
-                    .foregroundStyle(AppColor.secondary)
-                    .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-                .accessibilityValue(showsOtherDevices ? "已展开" : "已折叠")
+                    .buttonStyle(.plain)
 
-                deviceRows(otherDevices)
-                    .frame(height: showsOtherDevices ? nil : 0, alignment: .top)
-                    .clipped()
-                    .opacity(showsOtherDevices ? 1 : 0)
-                    .allowsHitTesting(showsOtherDevices)
-                    .accessibilityHidden(!showsOtherDevices)
+                    if showsOtherDevices {
+                        deviceRows(otherDevices)
+                            .transition(.opacity.combined(with: .scale(scale: 0.98, anchor: .top)))
+                    }
+                }
+                .animation(.smooth(duration: 0.25), value: showsOtherDevices)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private func deviceRows(_ devices: [DiscoveredScale]) -> some View {
-        VStack(spacing: 0) {
+        VStack(spacing: 10) {
             ForEach(devices) { device in
                 discoveredRow(device)
-                if device.id != devices.last?.id { Divider().padding(.leading, 52) }
             }
         }
-        .padding(.horizontal, 14)
-        .background(.white, in: RoundedRectangle(cornerRadius: 8))
     }
 
     private func discoveredRow(_ device: DiscoveredScale) -> some View {
         let existing = store.pairedScales.contains { $0.id == device.id }
-        return Button {
-            guard !existing else { return }
-            store.addScale(PairedScale(
-                id: device.id,
-                name: device.name,
-                modelName: device.name,
-                compatibility: device.compatibility
-            ))
-            bluetooth.updatePairedScales(store.pairedScales, communicationRules: store.communicationRules)
-            dismiss()
-        } label: {
-            HStack(spacing: 12) {
-                Image("ScaleDeviceTabIcon")
-                    .renderingMode(.template)
-                    .resizable()
-                    .scaledToFit()
-                    .padding(10.5)
-                    .foregroundStyle(device.isVerifiedCompatible ? AppColor.mint : AppColor.secondary)
-                    .frame(width: 38, height: 38)
-                    .background(AppColor.paleMint, in: RoundedRectangle(cornerRadius: 12))
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(device.name).foregroundStyle(AppColor.ink).lineLimit(1)
-                    Text(device.compatibility).font(.caption).foregroundStyle(AppColor.secondary)
-                }
-                Spacer()
-                Image(systemName: signalSymbol(for: device.rssi))
-                    .font(.caption)
+        let accent = device.isVerifiedCompatible ? AppColor.mint : AppColor.sky
+
+        return HStack(spacing: 12) {
+            ScaleAvatarIconView(size: 44, iconSize: 20, accent: accent)
+
+            VStack(alignment: .leading, spacing: 3) {
+                Text(device.name)
+                    .font(.subheadline.weight(.bold))
+                    .foregroundStyle(AppColor.ink)
+                    .lineLimit(1)
+                Text(device.compatibility)
+                    .font(.caption2)
                     .foregroundStyle(AppColor.secondary)
-                    .accessibilityLabel(signalDescription(for: device.rssi))
-                Text(existing ? "已添加" : "添加")
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(existing ? AppColor.secondary : AppColor.mint)
             }
-            .padding(.vertical, 12)
+
+            Spacer()
+
+            Image(systemName: signalSymbol(for: device.rssi))
+                .font(.caption)
+                .foregroundStyle(AppColor.secondary)
+
+            Button {
+                guard !existing else { return }
+                store.addScale(PairedScale(
+                    id: device.id,
+                    name: device.name,
+                    modelName: device.name,
+                    compatibility: device.compatibility
+                ))
+                bluetooth.updatePairedScales(store.pairedScales, communicationRules: store.communicationRules)
+                dismiss()
+            } label: {
+                Text(existing ? "已绑定" : "关联")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(existing ? AppColor.secondary : .white)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 7)
+                    .background(existing ? AppColor.paleMint : AppColor.mint, in: Capsule())
+            }
+            .buttonStyle(.plain)
+            .disabled(existing)
         }
-        .buttonStyle(.plain)
-        .disabled(existing)
+        .padding(12)
+        .background(Color.white, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).stroke(accent.opacity(0.12)))
     }
 
     private func signalSymbol(for rssi: Int) -> String {
@@ -311,7 +419,6 @@ private struct DeviceScannerView: View {
         if rssi >= -78 { return "信号中等" }
         return "信号较弱"
     }
-
 }
 
 private struct ScaleSettingsView: View {
@@ -319,116 +426,243 @@ private struct ScaleSettingsView: View {
     @EnvironmentObject private var bluetooth: BLEScaleManager
     @Environment(\.dismiss) private var dismiss
     let scaleID: UUID
-    @State private var name = ""
     @State private var confirmDelete = false
     @State private var selectedHardwareUnit = XiaomiScaleHardwareUnit.kilograms
-    @FocusState private var isNameFocused: Bool
+    @State private var showsProtocolMenu = false
 
     private var scale: PairedScale? { store.pairedScales.first { $0.id == scaleID } }
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 22) {
+            VStack(alignment: .leading, spacing: 20) {
+                scaleHeroCard
                 connectionPanel
                 namePanel
                 informationPanel
                 hardwarePanel
                 protocolPanel
                 capturePanel
-                Button(role: .destructive) { confirmDelete = true } label: {
+
+                Button(role: .destructive, action: showDeleteConfirmation) {
                     Label("删除设备", systemImage: "trash")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(AppColor.rose)
                         .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
+                        .background(AppColor.rose.opacity(0.10), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                        .contentShape(Rectangle())
                 }
-                .buttonStyle(.bordered)
-                .tint(AppColor.rose)
-                Text("删除设备不会删除它过去产生的测量记录。")
-                    .font(.caption)
+                .buttonStyle(.plain)
+
+                Text("删除设备不会删除该设备历史记录的健康测量数据。")
+                    .font(.caption2)
                     .foregroundStyle(AppColor.secondary)
                     .frame(maxWidth: .infinity)
             }
             .padding(.horizontal, 18)
             .padding(.bottom, 28)
         }
+        .scrollDismissesKeyboard(.interactively)
+        .overlayPreferenceValue(ScaleProtocolMenuAnchorKey.self) { anchor in
+            GeometryReader { proxy in
+                if showsProtocolMenu, let anchor, let scale {
+                    let buttonFrame = proxy[anchor]
+                    let menuHeight = min(260, max(120, proxy.size.height - 32))
+                    let opensBelow = proxy.size.height - buttonFrame.maxY >= min(menuHeight, 220) + 12
+                    let menuY = opensBelow
+                        ? buttonFrame.maxY + 8
+                        : max(8, buttonFrame.minY - menuHeight - 8)
+
+                    ZStack(alignment: .topLeading) {
+                        Color.black.opacity(0.001)
+                            .ignoresSafeArea()
+                            .contentShape(Rectangle())
+                            .onTapGesture {
+                                withAnimation(.easeInOut(duration: 0.18)) {
+                                    showsProtocolMenu = false
+                                }
+                            }
+
+                        protocolDropdown(for: scale)
+                            .frame(width: buttonFrame.width)
+                            .frame(maxHeight: menuHeight)
+                            .offset(x: buttonFrame.minX, y: menuY)
+                            .transition(.opacity.combined(with: .scale(scale: 0.98, anchor: opensBelow ? .top : .bottom)))
+                    }
+                }
+            }
+        }
         .pageBackground()
         .navigationTitle("设备设置")
         .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItemGroup(placement: .keyboard) {
-                Spacer()
-                Button("完成") { isNameFocused = false }
-            }
-        }
         .onAppear {
-            name = scale?.name ?? ""
             if let scale { bluetooth.inspectSettings(for: scale) }
         }
         .onDisappear { bluetooth.endSettingsInspection() }
         .onChange(of: bluetooth.settingsSnapshot.hardwareUnit) { _, unit in
             if let unit { selectedHardwareUnit = unit }
         }
-        .confirmationDialog("确定删除这个设备？", isPresented: $confirmDelete, titleVisibility: .visible) {
-            Button("删除设备", role: .destructive) {
-                store.removeScale(scaleID)
-                bluetooth.updatePairedScales(store.pairedScales, communicationRules: store.communicationRules)
-                dismiss()
+        .accessibilityHidden(confirmDelete)
+        .overlay {
+            if confirmDelete {
+                DestructiveConfirmationOverlay(
+                    icon: "scalemass.fill",
+                    title: "删除设备？",
+                    message: "将解除“\(scaleDisplayName)”的设备关联，已有健康测量记录仍会保留。",
+                    confirmTitle: "删除设备",
+                    onCancel: hideDeleteConfirmation,
+                    onConfirm: deleteScale
+                )
+                .transition(.opacity)
             }
+        }
+        .interactiveDismissDisabled(confirmDelete)
+    }
+
+    private var scaleDisplayName: String {
+        let trimmedName = scale?.name.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        return trimmedName.isEmpty ? "该设备" : trimmedName
+    }
+
+    private func showDeleteConfirmation() {
+        KeyboardFocus.dismiss()
+        showsProtocolMenu = false
+        withAnimation(.easeOut(duration: 0.12)) {
+            confirmDelete = true
         }
     }
 
-    private var connectionPanel: some View {
-        SettingsPanel(title: "连接", icon: "dot.radiowaves.left.and.right") {
-            HStack(spacing: 14) {
-                Image(systemName: settingsStatusIcon)
-                    .font(.title3)
-                    .foregroundStyle(settingsStatusColor)
-                    .frame(width: 44, height: 44)
-                    .background(settingsStatusColor.opacity(0.12), in: RoundedRectangle(cornerRadius: 13))
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(bluetooth.settingsState.title).font(.body.weight(.semibold))
-                    Text("唤醒体重秤并让手机保持在附近")
-                        .font(.caption).foregroundStyle(AppColor.secondary)
+    private func hideDeleteConfirmation() {
+        withAnimation(.easeOut(duration: 0.12)) {
+            confirmDelete = false
+        }
+    }
+
+    private func deleteScale() {
+        confirmDelete = false
+        store.removeScale(scaleID)
+        bluetooth.updatePairedScales(store.pairedScales, communicationRules: store.communicationRules)
+        dismiss()
+    }
+
+    private var scaleHeroCard: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                .fill(
+                    LinearGradient(
+                        colors: [
+                            .white,
+                            settingsStatusColor.opacity(0.12),
+                            AppColor.sky.opacity(0.18)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+
+            HStack(spacing: 16) {
+                ScaleAvatarIconView(size: 68, iconSize: 32, accent: settingsStatusColor)
+
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(scale?.name ?? "蓝牙秤")
+                        .font(.title2.bold())
+                        .foregroundStyle(AppColor.ink)
+                    Text(scale?.modelName ?? "")
+                        .font(.caption)
+                        .foregroundStyle(AppColor.secondary)
+
+                    StatusPill(
+                        text: bluetooth.settingsState.title,
+                        color: settingsStatusColor
+                    )
                 }
                 Spacer()
-                if bluetooth.settingsState.isBusy { ProgressView().tint(AppColor.mint) }
             }
+            .padding(18)
+        }
+        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 24, style: .continuous).stroke(settingsStatusColor.opacity(0.12)))
+        .shadow(color: settingsStatusColor.opacity(0.08), radius: 14, y: 6)
+    }
+
+    private var connectionPanel: some View {
+        SettingsPanel(title: "连接状态", icon: "dot.radiowaves.left.and.right") {
+            HStack(spacing: 14) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(bluetooth.settingsState.title).font(.body.weight(.bold)).foregroundStyle(AppColor.ink)
+                    Text("请踩亮或唤醒体重秤，并保持手机处于蓝牙接收范围内。")
+                        .font(.caption).foregroundStyle(AppColor.secondary).lineSpacing(2)
+                }
+                Spacer()
+                if bluetooth.settingsState.isBusy {
+                    ProgressView().tint(AppColor.mint)
+                }
+            }
+
             Button {
                 if let scale { bluetooth.inspectSettings(for: scale) }
             } label: {
-                Label("重新检测", systemImage: "arrow.clockwise")
+                Label("重新连接检测", systemImage: "arrow.clockwise")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(AppColor.mint)
                     .frame(maxWidth: .infinity)
+                    .padding(.vertical, 10)
+                    .background(AppColor.paleMint, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
             }
-            .buttonStyle(.bordered)
-            .tint(AppColor.mint)
+            .buttonStyle(.plain)
             .disabled(bluetooth.settingsState.isBusy)
         }
     }
 
+    private var namePanel: some View {
+        Group {
+            if let scale {
+                ScaleNameEditor(scaleID: scaleID, initialName: scale.name) { updatedName in
+                    store.renameScale(scaleID, name: updatedName)
+                    bluetooth.updatePairedScales(store.pairedScales, communicationRules: store.communicationRules)
+                }
+                .equatable()
+            }
+        }
+    }
+
     private var hardwarePanel: some View {
-        SettingsPanel(title: "硬件设置", icon: "slider.horizontal.3") {
+        SettingsPanel(title: "秤端设置", icon: "slider.horizontal.3") {
             if bluetooth.settingsSnapshot.canConfigureXiaomiUnit {
-                HStack(spacing: 16) {
+                VStack(alignment: .leading, spacing: 10) {
                     Text("秤端显示单位")
-                        .font(.subheadline)
-                        .foregroundStyle(AppColor.secondary)
-                    Spacer()
-                    Picker("", selection: $selectedHardwareUnit) {
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(AppColor.ink)
+
+                    HStack(spacing: 8) {
                         ForEach(XiaomiScaleHardwareUnit.allCases) { unit in
-                            Text(unit.title).tag(unit)
+                            let isSelected = selectedHardwareUnit == unit
+                            Button {
+                                selectedHardwareUnit = unit
+                            } label: {
+                                Text(unit.title)
+                                    .font(.caption.weight(.semibold))
+                                    .foregroundStyle(isSelected ? .white : AppColor.ink)
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 10)
+                                    .background(isSelected ? AppColor.mint : AppColor.canvas, in: Capsule())
+                            }
+                            .buttonStyle(.plain)
                         }
                     }
-                    .labelsHidden()
-                    .pickerStyle(.menu)
-                    .tint(AppColor.ink)
-                }
 
-                Button {
-                    bluetooth.configureHardwareUnit(selectedHardwareUnit)
-                } label: {
-                    ScaleDeviceLabel(title: "写入体重秤", iconSize: 17)
-                        .frame(maxWidth: .infinity)
+                    Button {
+                        bluetooth.configureHardwareUnit(selectedHardwareUnit)
+                    } label: {
+                        ScaleDeviceLabel(title: "写入秤端单位", iconSize: 16)
+                            .font(.caption.weight(.bold))
+                            .foregroundStyle(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 11)
+                            .background(AppColor.mint, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    }
+                    .buttonStyle(.plain)
                 }
-                .buttonStyle(.borderedProminent)
-                .tint(AppColor.mint)
             } else {
                 SettingsValueRow(title: "秤端显示单位", value: "未发现可写特征")
             }
@@ -439,13 +673,16 @@ private struct ScaleSettingsView: View {
                 Button {
                     bluetooth.synchronizeScaleTime()
                 } label: {
-                    Label("同步当前时间", systemImage: "clock.arrow.circlepath")
+                    Label("同步当前手机时间到秤端", systemImage: "clock.arrow.circlepath")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(AppColor.mint)
                         .frame(maxWidth: .infinity)
+                        .padding(.vertical, 10)
+                        .background(AppColor.paleMint, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
                 }
-                .buttonStyle(.bordered)
-                .tint(AppColor.mint)
+                .buttonStyle(.plain)
             } else {
-                SettingsValueRow(title: "秤端时间", value: "未发现可写特征")
+                SettingsValueRow(title: "秤端时间同步", value: "未发现可写特征")
             }
 
             if let message = bluetooth.settingsOperationMessage {
@@ -458,16 +695,8 @@ private struct ScaleSettingsView: View {
                 .fixedSize(horizontal: false, vertical: true)
             }
 
-            Text("单位写入仅在检测到小米二代 0x1542 可写特征后开放。ATT 回执和读回内容会记录在下方抓取结果中。")
-                .font(.caption).foregroundStyle(AppColor.secondary).lineSpacing(3)
-
-            Divider()
-            SettingsValueRow(
-                title: "历史记录通道",
-                value: bluetooth.settingsSnapshot.hasHistoryChannel ? "已发现，暂不导入" : "未发现"
-            )
-            Divider()
-            SettingsValueRow(title: "清空秤内数据", value: "无可信命令，未开放")
+            Text("单位写入支持小米二代 0x1542 可写特征。ATT 交互响应会实时记录在下方诊断日志中。")
+                .font(.caption2).foregroundStyle(AppColor.secondary).lineSpacing(3)
         }
     }
 
@@ -475,63 +704,175 @@ private struct ScaleSettingsView: View {
     private var protocolPanel: some View {
         if let scale {
             SettingsPanel(title: "协议匹配", icon: "point.3.connected.trianglepath.dotted") {
-                HStack(spacing: 16) {
-                    Text("通信规则")
-                        .font(.subheadline)
-                        .foregroundStyle(AppColor.secondary)
-                    Spacer()
-                    Picker("", selection: Binding(
-                        get: { scale.communicationRuleID },
-                        set: { ruleID in
-                            store.setCommunicationRule(ruleID, for: scaleID)
-                            bluetooth.updatePairedScales(store.pairedScales, communicationRules: store.communicationRules)
-                        }
-                    )) {
-                        Text("自动识别（推荐）").tag(String?.none)
-                        ForEach(store.communicationRules) { rule in
-                            Text(rule.name).tag(Optional(rule.id))
-                        }
-                    }
-                    .labelsHidden()
-                    .pickerStyle(.menu)
-                    .tint(AppColor.ink)
-                }
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("绑定通信规则")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(AppColor.ink)
 
-                if let selected = store.communicationRule(for: scale) {
-                    VStack(alignment: .leading, spacing: 5) {
-                        Label(selected.origin.title, systemImage: selected.origin == .builtIn ? "checkmark.shield.fill" : "person.2.wave.2")
-                            .font(.caption.weight(.semibold))
-                            .foregroundStyle(selected.origin == .builtIn ? AppColor.mint : AppColor.apricot)
-                        Text(selected.summary)
-                            .font(.caption)
+                    protocolMenu(for: scale)
+
+                    if let selected = store.communicationRule(for: scale) {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Label(selected.origin.title, systemImage: selected.origin == .builtIn ? "checkmark.shield.fill" : "person.2.wave.2")
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(selected.origin == .builtIn ? AppColor.mint : AppColor.apricot)
+                            Text(selected.summary)
+                                .font(.caption2)
+                                .foregroundStyle(AppColor.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                        .padding(10)
+                        .background(AppColor.paleMint.opacity(0.5), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    } else {
+                        Text("自动识别模式优先遵循 Bluetooth SIG 标准服务及已知小米通信规范。")
+                            .font(.caption2)
                             .foregroundStyle(AppColor.secondary)
-                            .fixedSize(horizontal: false, vertical: true)
+                            .lineSpacing(2)
                     }
-                } else {
-                    Text("自动识别会使用观我已有的标准与已实现解析器。固定规则后，只使用该规则处理此设备的广播或通知。")
-                        .font(.caption)
-                        .foregroundStyle(AppColor.secondary)
-                        .lineSpacing(3)
-                }
 
-                Divider()
-                NavigationLink {
-                    CommunicationRulesView()
-                } label: {
-                    Label("查看与导入通信规则", systemImage: "books.vertical")
+                    SettingsSeparator()
+
+                    NavigationLink {
+                        CommunicationRulesView()
+                    } label: {
+                        HStack {
+                            Label("通信规则库", systemImage: "books.vertical")
+                                .font(.caption.weight(.semibold))
+                            Spacer()
+                            Image(systemName: "chevron.right").font(.caption.bold())
+                        }
+                        .foregroundStyle(AppColor.mint)
+                    }
                 }
-                .tint(AppColor.mint)
             }
         }
+    }
+
+    private func protocolMenu(for scale: PairedScale) -> some View {
+        let selectedRule = store.communicationRule(for: scale)
+
+        return Button {
+            withAnimation(.easeInOut(duration: 0.18)) {
+                showsProtocolMenu.toggle()
+            }
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: selectedRule == nil ? "wand.and.stars" : "checkmark.shield.fill")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(AppColor.mint)
+                    .frame(width: 34, height: 34)
+                    .background(AppColor.paleMint, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(selectedRule?.name ?? "自动识别")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(AppColor.ink)
+                    Text(selectedRule?.origin.title ?? "推荐")
+                        .font(.caption2)
+                        .foregroundStyle(AppColor.secondary)
+                }
+
+                Spacer()
+
+                Image(systemName: "chevron.down")
+                    .font(.caption.weight(.bold))
+                    .foregroundStyle(AppColor.mint)
+                    .rotationEffect(.degrees(showsProtocolMenu ? 180 : 0))
+            }
+            .padding(.horizontal, 12)
+            .frame(minHeight: 52)
+            .background(AppColor.canvas, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .stroke(showsProtocolMenu ? AppColor.mint : AppColor.mint.opacity(0.18), lineWidth: showsProtocolMenu ? 1.5 : 1)
+            )
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .anchorPreference(key: ScaleProtocolMenuAnchorKey.self, value: .bounds) { $0 }
+        .accessibilityLabel("通信规则")
+        .accessibilityValue(selectedRule?.name ?? "自动识别")
+        .accessibilityHint(showsProtocolMenu ? "收起选项" : "展开选项")
+    }
+
+    private func protocolDropdown(for scale: PairedScale) -> some View {
+        ScrollView {
+            LazyVStack(spacing: 4) {
+                protocolDropdownRow(
+                    title: "自动识别",
+                    detail: "推荐",
+                    isSelected: scale.communicationRuleID == nil
+                ) {
+                    selectCommunicationRule(nil)
+                }
+
+                SettingsSeparator().padding(.vertical, 3)
+
+                ForEach(store.communicationRules) { rule in
+                    protocolDropdownRow(
+                        title: rule.name,
+                        detail: rule.origin.title,
+                        isSelected: scale.communicationRuleID == rule.id
+                    ) {
+                        selectCommunicationRule(rule.id)
+                    }
+                }
+            }
+            .padding(6)
+        }
+        .background(.white, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(AppColor.mint.opacity(0.14)))
+        .shadow(color: AppColor.ink.opacity(0.12), radius: 16, y: 6)
+    }
+
+    private func protocolDropdownRow(
+        title: String,
+        detail: String,
+        isSelected: Bool,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            HStack(spacing: 10) {
+                Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                    .font(.subheadline)
+                    .foregroundStyle(isSelected ? AppColor.mint : AppColor.secondary.opacity(0.35))
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title)
+                        .font(.subheadline.weight(isSelected ? .semibold : .medium))
+                        .foregroundStyle(AppColor.ink)
+                    Text(detail)
+                        .font(.caption2)
+                        .foregroundStyle(AppColor.secondary)
+                }
+                Spacer()
+            }
+            .padding(.horizontal, 10)
+            .frame(minHeight: 48)
+            .background(
+                isSelected ? AppColor.paleMint.opacity(0.72) : Color.clear,
+                in: RoundedRectangle(cornerRadius: 10, style: .continuous)
+            )
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityValue(isSelected ? "已选择" : "未选择")
+    }
+
+    private func selectCommunicationRule(_ ruleID: String?) {
+        withAnimation(.easeInOut(duration: 0.18)) {
+            showsProtocolMenu = false
+        }
+        store.setCommunicationRule(ruleID, for: scaleID)
+        bluetooth.updatePairedScales(store.pairedScales, communicationRules: store.communicationRules)
     }
 
     @ViewBuilder
     private var informationPanel: some View {
         if let scale {
-            SettingsPanel(title: "设备信息", icon: "info.circle") {
+            SettingsPanel(title: "设备详细参数", icon: "info.circle") {
                 SettingsValueRow(title: "设备型号", value: scale.modelName)
                 Divider()
-                SettingsValueRow(title: "兼容状态", value: scale.compatibility)
+                SettingsValueRow(title: "兼容性评估", value: scale.compatibility)
                 Divider()
                 SettingsValueRow(title: "固件版本", value: bluetooth.settingsSnapshot.firmwareRevision ?? "未读取")
                 if let hardware = bluetooth.settingsSnapshot.hardwareRevision {
@@ -547,8 +888,8 @@ private struct ScaleSettingsView: View {
     }
 
     private var capturePanel: some View {
-        SettingsPanel(title: "设备诊断采集", icon: "waveform.path.ecg") {
-            Toggle("开启采集", isOn: Binding(
+        SettingsPanel(title: "抓包与诊断日志", icon: "waveform.path.ecg") {
+            Toggle(isOn: Binding(
                 get: { bluetooth.isDeviceDiagnosticCaptureEnabled },
                 set: { isEnabled in
                     if isEnabled, let scale {
@@ -557,75 +898,68 @@ private struct ScaleSettingsView: View {
                         bluetooth.stopDeviceDiagnosticCapture()
                     }
                 }
-            ))
+            )) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("开启实时数据抓包")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(AppColor.ink)
+                    Text("记录原始广播与 ATT 读写明文")
+                        .font(.caption2)
+                        .foregroundStyle(AppColor.secondary)
+                }
+            }
             .tint(AppColor.mint)
-
-            Text("开启后请唤醒并使用体重秤。观我会重新检测该设备，并记录原始广播、厂商数据、服务、特征、读写与通知，便于分析尚未支持的协议。数据仅保留在当前内存中。")
-                .font(.caption).foregroundStyle(AppColor.secondary).lineSpacing(3)
 
             Divider()
 
             HStack {
-                Text("最近 \(bluetooth.deviceDiagnosticEvents.count) 条")
-                    .font(.caption).foregroundStyle(AppColor.secondary)
+                Text("实时捕获 (\(bluetooth.deviceDiagnosticEvents.count) 条)")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(AppColor.secondary)
                 Spacer()
                 ShareLink(item: bluetooth.deviceDiagnosticReport) {
-                    Label("导出", systemImage: "square.and.arrow.up")
+                    Label("导出诊断报告", systemImage: "square.and.arrow.up")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(AppColor.mint)
                 }
                 .disabled(bluetooth.deviceDiagnosticEvents.isEmpty)
             }
 
             if !bluetooth.isDeviceDiagnosticCaptureEnabled, bluetooth.deviceDiagnosticEvents.isEmpty {
-                Text("采集已关闭")
-                    .font(.caption).foregroundStyle(AppColor.secondary)
+                Text("采集未开启。开关开启后使用称重，将记录底层交互数据。")
+                    .font(.caption2).foregroundStyle(AppColor.secondary)
             } else if bluetooth.deviceDiagnosticEvents.isEmpty {
-                Text("等待设备广播或返回数据。")
-                    .font(.caption).foregroundStyle(AppColor.secondary).lineSpacing(3)
+                Text("等待广播包或交互事件...")
+                    .font(.caption2).foregroundStyle(AppColor.secondary)
             } else {
-                ForEach(Array(bluetooth.deviceDiagnosticEvents.suffix(16))) { event in
-                    Divider()
-                    VStack(alignment: .leading, spacing: 5) {
-                        HStack {
-                            StatusPill(text: event.kind.rawValue, color: diagnosticEventColor(event.kind))
-                            Text(shortUUID(event.source))
-                                .font(.system(.caption, design: .monospaced))
-                            Spacer()
-                            Text("\(event.elapsedSeconds.formatted(3))s")
+                VStack(spacing: 8) {
+                    ForEach(Array(bluetooth.deviceDiagnosticEvents.suffix(12))) { event in
+                        VStack(alignment: .leading, spacing: 4) {
+                            HStack {
+                                StatusPill(text: event.kind.rawValue, color: diagnosticEventColor(event.kind))
+                                Text(shortUUID(event.source))
+                                    .font(.system(.caption2, design: .monospaced))
+                                Spacer()
+                                Text("\(event.elapsedSeconds.formatted(2))s")
+                                    .font(.caption2).foregroundStyle(AppColor.secondary)
+                            }
+                            if let payload = event.payloadHex {
+                                Text(payload)
+                                    .font(.system(.caption2, design: .monospaced))
+                                    .foregroundStyle(AppColor.ink)
+                                    .padding(6)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .background(AppColor.canvas, in: RoundedRectangle(cornerRadius: 6, style: .continuous))
+                                    .textSelection(.enabled)
+                            }
+                            Text(event.summary)
                                 .font(.caption2).foregroundStyle(AppColor.secondary)
                         }
-                        if let payload = event.payloadHex {
-                            Text(payload)
-                                .font(.system(.caption2, design: .monospaced))
-                                .foregroundStyle(AppColor.ink)
-                                .textSelection(.enabled)
-                        }
-                        Text(event.summary)
-                            .font(.caption).foregroundStyle(AppColor.secondary)
-                            .fixedSize(horizontal: false, vertical: true)
+                        .padding(8)
+                        .background(Color.white, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
                     }
                 }
             }
-        }
-    }
-
-    private var namePanel: some View {
-        SettingsPanel(title: "设备名称", icon: "pencil") {
-            TextField("设备名称", text: $name)
-                .textFieldStyle(.roundedBorder)
-                .focused($isNameFocused)
-                .submitLabel(.done)
-                .onSubmit { isNameFocused = false }
-            Button {
-                isNameFocused = false
-                store.renameScale(scaleID, name: name)
-                bluetooth.updatePairedScales(store.pairedScales, communicationRules: store.communicationRules)
-            } label: {
-                Label("保存名称", systemImage: "checkmark")
-                    .frame(maxWidth: .infinity)
-            }
-            .buttonStyle(.bordered)
-            .tint(AppColor.mint)
-            .disabled(name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
         }
     }
 
@@ -667,6 +1001,73 @@ private struct ScaleSettingsView: View {
         return normalized
     }
 
+}
+
+private struct ScaleNameEditor: View, Equatable {
+    let scaleID: UUID
+    let initialName: String
+    let onSave: (String) -> Void
+
+    @State private var name: String
+    @State private var isNameFocused = false
+
+    init(scaleID: UUID, initialName: String, onSave: @escaping (String) -> Void) {
+        self.scaleID = scaleID
+        self.initialName = initialName
+        self.onSave = onSave
+        _name = State(initialValue: initialName)
+    }
+
+    static func == (lhs: ScaleNameEditor, rhs: ScaleNameEditor) -> Bool {
+        lhs.scaleID == rhs.scaleID && lhs.initialName == rhs.initialName
+    }
+
+    var body: some View {
+        SettingsPanel(title: "设备重命名", icon: "pencil") {
+            HStack(spacing: 10) {
+                ResponsiveTextField(
+                    text: $name,
+                    isFocused: $isNameFocused,
+                    placeholder: "设备自定义名称",
+                    returnKeyType: .done,
+                    onSubmit: save
+                )
+                    .padding(.horizontal, 12)
+                    .frame(minHeight: 44)
+                    .background(AppColor.canvas, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .stroke(isNameFocused ? AppColor.mint : AppColor.mint.opacity(0.18), lineWidth: isNameFocused ? 1.5 : 1)
+                            .allowsHitTesting(false)
+                    )
+
+                Button(action: save) {
+                    Image(systemName: "checkmark")
+                        .font(.subheadline.weight(.bold))
+                        .foregroundStyle(.white)
+                        .frame(width: 44, height: 44)
+                        .background(AppColor.mint, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                }
+                .buttonStyle(.plain)
+                .disabled(!canSave)
+                .opacity(canSave ? 1 : 0.45)
+                .accessibilityLabel("保存设备名称")
+            }
+        }
+    }
+
+    private var canSave: Bool {
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        return !trimmed.isEmpty && trimmed != initialName
+    }
+
+    private func save() {
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        name = trimmed
+        isNameFocused = false
+        if trimmed != initialName { onSave(trimmed) }
+    }
 }
 
 private struct CompatibilityRow: View {
