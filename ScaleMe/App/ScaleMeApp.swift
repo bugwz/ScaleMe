@@ -59,6 +59,7 @@ struct ScaleMeApp: App {
             .background(AppColor.canvas.ignoresSafeArea())
             .preferredColorScheme(.light)
             .environment(\.locale, store.appLanguage.locale)
+            .environment(\.appLanguage, store.appLanguage)
             .onReceive(bluetooth.$latestMeasurement.compactMap { $0 }) { measurement in
                 store.add(measurement)
             }

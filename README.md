@@ -24,6 +24,28 @@
 
 应用启动时会播放与 `M` Logo 对应的 SwiftUI 折线绘制动画，并在系统开启“减少动态效果”时自动使用静态呈现。
 
+## 项目结构
+
+Xcode 工程使用文件系统同步组，项目导航与磁盘目录保持一致。生产代码按职责与功能组织：
+
+```text
+ScaleMe/
+├── App/                 # 应用入口、启动流程、根导航与全局状态
+├── Core/Localization/   # 支持语言与语义化文案 key
+├── Domain/              # 领域模型、计算、模拟数据与趋势分析
+├── Infrastructure/      # 蓝牙、持久化、iCloud 同步与诊断
+├── Features/            # Dashboard、Measurement、Trends、Devices、Settings
+├── Shared/              # 共享组件、输入桥接与设计系统
+└── Resources/           # Assets、String Catalog 与配置资源
+Tests/Smoke/             # 按领域镜像组织的确定性烟雾测试
+Design/Logo/             # 品牌源文件与文档预览
+Tools/                   # 按用途分组的开发工具
+```
+
+简体中文是源语言。10 种界面语言统一维护在 `ScaleMe/Resources/Localization/Localizable.xcstrings`，系统 App 名称维护在同目录的 `InfoPlist.xcstrings`；不再使用散落的 `.lproj/Localizable.strings` 或按语言展开的 Swift 文案分支。
+
+目录与本地化方案参考 Apple 的 [Managing files and folders in your Xcode project](https://developer.apple.com/documentation/xcode/managing-files-and-folders-in-your-xcode-project/) 和 [Localizing and varying text with a string catalog](https://developer.apple.com/documentation/xcode/localizing-and-varying-text-with-a-string-catalog)。Apple 负责定义工程资源与本地化机制；上述分层则按观我自身的职责边界设计。
+
 ## 当前兼容范围
 
 - Bluetooth SIG Weight Scale Service `0x181D` / Weight Measurement `0x2A9D`
@@ -32,7 +54,7 @@
 - ICOMON `AFU-WL-TZ-A1` / `FG2313UWB-D` 的 `FFB0` / `FFB2` 私有协议（已用同一真机多轮采集验证实时、稳定、最终重量及双阻抗原始通道；改动后仍待真机回归验证）
 - 其他可发现设备会显示为“协议待验证”，不会误报为已兼容
 
-不同品牌甚至同品牌不同型号常使用不同私有协议。新增品牌时，应在 `ScaleMe/Bluetooth` 下增加独立 parser/adapter，并使用真实设备数据与固件版本做回归测试。
+不同品牌甚至同品牌不同型号常使用不同私有协议。新增品牌时，应在 `ScaleMe/Infrastructure/Bluetooth` 下增加独立 parser/adapter，并使用真实设备数据与固件版本做回归测试。
 
 ### 通信规则文件
 
@@ -71,8 +93,8 @@ ATT 成功只表示外设接受了写请求；`0x1542` 的即时读回可能是�
 
 ```sh
 swiftc -module-cache-path /tmp/scaleme-swift-module-cache \
-  ScaleMe/Bluetooth/XiaomiScaleConfiguration.swift \
-  Tests/DeviceConfigurationSmoke.swift \
+  ScaleMe/Infrastructure/Bluetooth/XiaomiScaleConfiguration.swift \
+  Tests/Smoke/Bluetooth/DeviceConfigurationSmoke.swift \
   -o /tmp/scaleme-device-configuration-smoke
 /tmp/scaleme-device-configuration-smoke
 ```
@@ -86,27 +108,27 @@ swiftc -module-cache-path /tmp/scaleme-swift-module-cache \
 协议解析烟雾测试可运行：
 
 ```sh
-swiftc ScaleMe/App/AppLanguage.swift ScaleMe/Models/Models.swift ScaleMe/Bluetooth/ScaleDiscoveryClassifier.swift ScaleMe/Bluetooth/ScalePayloadParsers.swift ScaleMe/Bluetooth/CommunicationRules.swift Tests/ParserSmoke.swift -o /tmp/scaleme-parser-smoke
+swiftc ScaleMe/Core/Localization/AppLanguage.swift ScaleMe/Domain/Models/Models.swift ScaleMe/Infrastructure/Bluetooth/ScaleDiscoveryClassifier.swift ScaleMe/Infrastructure/Bluetooth/ScalePayloadParsers.swift ScaleMe/Infrastructure/Bluetooth/CommunicationRules.swift Tests/Smoke/Bluetooth/ParserSmoke.swift -o /tmp/scaleme-parser-smoke
 /tmp/scaleme-parser-smoke
 
-swiftc ScaleMe/App/AppLanguage.swift ScaleMe/Models/Models.swift ScaleMe/Bluetooth/ScaleDiscoveryClassifier.swift ScaleMe/Bluetooth/ScalePayloadParsers.swift ScaleMe/Bluetooth/CommunicationRules.swift ScaleMe/Bluetooth/MeasurementSession.swift Tests/MeasurementSessionSmoke.swift -o /tmp/scaleme-session-smoke
+swiftc ScaleMe/Core/Localization/AppLanguage.swift ScaleMe/Domain/Models/Models.swift ScaleMe/Infrastructure/Bluetooth/ScaleDiscoveryClassifier.swift ScaleMe/Infrastructure/Bluetooth/ScalePayloadParsers.swift ScaleMe/Infrastructure/Bluetooth/CommunicationRules.swift ScaleMe/Infrastructure/Bluetooth/MeasurementSession.swift Tests/Smoke/Bluetooth/MeasurementSessionSmoke.swift -o /tmp/scaleme-session-smoke
 /tmp/scaleme-session-smoke
 
-swiftc ScaleMe/App/AppLanguage.swift ScaleMe/Models/Models.swift ScaleMe/Bluetooth/ScaleDiscoveryClassifier.swift ScaleMe/Bluetooth/ScalePayloadParsers.swift ScaleMe/Bluetooth/CommunicationRules.swift Tests/CommunicationRuleSmoke.swift -o /tmp/scaleme-rule-smoke
+swiftc ScaleMe/Core/Localization/AppLanguage.swift ScaleMe/Domain/Models/Models.swift ScaleMe/Infrastructure/Bluetooth/ScaleDiscoveryClassifier.swift ScaleMe/Infrastructure/Bluetooth/ScalePayloadParsers.swift ScaleMe/Infrastructure/Bluetooth/CommunicationRules.swift Tests/Smoke/Bluetooth/CommunicationRuleSmoke.swift -o /tmp/scaleme-rule-smoke
 /tmp/scaleme-rule-smoke
 ```
 
 设备发现分类测试：
 
 ```bash
-swiftc ScaleMe/Bluetooth/ScaleDiscoveryClassifier.swift Tests/DiscoveryClassifierSmoke.swift -o /tmp/scaleme-discovery-smoke
+swiftc ScaleMe/Infrastructure/Bluetooth/ScaleDiscoveryClassifier.swift Tests/Smoke/Bluetooth/DiscoveryClassifierSmoke.swift -o /tmp/scaleme-discovery-smoke
 /tmp/scaleme-discovery-smoke
 ```
 
 加密与数据合并烟雾测试可运行：
 
 ```sh
-swiftc ScaleMe/App/AppLanguage.swift ScaleMe/Models/Models.swift ScaleMe/Bluetooth/ScaleDiscoveryClassifier.swift ScaleMe/Bluetooth/ScalePayloadParsers.swift ScaleMe/Bluetooth/CommunicationRules.swift ScaleMe/Storage/SecureAppRepository.swift Tests/StorageSmoke.swift -o /tmp/scaleme-storage-smoke
+swiftc ScaleMe/Core/Localization/AppLanguage.swift ScaleMe/Domain/Models/Models.swift ScaleMe/Infrastructure/Bluetooth/ScaleDiscoveryClassifier.swift ScaleMe/Infrastructure/Bluetooth/ScalePayloadParsers.swift ScaleMe/Infrastructure/Bluetooth/CommunicationRules.swift ScaleMe/Infrastructure/Persistence/SecureAppRepository.swift Tests/Smoke/Persistence/StorageSmoke.swift -o /tmp/scaleme-storage-smoke
 /tmp/scaleme-storage-smoke
 ```
 

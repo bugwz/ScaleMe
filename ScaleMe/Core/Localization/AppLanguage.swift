@@ -1,0 +1,148 @@
+import Foundation
+
+enum AppLanguage: String, CaseIterable, Codable, Identifiable {
+    case simplifiedChinese = "zh-Hans"
+    case traditionalChinese = "zh-Hant"
+    case english = "en"
+    case japanese = "ja"
+    case french = "fr"
+    case german = "de"
+    case spanish = "es"
+    case portuguese = "pt"
+    case russian = "ru"
+    case korean = "ko"
+
+    var id: String { rawValue }
+    var locale: Locale { Locale(identifier: rawValue) }
+
+    var nativeName: String {
+        switch self {
+        case .simplifiedChinese: "简体中文"
+        case .traditionalChinese: "繁體中文"
+        case .english: "English"
+        case .japanese: "日本語"
+        case .french: "Français"
+        case .german: "Deutsch"
+        case .spanish: "Español"
+        case .portuguese: "Português"
+        case .russian: "Русский"
+        case .korean: "한국어"
+        }
+    }
+
+    static var systemDefault: AppLanguage {
+        for identifier in Locale.preferredLanguages {
+            let normalized = identifier.lowercased()
+            if normalized.hasPrefix("zh-hant") || normalized.hasPrefix("zh-tw") || normalized.hasPrefix("zh-hk") {
+                return .traditionalChinese
+            }
+            if normalized.hasPrefix("zh") { return .simplifiedChinese }
+            if let language = allCases.first(where: { normalized.hasPrefix($0.rawValue.lowercased()) }) {
+                return language
+            }
+        }
+        return .simplifiedChinese
+    }
+
+    func text(_ key: AppText) -> String {
+        localized(key.rawValue, defaultValue: key.defaultValue)
+    }
+
+    func text(_ key: String) -> String {
+        let missing = "__scaleme_missing_localization__"
+        let resolved = localized(key, defaultValue: missing)
+        guard resolved == missing else { return resolved }
+
+        // Infrastructure keeps source-language messages so a language change can
+        // re-render them. Localize a known semantic prefix while preserving the
+        // system-, device-, or protocol-provided detail after it.
+        if let separator = key.firstIndex(of: "：") {
+            let prefix = String(key[..<separator])
+            let detail = String(key[key.index(after: separator)...])
+            let localizedPrefix = localized(prefix, defaultValue: missing)
+            if localizedPrefix != missing {
+                return format("%@：%@", localizedPrefix, detail)
+            }
+        }
+
+        return key
+    }
+
+    func localized(_ key: String, defaultValue: String, in bundle: Bundle = .main) -> String {
+        guard
+            let localizationPath = bundle.path(forResource: rawValue, ofType: "lproj"),
+            let localizationBundle = Bundle(path: localizationPath)
+        else {
+            return defaultValue
+        }
+        return localizationBundle.localizedString(forKey: key, value: defaultValue, table: nil)
+    }
+
+    func format(_ key: String, _ arguments: CVarArg..., in bundle: Bundle = .main) -> String {
+        String(
+            format: localized(key, defaultValue: key, in: bundle),
+            locale: locale,
+            arguments: arguments
+        )
+    }
+}
+
+enum AppText: String, CaseIterable {
+    case productName = "app.product.name"
+    case tagline = "app.product.tagline"
+    case home = "navigation.home"
+    case measure = "navigation.measure"
+    case trends = "navigation.trends"
+    case devices = "navigation.devices"
+    case settings = "navigation.settings"
+    case currentPage = "accessibility.current-page"
+    case back = "navigation.back"
+    case language = "settings.language.title"
+    case languageDetail = "settings.language.detail"
+    case languageSettings = "settings.language.navigation-title"
+    case languageHint = "settings.language.hint"
+    case selected = "accessibility.selected"
+    case userInformation = "settings.user-information"
+    case appSettings = "settings.app-settings"
+    case displaySettings = "settings.display.title"
+    case displaySettingsDetail = "settings.display.detail"
+    case dataSync = "settings.data-sync.title"
+    case dataSyncDetail = "settings.data-sync.detail"
+    case communicationProtocol = "settings.communication.title"
+    case communicationProtocolDetail = "settings.communication.detail"
+    case developerDiagnostics = "settings.diagnostics.title"
+    case developerDiagnosticsDetail = "settings.diagnostics.detail"
+    case about = "settings.about.title"
+    case aboutDetail = "settings.about.detail"
+
+    var defaultValue: String {
+        switch self {
+        case .productName: "观我"
+        case .tagline: "从细微变化里，看见身体长期的方向"
+        case .home: "首页"
+        case .measure: "测量"
+        case .trends: "趋势"
+        case .devices: "设备"
+        case .settings: "设置"
+        case .currentPage: "当前页面"
+        case .back: "返回"
+        case .language: "语言"
+        case .languageDetail: "选择应用界面与启动页语言"
+        case .languageSettings: "语言设置"
+        case .languageHint: "更改后立即应用到界面，无需重新启动。"
+        case .selected: "已选择"
+        case .userInformation: "用户信息"
+        case .appSettings: "应用设置"
+        case .displaySettings: "显示设置"
+        case .displaySettingsDetail: "体重单位、连续称重与模拟数据"
+        case .dataSync: "数据同步"
+        case .dataSyncDetail: "iCloud 配置与测量数据"
+        case .communicationProtocol: "通信协议"
+        case .communicationProtocolDetail: "设备识别与数据解析"
+        case .developerDiagnostics: "开发诊断"
+        case .developerDiagnosticsDetail: "输入响应计时与日志导出"
+        case .about: "关于观我"
+        case .aboutDetail: "产品原则与版本信息"
+        }
+    }
+}

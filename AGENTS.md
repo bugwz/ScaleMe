@@ -28,12 +28,17 @@ This project is pre-release and in rapid development. Optimize for a clean curre
 - Minimum deployment target: iOS 17.
 - Use Apple frameworks first: SwiftUI, Charts, CoreBluetooth, Foundation, and HealthKit when its capability is actually configured.
 - Keep responsibilities separated:
-  - `ScaleMe/App`: application entry and dependency wiring.
-  - `ScaleMe/Models`: domain models, local store, and body-metric calculations.
-  - `ScaleMe/Bluetooth`: discovery, connection lifecycle, protocol adapters, and pure payload parsers.
-  - `ScaleMe/UI`: screens, reusable components, and design tokens.
+  - `ScaleMe/App`: application entry, root navigation, launch flow, and app-wide observable state.
+  - `ScaleMe/Core/Localization`: supported languages and semantic application text keys.
+  - `ScaleMe/Domain`: framework-independent models, calculations, simulation data, and trend analysis.
+  - `ScaleMe/Infrastructure`: Bluetooth, persistence, iCloud sync, and diagnostics implementations.
+  - `ScaleMe/Features`: feature-first SwiftUI screens grouped by user-facing area.
+  - `ScaleMe/Shared`: reusable SwiftUI components, input bridges, and design-system tokens.
+  - `ScaleMe/Resources`: asset catalogs, String Catalogs, entitlements, and other bundled resources.
   - `Design/Logo/logo.svg`: canonical vector logo.
-  - `Tests`: deterministic parser and domain tests.
+  - `Tests/Smoke`: deterministic smoke executables mirroring the production responsibility they verify.
+  - `Tools`: development utilities grouped by purpose.
+- The Xcode project uses a file-system-synchronized root group. Keep the on-disk hierarchy intentional because Xcode mirrors it directly; do not add hand-maintained PBX file references for ordinary files under `ScaleMe/`.
 - Avoid new third-party dependencies unless they provide clear value that Apple frameworks cannot reasonably cover.
 - Prefer small, testable types and pure parsing functions. Keep CoreBluetooth delegate orchestration separate from byte decoding.
 
@@ -67,7 +72,7 @@ This project is pre-release and in rapid development. Optimize for a clean curre
 
 - The interface should feel fresh, calm, clean, and health-oriented—not like a dense medical dashboard or a high-contrast sports console.
 - Do not rely on stock iOS system chrome (default `List`/`Form` styling, system edit-mode reorder handles, default navigation bar/list backgrounds, unstyled `Toggle`/`Picker` rows, etc.) for user-facing screens. Compose new UI from this project's own components (`SoftCard`, `SettingsPanel`, `pageBackground()`, custom rows built from `ScrollView`/`VStack`) and the shared palette below, matching the existing screens' look. Reserve system controls for cases with no reasonable custom equivalent (e.g. `DatePicker`, keyboard, share sheet).
-- Use the centralized palette in `ScaleMe/UI/DesignSystem.swift`; do not scatter new literal brand colors through views.
+- Use the centralized palette in `ScaleMe/Shared/DesignSystem/DesignSystem.swift`; do not scatter new literal brand colors through views.
 - Core palette:
   - Ink `#12332E`
   - Secondary text `#5C7873`
@@ -87,8 +92,8 @@ This project is pre-release and in rapid development. Optimize for a clean curre
   - `ScaleMe/Resources/Assets.xcassets/AppIcon.appiconset/AppIcon-1024.png` for the iOS app icon.
   - `Design/Logo/logo-preview.png` for documentation preview.
 - Follow Apple asset naming conventions: PascalCase asset catalog names (`AppIcon`, `AppLogo`, `AccentColor`) and concise, role-based file names. Do not add version suffixes to active production assets.
-- Regenerate the opaque iOS icon with `Tools/GenerateAppIcon.swift` after updating `logo-preview.png`; do not use lossy conversion or commit an app icon with an alpha channel.
-- The custom SwiftUI launch animation lives in `ScaleMe/App/AnimatedLaunchView.swift`. Keep it visually aligned with the four-point logo, honor Reduce Motion, block interaction only while visible, and transition cleanly into the real root view. Do not use launch animation time to delay required initialization.
+- Regenerate the opaque iOS icon with `Tools/AssetGeneration/GenerateAppIcon.swift` after updating `logo-preview.png`; do not use lossy conversion or commit an app icon with an alpha channel.
+- The custom SwiftUI launch animation lives in `ScaleMe/App/Launch/AnimatedLaunchView.swift`. Keep it visually aligned with the four-point logo, honor Reduce Motion, block interaction only while visible, and transition cleanly into the real root view. Do not use launch animation time to delay required initialization.
 
 ## Swift implementation rules
 
@@ -96,7 +101,7 @@ This project is pre-release and in rapid development. Optimize for a clean curre
 - Avoid force unwraps and unchecked indexing for Bluetooth data.
 - Validate payload length before every read and reject impossible values rather than silently saving them.
 - Use descriptive domain names such as `weightKG`, `impedanceOhm`, and `bodyFatPercent`; never encode units ambiguously.
-- Keep user-facing text in Chinese for the current release. Structure new text so localization can be added cleanly later, but do not build a premature localization compatibility layer.
+- Simplified Chinese is the source language. Put localizable user-facing text in `ScaleMe/Resources/Localization/Localizable.xcstrings`; use SwiftUI localizable APIs for view literals and semantic `AppText` keys for text selected by the in-app language setting. Do not reintroduce per-language Swift switches or scattered `.lproj/Localizable.strings` files.
 - Use SF Symbols and native accessibility semantics. Important status must not be conveyed by color alone.
 - Avoid one-off styling when a reusable design-system component or token is appropriate.
 
@@ -119,43 +124,43 @@ Protocol smoke test:
 
 ```sh
 swiftc -module-cache-path /tmp/scaleme-swift-module-cache \
-  ScaleMe/App/AppLanguage.swift \
-  ScaleMe/Models/Models.swift \
-  ScaleMe/Bluetooth/ScaleDiscoveryClassifier.swift \
-  ScaleMe/Bluetooth/ScalePayloadParsers.swift \
-  ScaleMe/Bluetooth/CommunicationRules.swift \
-  Tests/ParserSmoke.swift \
+  ScaleMe/Core/Localization/AppLanguage.swift \
+  ScaleMe/Domain/Models/Models.swift \
+  ScaleMe/Infrastructure/Bluetooth/ScaleDiscoveryClassifier.swift \
+  ScaleMe/Infrastructure/Bluetooth/ScalePayloadParsers.swift \
+  ScaleMe/Infrastructure/Bluetooth/CommunicationRules.swift \
+  Tests/Smoke/Bluetooth/ParserSmoke.swift \
   -o /tmp/scaleme-parser-smoke
 /tmp/scaleme-parser-smoke
 
 swiftc -module-cache-path /tmp/scaleme-swift-module-cache \
-  ScaleMe/App/AppLanguage.swift \
-  ScaleMe/Models/Models.swift \
-  ScaleMe/Bluetooth/ScaleDiscoveryClassifier.swift \
-  ScaleMe/Bluetooth/ScalePayloadParsers.swift \
-  ScaleMe/Bluetooth/CommunicationRules.swift \
-  Tests/CommunicationRuleSmoke.swift \
+  ScaleMe/Core/Localization/AppLanguage.swift \
+  ScaleMe/Domain/Models/Models.swift \
+  ScaleMe/Infrastructure/Bluetooth/ScaleDiscoveryClassifier.swift \
+  ScaleMe/Infrastructure/Bluetooth/ScalePayloadParsers.swift \
+  ScaleMe/Infrastructure/Bluetooth/CommunicationRules.swift \
+  Tests/Smoke/Bluetooth/CommunicationRuleSmoke.swift \
   -o /tmp/scaleme-rule-smoke
 /tmp/scaleme-rule-smoke
 
 swiftc -module-cache-path /tmp/scaleme-swift-module-cache \
-  ScaleMe/App/AppLanguage.swift \
-  ScaleMe/Models/Models.swift \
-  ScaleMe/Bluetooth/ScaleDiscoveryClassifier.swift \
-  ScaleMe/Bluetooth/ScalePayloadParsers.swift \
-  ScaleMe/Bluetooth/CommunicationRules.swift \
-  Tests/LocalizationSmoke.swift \
+  ScaleMe/Core/Localization/AppLanguage.swift \
+  ScaleMe/Domain/Models/Models.swift \
+  ScaleMe/Infrastructure/Bluetooth/ScaleDiscoveryClassifier.swift \
+  ScaleMe/Infrastructure/Bluetooth/ScalePayloadParsers.swift \
+  ScaleMe/Infrastructure/Bluetooth/CommunicationRules.swift \
+  Tests/Smoke/Localization/LocalizationSmoke.swift \
   -o /tmp/scaleme-localization-smoke
 /tmp/scaleme-localization-smoke
 
 swiftc -module-cache-path /tmp/scaleme-swift-module-cache \
-  ScaleMe/App/AppLanguage.swift \
-  ScaleMe/Models/Models.swift \
-  ScaleMe/Bluetooth/ScaleDiscoveryClassifier.swift \
-  ScaleMe/Bluetooth/ScalePayloadParsers.swift \
-  ScaleMe/Bluetooth/CommunicationRules.swift \
-  ScaleMe/Models/SimulationData.swift \
-  Tests/SimulationDataSmoke.swift \
+  ScaleMe/Core/Localization/AppLanguage.swift \
+  ScaleMe/Domain/Models/Models.swift \
+  ScaleMe/Infrastructure/Bluetooth/ScaleDiscoveryClassifier.swift \
+  ScaleMe/Infrastructure/Bluetooth/ScalePayloadParsers.swift \
+  ScaleMe/Infrastructure/Bluetooth/CommunicationRules.swift \
+  ScaleMe/Domain/Models/SimulationData.swift \
+  Tests/Smoke/Domain/SimulationDataSmoke.swift \
   -o /tmp/scaleme-simulation-smoke
 /tmp/scaleme-simulation-smoke
 ```
