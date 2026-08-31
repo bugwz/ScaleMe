@@ -2,6 +2,14 @@ import Charts
 import SwiftUI
 import UIKit
 
+private struct MemberPagerOffsetPreferenceKey: PreferenceKey {
+    static var defaultValue: [UUID: CGFloat] = [:]
+
+    static func reduce(value: inout [UUID: CGFloat], nextValue: () -> [UUID: CGFloat]) {
+        value.merge(nextValue()) { _, new in new }
+    }
+}
+
 struct DashboardView: View {
     @EnvironmentObject private var store: MeasurementStore
     let onMeasure: (UUID) -> Void
@@ -18,6 +26,8 @@ struct DashboardView: View {
 
     @State private var selectedProfileID: UUID?
     @State private var isEditingMetrics = false
+    @State private var memberPageOffsets: [UUID: CGFloat] = [:]
+    @State private var memberPagerWidth: CGFloat = 1
 
     private var latest: BodyMeasurement { store.latest ?? MeasurementStore.demoMeasurements[0] }
 
@@ -26,16 +36,18 @@ struct DashboardView: View {
             ScrollView {
                 VStack(spacing: 18) {
                     brandTitle
+                        .padding(.horizontal, 18)
                     memberPager
                     if store.isShowingDemoData {
                         Label("模拟数据模式已开启，真实资料和记录保持不变", systemImage: "sparkles")
                             .font(.caption)
                             .foregroundStyle(AppColor.secondary)
                             .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.horizontal, 18)
                     }
                     metricsSection
+                        .padding(.horizontal, 18)
                 }
-                .padding(.horizontal, 18)
                 .padding(.bottom, 28)
             }
             .onAppear {
@@ -53,9 +65,46 @@ struct DashboardView: View {
                 store.selectDisplayProfile(newID)
             }
             .mainPageTopInset()
-            .pageBackground()
+            .background(dashboardBackground.ignoresSafeArea())
             .toolbar(.hidden, for: .navigationBar)
         }
+    }
+
+    private var dashboardBackground: some View {
+        ZStack(alignment: .top) {
+            LinearGradient(
+                colors: [AppColor.paleMint, AppColor.canvas, AppColor.sky.opacity(0.08)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+
+            ForEach(store.displayProfiles) { profile in
+                let theme = memberCardTheme(for: profile.avatar)
+                LinearGradient(
+                    colors: [
+                        theme.primary.opacity(0.22),
+                        theme.secondary.opacity(0.10),
+                        .clear
+                    ],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+                .frame(height: 590)
+                .opacity(backgroundVisibility(for: profile.id))
+            }
+        }
+        .animation(.easeOut(duration: 0.22), value: selectedProfileID)
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
+    }
+
+    private func backgroundVisibility(for profileID: UUID) -> Double {
+        guard !memberPageOffsets.isEmpty else {
+            return profileID == (selectedProfileID ?? store.displaySelectedProfileID) ? 1 : 0
+        }
+        let distance = abs(memberPageOffsets[profileID] ?? memberPagerWidth * 2)
+        let visibility = max(CGFloat.zero, min(1, 1 - distance / max(memberPagerWidth, 1)))
+        return Double(visibility)
     }
 
     private var brandTitle: some View {
@@ -86,21 +135,45 @@ struct DashboardView: View {
                 HStack(spacing: 0) {
                     ForEach(store.displayProfiles) { profile in
                         memberCard(for: profile)
+                            .padding(.horizontal, 18)
                             .containerRelativeFrame(.horizontal)
                             .id(profile.id)
+                            .background {
+                                GeometryReader { proxy in
+                                    Color.clear.preference(
+                                        key: MemberPagerOffsetPreferenceKey.self,
+                                        value: [
+                                            profile.id: proxy.frame(in: .named("dashboardMemberPager")).minX
+                                        ]
+                                    )
+                                }
+                            }
                             .scrollTransition(.interactive, axis: .horizontal) { content, phase in
                                 content
-                                    .scaleEffect(phase.isIdentity ? 1.0 : 0.94)
-                                    .opacity(phase.isIdentity ? 1.0 : 0.75)
+                                    .scaleEffect(phase.isIdentity ? 1.0 : 0.97)
+                                    .opacity(phase.isIdentity ? 1.0 : 0.88)
                             }
                     }
                 }
                 .scrollTargetLayout()
             }
+            .coordinateSpace(name: "dashboardMemberPager")
             .scrollTargetBehavior(.paging)
             .scrollPosition(id: $selectedProfileID)
             .frame(height: 410)
             .clipped()
+            .background {
+                GeometryReader { proxy in
+                    Color.clear
+                        .onAppear { memberPagerWidth = proxy.size.width }
+                        .onChange(of: proxy.size.width) { _, width in
+                            memberPagerWidth = width
+                        }
+                }
+            }
+            .onPreferenceChange(MemberPagerOffsetPreferenceKey.self) { offsets in
+                memberPageOffsets = offsets
+            }
 
             if store.displayProfiles.count > 1 {
                 HStack(spacing: 7) {
