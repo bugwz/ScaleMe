@@ -252,12 +252,13 @@ private struct LanguageSettingsView: View {
 private struct MemberDragState {
     let profile: UserProfile
     var location: CGPoint
-    let layoutStartCenter: CGPoint
     var hitTestLocation: CGPoint
     var grabOffset: CGSize
     let rowSize: CGSize
     let horizontalCenter: CGFloat
     var pendingRelocationTargetID: UUID?
+    var hasResolvedDragTouch = false
+    var hasStartedMoving = false
     var isLifted = false
     var isSettling = false
 }
@@ -420,11 +421,22 @@ private struct MemberManagementView: View {
     private func memberRow(_ profile: UserProfile) -> some View {
         let isSelected = profile.id == store.displaySelectedProfileID
         let isDragging = draggingProfileID == profile.id
+        let isLiftedInPlace = isDragging
+            && dragState?.hasStartedMoving == false
+            && dragState?.isLifted == true
+            && dragState?.isSettling == false
 
         let row = memberRowVisual(profile, isSelected: isSelected, showsActions: true)
             .overlay {
                 memberRowActions(profile, isSelected: isSelected)
             }
+            .overlay(
+                RoundedRectangle(cornerRadius: 19, style: .continuous)
+                    .stroke(
+                        AppColor.mint.opacity(isLiftedInPlace ? 0.9 : 0),
+                        lineWidth: 2.5
+                    )
+            )
             .background(
                 GeometryReader { geo in
                     Color.clear.preference(
@@ -433,7 +445,13 @@ private struct MemberManagementView: View {
                     )
                 }
             )
-            .opacity(isDragging ? 0 : 1)
+            .scaleEffect(reduceMotion || !isLiftedInPlace ? 1 : 1.06)
+            .shadow(
+                color: AppColor.mint.opacity(isLiftedInPlace ? 0.32 : 0),
+                radius: isLiftedInPlace ? 18 : 0,
+                y: isLiftedInPlace ? 10 : 0
+            )
+            .opacity(isDragging && dragState?.hasStartedMoving == true ? 0 : 1)
             .matchedGeometryEffect(id: profile.id, in: memberOrderAnimation)
             .transition(.identity)
             .contentShape(RoundedRectangle(cornerRadius: 19, style: .continuous))
@@ -534,7 +552,7 @@ private struct MemberManagementView: View {
 
     @ViewBuilder
     private var dragPreview: some View {
-        if let state = dragState {
+        if let state = dragState, state.hasStartedMoving {
             memberRowVisual(
                 state.profile,
                 isSelected: state.profile.id == store.displaySelectedProfileID,
@@ -570,10 +588,11 @@ private struct MemberManagementView: View {
             )
             .onChanged { value in
                 guard canReorder,
-                      case .second(true, let drag) = value,
-                      let drag else { return }
-                activateDragging(profileID, with: drag)
-                updateDragging(profileID, with: drag)
+                      case .second(true, let drag) = value else { return }
+                activateDragging(profileID)
+                if let drag {
+                    updateDragging(profileID, with: drag)
+                }
             }
             .onEnded { _ in
                 if draggingProfileID == profileID {
@@ -582,14 +601,13 @@ private struct MemberManagementView: View {
             }
     }
 
-    private func activateDragging(_ profileID: UUID, with drag: DragGesture.Value) {
+    private func activateDragging(_ profileID: UUID) {
         guard dragState == nil,
               let profile = orderedProfiles.first(where: { $0.id == profileID }),
               let frame = memberFrames[profileID] else { return }
         dragState = MemberDragState(
             profile: profile,
-            location: drag.location,
-            layoutStartCenter: CGPoint(x: frame.midX, y: frame.midY),
+            location: CGPoint(x: frame.midX, y: frame.midY),
             hitTestLocation: CGPoint(x: frame.midX, y: frame.midY),
             grabOffset: CGSize(width: frame.width / 2, height: frame.height / 2),
             rowSize: frame.size,
@@ -607,11 +625,19 @@ private struct MemberManagementView: View {
 
     private func updateDragging(_ profileID: UUID, with drag: DragGesture.Value) {
         guard var state = dragState, state.profile.id == profileID else { return }
+        if !state.hasResolvedDragTouch, let frame = memberFrames[profileID] {
+            state.grabOffset = CGSize(
+                width: drag.location.x - frame.minX,
+                height: drag.location.y - frame.minY
+            )
+            state.hasResolvedDragTouch = true
+        }
         state.location = drag.location
-        state.hitTestLocation = CGPoint(
-            x: state.layoutStartCenter.x + drag.translation.width,
-            y: state.layoutStartCenter.y + drag.translation.height
-        )
+        state.hitTestLocation = drag.location
+        if !state.hasStartedMoving,
+           hypot(drag.translation.width, drag.translation.height) > 0.5 {
+            state.hasStartedMoving = true
+        }
         dragState = state
         relocate(profileID, to: state.hitTestLocation, using: memberFrames)
         autoScroller.update(fingerY: drag.location.y, viewportHeight: scrollViewportHeight)
