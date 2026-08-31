@@ -1,11 +1,6 @@
 import SwiftUI
 import UIKit
 
-enum ResponsiveInputSurface: Equatable {
-    case system
-    case appDecimalPad
-}
-
 /// UIKit-backed inputs keep first-responder changes local to the control. This
 /// avoids rebuilding a SwiftUI navigation toolbar before the keyboard can be
 /// presented, which is particularly expensive in the app's nested sheets and
@@ -26,7 +21,6 @@ struct ResponsiveTextField: UIViewRepresentable {
     var smartDashesType: UITextSmartDashesType = .default
     var smartQuotesType: UITextSmartQuotesType = .default
     var smartInsertDeleteType: UITextSmartInsertDeleteType = .default
-    var inputSurface: ResponsiveInputSurface = .system
     var synchronizesFocusFromBinding = true
     var showsDoneAccessory = false
     var onSubmit: () -> Void = {}
@@ -108,17 +102,6 @@ struct ResponsiveTextField: UIViewRepresentable {
         let desiredFont = AppInputFont.scaled(textStyle, weight: fontWeight)
         if textField.font != desiredFont { textField.font = desiredFont }
 
-        if coordinator.configuredInputSurface != inputSurface {
-            switch inputSurface {
-            case .system:
-                textField.inputView = nil
-            case .appDecimalPad:
-                textField.inputView = AppDecimalInputView(textField: textField)
-            }
-            coordinator.configuredInputSurface = inputSurface
-            if textField.isFirstResponder { textField.reloadInputViews() }
-        }
-
         if showsDoneAccessory {
             if textField.inputAccessoryView == nil {
                 textField.inputAccessoryView = AppInputAccessory.makeDoneBar(
@@ -136,7 +119,6 @@ struct ResponsiveTextField: UIViewRepresentable {
     final class Coordinator: NSObject, UITextFieldDelegate {
         var parent: ResponsiveTextField
         weak var textField: UITextField?
-        var configuredInputSurface: ResponsiveInputSurface?
         private var hasRecordedFirstTextChange = false
 
         init(parent: ResponsiveTextField) {
@@ -146,10 +128,7 @@ struct ResponsiveTextField: UIViewRepresentable {
         @objc func textDidChange(_ sender: UITextField) {
             if !hasRecordedFirstTextChange {
                 hasRecordedFirstTextChange = true
-                let inputLanguage = parent.inputSurface == .system
-                    ? sender.textInputMode?.primaryLanguage
-                    : "app-decimal-pad"
-                parent.onFirstTextChange(inputLanguage)
+                parent.onFirstTextChange(sender.textInputMode?.primaryLanguage)
             }
             let updatedText = sender.text ?? ""
             if parent.text != updatedText {
@@ -197,124 +176,6 @@ private final class TouchReportingTextField: UITextField {
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         onTouchBegan?()
         super.touchesBegan(touches, with: event)
-    }
-}
-
-@MainActor
-private final class AppDecimalInputView: UIInputView {
-    private weak var textField: UITextField?
-
-    init(textField: UITextField) {
-        self.textField = textField
-        super.init(
-            frame: CGRect(x: 0, y: 0, width: 0, height: Self.preferredHeight),
-            inputViewStyle: .keyboard
-        )
-        autoresizingMask = [.flexibleWidth]
-        allowsSelfSizing = true
-        backgroundColor = UIColor(AppColor.canvas)
-        buildKeypad()
-    }
-
-    @available(*, unavailable)
-    required init?(coder: NSCoder) {
-        return nil
-    }
-
-    private static let preferredHeight: CGFloat = 252
-
-    override var intrinsicContentSize: CGSize {
-        CGSize(width: UIView.noIntrinsicMetric, height: Self.preferredHeight)
-    }
-
-    private func buildKeypad() {
-        let rows = UIStackView()
-        rows.axis = .vertical
-        rows.spacing = 8
-        rows.distribution = .fillEqually
-        rows.translatesAutoresizingMaskIntoConstraints = false
-
-        for values in [["1", "2", "3"], ["4", "5", "6"], ["7", "8", "9"]] {
-            rows.addArrangedSubview(makeRow(values.map(makeDigitButton)))
-        }
-        rows.addArrangedSubview(makeRow([makeDecimalButton(), makeDigitButton("0"), makeDeleteButton()]))
-
-        addSubview(rows)
-        NSLayoutConstraint.activate([
-            rows.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 12),
-            rows.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -12),
-            rows.topAnchor.constraint(equalTo: topAnchor, constant: 10),
-            rows.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor, constant: -10)
-        ])
-    }
-
-    private func makeRow(_ buttons: [UIButton]) -> UIStackView {
-        let row = UIStackView(arrangedSubviews: buttons)
-        row.axis = .horizontal
-        row.spacing = 8
-        row.distribution = .fillEqually
-        return row
-    }
-
-    private func makeDigitButton(_ digit: String) -> UIButton {
-        let button = makeKeyButton(title: digit, accessibilityLabel: digit)
-        button.addAction(UIAction { [weak self] _ in
-            self?.insert(digit)
-        }, for: .touchUpInside)
-        return button
-    }
-
-    private func makeDecimalButton() -> UIButton {
-        let button = makeKeyButton(title: ".", accessibilityLabel: "小数点")
-        button.addAction(UIAction { [weak self] _ in
-            self?.insertDecimalSeparator()
-        }, for: .touchUpInside)
-        return button
-    }
-
-    private func makeDeleteButton() -> UIButton {
-        let button = makeKeyButton(title: nil, accessibilityLabel: "删除")
-        button.configuration?.image = UIImage(systemName: "delete.left")
-        button.addAction(UIAction { [weak self] _ in
-            self?.deleteBackward()
-        }, for: .touchUpInside)
-        return button
-    }
-
-    private func makeKeyButton(title: String?, accessibilityLabel: String) -> UIButton {
-        var configuration = UIButton.Configuration.filled()
-        configuration.title = title
-        configuration.baseBackgroundColor = .white
-        configuration.baseForegroundColor = UIColor(AppColor.ink)
-        configuration.cornerStyle = .medium
-        configuration.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { attributes in
-            var attributes = attributes
-            attributes.font = .systemFont(ofSize: 22, weight: .medium)
-            return attributes
-        }
-
-        let button = UIButton(configuration: configuration)
-        button.accessibilityLabel = accessibilityLabel
-        return button
-    }
-
-    private func insert(_ text: String) {
-        guard let textField else { return }
-        textField.insertText(text)
-        textField.sendActions(for: .editingChanged)
-    }
-
-    private func insertDecimalSeparator() {
-        guard let textField else { return }
-        let currentText = textField.text ?? ""
-        guard !currentText.contains("."), !currentText.contains(",") else { return }
-        insert(".")
-    }
-
-    private func deleteBackward() {
-        guard let textField, !(textField.text ?? "").isEmpty else { return }
-        textField.deleteBackward()
-        textField.sendActions(for: .editingChanged)
     }
 }
 

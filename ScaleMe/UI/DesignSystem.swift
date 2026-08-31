@@ -29,6 +29,9 @@ enum AppColor {
     static let violet = Color(red: 0.58, green: 0.66, blue: 0.88)
     static let apricot = Color(red: 0.98, green: 0.67, blue: 0.43)
     static let rose = Color(red: 0.94, green: 0.55, blue: 0.61)
+    static let bottomNavigationSelected = Color(red: 38 / 255, green: 155 / 255, blue: 112 / 255)
+    static let bottomNavigationInactive = Color(red: 0.62, green: 0.63, blue: 0.75)
+    static let bottomNavigationSurface = Color.white
 
     // Distinct, calm series colors keep adjacent body-metric charts easy to scan.
     static let trendWeight = mint

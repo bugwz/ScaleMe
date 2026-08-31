@@ -803,7 +803,7 @@ private struct ManualNumericInputField: View {
                     text: $text,
                     isFocused: $isFocused,
                     placeholder: placeholder,
-                    keyboardType: .asciiCapableNumberPad,
+                    keyboardType: .decimalPad,
                     returnKeyType: .done,
                     textStyle: layout == .regular ? .body : .subheadline,
                     fontWeight: .medium,
@@ -814,7 +814,6 @@ private struct ManualNumericInputField: View {
                     smartDashesType: .no,
                     smartQuotesType: .no,
                     smartInsertDeleteType: .no,
-                    inputSurface: .appDecimalPad,
                     synchronizesFocusFromBinding: false,
                     showsDoneAccessory: true,
                     onTouchDown: {

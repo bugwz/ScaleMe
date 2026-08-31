@@ -73,46 +73,24 @@ private enum RootTab: Int, CaseIterable, Identifiable {
 
 private struct AppBottomNavigation: View {
     @Binding var selection: RootTab
-    @Namespace private var selectionHighlight
 
     var body: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: 0) {
             ForEach(RootTab.allCases) { tab in
                 tabButton(tab)
             }
         }
-        .padding(6)
-        .frame(height: 72)
+        .padding(.horizontal, 8)
+        .frame(height: 58)
         .background {
-            RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .fill(
-                    LinearGradient(
-                        colors: [
-                            Color.white.opacity(0.98),
-                            AppColor.paleMint.opacity(0.96),
-                            AppColor.sky.opacity(0.13)
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
+            AppColor.bottomNavigationSurface
+                .ignoresSafeArea()
         }
-        .overlay {
-            RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .stroke(AppColor.mint.opacity(0.12))
+        .overlay(alignment: .top) {
+            Rectangle()
+                .fill(AppColor.bottomNavigationInactive.opacity(0.16))
+                .frame(height: 0.5)
                 .allowsHitTesting(false)
-        }
-        .shadow(color: AppColor.mint.opacity(0.13), radius: 18, y: 8)
-        .padding(.horizontal, 18)
-        .padding(.top, 8)
-        .padding(.bottom, 2)
-        .background {
-            LinearGradient(
-                colors: [Color.clear, AppColor.canvas.opacity(0.98)],
-                startPoint: .top,
-                endPoint: .center
-            )
-            .ignoresSafeArea()
         }
         .accessibilityElement(children: .contain)
     }
@@ -122,7 +100,7 @@ private struct AppBottomNavigation: View {
 
         return Button {
             KeyboardFocus.dismiss()
-            withAnimation(.spring(response: 0.34, dampingFraction: 0.82)) {
+            withAnimation(.easeOut(duration: 0.18)) {
                 selection = tab
             }
         } label: {
@@ -134,32 +112,12 @@ private struct AppBottomNavigation: View {
                     .font(.caption2.weight(isSelected ? .bold : .medium))
                     .lineLimit(1)
             }
-            .foregroundStyle(isSelected ? AppColor.ink : AppColor.secondary)
+            .foregroundStyle(
+                isSelected ? AppColor.bottomNavigationSelected : AppColor.bottomNavigationInactive
+            )
             .frame(maxWidth: .infinity)
             .frame(height: 58)
-            .background {
-                if isSelected {
-                    RoundedRectangle(cornerRadius: 18, style: .continuous)
-                        .fill(
-                            LinearGradient(
-                                colors: [
-                                    Color.white.opacity(0.94),
-                                    AppColor.mint.opacity(0.14),
-                                    AppColor.sky.opacity(0.16)
-                                ],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                        .overlay {
-                            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                                .stroke(AppColor.mint.opacity(0.14))
-                        }
-                        .shadow(color: AppColor.mint.opacity(0.11), radius: 7, y: 3)
-                        .matchedGeometryEffect(id: "selected-tab", in: selectionHighlight)
-                }
-            }
-            .contentShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .accessibilityLabel(tab.title)
