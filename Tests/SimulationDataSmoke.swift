@@ -8,8 +8,16 @@ enum SimulationDataSmoke {
         let referenceDate = calendar.date(from: DateComponents(
             year: 2026, month: 8, day: 30, hour: 15
         )) ?? .now
-        let first = SimulationDataSnapshot.make(referenceDate: referenceDate, calendar: calendar)
-        let second = SimulationDataSnapshot.make(referenceDate: referenceDate, calendar: calendar)
+        let first = SimulationDataSnapshot.make(
+            language: .simplifiedChinese,
+            referenceDate: referenceDate,
+            calendar: calendar
+        )
+        let second = SimulationDataSnapshot.make(
+            language: .simplifiedChinese,
+            referenceDate: referenceDate,
+            calendar: calendar
+        )
 
         precondition(first.profiles.count == MemberAvatar.allCases.count,
                      "simulation should include every available family character")
@@ -93,6 +101,40 @@ enum SimulationDataSmoke {
             Int(abs($0.date.timeIntervalSince($1.date)))
         }
         precondition(Set(intervals).count > 50, "measurement intervals should vary")
+
+        for language in AppLanguage.allCases {
+            let localized = SimulationDataSnapshot.make(
+                language: language,
+                referenceDate: referenceDate,
+                calendar: calendar
+            )
+            precondition(Set(localized.profiles.map(\.name)).count == MemberAvatar.allCases.count,
+                         "each language must provide distinct natural member names")
+            precondition(localized.profiles.allSatisfy { $0.name.count <= 9 },
+                         "simulated names must fit every single-line member presentation")
+            precondition(localized.profiles.allSatisfy { !$0.name.isEmpty && !$0.relation.isEmpty },
+                         "each localized member needs a name and family relation")
+            precondition(localized.pairedScales.allSatisfy { !$0.name.isEmpty && !$0.compatibility.isEmpty },
+                         "simulated device cards must be localized")
+            precondition(localized.pairedScales.allSatisfy { $0.name.count <= 16 },
+                         "simulated device names must fit device and history cards")
+        }
+
+        let japanese = SimulationDataSnapshot.make(
+            language: .japanese,
+            referenceDate: referenceDate,
+            calendar: calendar
+        )
+        precondition(japanese.profiles.first?.name == "佐藤健一",
+                     "Japanese data should use a natural Japanese family name")
+        precondition(japanese.profiles.first?.relation == "父",
+                     "Japanese family relations should be localized")
+        precondition(japanese.pairedScales.first?.name == "体組成計",
+                     "simulated device cards should switch language")
+        precondition(japanese.measurements.allSatisfy { measurement in
+            measurement.deviceName == "体組成計" || measurement.deviceName == "体重計"
+        }, "measurement device names should switch with simulated device cards")
+
         print("Simulation data smoke tests passed (\(first.measurements.count) records)")
     }
 }

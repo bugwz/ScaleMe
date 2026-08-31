@@ -48,15 +48,17 @@ struct ScaleMeApp: App {
                     .scaleEffect(isShowingLaunchScreen && !isLeavingLaunchScreen ? 1.012 : 1)
                     .allowsHitTesting(!isShowingLaunchScreen)
                     .accessibilityHidden(isShowingLaunchScreen)
+                    .environment(\.locale, store.appLanguage.locale)
 
                 if isShowingLaunchScreen {
-                    AnimatedLaunchView(isExiting: isLeavingLaunchScreen)
+                    AnimatedLaunchView(language: store.appLanguage, isExiting: isLeavingLaunchScreen)
                         .zIndex(1)
                 }
 
             }
             .background(AppColor.canvas.ignoresSafeArea())
             .preferredColorScheme(.light)
+            .environment(\.locale, store.appLanguage.locale)
             .onReceive(bluetooth.$latestMeasurement.compactMap { $0 }) { measurement in
                 store.add(measurement)
             }

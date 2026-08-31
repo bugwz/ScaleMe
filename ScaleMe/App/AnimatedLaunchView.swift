@@ -2,6 +2,7 @@ import SwiftUI
 
 struct AnimatedLaunchView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    let language: AppLanguage
     let isExiting: Bool
 
     @State private var isBodyVisible = false
@@ -24,20 +25,17 @@ struct AnimatedLaunchView: View {
                     .frame(width: 224, height: 224)
 
                 VStack(spacing: 9) {
-                    Text("观我")
+                    Text(language.text(.productName))
                         .font(.system(size: 39, weight: .semibold, design: .rounded))
-                        .tracking(9)
+                        .tracking(language == .simplifiedChinese || language == .traditionalChinese ? 9 : 1.2)
                         .foregroundStyle(AppColor.ink)
 
-                    Text("ScaleMe")
-                        .font(.system(size: 15, weight: .medium, design: .rounded))
-                        .tracking(3.2)
-                        .foregroundStyle(AppColor.mint)
-
-                    Text("从细微变化里，看见身体长期的方向")
+                    Text(language.text(.tagline))
                         .font(.footnote)
                         .foregroundStyle(AppColor.secondary)
                         .padding(.top, 7)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 28)
                 }
                 .opacity(isWordmarkVisible ? 1 : 0)
                 .offset(y: isWordmarkVisible ? 0 : 16)
@@ -52,7 +50,7 @@ struct AnimatedLaunchView: View {
         .opacity(isExiting ? 0 : 1)
         .task { await play() }
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("观我 ScaleMe")
+        .accessibilityLabel(language.text(.productName))
     }
 
     private var launchMark: some View {

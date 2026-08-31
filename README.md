@@ -86,13 +86,13 @@ swiftc -module-cache-path /tmp/scaleme-swift-module-cache \
 协议解析烟雾测试可运行：
 
 ```sh
-swiftc ScaleMe/Models/Models.swift ScaleMe/Bluetooth/ScaleDiscoveryClassifier.swift ScaleMe/Bluetooth/ScalePayloadParsers.swift ScaleMe/Bluetooth/CommunicationRules.swift Tests/ParserSmoke.swift -o /tmp/scaleme-parser-smoke
+swiftc ScaleMe/App/AppLanguage.swift ScaleMe/Models/Models.swift ScaleMe/Bluetooth/ScaleDiscoveryClassifier.swift ScaleMe/Bluetooth/ScalePayloadParsers.swift ScaleMe/Bluetooth/CommunicationRules.swift Tests/ParserSmoke.swift -o /tmp/scaleme-parser-smoke
 /tmp/scaleme-parser-smoke
 
-swiftc ScaleMe/Models/Models.swift ScaleMe/Bluetooth/ScaleDiscoveryClassifier.swift ScaleMe/Bluetooth/ScalePayloadParsers.swift ScaleMe/Bluetooth/CommunicationRules.swift ScaleMe/Bluetooth/MeasurementSession.swift Tests/MeasurementSessionSmoke.swift -o /tmp/scaleme-session-smoke
+swiftc ScaleMe/App/AppLanguage.swift ScaleMe/Models/Models.swift ScaleMe/Bluetooth/ScaleDiscoveryClassifier.swift ScaleMe/Bluetooth/ScalePayloadParsers.swift ScaleMe/Bluetooth/CommunicationRules.swift ScaleMe/Bluetooth/MeasurementSession.swift Tests/MeasurementSessionSmoke.swift -o /tmp/scaleme-session-smoke
 /tmp/scaleme-session-smoke
 
-swiftc ScaleMe/Models/Models.swift ScaleMe/Bluetooth/ScaleDiscoveryClassifier.swift ScaleMe/Bluetooth/ScalePayloadParsers.swift ScaleMe/Bluetooth/CommunicationRules.swift Tests/CommunicationRuleSmoke.swift -o /tmp/scaleme-rule-smoke
+swiftc ScaleMe/App/AppLanguage.swift ScaleMe/Models/Models.swift ScaleMe/Bluetooth/ScaleDiscoveryClassifier.swift ScaleMe/Bluetooth/ScalePayloadParsers.swift ScaleMe/Bluetooth/CommunicationRules.swift Tests/CommunicationRuleSmoke.swift -o /tmp/scaleme-rule-smoke
 /tmp/scaleme-rule-smoke
 ```
 
@@ -106,13 +106,15 @@ swiftc ScaleMe/Bluetooth/ScaleDiscoveryClassifier.swift Tests/DiscoveryClassifie
 加密与数据合并烟雾测试可运行：
 
 ```sh
-swiftc ScaleMe/Models/Models.swift ScaleMe/Bluetooth/ScaleDiscoveryClassifier.swift ScaleMe/Bluetooth/ScalePayloadParsers.swift ScaleMe/Bluetooth/CommunicationRules.swift ScaleMe/Storage/SecureAppRepository.swift Tests/StorageSmoke.swift -o /tmp/scaleme-storage-smoke
+swiftc ScaleMe/App/AppLanguage.swift ScaleMe/Models/Models.swift ScaleMe/Bluetooth/ScaleDiscoveryClassifier.swift ScaleMe/Bluetooth/ScalePayloadParsers.swift ScaleMe/Bluetooth/CommunicationRules.swift ScaleMe/Storage/SecureAppRepository.swift Tests/StorageSmoke.swift -o /tmp/scaleme-storage-smoke
 /tmp/scaleme-storage-smoke
 ```
 
 ## 数据与医学边界
 
-配置与记录默认保存在应用沙盒的 `ScaleMe/` 目录：`configuration-v4.json` 保存成员、设备和应用配置，`measurements-v2.enc` 使用 AES-GCM 加密保存带成员及设备归属的测量记录。设置中可分别开启配置与数据的 iCloud 文件同步；配置策略只能选择单向推送或单向拉取，云端操作均异步执行。本机数据使用仅限当前设备的 Keychain 密钥；开启数据同步后，云端文件使用独立的可同步 iCloud Keychain 密钥，使同一 Apple 账户的设备能够解密数据文件。
+配置与记录默认保存在应用沙盒的 `ScaleMe/` 目录：`configuration-v4.json` 保存成员、设备、界面语言和应用配置，`measurements-v2.enc` 使用 AES-GCM 加密保存带成员及设备归属的测量记录。设置中可分别开启配置与数据的 iCloud 文件同步；配置策略只能选择单向推送或单向拉取，云端操作均异步执行。本机数据使用仅限当前设备的 Keychain 密钥；开启数据同步后，云端文件使用独立的可同步 iCloud Keychain 密钥，使同一 Apple 账户的设备能够解密数据文件。
+
+界面语言可在应用设置中即时切换，支持简体中文、繁體中文、English、日本語、Français、Deutsch、Español、Português、Русский与한국어。首次启动会匹配系统首选语言；首页与启动动画始终只显示当前所选语言的单一品牌名称和标语。模拟模式的预设家庭成员使用符合各语言姓名习惯的独立人物姓名与亲属称谓，模拟设备卡片及历史记录中的设备名称也使用对应语言。切换语言会直接载入该语言的整套内置模拟数据，并丢弃此前对模拟资料、设备、排序或记录所做的临时修改。
 
 阻抗推导的体脂等指标是消费级估算，不能用于诊断。正式发布前还应完成 HealthKit capability、隐私清单、iCloud 多设备实测、设备矩阵实测和 App Store 隐私申报。
 

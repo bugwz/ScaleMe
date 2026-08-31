@@ -241,6 +241,7 @@ struct AppConfiguration: Codable, Equatable {
     var selectedProfileID: UUID
     var pairedScales: [PairedScale]
     var unit: WeightUnit
+    var appLanguage: AppLanguage
     var mergeFrequentMeasurements: Bool
     var isSimulationEnabled: Bool
     var customCommunicationRules: [CommunicationRule]
@@ -252,6 +253,7 @@ struct AppConfiguration: Codable, Equatable {
         selectedProfileID: UUID,
         pairedScales: [PairedScale],
         unit: WeightUnit,
+        appLanguage: AppLanguage = .systemDefault,
         mergeFrequentMeasurements: Bool,
         isSimulationEnabled: Bool = false,
         customCommunicationRules: [CommunicationRule],
@@ -262,6 +264,7 @@ struct AppConfiguration: Codable, Equatable {
         self.selectedProfileID = selectedProfileID
         self.pairedScales = pairedScales
         self.unit = unit
+        self.appLanguage = appLanguage
         self.mergeFrequentMeasurements = mergeFrequentMeasurements
         self.isSimulationEnabled = isSimulationEnabled
         self.customCommunicationRules = customCommunicationRules
@@ -274,6 +277,7 @@ struct AppConfiguration: Codable, Equatable {
         case selectedProfileID
         case pairedScales
         case unit
+        case appLanguage
         case mergeFrequentMeasurements
         case isSimulationEnabled
         case customCommunicationRules
@@ -287,6 +291,7 @@ struct AppConfiguration: Codable, Equatable {
         selectedProfileID = try container.decode(UUID.self, forKey: .selectedProfileID)
         pairedScales = try container.decode([PairedScale].self, forKey: .pairedScales)
         unit = try container.decode(WeightUnit.self, forKey: .unit)
+        appLanguage = try container.decodeIfPresent(AppLanguage.self, forKey: .appLanguage) ?? .systemDefault
         mergeFrequentMeasurements = try container.decode(Bool.self, forKey: .mergeFrequentMeasurements)
         isSimulationEnabled = try container.decodeIfPresent(Bool.self, forKey: .isSimulationEnabled) ?? false
         customCommunicationRules = try container.decode([CommunicationRule].self, forKey: .customCommunicationRules)

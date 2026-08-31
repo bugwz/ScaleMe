@@ -179,7 +179,7 @@ struct MeasureView: View {
                             Text(store.unit.rawValue).font(.headline)
                         }
                     }
-                    Text(statusText)
+                    Text(LocalizedStringKey(statusText))
                         .font(.subheadline).foregroundStyle(AppColor.secondary)
                         .multilineTextAlignment(.center)
                     if let stageLabel {
@@ -331,7 +331,7 @@ struct MeasureView: View {
     private func liveMetric(_ title: String, _ value: String) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(value).font(.headline).foregroundStyle(AppColor.ink)
-            Text(title).font(.caption2).foregroundStyle(AppColor.secondary)
+            Text(LocalizedStringKey(title)).font(.caption2).foregroundStyle(AppColor.secondary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -783,7 +783,7 @@ private struct ManualNumericInputField: View {
     var body: some View {
         VStack(alignment: .leading, spacing: layout == .regular ? 6 : 5) {
             HStack {
-                Text(title)
+                Text(LocalizedStringKey(title))
                     .font(layout == .regular ? .caption.weight(.semibold) : .caption2.weight(.semibold))
                     .foregroundStyle(AppColor.ink)
                     .lineLimit(1)

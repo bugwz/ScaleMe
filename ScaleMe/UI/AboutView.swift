@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct AboutView: View {
+    @EnvironmentObject private var store: MeasurementStore
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
@@ -45,7 +47,7 @@ struct AboutView: View {
             .padding(.bottom, 28)
         }
         .pageBackground()
-        .navigationTitle("关于观我")
+        .navigationTitle(store.appLanguage.text(.about))
         .navigationBarTitleDisplayMode(.inline)
     }
 
@@ -59,16 +61,11 @@ struct AboutView: View {
                 .shadow(color: AppColor.mint.opacity(0.16), radius: 18, y: 8)
                 .accessibilityHidden(true)
 
-            VStack(spacing: 4) {
-                Text("观我")
-                    .font(.title.bold())
-                    .foregroundStyle(AppColor.ink)
-                Text("ScaleMe")
-                    .font(.subheadline.weight(.medium))
-                    .foregroundStyle(AppColor.secondary)
-            }
+            Text(store.appLanguage.text(.productName))
+                .font(.title.bold())
+                .foregroundStyle(AppColor.ink)
 
-            Text("从细微变化里，看见身体长期的方向。")
+            Text(store.appLanguage.text(.tagline))
                 .font(.subheadline)
                 .foregroundStyle(AppColor.ink)
                 .multilineTextAlignment(.center)
@@ -89,10 +86,10 @@ struct AboutView: View {
                 .frame(width: 24)
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 4) {
-                Text(title)
+                Text(LocalizedStringKey(title))
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(AppColor.ink)
-                Text(detail)
+                Text(LocalizedStringKey(detail))
                     .font(.caption)
                     .foregroundStyle(AppColor.secondary)
                     .fixedSize(horizontal: false, vertical: true)

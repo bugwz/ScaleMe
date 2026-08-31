@@ -13,28 +13,28 @@ struct RootView: View {
                 },
                 onShowTrends: { selection = .trends }
             )
-            .tabItem { Label(RootTab.home.title, systemImage: RootTab.home.systemImage) }
+            .tabItem { Label(RootTab.home.title(in: store.appLanguage), systemImage: RootTab.home.systemImage) }
             .tag(RootTab.home)
 
             MeasureView()
-                .tabItem { Label(RootTab.measure.title, systemImage: RootTab.measure.systemImage) }
+                .tabItem { Label(RootTab.measure.title(in: store.appLanguage), systemImage: RootTab.measure.systemImage) }
                 .tag(RootTab.measure)
 
             HistoryView()
-                .tabItem { Label(RootTab.trends.title, systemImage: RootTab.trends.systemImage) }
+                .tabItem { Label(RootTab.trends.title(in: store.appLanguage), systemImage: RootTab.trends.systemImage) }
                 .tag(RootTab.trends)
 
             DevicesView()
-                .tabItem { Label(RootTab.devices.title, image: "ScaleDeviceTabIcon") }
+                .tabItem { Label(RootTab.devices.title(in: store.appLanguage), image: "ScaleDeviceTabIcon") }
                 .tag(RootTab.devices)
 
             ProfileView()
-                .tabItem { Label(RootTab.settings.title, systemImage: RootTab.settings.systemImage) }
+                .tabItem { Label(RootTab.settings.title(in: store.appLanguage), systemImage: RootTab.settings.systemImage) }
                 .tag(RootTab.settings)
         }
         .toolbar(.hidden, for: .tabBar)
         .safeAreaInset(edge: .bottom, spacing: 0) {
-            AppBottomNavigation(selection: $selection)
+            AppBottomNavigation(selection: $selection, language: store.appLanguage)
         }
         .ignoresSafeArea(.keyboard, edges: .bottom)
         .tint(AppColor.mint)
@@ -50,13 +50,13 @@ private enum RootTab: Int, CaseIterable, Identifiable {
 
     var id: Self { self }
 
-    var title: String {
+    func title(in language: AppLanguage) -> String {
         switch self {
-        case .home: "首页"
-        case .measure: "测量"
-        case .trends: "趋势"
-        case .devices: "设备"
-        case .settings: "设置"
+        case .home: language.text(.home)
+        case .measure: language.text(.measure)
+        case .trends: language.text(.trends)
+        case .devices: language.text(.devices)
+        case .settings: language.text(.settings)
         }
     }
 
@@ -73,6 +73,7 @@ private enum RootTab: Int, CaseIterable, Identifiable {
 
 private struct AppBottomNavigation: View {
     @Binding var selection: RootTab
+    let language: AppLanguage
 
     var body: some View {
         HStack(spacing: 0) {
@@ -108,7 +109,7 @@ private struct AppBottomNavigation: View {
                 tabIcon(tab)
                     .frame(width: 23, height: 23)
 
-                Text(tab.title)
+                Text(tab.title(in: language))
                     .font(.caption2.weight(isSelected ? .bold : .medium))
                     .lineLimit(1)
             }
@@ -120,8 +121,8 @@ private struct AppBottomNavigation: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .accessibilityLabel(tab.title)
-        .accessibilityValue(isSelected ? "当前页面" : "")
+        .accessibilityLabel(tab.title(in: language))
+        .accessibilityValue(isSelected ? language.text(.currentPage) : "")
         .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 

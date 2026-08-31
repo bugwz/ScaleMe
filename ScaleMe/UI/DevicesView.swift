@@ -315,11 +315,11 @@ private struct DeviceScannerView: View {
                 }
 
                 VStack(spacing: 6) {
-                    Text(scanTitle)
+                    Text(LocalizedStringKey(scanTitle))
                         .font(.title3.bold())
                         .foregroundStyle(AppColor.ink)
 
-                    Text(scanDescription)
+                    Text(LocalizedStringKey(scanDescription))
                         .font(.caption)
                         .foregroundStyle(AppColor.secondary)
                         .multilineTextAlignment(.center)
@@ -330,7 +330,7 @@ private struct DeviceScannerView: View {
                     Image(systemName: "info.circle.fill")
                         .foregroundStyle(AppColor.mint)
                         .font(.caption)
-                    Text(scanInformation)
+                    Text(LocalizedStringKey(scanInformation))
                         .font(.caption2)
                         .foregroundStyle(AppColor.secondary)
                         .lineSpacing(2)
@@ -711,7 +711,7 @@ private struct ScaleSettingsView: View {
         SettingsPanel(title: "连接状态", icon: "dot.radiowaves.left.and.right") {
             HStack(spacing: 14) {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(bluetooth.settingsState.title).font(.body.weight(.bold)).foregroundStyle(AppColor.ink)
+                    Text(LocalizedStringKey(bluetooth.settingsState.title)).font(.body.weight(.bold)).foregroundStyle(AppColor.ink)
                     Text("请踩亮或唤醒体重秤，并保持手机处于蓝牙接收范围内。")
                         .font(.caption).foregroundStyle(AppColor.secondary).lineSpacing(2)
                 }
@@ -764,7 +764,7 @@ private struct ScaleSettingsView: View {
                             Button {
                                 selectedHardwareUnit = unit
                             } label: {
-                                Text(unit.title)
+                                Text(LocalizedStringKey(unit.title))
                                     .font(.caption.weight(.semibold))
                                     .foregroundStyle(isSelected ? .white : AppColor.ink)
                                     .frame(maxWidth: .infinity)
@@ -961,10 +961,10 @@ private struct ScaleSettingsView: View {
                     .font(.subheadline)
                     .foregroundStyle(isSelected ? AppColor.mint : AppColor.secondary.opacity(0.35))
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(title)
+                    Text(LocalizedStringKey(title))
                         .font(.subheadline.weight(isSelected ? .semibold : .medium))
                         .foregroundStyle(AppColor.ink)
-                    Text(detail)
+                    Text(LocalizedStringKey(detail))
                         .font(.caption2)
                         .foregroundStyle(AppColor.secondary)
                 }
@@ -1204,8 +1204,8 @@ private struct CompatibilityRow: View {
         HStack(alignment: .top, spacing: 10) {
             Circle().fill(color).frame(width: 8, height: 8).padding(.top, 6)
             VStack(alignment: .leading, spacing: 3) {
-                Text(title).font(.subheadline.weight(.medium))
-                Text(detail).font(.caption).foregroundStyle(AppColor.secondary)
+                Text(LocalizedStringKey(title)).font(.subheadline.weight(.medium))
+                Text(LocalizedStringKey(detail)).font(.caption).foregroundStyle(AppColor.secondary)
             }
             Spacer()
             StatusPill(text: state, color: color)

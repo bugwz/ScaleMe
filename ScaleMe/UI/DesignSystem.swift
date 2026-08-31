@@ -80,7 +80,7 @@ struct ScaleDeviceLabel: View {
 
     var body: some View {
         Label {
-            Text(title)
+            Text(LocalizedStringKey(title))
         } icon: {
             Image("ScaleDeviceTabIcon")
                 .renderingMode(.template)
@@ -126,7 +126,7 @@ struct SettingsPanel<Content: View>: View {
                     .foregroundStyle(AppColor.mint)
                     .frame(width: 26, height: 26)
                     .background(AppColor.paleMint, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
-                Text(title)
+                Text(LocalizedStringKey(title))
                     .font(.headline)
                     .foregroundStyle(AppColor.ink)
             }
@@ -169,11 +169,11 @@ struct SettingsSwitch: View {
         } label: {
             HStack(alignment: .center, spacing: 14) {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(title)
+                    Text(LocalizedStringKey(title))
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(AppColor.ink)
                     if let detail {
-                        Text(detail)
+                        Text(LocalizedStringKey(detail))
                             .font(.caption)
                             .foregroundStyle(AppColor.secondary)
                             .fixedSize(horizontal: false, vertical: true)
@@ -216,7 +216,7 @@ struct SettingsChoiceBar<Option: Hashable>: View {
                         selection = option
                     }
                 } label: {
-                    Text(title(option))
+                    Text(LocalizedStringKey(title(option)))
                         .font(.subheadline.weight(selection == option ? .semibold : .medium))
                         .foregroundStyle(selection == option ? AppColor.ink : AppColor.secondary)
                         .frame(maxWidth: .infinity)
@@ -359,7 +359,7 @@ struct AppDropdownMenuLayer<Option: Hashable>: View {
                                             : AppColor.secondary.opacity(0.30)
                                     )
 
-                                Text(title(option))
+                                Text(LocalizedStringKey(title(option)))
                                     .font(.subheadline.weight(isSelected ? .semibold : .medium))
                                     .foregroundStyle(appearance == .compact && !isSelected ? AppColor.secondary : AppColor.ink)
 
@@ -493,11 +493,11 @@ struct DestructiveConfirmationOverlay: View {
                     )
 
                 VStack(spacing: 8) {
-                    Text(title)
+                    Text(LocalizedStringKey(title))
                         .font(.title3.weight(.bold))
                         .foregroundStyle(AppColor.ink)
 
-                    Text(message)
+                    Text(LocalizedStringKey(message))
                         .font(.subheadline)
                         .foregroundStyle(AppColor.secondary)
                         .multilineTextAlignment(.center)
@@ -661,7 +661,7 @@ struct SettingsValueRow: View {
 
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: 16) {
-            Text(title)
+            Text(LocalizedStringKey(title))
                 .font(.subheadline)
                 .foregroundStyle(AppColor.secondary)
                 .fixedSize(horizontal: true, vertical: false)

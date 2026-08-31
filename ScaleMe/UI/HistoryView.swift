@@ -214,7 +214,7 @@ struct HistoryView: View {
             VStack(spacing: 3) {
                 filterIcon(icon)
                     .frame(width: 24, height: 21)
-                Text(title)
+                Text(LocalizedStringKey(title))
                     .font(.caption2.weight(.semibold))
                     .lineLimit(1)
                     .minimumScaleFactor(0.75)
@@ -607,7 +607,7 @@ struct MeasurementDetailView: View {
     private func metricCard(title: String, metrics: [(String, String)]) -> some View {
         SoftCard {
             VStack(alignment: .leading, spacing: 0) {
-                Text(title).font(.headline).padding(.bottom, 4)
+                Text(LocalizedStringKey(title)).font(.headline).padding(.bottom, 4)
                 ForEach(Array(metrics.enumerated()), id: \.offset) { index, metric in
                     DetailRow(name: metric.0, value: metric.1, divider: index < metrics.count - 1)
                 }

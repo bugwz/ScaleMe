@@ -7,7 +7,7 @@ struct ProfileView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 24) {
-                    MainPageTitle(text: "设置")
+                    MainPageTitle(text: store.appLanguage.text(.settings))
                     memberSection
                     settingsSection
                 }
@@ -23,7 +23,7 @@ struct ProfileView: View {
     private var memberSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Text("用户信息")
+                Text(store.appLanguage.text(.userInformation))
                     .font(.title3.bold())
                     .foregroundStyle(AppColor.ink)
                 Spacer()
@@ -31,7 +31,7 @@ struct ProfileView: View {
             }
 
             NavigationLink {
-                MemberManagementView()
+                MemberManagementView(initialProfiles: store.displayProfiles)
             } label: {
                 VStack(spacing: 0) {
                     HStack(spacing: 16) {
@@ -86,7 +86,7 @@ struct ProfileView: View {
 
     private var settingsSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("应用设置")
+            Text(store.appLanguage.text(.appSettings))
                 .font(.title3.bold())
                 .foregroundStyle(AppColor.ink)
                 .accessibilityAddTraits(.isHeader)
@@ -95,31 +95,37 @@ struct ProfileView: View {
                 NavigationLink {
                     DisplaySettingsView()
                 } label: {
-                    settingsRow("显示设置", detail: "体重单位、连续称重与模拟数据", icon: "slider.horizontal.3", color: AppColor.mint)
+                    settingsRow(store.appLanguage.text(.displaySettings), detail: store.appLanguage.text(.displaySettingsDetail), icon: "slider.horizontal.3", color: AppColor.mint)
+                }
+                SettingsSeparator().padding(.leading, 68)
+                NavigationLink {
+                    LanguageSettingsView()
+                } label: {
+                    settingsRow(store.appLanguage.text(.language), detail: store.appLanguage.nativeName, icon: "globe", color: AppColor.mint)
                 }
                 SettingsSeparator().padding(.leading, 68)
                 NavigationLink {
                     DataSyncSettingsView()
                 } label: {
-                    settingsRow("数据同步", detail: "iCloud 配置与测量数据", icon: "icloud.fill", color: AppColor.sky)
+                    settingsRow(store.appLanguage.text(.dataSync), detail: store.appLanguage.text(.dataSyncDetail), icon: "icloud.fill", color: AppColor.sky)
                 }
                 SettingsSeparator().padding(.leading, 68)
                 NavigationLink {
                     CommunicationRulesView()
                 } label: {
-                    settingsRow("通信协议", detail: "设备识别与数据解析", icon: "point.3.connected.trianglepath.dotted", color: AppColor.violet)
+                    settingsRow(store.appLanguage.text(.communicationProtocol), detail: store.appLanguage.text(.communicationProtocolDetail), icon: "point.3.connected.trianglepath.dotted", color: AppColor.violet)
                 }
                 SettingsSeparator().padding(.leading, 68)
                 NavigationLink {
                     DeveloperDiagnosticsView()
                 } label: {
-                    settingsRow("开发诊断", detail: "输入响应计时与日志导出", icon: "wrench.and.screwdriver.fill", color: AppColor.apricot)
+                    settingsRow(store.appLanguage.text(.developerDiagnostics), detail: store.appLanguage.text(.developerDiagnosticsDetail), icon: "wrench.and.screwdriver.fill", color: AppColor.apricot)
                 }
                 SettingsSeparator().padding(.leading, 68)
                 NavigationLink {
                     AboutView()
                 } label: {
-                    settingsRow("关于观我", detail: "产品原则与版本信息", icon: "leaf.fill", color: AppColor.violet)
+                    settingsRow(store.appLanguage.text(.about), detail: store.appLanguage.text(.aboutDetail), icon: "leaf.fill", color: AppColor.violet)
                 }
             }
             .padding(.horizontal, 14)
@@ -158,6 +164,90 @@ struct ProfileView: View {
     }
 }
 
+private struct LanguageSettingsView: View {
+    @EnvironmentObject private var store: MeasurementStore
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 14) {
+                Text(store.appLanguage.text(.languageHint))
+                    .font(.subheadline)
+                    .foregroundStyle(AppColor.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.horizontal, 2)
+
+                VStack(spacing: 0) {
+                    ForEach(Array(AppLanguage.allCases.enumerated()), id: \.element.id) { index, language in
+                        languageButton(language)
+                        if index < AppLanguage.allCases.count - 1 {
+                            SettingsSeparator().padding(.leading, 58)
+                        }
+                    }
+                }
+                .padding(.horizontal, 14)
+                .background(.white.opacity(0.94))
+                .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: 24, style: .continuous).stroke(AppColor.mint.opacity(0.08)))
+            }
+            .padding(.horizontal, 18)
+            .padding(.top, 8)
+            .padding(.bottom, 28)
+        }
+        .pageBackground()
+        .navigationTitle(store.appLanguage.text(.languageSettings))
+        .navigationBarTitleDisplayMode(.inline)
+    }
+
+    private func languageButton(_ language: AppLanguage) -> some View {
+        let isSelected = store.appLanguage == language
+        return Button {
+            withAnimation(.easeInOut(duration: 0.18)) {
+                store.appLanguage = language
+            }
+        } label: {
+            HStack(spacing: 14) {
+                Image(systemName: "character.bubble.fill")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(isSelected ? AppColor.mint : AppColor.secondary)
+                    .frame(width: 36, height: 36)
+                    .background(
+                        isSelected ? AppColor.paleMint : AppColor.canvas,
+                        in: RoundedRectangle(cornerRadius: 11, style: .continuous)
+                    )
+
+                Text(language.nativeName)
+                    .font(.body.weight(isSelected ? .semibold : .regular))
+                    .foregroundStyle(AppColor.ink)
+
+                Spacer()
+
+                Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                    .font(.title3)
+                    .foregroundStyle(isSelected ? AppColor.mint : AppColor.secondary.opacity(0.35))
+            }
+            .padding(.vertical, 10)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(language.nativeName)
+        .accessibilityValue(isSelected ? store.appLanguage.text(.selected) : "")
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
+    }
+}
+
+private struct MemberDragState {
+    let profile: UserProfile
+    var location: CGPoint
+    let layoutStartCenter: CGPoint
+    var hitTestLocation: CGPoint
+    var grabOffset: CGSize
+    let rowSize: CGSize
+    let horizontalCenter: CGFloat
+    var pendingRelocationTargetID: UUID?
+    var isLifted = false
+    var isSettling = false
+}
+
 private struct MemberManagementView: View {
     @EnvironmentObject private var store: MeasurementStore
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -166,24 +256,37 @@ private struct MemberManagementView: View {
     @State private var searchText = ""
     @State private var showAddMember = false
     @State private var editingProfile: UserProfile?
+    @State private var profileOrder: [UUID]
     @State private var memberFrames: [UUID: CGRect] = [:]
     @State private var scrollViewportHeight: CGFloat = 0
-    @State private var draggingProfileID: UUID?
-    @State private var dragLocation: CGPoint?
-    @State private var dragGrabOffset: CGSize = .zero
-    @State private var dragRowSize: CGSize = .zero
-    @State private var hasResolvedDragTouch = false
-    @State private var pendingRelocationTargetID: UUID?
+    @State private var dragState: MemberDragState?
     @State private var dragActivationFeedback = 0
-    @State private var isDragLifted = false
-    @State private var isSettlingDrag = false
 
     private static let coordinateSpaceName = "memberManagement"
 
+    init(initialProfiles: [UserProfile]) {
+        _profileOrder = State(initialValue: initialProfiles.map(\.id))
+    }
+
+    private var draggingProfileID: UUID? {
+        dragState?.profile.id
+    }
+
+    private var orderedProfiles: [UserProfile] {
+        let profiles = store.displayProfiles
+        guard profileOrder.count == profiles.count,
+              Set(profileOrder) == Set(profiles.map(\.id)) else { return profiles }
+        let profilesByID = Dictionary(
+            profiles.map { ($0.id, $0) },
+            uniquingKeysWith: { current, _ in current }
+        )
+        return profileOrder.compactMap { profilesByID[$0] }
+    }
+
     private var filteredProfiles: [UserProfile] {
         let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !query.isEmpty else { return store.displayProfiles }
-        return store.displayProfiles.filter {
+        guard !query.isEmpty else { return orderedProfiles }
+        return orderedProfiles.filter {
             $0.name.localizedCaseInsensitiveContains(query)
                 || $0.relation.localizedCaseInsensitiveContains(query)
         }
@@ -191,7 +294,7 @@ private struct MemberManagementView: View {
 
     private var canReorder: Bool {
         searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-            && store.displayProfiles.count > 1
+            && orderedProfiles.count > 1
     }
 
     var body: some View {
@@ -244,13 +347,14 @@ private struct MemberManagementView: View {
         )
         .onPreferenceChange(MemberRowFramePreferenceKey.self) { frames in
             memberFrames = frames
-            if let draggedID = draggingProfileID,
-               let location = dragLocation,
-               frames[draggedID]?.contains(location) == true {
-                pendingRelocationTargetID = nil
+            if var state = dragState,
+               frames[state.profile.id]?.contains(state.hitTestLocation) == true,
+               state.pendingRelocationTargetID != nil {
+                state.pendingRelocationTargetID = nil
+                dragState = state
             }
-            if let draggedID = draggingProfileID, let location = dragLocation {
-                relocate(draggedID, to: location, using: frames)
+            if let state = dragState {
+                relocate(state.profile.id, to: state.hitTestLocation, using: frames)
             }
         }
         .onPreferenceChange(MemberScrollViewportHeightPreferenceKey.self) { scrollViewportHeight = $0 }
@@ -262,6 +366,10 @@ private struct MemberManagementView: View {
         .pageBackground()
         .navigationTitle("成员管理")
         .navigationBarTitleDisplayMode(.inline)
+        .onChange(of: store.displayProfiles.map(\.id)) { _, _ in
+            guard draggingProfileID == nil else { return }
+            synchronizeProfileOrder()
+        }
         .onDisappear {
             autoScroller.stop()
         }
@@ -289,7 +397,10 @@ private struct MemberManagementView: View {
         let isSelected = profile.id == store.displaySelectedProfileID
         let isDragging = draggingProfileID == profile.id
 
-        let row = memberRowSurface(profile, isSelected: isSelected)
+        let row = memberRowVisual(profile, isSelected: isSelected, showsActions: true)
+            .overlay {
+                memberRowActions(profile, isSelected: isSelected)
+            }
             .background(
                 GeometryReader { geo in
                     Color.clear.preference(
@@ -298,7 +409,7 @@ private struct MemberManagementView: View {
                     )
                 }
             )
-            .opacity(isDragging && isDragLifted ? 0.14 : 1)
+            .opacity(isDragging ? 0 : 1)
             .matchedGeometryEffect(id: profile.id, in: memberOrderAnimation)
             .transition(.identity)
             .contentShape(RoundedRectangle(cornerRadius: 19, style: .continuous))
@@ -318,50 +429,44 @@ private struct MemberManagementView: View {
         }
     }
 
-    private func memberRowSurface(_ profile: UserProfile, isSelected: Bool) -> some View {
+    private func memberRowVisual(
+        _ profile: UserProfile,
+        isSelected: Bool,
+        showsActions: Bool
+    ) -> some View {
         HStack(spacing: 10) {
-            Button {
-                store.selectDisplayProfile(profile.id)
-            } label: {
-                HStack(spacing: 14) {
-                    MemberAvatarView(avatar: profile.avatar, width: 52, height: 52)
-                    VStack(alignment: .leading, spacing: 4) {
-                        HStack(spacing: 7) {
-                            Text(profile.name)
-                                .font(.body.weight(.semibold))
-                                .foregroundStyle(AppColor.ink)
-                                .lineLimit(1)
-                            if isSelected { StatusPill(text: "当前") }
-                        }
-                        Text("\(profile.relation) · \(profile.heightCM.formatted(2)) cm · \(profile.age) 岁")
-                            .font(.caption)
-                            .foregroundStyle(AppColor.secondary)
+            HStack(spacing: 14) {
+                MemberAvatarView(avatar: profile.avatar, width: 52, height: 52)
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack(spacing: 7) {
+                        Text(profile.name)
+                            .font(.body.weight(.semibold))
+                            .foregroundStyle(AppColor.ink)
                             .lineLimit(1)
+                        if isSelected { StatusPill(text: "当前") }
                     }
-                    Spacer(minLength: 4)
+                    Text("\(profile.relation) · \(profile.heightCM.formatted(2)) cm · \(profile.age) 岁")
+                        .font(.caption)
+                        .foregroundStyle(AppColor.secondary)
+                        .lineLimit(1)
+                }
+                Spacer(minLength: 4)
+                if showsActions {
                     Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
                         .font(.title3)
                         .foregroundStyle(isSelected ? AppColor.mint : AppColor.secondary.opacity(0.38))
                 }
-                .contentShape(Rectangle())
             }
-            .buttonStyle(.plain)
-            .accessibilityLabel("选择\(profile.name)")
-            .accessibilityValue(isSelected ? "当前成员" : "")
 
-            SettingsSeparator()
-                .frame(width: 1, height: 32)
-            Button {
-                editingProfile = profile
-            } label: {
+            if showsActions {
+                SettingsSeparator()
+                    .frame(width: 1, height: 32)
                 Image(systemName: "pencil")
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(AppColor.mint)
                     .frame(width: 38, height: 38)
                     .background(AppColor.paleMint, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
             }
-            .buttonStyle(.plain)
-            .accessibilityLabel("编辑\(profile.name)的资料")
         }
         .padding(14)
         .background(isSelected ? AppColor.paleMint.opacity(0.72) : Color.white.opacity(0.94))
@@ -372,26 +477,59 @@ private struct MemberManagementView: View {
         )
     }
 
+    private func memberRowActions(_ profile: UserProfile, isSelected: Bool) -> some View {
+        HStack(spacing: 10) {
+            Button {
+                store.selectDisplayProfile(profile.id)
+            } label: {
+                Color.clear
+                    .contentShape(Rectangle())
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+            .buttonStyle(.plain)
+            .disabled(draggingProfileID != nil)
+            .accessibilityLabel("选择\(profile.name)")
+            .accessibilityValue(isSelected ? "当前成员" : "")
+
+            Color.clear
+                .frame(width: 1, height: 32)
+
+            Button {
+                editingProfile = profile
+            } label: {
+                Color.clear
+                    .frame(width: 38, height: 38)
+                    .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            }
+            .buttonStyle(.plain)
+            .disabled(draggingProfileID != nil)
+            .accessibilityLabel("编辑\(profile.name)的资料")
+        }
+        .padding(14)
+    }
+
     @ViewBuilder
     private var dragPreview: some View {
-        if let profileID = draggingProfileID,
-           let profile = store.displayProfiles.first(where: { $0.id == profileID }),
-           let location = dragLocation {
-            memberRowSurface(profile, isSelected: profile.id == store.displaySelectedProfileID)
-                .frame(width: dragRowSize.width, height: dragRowSize.height)
+        if let state = dragState {
+            memberRowVisual(
+                state.profile,
+                isSelected: state.profile.id == store.displaySelectedProfileID,
+                showsActions: false
+            )
                 .overlay(
                     RoundedRectangle(cornerRadius: 19, style: .continuous)
-                        .stroke(AppColor.mint.opacity(isDragLifted ? 0.8 : 0.3), lineWidth: 2)
+                        .stroke(AppColor.mint.opacity(state.isLifted ? 0.9 : 0.35), lineWidth: 2.5)
                 )
-                .scaleEffect(reduceMotion || isSettlingDrag || !isDragLifted ? 1 : 1.025)
+                .frame(width: state.rowSize.width, height: state.rowSize.height)
+                .scaleEffect(reduceMotion || state.isSettling || !state.isLifted ? 1 : 1.06)
                 .shadow(
-                    color: AppColor.mint.opacity(isDragLifted && !isSettlingDrag ? 0.24 : 0),
-                    radius: isDragLifted && !isSettlingDrag ? 16 : 0,
-                    y: isDragLifted && !isSettlingDrag ? 8 : 0
+                    color: AppColor.mint.opacity(state.isLifted && !state.isSettling ? 0.32 : 0),
+                    radius: state.isLifted && !state.isSettling ? 18 : 0,
+                    y: state.isLifted && !state.isSettling ? 10 : 0
                 )
                 .position(
-                    x: location.x - dragGrabOffset.width + dragRowSize.width / 2,
-                    y: location.y - dragGrabOffset.height + dragRowSize.height / 2
+                    x: state.horizontalCenter,
+                    y: state.location.y - state.grabOffset.height + state.rowSize.height / 2
                 )
                 .allowsHitTesting(false)
                 .zIndex(10)
@@ -399,7 +537,7 @@ private struct MemberManagementView: View {
     }
 
     private func reorderGesture(for profileID: UUID) -> some Gesture {
-        LongPressGesture(minimumDuration: 0.5, maximumDistance: 8)
+        LongPressGesture(minimumDuration: 0.55, maximumDistance: 8)
             .sequenced(
                 before: DragGesture(
                     minimumDistance: 0,
@@ -407,11 +545,11 @@ private struct MemberManagementView: View {
                 )
             )
             .onChanged { value in
-                guard canReorder, case .second(true, let drag) = value else { return }
-                activateDragging(profileID)
-                if let drag {
-                    updateDragging(profileID, with: drag)
-                }
+                guard canReorder,
+                      case .second(true, let drag) = value,
+                      let drag else { return }
+                activateDragging(profileID, with: drag)
+                updateDragging(profileID, with: drag)
             }
             .onEnded { _ in
                 if draggingProfileID == profileID {
@@ -420,91 +558,106 @@ private struct MemberManagementView: View {
             }
     }
 
-    private func activateDragging(_ profileID: UUID) {
-        guard draggingProfileID == nil, let frame = memberFrames[profileID] else { return }
-        KeyboardFocus.dismiss()
-        draggingProfileID = profileID
-        dragRowSize = frame.size
-        dragLocation = CGPoint(x: frame.midX, y: frame.midY)
-        dragGrabOffset = CGSize(width: frame.width / 2, height: frame.height / 2)
-        hasResolvedDragTouch = false
+    private func activateDragging(_ profileID: UUID, with drag: DragGesture.Value) {
+        guard dragState == nil,
+              let profile = orderedProfiles.first(where: { $0.id == profileID }),
+              let frame = memberFrames[profileID] else { return }
+        dragState = MemberDragState(
+            profile: profile,
+            location: drag.location,
+            layoutStartCenter: CGPoint(x: frame.midX, y: frame.midY),
+            hitTestLocation: CGPoint(x: frame.midX, y: frame.midY),
+            grabOffset: CGSize(width: frame.width / 2, height: frame.height / 2),
+            rowSize: frame.size,
+            horizontalCenter: frame.midX
+        )
         dragActivationFeedback += 1
         DispatchQueue.main.async {
-            guard draggingProfileID == profileID else { return }
+            guard var state = dragState, state.profile.id == profileID else { return }
+            state.isLifted = true
             withAnimation(.spring(response: 0.2, dampingFraction: 0.78)) {
-                isDragLifted = true
+                dragState = state
             }
         }
     }
 
     private func updateDragging(_ profileID: UUID, with drag: DragGesture.Value) {
-        guard draggingProfileID == profileID else { return }
-        if !hasResolvedDragTouch, let frame = memberFrames[profileID] {
-            dragGrabOffset = CGSize(
-                width: drag.location.x - frame.minX,
-                height: drag.location.y - frame.minY
-            )
-            hasResolvedDragTouch = true
-        }
-        dragLocation = drag.location
-        relocate(profileID, to: drag.location, using: memberFrames)
+        guard var state = dragState, state.profile.id == profileID else { return }
+        state.location = drag.location
+        state.hitTestLocation = CGPoint(
+            x: state.layoutStartCenter.x + drag.translation.width,
+            y: state.layoutStartCenter.y + drag.translation.height
+        )
+        dragState = state
+        relocate(profileID, to: state.hitTestLocation, using: memberFrames)
         autoScroller.update(fingerY: drag.location.y, viewportHeight: scrollViewportHeight)
     }
 
     private func relocate(_ profileID: UUID, to location: CGPoint, using frames: [UUID: CGRect]) {
         if frames[profileID]?.contains(location) == true { return }
-        let targetID = store.displayProfiles
-            .compactMap { profile -> (id: UUID, distance: CGFloat)? in
-                guard profile.id != profileID, let frame = frames[profile.id] else { return nil }
-                return (profile.id, abs(frame.midY - location.y))
-            }
-            .min { $0.distance < $1.distance }?
-            .id
-        guard let targetID, targetID != pendingRelocationTargetID else { return }
-        pendingRelocationTargetID = targetID
-        withAnimation(.snappy(duration: 0.16)) {
-            store.moveProfile(profileID, onto: targetID)
-        }
+        guard let targetID = orderedProfiles.first(where: {
+            $0.id != profileID && frames[$0.id]?.contains(location) == true
+        })?.id, targetID != dragState?.pendingRelocationTargetID else { return }
+        guard var state = dragState, state.profile.id == profileID else { return }
+        state.pendingRelocationTargetID = targetID
+        dragState = state
+        moveProfileLocally(profileID, onto: targetID)
     }
 
     private func moveProfile(_ profileID: UUID, by offset: Int) {
-        let profiles = store.displayProfiles
+        let profiles = orderedProfiles
         guard let sourceIndex = profiles.firstIndex(where: { $0.id == profileID }) else { return }
         let targetIndex = sourceIndex + offset
         guard profiles.indices.contains(targetIndex) else { return }
-        withAnimation(.snappy(duration: 0.16)) {
-            store.moveProfile(profileID, onto: profiles[targetIndex].id)
+        moveProfileLocally(profileID, onto: profiles[targetIndex].id)
+        commitProfileOrder()
+    }
+
+    private func moveProfileLocally(_ profileID: UUID, onto targetProfileID: UUID) {
+        var newOrder = orderedProfiles.map(\.id)
+        guard profileID != targetProfileID,
+              let targetIndex = newOrder.firstIndex(of: targetProfileID) else { return }
+        newOrder.removeAll { $0 == profileID }
+        newOrder.insert(profileID, at: min(targetIndex, newOrder.endIndex))
+        guard newOrder != profileOrder else { return }
+        withAnimation(reduceMotion ? .easeOut(duration: 0.12) : .snappy(duration: 0.22)) {
+            profileOrder = newOrder
         }
+    }
+
+    private func synchronizeProfileOrder() {
+        let currentOrder = store.displayProfiles.map(\.id)
+        guard profileOrder != currentOrder else { return }
+        profileOrder = currentOrder
+    }
+
+    private func commitProfileOrder() {
+        store.setDisplayProfileOrder(orderedProfiles.map(\.id))
     }
 
     private func finishDragging() {
         autoScroller.stop()
+        commitProfileOrder()
         guard !reduceMotion,
-              let profileID = draggingProfileID,
-              let destination = memberFrames[profileID] else {
+              var state = dragState,
+              let destination = memberFrames[state.profile.id] else {
             resetDragState()
             return
         }
+        state.isSettling = true
+        state.location = CGPoint(
+            x: destination.minX + state.grabOffset.width,
+            y: destination.minY + state.grabOffset.height
+        )
         withAnimation(.snappy(duration: 0.18), completionCriteria: .logicallyComplete) {
-            isSettlingDrag = true
-            dragLocation = CGPoint(
-                x: destination.minX + dragGrabOffset.width,
-                y: destination.minY + dragGrabOffset.height
-            )
+            dragState = state
         } completion: {
             resetDragState()
         }
     }
 
     private func resetDragState() {
-        draggingProfileID = nil
-        dragLocation = nil
-        dragGrabOffset = .zero
-        dragRowSize = .zero
-        hasResolvedDragTouch = false
-        pendingRelocationTargetID = nil
-        isDragLifted = false
-        isSettlingDrag = false
+        dragState = nil
     }
 
     private var emptySearchState: some View {

@@ -2,14 +2,6 @@ import Charts
 import SwiftUI
 import UIKit
 
-private struct MemberPagerOffsetPreferenceKey: PreferenceKey {
-    static var defaultValue: [UUID: CGFloat] = [:]
-
-    static func reduce(value: inout [UUID: CGFloat], nextValue: () -> [UUID: CGFloat]) {
-        value.merge(nextValue()) { _, new in new }
-    }
-}
-
 struct DashboardView: View {
     @EnvironmentObject private var store: MeasurementStore
     let onMeasure: (UUID) -> Void
@@ -26,8 +18,6 @@ struct DashboardView: View {
 
     @State private var selectedProfileID: UUID?
     @State private var isEditingMetrics = false
-    @State private var memberPageOffsets: [UUID: CGFloat] = [:]
-    @State private var memberPagerWidth: CGFloat = 1
 
     private var latest: BodyMeasurement { store.latest ?? MeasurementStore.demoMeasurements[0] }
 
@@ -83,21 +73,12 @@ struct DashboardView: View {
                     endPoint: .bottomTrailing
                 )
                 .frame(height: 590)
-                .opacity(backgroundVisibility(for: profile.id))
+                .opacity(profile.id == (selectedProfileID ?? store.displaySelectedProfileID) ? 1 : 0)
             }
         }
         .animation(.easeOut(duration: 0.22), value: selectedProfileID)
         .allowsHitTesting(false)
         .accessibilityHidden(true)
-    }
-
-    private func backgroundVisibility(for profileID: UUID) -> Double {
-        guard !memberPageOffsets.isEmpty else {
-            return profileID == (selectedProfileID ?? store.displaySelectedProfileID) ? 1 : 0
-        }
-        let distance = abs(memberPageOffsets[profileID] ?? memberPagerWidth * 2)
-        let visibility = max(CGFloat.zero, min(1, 1 - distance / max(memberPagerWidth, 1)))
-        return Double(visibility)
     }
 
     private var brandTitle: some View {
@@ -109,64 +90,37 @@ struct DashboardView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 0) {
-                Text("观我")
+                Text(store.appLanguage.text(.productName))
                     .font(.title2.bold())
                     .foregroundStyle(AppColor.ink)
-                Text("ScaleMe")
-                    .font(.caption2)
-                    .foregroundStyle(AppColor.secondary)
             }
             Spacer()
         }
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("观我 ScaleMe")
+        .accessibilityLabel(store.appLanguage.text(.productName))
     }
 
     private var memberPager: some View {
         VStack(spacing: 12) {
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 0) {
+                LazyHStack(spacing: 0) {
                     ForEach(store.displayProfiles) { profile in
                         memberCard(for: profile)
                             .padding(.horizontal, 18)
                             .containerRelativeFrame(.horizontal)
                             .id(profile.id)
-                            .background {
-                                GeometryReader { proxy in
-                                    Color.clear.preference(
-                                        key: MemberPagerOffsetPreferenceKey.self,
-                                        value: [
-                                            profile.id: proxy.frame(in: .named("dashboardMemberPager")).minX
-                                        ]
-                                    )
-                                }
-                            }
                             .scrollTransition(.interactive, axis: .horizontal) { content, phase in
                                 content
                                     .scaleEffect(phase.isIdentity ? 1.0 : 0.97)
-                                    .opacity(phase.isIdentity ? 1.0 : 0.88)
                             }
                     }
                 }
                 .scrollTargetLayout()
             }
-            .coordinateSpace(name: "dashboardMemberPager")
             .scrollTargetBehavior(.paging)
             .scrollPosition(id: $selectedProfileID)
             .frame(height: 410)
             .clipped()
-            .background {
-                GeometryReader { proxy in
-                    Color.clear
-                        .onAppear { memberPagerWidth = proxy.size.width }
-                        .onChange(of: proxy.size.width) { _, width in
-                            memberPagerWidth = width
-                        }
-                }
-            }
-            .onPreferenceChange(MemberPagerOffsetPreferenceKey.self) { offsets in
-                memberPageOffsets = offsets
-            }
 
             if store.displayProfiles.count > 1 {
                 HStack(spacing: 7) {
@@ -315,7 +269,7 @@ struct DashboardView: View {
                 }
             }
             .frame(width: 14, height: 14, alignment: .center)
-            Text(text)
+            Text(LocalizedStringKey(text))
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
         .frame(height: 14)
@@ -1045,7 +999,7 @@ private struct MetricTile: View {
                 Text(value).font(.title2.bold()).foregroundStyle(AppColor.ink)
                 Text(unit).font(.caption).foregroundStyle(AppColor.secondary)
             }
-            Text(title).font(.caption).foregroundStyle(AppColor.secondary)
+            Text(LocalizedStringKey(title)).font(.caption).foregroundStyle(AppColor.secondary)
             Text(source).font(.caption2).foregroundStyle(AppColor.secondary).lineLimit(1)
         }
         .padding(17).background(.white).clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))

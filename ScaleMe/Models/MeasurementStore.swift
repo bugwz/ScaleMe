@@ -8,6 +8,7 @@ final class MeasurementStore: ObservableObject {
     @Published private(set) var selectedProfileID: UUID { didSet { persistConfigurationIfNeeded() } }
     @Published private(set) var pairedScales: [PairedScale] { didSet { persistConfigurationIfNeeded() } }
     @Published var unit: WeightUnit { didSet { persistConfigurationIfNeeded() } }
+    @Published var appLanguage: AppLanguage { didSet { appLanguageDidChange() } }
     @Published var mergeFrequentMeasurements: Bool { didSet { persistConfigurationIfNeeded() } }
     @Published var isSimulationEnabled: Bool { didSet { simulationModeDidChange() } }
     @Published private(set) var customCommunicationRules: [CommunicationRule] { didSet { persistConfigurationIfNeeded() } }
@@ -48,7 +49,7 @@ final class MeasurementStore: ObservableObject {
             initialError = "无法初始化本地加密存储：\(error.localizedDescription)"
         }
 
-        let simulationData = SimulationDataSnapshot.make()
+        let simulationData = SimulationDataSnapshot.make(language: loadedConfiguration.appLanguage)
         persistenceWriter = loadedRepository.map(LocalPersistenceWriter.init(repository:))
         self.simulationData = simulationData
         simulationSelectedProfileID = simulationData.selectedProfileID
@@ -56,6 +57,7 @@ final class MeasurementStore: ObservableObject {
         selectedProfileID = loadedConfiguration.selectedProfileID
         pairedScales = loadedConfiguration.pairedScales
         unit = loadedConfiguration.unit
+        appLanguage = loadedConfiguration.appLanguage
         mergeFrequentMeasurements = loadedConfiguration.mergeFrequentMeasurements
         isSimulationEnabled = loadedConfiguration.isSimulationEnabled
         customCommunicationRules = loadedConfiguration.customCommunicationRules
@@ -73,6 +75,7 @@ final class MeasurementStore: ObservableObject {
             selectedProfileID: selectedProfileID,
             pairedScales: pairedScales,
             unit: unit,
+            appLanguage: appLanguage,
             mergeFrequentMeasurements: mergeFrequentMeasurements,
             isSimulationEnabled: isSimulationEnabled,
             customCommunicationRules: customCommunicationRules,
@@ -236,6 +239,25 @@ final class MeasurementStore: ObservableObject {
         moveProfile(profileID, onto: targetProfileID, in: &profiles)
     }
 
+    func setDisplayProfileOrder(_ orderedProfileIDs: [UUID]) {
+        let currentProfiles = displayProfiles
+        guard orderedProfileIDs.count == currentProfiles.count,
+              Set(orderedProfileIDs).count == orderedProfileIDs.count,
+              Set(orderedProfileIDs) == Set(currentProfiles.map(\.id)) else { return }
+        let profilesByID = Dictionary(
+            currentProfiles.map { ($0.id, $0) },
+            uniquingKeysWith: { current, _ in current }
+        )
+        let reorderedProfiles = orderedProfileIDs.compactMap { profilesByID[$0] }
+        guard reorderedProfiles != currentProfiles else { return }
+
+        if isSimulationEnabled {
+            simulationData.profiles = reorderedProfiles
+        } else {
+            profiles = reorderedProfiles
+        }
+    }
+
     private func moveProfile(_ profileID: UUID, onto targetProfileID: UUID, in profiles: inout [UserProfile]) {
         guard profileID != targetProfileID,
               let sourceIndex = profiles.firstIndex(where: { $0.id == profileID }),
@@ -375,6 +397,7 @@ final class MeasurementStore: ObservableObject {
             : configuration.profiles[0].id
         pairedScales = configuration.pairedScales
         unit = configuration.unit
+        appLanguage = configuration.appLanguage
         mergeFrequentMeasurements = configuration.mergeFrequentMeasurements
         isSimulationEnabled = configuration.isSimulationEnabled
         customCommunicationRules = configuration.customCommunicationRules
@@ -410,6 +433,12 @@ final class MeasurementStore: ObservableObject {
             simulationSelectedProfileID = simulationData.selectedProfileID
         }
         persistConfiguration()
+    }
+
+    private func appLanguageDidChange() {
+        simulationData = SimulationDataSnapshot.make(language: appLanguage)
+        simulationSelectedProfileID = simulationData.selectedProfileID
+        persistConfigurationIfNeeded()
     }
 
     private func addSimulationMeasurement(_ measurement: BodyMeasurement) {

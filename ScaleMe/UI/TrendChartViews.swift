@@ -56,7 +56,7 @@ struct TrendChartCard: View {
             VStack(alignment: .leading, spacing: 6) {
                 HStack(spacing: 8) {
                     Label {
-                        Text(metric.title)
+                        Text(LocalizedStringKey(metric.title))
                     } icon: {
                         trendMetricIcon(metric, size: 18)
                     }
@@ -278,7 +278,7 @@ struct TrendMetricDropdown: View {
                                     .foregroundStyle(metricTint(metric))
                                     .frame(width: 32, height: 32)
                                     .background(metricTint(metric).opacity(0.11), in: RoundedRectangle(cornerRadius: 9))
-                                Text(metric.title)
+                                Text(LocalizedStringKey(metric.title))
                                     .font(.subheadline.weight(.medium))
                                     .foregroundStyle(AppColor.ink)
                                 Spacer()
@@ -451,7 +451,7 @@ struct TrendTimeRangeDropdown: View {
                     .foregroundStyle(AppColor.mint)
                     .frame(width: 32, height: 32)
                     .background(AppColor.paleMint, in: RoundedRectangle(cornerRadius: 9))
-                Text(item.title)
+                Text(LocalizedStringKey(item.title))
                     .font(.subheadline.weight(.medium))
                     .foregroundStyle(AppColor.ink)
                 Spacer()
@@ -525,7 +525,7 @@ struct TrendTimeRangeDropdown: View {
             withAnimation(.easeOut(duration: 0.16)) { activeBoundary = boundary }
         } label: {
             VStack(alignment: .leading, spacing: 3) {
-                Text(title)
+                Text(LocalizedStringKey(title))
                     .font(.caption2)
                     .foregroundStyle(isActive ? AppColor.mint : AppColor.secondary)
                 Text(date, format: .dateTime.year().month().day())
@@ -685,10 +685,10 @@ struct TrendDisplayDropdown: View {
                     .frame(width: 32, height: 32)
                     .background(isSelected ? AppColor.mint : AppColor.paleMint, in: RoundedRectangle(cornerRadius: 9))
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(title)
+                    Text(LocalizedStringKey(title))
                         .font(.subheadline.weight(.medium))
                         .foregroundStyle(AppColor.ink)
-                    Text(subtitle)
+                    Text(LocalizedStringKey(subtitle))
                         .font(.caption2)
                         .foregroundStyle(AppColor.secondary)
                         .lineLimit(1)
@@ -722,7 +722,7 @@ struct TrendSingleChoiceDropdown<Value: Hashable>: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack {
-                Text(title)
+                Text(LocalizedStringKey(title))
                     .font(.headline)
                     .foregroundStyle(AppColor.ink)
                 Spacer()
@@ -756,11 +756,11 @@ struct TrendSingleChoiceDropdown<Value: Hashable>: View {
                                     .frame(width: 32, height: 32)
                                     .background(AppColor.paleMint, in: RoundedRectangle(cornerRadius: 9))
                                 VStack(alignment: .leading, spacing: 2) {
-                                    Text(option.title)
+                                    Text(LocalizedStringKey(option.title))
                                         .font(.subheadline.weight(.medium))
                                         .foregroundStyle(AppColor.ink)
                                     if let subtitle = option.subtitle {
-                                        Text(subtitle)
+                                        Text(LocalizedStringKey(subtitle))
                                             .font(.caption2)
                                             .foregroundStyle(AppColor.secondary)
                                             .lineLimit(1)

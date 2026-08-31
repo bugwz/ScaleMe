@@ -119,6 +119,7 @@ Protocol smoke test:
 
 ```sh
 swiftc -module-cache-path /tmp/scaleme-swift-module-cache \
+  ScaleMe/App/AppLanguage.swift \
   ScaleMe/Models/Models.swift \
   ScaleMe/Bluetooth/ScaleDiscoveryClassifier.swift \
   ScaleMe/Bluetooth/ScalePayloadParsers.swift \
@@ -128,6 +129,7 @@ swiftc -module-cache-path /tmp/scaleme-swift-module-cache \
 /tmp/scaleme-parser-smoke
 
 swiftc -module-cache-path /tmp/scaleme-swift-module-cache \
+  ScaleMe/App/AppLanguage.swift \
   ScaleMe/Models/Models.swift \
   ScaleMe/Bluetooth/ScaleDiscoveryClassifier.swift \
   ScaleMe/Bluetooth/ScalePayloadParsers.swift \
@@ -135,6 +137,27 @@ swiftc -module-cache-path /tmp/scaleme-swift-module-cache \
   Tests/CommunicationRuleSmoke.swift \
   -o /tmp/scaleme-rule-smoke
 /tmp/scaleme-rule-smoke
+
+swiftc -module-cache-path /tmp/scaleme-swift-module-cache \
+  ScaleMe/App/AppLanguage.swift \
+  ScaleMe/Models/Models.swift \
+  ScaleMe/Bluetooth/ScaleDiscoveryClassifier.swift \
+  ScaleMe/Bluetooth/ScalePayloadParsers.swift \
+  ScaleMe/Bluetooth/CommunicationRules.swift \
+  Tests/LocalizationSmoke.swift \
+  -o /tmp/scaleme-localization-smoke
+/tmp/scaleme-localization-smoke
+
+swiftc -module-cache-path /tmp/scaleme-swift-module-cache \
+  ScaleMe/App/AppLanguage.swift \
+  ScaleMe/Models/Models.swift \
+  ScaleMe/Bluetooth/ScaleDiscoveryClassifier.swift \
+  ScaleMe/Bluetooth/ScalePayloadParsers.swift \
+  ScaleMe/Bluetooth/CommunicationRules.swift \
+  ScaleMe/Models/SimulationData.swift \
+  Tests/SimulationDataSmoke.swift \
+  -o /tmp/scaleme-simulation-smoke
+/tmp/scaleme-simulation-smoke
 ```
 
 - Bluetooth discovery and measurement require a physical iPhone and real scale; simulator success is not hardware validation.
