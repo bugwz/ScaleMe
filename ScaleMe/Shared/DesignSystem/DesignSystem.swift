@@ -124,6 +124,7 @@ private struct LocalizedNavigationBackButtonModifier: ViewModifier {
     func body(content: Content) -> some View {
         content
             .navigationBarBackButtonHidden(true)
+            .background(InteractivePopGestureEnabler())
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button { dismiss() } label: {
@@ -131,6 +132,97 @@ private struct LocalizedNavigationBackButtonModifier: ViewModifier {
                     }
                 }
             }
+    }
+}
+
+/// Keeping a custom back button hidden disables UIKit's interactive pop gesture.
+/// Resolve the enclosing navigation controller and restore the native edge swipe
+/// while the destination is visible.
+private struct InteractivePopGestureEnabler: UIViewControllerRepresentable {
+    func makeCoordinator() -> Coordinator {
+        Coordinator()
+    }
+
+    func makeUIViewController(context: Context) -> NavigationControllerResolver {
+        let resolver = NavigationControllerResolver()
+        resolver.onResolve = context.coordinator.attach(to:)
+        return resolver
+    }
+
+    func updateUIViewController(_ controller: NavigationControllerResolver, context: Context) {
+        controller.onResolve = context.coordinator.attach(to:)
+        controller.resolveNavigationController()
+    }
+
+    static func dismantleUIViewController(
+        _ controller: NavigationControllerResolver,
+        coordinator: Coordinator
+    ) {
+        controller.onResolve = nil
+        coordinator.detach()
+    }
+
+    @MainActor
+    final class Coordinator: NSObject, UIGestureRecognizerDelegate {
+        private weak var navigationController: UINavigationController?
+        private weak var originalDelegate: UIGestureRecognizerDelegate?
+
+        func attach(to navigationController: UINavigationController) {
+            guard self.navigationController !== navigationController else {
+                navigationController.interactivePopGestureRecognizer?.isEnabled =
+                    navigationController.viewControllers.count > 1
+                return
+            }
+
+            detach()
+            self.navigationController = navigationController
+
+            guard let gestureRecognizer = navigationController.interactivePopGestureRecognizer else {
+                return
+            }
+            originalDelegate = gestureRecognizer.delegate
+            gestureRecognizer.delegate = self
+            gestureRecognizer.isEnabled = navigationController.viewControllers.count > 1
+        }
+
+        func detach() {
+            guard let gestureRecognizer = navigationController?.interactivePopGestureRecognizer else {
+                navigationController = nil
+                originalDelegate = nil
+                return
+            }
+            if gestureRecognizer.delegate === self {
+                gestureRecognizer.delegate = originalDelegate
+            }
+            navigationController = nil
+            originalDelegate = nil
+        }
+
+        func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+            guard let navigationController else { return false }
+            return navigationController.viewControllers.count > 1
+                && navigationController.transitionCoordinator == nil
+        }
+    }
+}
+
+@MainActor
+private final class NavigationControllerResolver: UIViewController {
+    var onResolve: ((UINavigationController) -> Void)?
+
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        resolveNavigationController()
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        resolveNavigationController()
+    }
+
+    func resolveNavigationController() {
+        guard let navigationController else { return }
+        onResolve?(navigationController)
     }
 }
 
