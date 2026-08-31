@@ -32,9 +32,11 @@ else {
 }
 
 context.interpolationQuality = .high
-context.setFillColor(CGColor(red: 0.965, green: 0.988, blue: 0.980, alpha: 1))
+context.setFillColor(CGColor(red: 1, green: 1, blue: 1, alpha: 1))
 context.fill(CGRect(x: 0, y: 0, width: 1024, height: 1024))
-context.draw(sourceImage, in: CGRect(x: 0, y: 0, width: 1024, height: 1024))
+context.setFillColor(CGColor(red: 1, green: 1, blue: 1, alpha: 1))
+context.fillEllipse(in: CGRect(x: 112, y: 112, width: 800, height: 800))
+context.draw(sourceImage, in: CGRect(x: 64, y: 64, width: 896, height: 896))
 
 guard
     let outputImage = context.makeImage(),
