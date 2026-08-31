@@ -190,19 +190,14 @@ private struct MemberManagementView: View {
     }
 
     private var canReorder: Bool {
-        !store.isSimulationEnabled
-            && searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-            && store.profiles.count > 1
+        searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            && store.displayProfiles.count > 1
     }
 
     var body: some View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 14) {
                 searchField
-
-                if store.isSimulationEnabled {
-                    simulationNotice
-                }
 
                 HStack {
                     Text(listTitle)
@@ -219,8 +214,6 @@ private struct MemberManagementView: View {
                             .background(AppColor.mint, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
                     }
                     .buttonStyle(.plain)
-                    .disabled(store.isSimulationEnabled)
-                    .opacity(store.isSimulationEnabled ? 0.45 : 1)
                     .accessibilityLabel("添加家庭成员")
                 }
 
@@ -291,15 +284,6 @@ private struct MemberManagementView: View {
         MemberSearchField(text: $searchText)
     }
 
-    private var simulationNotice: some View {
-        Label("模拟数据模式下可切换成员，但不能编辑或新增资料。", systemImage: "sparkles")
-            .font(.caption)
-            .foregroundStyle(AppColor.secondary)
-            .padding(12)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(AppColor.sky.opacity(0.10), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-    }
-
     @ViewBuilder
     private func memberRow(_ profile: UserProfile) -> some View {
         let isSelected = profile.id == store.displaySelectedProfileID
@@ -365,21 +349,19 @@ private struct MemberManagementView: View {
             .accessibilityLabel("选择\(profile.name)")
             .accessibilityValue(isSelected ? "当前成员" : "")
 
-            if !store.isSimulationEnabled {
-                SettingsSeparator()
-                    .frame(width: 1, height: 32)
-                Button {
-                    editingProfile = profile
-                } label: {
-                    Image(systemName: "pencil")
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(AppColor.mint)
-                        .frame(width: 38, height: 38)
-                        .background(AppColor.paleMint, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel("编辑\(profile.name)的资料")
+            SettingsSeparator()
+                .frame(width: 1, height: 32)
+            Button {
+                editingProfile = profile
+            } label: {
+                Image(systemName: "pencil")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(AppColor.mint)
+                    .frame(width: 38, height: 38)
+                    .background(AppColor.paleMint, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
             }
+            .buttonStyle(.plain)
+            .accessibilityLabel("编辑\(profile.name)的资料")
         }
         .padding(14)
         .background(isSelected ? AppColor.paleMint.opacity(0.72) : Color.white.opacity(0.94))
@@ -393,9 +375,9 @@ private struct MemberManagementView: View {
     @ViewBuilder
     private var dragPreview: some View {
         if let profileID = draggingProfileID,
-           let profile = store.profiles.first(where: { $0.id == profileID }),
+           let profile = store.displayProfiles.first(where: { $0.id == profileID }),
            let location = dragLocation {
-            memberRowSurface(profile, isSelected: profile.id == store.selectedProfileID)
+            memberRowSurface(profile, isSelected: profile.id == store.displaySelectedProfileID)
                 .frame(width: dragRowSize.width, height: dragRowSize.height)
                 .overlay(
                     RoundedRectangle(cornerRadius: 19, style: .continuous)
@@ -471,7 +453,7 @@ private struct MemberManagementView: View {
 
     private func relocate(_ profileID: UUID, to location: CGPoint, using frames: [UUID: CGRect]) {
         if frames[profileID]?.contains(location) == true { return }
-        let targetID = store.profiles
+        let targetID = store.displayProfiles
             .compactMap { profile -> (id: UUID, distance: CGFloat)? in
                 guard profile.id != profileID, let frame = frames[profile.id] else { return nil }
                 return (profile.id, abs(frame.midY - location.y))
@@ -486,11 +468,12 @@ private struct MemberManagementView: View {
     }
 
     private func moveProfile(_ profileID: UUID, by offset: Int) {
-        guard let sourceIndex = store.profiles.firstIndex(where: { $0.id == profileID }) else { return }
+        let profiles = store.displayProfiles
+        guard let sourceIndex = profiles.firstIndex(where: { $0.id == profileID }) else { return }
         let targetIndex = sourceIndex + offset
-        guard store.profiles.indices.contains(targetIndex) else { return }
+        guard profiles.indices.contains(targetIndex) else { return }
         withAnimation(.snappy(duration: 0.16)) {
-            store.moveProfile(profileID, onto: store.profiles[targetIndex].id)
+            store.moveProfile(profileID, onto: profiles[targetIndex].id)
         }
     }
 
@@ -877,7 +860,7 @@ private struct MemberEditorView: View {
 
     @ViewBuilder
     private var deletePanel: some View {
-        if !isNew, store.profiles.count > 1 {
+        if !isNew, store.displayProfiles.count > 1 {
             SettingsPanel(title: "成员管理", icon: "person.crop.circle.badge.minus") {
                 Button {
                     showDeleteConfirmation()

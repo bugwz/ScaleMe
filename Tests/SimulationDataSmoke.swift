@@ -17,6 +17,8 @@ enum SimulationDataSmoke {
                      "every family character should appear exactly once in simulation")
         precondition(Set(first.profiles.map(\.name)).count == first.profiles.count,
                      "simulated family members should have distinct names")
+        precondition(first.profiles.first?.relation == "爸爸", "爸爸必须是首位模拟成员")
+        precondition(first.selectedProfileID == first.profiles.first?.id, "默认应选中爸爸")
         precondition(first.pairedScales.count == 2, "simulation should include multiple scales")
         precondition(first.measurements == second.measurements, "simulation must be deterministic for a reference date")
         precondition(first.measurements.count > 1_300, "simulation should provide dense year-long history")
@@ -40,6 +42,20 @@ enum SimulationDataSmoke {
         precondition(first.profiles.allSatisfy { expectedRelations[$0.avatar] == $0.relation },
                      "simulated names, relations, and character roles should agree")
 
+        let ages = Dictionary(uniqueKeysWithValues: first.profiles.map { profile in
+            let age = calendar.dateComponents([.year], from: profile.birthDate, to: referenceDate).year ?? 0
+            return (profile.relation, age)
+        })
+        precondition(ages["爸爸"] == 45, "爸爸的模拟年龄应为 45 岁")
+        precondition(ages["妈妈"] == 42, "妈妈的模拟年龄应为 42 岁")
+        let oldestChildAge = max(ages["青少年儿子"] ?? 0, ages["青少年女儿"] ?? 0)
+        precondition((ages["爸爸"] ?? 0) - oldestChildAge >= 18, "爸爸与最年长孩子的年龄差必须合理")
+        precondition((ages["妈妈"] ?? 0) - oldestChildAge >= 18, "妈妈与最年长孩子的年龄差必须合理")
+        precondition((ages["爷爷"] ?? 0) - (ages["爸爸"] ?? 0) >= 18, "爷爷与爸爸的年龄差必须合理")
+        precondition((ages["奶奶"] ?? 0) - (ages["爸爸"] ?? 0) >= 18, "奶奶与爸爸的年龄差必须合理")
+        precondition((ages["外公"] ?? 0) - (ages["妈妈"] ?? 0) >= 18, "外公与妈妈的年龄差必须合理")
+        precondition((ages["外婆"] ?? 0) - (ages["妈妈"] ?? 0) >= 18, "外婆与妈妈的年龄差必须合理")
+
         let start = calendar.date(byAdding: .day, value: -365, to: referenceDate) ?? .distantPast
         precondition(first.measurements.allSatisfy { $0.date >= start && $0.date <= referenceDate },
                      "all simulated records must stay within the previous year")
@@ -47,6 +63,20 @@ enum SimulationDataSmoke {
                      "every simulated member should have measurements")
         precondition(Set(first.measurements.compactMap(\.deviceID)) == Set(first.pairedScales.map(\.id)),
                      "every simulated scale should appear in measurement history")
+
+        for profile in first.profiles {
+            let measurements = first.measurements.filter { $0.profileID == profile.id }
+            precondition(!measurements.isEmpty, "每位模拟成员都必须有测量记录：\(profile.name)")
+            for measurement in measurements {
+                for metric in DashboardMetricKind.allCases {
+                    precondition(
+                        metric.value(in: measurement) != nil,
+                        "模拟记录缺少 \(metric.title)：\(profile.name)"
+                    )
+                }
+                precondition(measurement.impedanceOhm != nil, "模拟记录缺少生物电阻抗：\(profile.name)")
+            }
+        }
 
         let minutes = Set(first.measurements.map {
             let components = calendar.dateComponents([.hour, .minute], from: $0.date)
@@ -63,34 +93,6 @@ enum SimulationDataSmoke {
             Int(abs($0.date.timeIntervalSince($1.date)))
         }
         precondition(Set(intervals).count > 50, "measurement intervals should vary")
-
-        let realProfile = UserProfile(
-            name: "真实姓名", relation: "本人", heightCM: 181,
-            biologicalSex: .male
-        )
-        let realMeasurement = BodyMeasurement(
-            date: referenceDate.addingTimeInterval(-3_600),
-            weightKG: 82.4,
-            bodyFatPercent: 21.3,
-            source: .manual,
-            isStable: true,
-            profileID: realProfile.id
-        )
-        let calibrated = SimulationDataSnapshot.make(
-            referenceDate: referenceDate,
-            calendar: calendar,
-            calibrationProfile: realProfile,
-            calibrationMeasurement: realMeasurement
-        )
-        let simulatedProfile = calibrated.profiles[0]
-        let latestSimulatedWeight = calibrated.measurements
-            .first(where: { $0.profileID == simulatedProfile.id })?.weightKG ?? 0
-        precondition(simulatedProfile.name != realProfile.name && simulatedProfile.id != realProfile.id,
-                     "calibration must not copy real identity")
-        precondition(simulatedProfile.heightCM == realProfile.heightCM,
-                     "primary simulated member should use the real profile's body baseline")
-        precondition(abs(latestSimulatedWeight - realMeasurement.weightKG) < 1.5,
-                     "simulated recent weight should stay close to the user's real baseline")
         print("Simulation data smoke tests passed (\(first.measurements.count) records)")
     }
 }

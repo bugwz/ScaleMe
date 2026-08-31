@@ -34,8 +34,7 @@ struct MemberAvatarView: View {
         case .father: AppColor.mint
         case .senior: AppColor.violet
         case .paternalGrandfather: AppColor.violet
-        case .maternalGrandfather: AppColor.sky
-        case .maternalGrandmother: AppColor.rose
+        case .maternalGrandfather, .maternalGrandmother: AppColor.rose
         }
     }
 

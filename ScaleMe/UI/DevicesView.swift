@@ -8,6 +8,44 @@ private struct ScaleProtocolMenuAnchorKey: PreferenceKey {
     }
 }
 
+private struct ScannerDevice: Identifiable, Hashable {
+    let id: UUID
+    let name: String
+    let modelName: String
+    let rssi: Int
+    let compatibility: String
+    let discoveryPriority: Int
+    let isVerifiedCompatible: Bool
+
+    init(
+        id: UUID,
+        name: String,
+        modelName: String,
+        rssi: Int,
+        compatibility: String,
+        discoveryPriority: Int,
+        isVerifiedCompatible: Bool
+    ) {
+        self.id = id
+        self.name = name
+        self.modelName = modelName
+        self.rssi = rssi
+        self.compatibility = compatibility
+        self.discoveryPriority = discoveryPriority
+        self.isVerifiedCompatible = isVerifiedCompatible
+    }
+
+    init(discoveredScale: DiscoveredScale) {
+        id = discoveredScale.id
+        name = discoveredScale.name
+        modelName = discoveredScale.name
+        rssi = discoveredScale.rssi
+        compatibility = discoveredScale.compatibility
+        discoveryPriority = discoveredScale.discoveryPriority
+        isVerifiedCompatible = discoveredScale.isVerifiedCompatible
+    }
+}
+
 struct DevicesView: View {
     @EnvironmentObject private var store: MeasurementStore
 
@@ -53,7 +91,9 @@ struct DevicesView: View {
                         Text("添加设备")
                             .font(.headline.weight(.bold))
                             .foregroundStyle(AppColor.ink)
-                        Text("扫描并关联附近的体重秤或体脂秤")
+                        Text(store.isSimulationEnabled
+                             ? "演示扫描并关联预设模拟设备"
+                             : "扫描并关联附近的体重秤或体脂秤")
                             .font(.caption)
                             .foregroundStyle(AppColor.secondary)
                     }
@@ -72,7 +112,6 @@ struct DevicesView: View {
             .shadow(color: AppColor.mint.opacity(0.08), radius: 14, y: 6)
         }
         .buttonStyle(.plain)
-        .disabled(store.isSimulationEnabled)
     }
 
     private var deviceSection: some View {
@@ -164,7 +203,6 @@ struct DevicesView: View {
             .shadow(color: accentColor.opacity(0.06), radius: 12, y: 4)
         }
         .buttonStyle(.plain)
-        .disabled(store.isSimulationEnabled)
     }
 }
 
@@ -175,6 +213,39 @@ private struct DeviceScannerView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var showsOtherDevices = false
     @State private var isPulsing = false
+    @State private var simulatedDevices: [ScannerDevice] = []
+    @State private var isSimulatedScanRunning = false
+    @State private var simulatedScanTask: Task<Void, Never>?
+
+    private static let simulatedCandidates = [
+        ScannerDevice(
+            id: UUID(uuidString: "A37A9793-8B8A-4E8F-A1CA-A926D2D7D101") ?? UUID(),
+            name: "客厅智能体脂秤",
+            modelName: "ScaleMe Demo Fit S1",
+            rssi: -47,
+            compatibility: "模拟设备",
+            discoveryPriority: 0,
+            isVerifiedCompatible: true
+        ),
+        ScannerDevice(
+            id: UUID(uuidString: "A37A9793-8B8A-4E8F-A1CA-A926D2D7D102") ?? UUID(),
+            name: "旅行便携体重秤",
+            modelName: "ScaleMe Demo Mini",
+            rssi: -63,
+            compatibility: "模拟设备",
+            discoveryPriority: 1,
+            isVerifiedCompatible: true
+        ),
+        ScannerDevice(
+            id: UUID(uuidString: "A37A9793-8B8A-4E8F-A1CA-A926D2D7D103") ?? UUID(),
+            name: "附近的健康设备",
+            modelName: "Demo BLE Device",
+            rssi: -79,
+            compatibility: "协议待验证",
+            discoveryPriority: 2,
+            isVerifiedCompatible: false
+        )
+    ]
 
     var body: some View {
         ScrollView {
@@ -189,7 +260,7 @@ private struct DeviceScannerView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Button { bluetooth.startScanning() } label: {
+                Button(action: startScan) {
                     Image(systemName: "arrow.clockwise")
                         .font(.body.weight(.semibold))
                         .foregroundStyle(AppColor.mint)
@@ -198,10 +269,15 @@ private struct DeviceScannerView: View {
             }
         }
         .onAppear {
-            bluetooth.startScanning()
             isPulsing = true
+            startScan()
         }
-        .onDisappear { bluetooth.stopScanning() }
+        .onDisappear {
+            simulatedScanTask?.cancel()
+            if !store.isSimulationEnabled {
+                bluetooth.stopScanning()
+            }
+        }
     }
 
     private var scanArea: some View {
@@ -243,7 +319,7 @@ private struct DeviceScannerView: View {
                         .font(.title3.bold())
                         .foregroundStyle(AppColor.ink)
 
-                    Text("正在搜索附近的低功耗蓝牙设备。部分体重秤只有踩亮屏幕或站上去后才会广播。")
+                    Text(scanDescription)
                         .font(.caption)
                         .foregroundStyle(AppColor.secondary)
                         .multilineTextAlignment(.center)
@@ -254,7 +330,7 @@ private struct DeviceScannerView: View {
                     Image(systemName: "info.circle.fill")
                         .foregroundStyle(AppColor.mint)
                         .font(.caption)
-                    Text("标准 BLE Weight 协议及已知的小米广播设备会优先置顶，其余设备需验证兼容性。")
+                    Text(scanInformation)
                         .font(.caption2)
                         .foregroundStyle(AppColor.secondary)
                         .lineSpacing(2)
@@ -262,9 +338,9 @@ private struct DeviceScannerView: View {
                 .padding(12)
                 .background(AppColor.paleMint.opacity(0.6), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
 
-                if bluetooth.devices.isEmpty {
-                    if case .unavailable = bluetooth.state {
-                        Button { bluetooth.startScanning() } label: {
+                if scannerDevices.isEmpty {
+                    if !store.isSimulationEnabled, case .unavailable = bluetooth.state {
+                        Button(action: startScan) {
                             Label("重试扫描", systemImage: "arrow.clockwise")
                                 .font(.subheadline.weight(.semibold))
                                 .foregroundStyle(.white)
@@ -276,7 +352,7 @@ private struct DeviceScannerView: View {
                     } else {
                         VStack(spacing: 8) {
                             ProgressView().tint(AppColor.mint)
-                            Text("暂未发现设备，请唤醒体重秤并靠近手机")
+                            Text(store.isSimulationEnabled ? "正在载入预设模拟设备" : "暂未发现设备，请唤醒体重秤并靠近手机")
                                 .font(.caption2)
                                 .foregroundStyle(AppColor.secondary)
                         }
@@ -291,16 +367,39 @@ private struct DeviceScannerView: View {
     }
 
     private var scanTitle: String {
+        if store.isSimulationEnabled {
+            return isSimulatedScanRunning ? "正在扫描模拟设备" : "已发现模拟设备"
+        }
         if case .unavailable(let reason) = bluetooth.state { return reason }
         return "正在扫描周围设备"
     }
 
-    private var likelyScaleDevices: [DiscoveredScale] {
-        bluetooth.devices.filter { $0.discoveryPriority < 2 }
+    private var scanDescription: String {
+        if store.isSimulationEnabled {
+            return "正在演示设备发现流程。这里显示的都是预设内容，不会搜索、连接或操作附近的真实设备。"
+        }
+        return "正在搜索附近的低功耗蓝牙设备。部分体重秤只有踩亮屏幕或站上去后才会广播。"
     }
 
-    private var otherDevices: [DiscoveredScale] {
-        bluetooth.devices.filter { $0.discoveryPriority == 2 }
+    private var scanInformation: String {
+        store.isSimulationEnabled
+            ? "关联后的模拟设备只保存在应用内存中，重新打开应用后会恢复初始模拟设备。"
+            : "标准 BLE Weight 协议及已知的小米广播设备会优先置顶，其余设备需验证兼容性。"
+    }
+
+    private var scannerDevices: [ScannerDevice] {
+        if store.isSimulationEnabled {
+            return simulatedDevices
+        }
+        return bluetooth.devices.map(ScannerDevice.init(discoveredScale:))
+    }
+
+    private var likelyScaleDevices: [ScannerDevice] {
+        scannerDevices.filter { $0.discoveryPriority < 2 }
+    }
+
+    private var otherDevices: [ScannerDevice] {
+        scannerDevices.filter { $0.discoveryPriority == 2 }
     }
 
     private var discoveryResults: some View {
@@ -349,7 +448,7 @@ private struct DeviceScannerView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
-    private func deviceRows(_ devices: [DiscoveredScale]) -> some View {
+    private func deviceRows(_ devices: [ScannerDevice]) -> some View {
         VStack(spacing: 10) {
             ForEach(devices) { device in
                 discoveredRow(device)
@@ -357,8 +456,8 @@ private struct DeviceScannerView: View {
         }
     }
 
-    private func discoveredRow(_ device: DiscoveredScale) -> some View {
-        let existing = store.pairedScales.contains { $0.id == device.id }
+    private func discoveredRow(_ device: ScannerDevice) -> some View {
+        let existing = store.displayPairedScales.contains { $0.id == device.id }
         let accent = device.isVerifiedCompatible ? AppColor.mint : AppColor.sky
 
         return HStack(spacing: 12) {
@@ -385,10 +484,12 @@ private struct DeviceScannerView: View {
                 store.addScale(PairedScale(
                     id: device.id,
                     name: device.name,
-                    modelName: device.name,
+                    modelName: device.modelName,
                     compatibility: device.compatibility
                 ))
-                bluetooth.updatePairedScales(store.pairedScales, communicationRules: store.communicationRules)
+                if !store.isSimulationEnabled {
+                    bluetooth.updatePairedScales(store.pairedScales, communicationRules: store.communicationRules)
+                }
                 dismiss()
             } label: {
                 Text(existing ? "已绑定" : "关联")
@@ -419,6 +520,25 @@ private struct DeviceScannerView: View {
         if rssi >= -78 { return "信号中等" }
         return "信号较弱"
     }
+
+    private func startScan() {
+        showsOtherDevices = false
+        if store.isSimulationEnabled {
+            simulatedScanTask?.cancel()
+            simulatedDevices = []
+            isSimulatedScanRunning = true
+            simulatedScanTask = Task { @MainActor in
+                try? await Task.sleep(for: reduceMotion ? .milliseconds(180) : .milliseconds(1_100))
+                guard !Task.isCancelled else { return }
+                withAnimation(.easeOut(duration: reduceMotion ? 0 : 0.24)) {
+                    simulatedDevices = Self.simulatedCandidates
+                    isSimulatedScanRunning = false
+                }
+            }
+        } else {
+            bluetooth.startScanning()
+        }
+    }
 }
 
 private struct ScaleSettingsView: View {
@@ -430,7 +550,7 @@ private struct ScaleSettingsView: View {
     @State private var selectedHardwareUnit = XiaomiScaleHardwareUnit.kilograms
     @State private var showsProtocolMenu = false
 
-    private var scale: PairedScale? { store.pairedScales.first { $0.id == scaleID } }
+    private var scale: PairedScale? { store.displayPairedScales.first { $0.id == scaleID } }
 
     var body: some View {
         ScrollView {
@@ -496,7 +616,7 @@ private struct ScaleSettingsView: View {
         .navigationTitle("设备设置")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
-            if let scale { bluetooth.inspectSettings(for: scale) }
+            if let scale, !store.isSimulationEnabled { bluetooth.inspectSettings(for: scale) }
         }
         .onDisappear { bluetooth.endSettingsInspection() }
         .onChange(of: bluetooth.settingsSnapshot.hardwareUnit) { _, unit in
@@ -541,7 +661,9 @@ private struct ScaleSettingsView: View {
     private func deleteScale() {
         confirmDelete = false
         store.removeScale(scaleID)
-        bluetooth.updatePairedScales(store.pairedScales, communicationRules: store.communicationRules)
+        if !store.isSimulationEnabled {
+            bluetooth.updatePairedScales(store.pairedScales, communicationRules: store.communicationRules)
+        }
         dismiss()
     }
 
@@ -619,7 +741,9 @@ private struct ScaleSettingsView: View {
             if let scale {
                 ScaleNameEditor(scaleID: scaleID, initialName: scale.name) { updatedName in
                     store.renameScale(scaleID, name: updatedName)
-                    bluetooth.updatePairedScales(store.pairedScales, communicationRules: store.communicationRules)
+                    if !store.isSimulationEnabled {
+                        bluetooth.updatePairedScales(store.pairedScales, communicationRules: store.communicationRules)
+                    }
                 }
                 .equatable()
             }
@@ -863,7 +987,9 @@ private struct ScaleSettingsView: View {
             showsProtocolMenu = false
         }
         store.setCommunicationRule(ruleID, for: scaleID)
-        bluetooth.updatePairedScales(store.pairedScales, communicationRules: store.communicationRules)
+        if !store.isSimulationEnabled {
+            bluetooth.updatePairedScales(store.pairedScales, communicationRules: store.communicationRules)
+        }
     }
 
     @ViewBuilder

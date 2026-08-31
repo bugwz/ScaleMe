@@ -1,16 +1,14 @@
 import Foundation
 
 struct SimulationDataSnapshot {
-    let profiles: [UserProfile]
-    let selectedProfileID: UUID
-    let pairedScales: [PairedScale]
-    let measurements: [BodyMeasurement]
+    var profiles: [UserProfile]
+    var selectedProfileID: UUID
+    var pairedScales: [PairedScale]
+    var measurements: [BodyMeasurement]
 
     static func make(
         referenceDate: Date = .now,
-        calendar: Calendar = .current,
-        calibrationProfile: UserProfile? = nil,
-        calibrationMeasurement: BodyMeasurement? = nil
+        calendar: Calendar = .current
     ) -> Self {
         var random = SeededSimulationRandom(seed: 0x5CA1_E5E5_2026_0830)
         let today = calendar.startOfDay(for: referenceDate)
@@ -33,27 +31,20 @@ struct SimulationDataSnapshot {
             )
         ]
 
-        let calibratedEndWeightKG = calibrationMeasurement?.weightKG ?? 59.2
-        let calibratedBodyFatPercent = calibrationMeasurement?.bodyFatPercent
-            ?? (calibrationProfile?.biologicalSex == .male ? 19.2 : 26.1)
         let memberSeeds = [
             SimulationMemberSeed(
-                name: "沈知夏", relation: "妈妈",
-                heightCM: calibrationProfile?.heightCM ?? 165,
-                age: calibrationProfile?.age ?? 36,
-                sex: calibrationProfile?.biologicalSex ?? .female,
-                avatar: .adult,
-                specification: SimulationProfileSpecification(
-                    startWeightKG: calibratedEndWeightKG + 2.6,
-                    endWeightKG: calibratedEndWeightKG,
-                    bodyFatPercent: calibratedBodyFatPercent
-                )
-            ),
-            SimulationMemberSeed(
-                name: "林远舟", relation: "爸爸", heightCM: 178, age: 39,
+                name: "林远舟", relation: "爸爸", heightCM: 178, age: 45,
                 sex: .male, avatar: .father,
                 specification: SimulationProfileSpecification(
                     startWeightKG: 78.5, endWeightKG: 76.8, bodyFatPercent: 20.1
+                )
+            ),
+            SimulationMemberSeed(
+                name: "沈知夏", relation: "妈妈", heightCM: 165, age: 42,
+                sex: .female,
+                avatar: .adult,
+                specification: SimulationProfileSpecification(
+                    startWeightKG: 61.8, endWeightKG: 59.2, bodyFatPercent: 26.1
                 )
             ),
             SimulationMemberSeed(
@@ -89,7 +80,7 @@ struct SimulationDataSnapshot {
                 )
             ),
             SimulationMemberSeed(
-                name: "周秀琴", relation: "奶奶", heightCM: 158, age: 68,
+                name: "周秀琴", relation: "奶奶", heightCM: 158, age: 72,
                 sex: .female, avatar: .senior,
                 specification: SimulationProfileSpecification(
                     startWeightKG: 61.8, endWeightKG: 61.2, bodyFatPercent: 31.8,
@@ -97,7 +88,7 @@ struct SimulationDataSnapshot {
                 )
             ),
             SimulationMemberSeed(
-                name: "林国安", relation: "爷爷", heightCM: 170, age: 71,
+                name: "林国安", relation: "爷爷", heightCM: 170, age: 74,
                 sex: .male, avatar: .paternalGrandfather,
                 specification: SimulationProfileSpecification(
                     startWeightKG: 69.8, endWeightKG: 68.9, bodyFatPercent: 24.1,
@@ -105,7 +96,7 @@ struct SimulationDataSnapshot {
                 )
             ),
             SimulationMemberSeed(
-                name: "沈明德", relation: "外公", heightCM: 168, age: 69,
+                name: "沈明德", relation: "外公", heightCM: 168, age: 71,
                 sex: .male, avatar: .maternalGrandfather,
                 specification: SimulationProfileSpecification(
                     startWeightKG: 72.2, endWeightKG: 71.1, bodyFatPercent: 23.3,
@@ -113,7 +104,7 @@ struct SimulationDataSnapshot {
                 )
             ),
             SimulationMemberSeed(
-                name: "唐兰芳", relation: "外婆", heightCM: 157, age: 67,
+                name: "唐兰芳", relation: "外婆", heightCM: 157, age: 69,
                 sex: .female, avatar: .maternalGrandmother,
                 specification: SimulationProfileSpecification(
                     startWeightKG: 59.5, endWeightKG: 58.9, bodyFatPercent: 32.2,
@@ -264,21 +255,21 @@ struct SimulationDataSnapshot {
         let fatFreeMassKG = weightKG * (1 - bodyFatPercent / 100)
         let muscleMassKG = fatFreeMassKG * (profile.biologicalSex == .male ? 0.94 : 0.91)
         let deviceID = random.nextUnit() < 0.84 ? primaryScaleID : secondaryScaleID
-        let hasBodyComposition = deviceID == primaryScaleID
 
         result.append(BodyMeasurement(
             id: random.uuid(),
             date: date,
             weightKG: weightKG,
-            impedanceOhm: hasBodyComposition ? 485 + random.nextGaussianish() * 22 : nil,
-            bodyFatPercent: hasBodyComposition ? bodyFatPercent : nil,
-            muscleMassKG: hasBodyComposition ? muscleMassKG : nil,
-            waterPercent: hasBodyComposition ? waterPercent : nil,
-            visceralFat: hasBodyComposition ? max(3, (bodyFatPercent - 12) * 0.42) : nil,
-            basalMetabolismKCal: hasBodyComposition
-                ? 10 * weightKG + 6.25 * profile.heightCM - 5 * Double(profile.age) + (profile.biologicalSex == .male ? 5 : -161)
-                : nil,
-            boneMassKG: hasBodyComposition ? max(2, fatFreeMassKG * 0.052) : nil,
+            impedanceOhm: 485 + random.nextGaussianish() * 22,
+            bodyFatPercent: bodyFatPercent,
+            muscleMassKG: muscleMassKG,
+            waterPercent: waterPercent,
+            visceralFat: max(3, (bodyFatPercent - 12) * 0.42),
+            basalMetabolismKCal: 10 * weightKG
+                + 6.25 * profile.heightCM
+                - 5 * Double(profile.age)
+                + (profile.biologicalSex == .male ? 5 : -161),
+            boneMassKG: max(2, fatFreeMassKG * 0.052),
             source: .demo,
             isStable: true,
             profileID: profile.id,

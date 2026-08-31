@@ -20,7 +20,7 @@ final class MeasurementStore: ObservableObject {
     private var isApplyingExternalState = false
     private var configurationRevision = 0
     private var archiveRevision = 0
-    private let simulationData: SimulationDataSnapshot
+    @Published private var simulationData: SimulationDataSnapshot
     private var simulationSelectedProfileID: UUID
 
     init() {
@@ -48,16 +48,7 @@ final class MeasurementStore: ObservableObject {
             initialError = "无法初始化本地加密存储：\(error.localizedDescription)"
         }
 
-        let calibrationProfile = loadedConfiguration.profiles.first {
-            $0.id == loadedConfiguration.selectedProfileID
-        }
-        let calibrationMeasurement = loadedArchive.measurements
-            .filter { $0.profileID == loadedConfiguration.selectedProfileID }
-            .max { $0.date < $1.date }
-        let simulationData = SimulationDataSnapshot.make(
-            calibrationProfile: calibrationProfile,
-            calibrationMeasurement: calibrationMeasurement
-        )
+        let simulationData = SimulationDataSnapshot.make()
         persistenceWriter = loadedRepository.map(LocalPersistenceWriter.init(repository:))
         self.simulationData = simulationData
         simulationSelectedProfileID = simulationData.selectedProfileID
@@ -147,6 +138,11 @@ final class MeasurementStore: ObservableObject {
     }
 
     func add(_ measurement: BodyMeasurement) {
+        if isSimulationEnabled {
+            addSimulationMeasurement(measurement)
+            return
+        }
+
         var attributed = measurement
         attributed.profileID = selectedProfileID
         if let deviceID = measurement.deviceID,
@@ -204,24 +200,43 @@ final class MeasurementStore: ObservableObject {
     func selectDisplayProfile(_ id: UUID) {
         if isSimulationEnabled {
             guard simulationData.profiles.contains(where: { $0.id == id }) else { return }
-            objectWillChange.send()
             simulationSelectedProfileID = id
+            simulationData.selectedProfileID = id
         } else {
             selectProfile(id)
         }
     }
 
     func addProfile(_ profile: UserProfile) {
+        if isSimulationEnabled {
+            simulationData.profiles.append(profile)
+            simulationSelectedProfileID = profile.id
+            simulationData.selectedProfileID = profile.id
+            return
+        }
         profiles.append(profile)
         selectedProfileID = profile.id
     }
 
     func updateProfile(_ profile: UserProfile) {
+        if isSimulationEnabled {
+            guard let index = simulationData.profiles.firstIndex(where: { $0.id == profile.id }) else { return }
+            simulationData.profiles[index] = profile
+            return
+        }
         guard let index = profiles.firstIndex(where: { $0.id == profile.id }) else { return }
         profiles[index] = profile
     }
 
     func moveProfile(_ profileID: UUID, onto targetProfileID: UUID) {
+        if isSimulationEnabled {
+            moveProfile(profileID, onto: targetProfileID, in: &simulationData.profiles)
+            return
+        }
+        moveProfile(profileID, onto: targetProfileID, in: &profiles)
+    }
+
+    private func moveProfile(_ profileID: UUID, onto targetProfileID: UUID, in profiles: inout [UserProfile]) {
         guard profileID != targetProfileID,
               let sourceIndex = profiles.firstIndex(where: { $0.id == profileID }),
               let targetIndex = profiles.firstIndex(where: { $0.id == targetProfileID }) else { return }
@@ -232,20 +247,40 @@ final class MeasurementStore: ObservableObject {
     }
 
     func deleteProfile(_ id: UUID) {
+        if isSimulationEnabled {
+            guard simulationData.profiles.count > 1,
+                  let index = simulationData.profiles.firstIndex(where: { $0.id == id }) else { return }
+            simulationData.profiles.remove(at: index)
+            if simulationSelectedProfileID == id {
+                simulationSelectedProfileID = simulationData.profiles[0].id
+                simulationData.selectedProfileID = simulationSelectedProfileID
+            }
+            return
+        }
         guard profiles.count > 1, let index = profiles.firstIndex(where: { $0.id == id }) else { return }
         profiles.remove(at: index)
         if selectedProfileID == id { selectedProfileID = profiles[0].id }
     }
 
     func addScale(_ scale: PairedScale) {
+        if isSimulationEnabled {
+            guard !simulationData.pairedScales.contains(where: { $0.id == scale.id }) else { return }
+            simulationData.pairedScales.append(scale)
+            return
+        }
         guard !pairedScales.contains(where: { $0.id == scale.id }) else { return }
         pairedScales.append(scale)
     }
 
     func renameScale(_ id: UUID, name: String) {
-        guard let index = pairedScales.firstIndex(where: { $0.id == id }) else { return }
         let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
+        if isSimulationEnabled {
+            guard let index = simulationData.pairedScales.firstIndex(where: { $0.id == id }) else { return }
+            simulationData.pairedScales[index].name = trimmed
+            return
+        }
+        guard let index = pairedScales.firstIndex(where: { $0.id == id }) else { return }
         pairedScales[index].name = trimmed
     }
 
@@ -259,6 +294,12 @@ final class MeasurementStore: ObservableObject {
     }
 
     func setCommunicationRule(_ ruleID: String?, for scaleID: UUID) {
+        if isSimulationEnabled {
+            guard ruleID == nil || communicationRules.contains(where: { $0.id == ruleID }),
+                  let index = simulationData.pairedScales.firstIndex(where: { $0.id == scaleID }) else { return }
+            simulationData.pairedScales[index].communicationRuleID = ruleID
+            return
+        }
         guard ruleID == nil || communicationRules.contains(where: { $0.id == ruleID }),
               let index = pairedScales.firstIndex(where: { $0.id == scaleID }) else { return }
         pairedScales[index].communicationRuleID = ruleID
@@ -287,6 +328,10 @@ final class MeasurementStore: ObservableObject {
     }
 
     func removeScale(_ id: UUID) {
+        if isSimulationEnabled {
+            simulationData.pairedScales.removeAll { $0.id == id }
+            return
+        }
         pairedScales.removeAll { $0.id == id }
     }
 
@@ -305,6 +350,14 @@ final class MeasurementStore: ObservableObject {
     }
 
     func delete(at offsets: IndexSet) {
+        if isSimulationEnabled {
+            let visibleMeasurements = displayMeasurements(for: simulationSelectedProfileID)
+            let idsToDelete = Set(offsets.compactMap { offset in
+                visibleMeasurements.indices.contains(offset) ? visibleMeasurements[offset].id : nil
+            })
+            simulationData.measurements.removeAll { idsToDelete.contains($0.id) }
+            return
+        }
         for offset in offsets where measurements.indices.contains(offset) {
             deletedMeasurementIDs.insert(measurements[offset].id)
         }
@@ -353,8 +406,34 @@ final class MeasurementStore: ObservableObject {
 
     private func simulationModeDidChange() {
         guard !isApplyingExternalState else { return }
-        simulationSelectedProfileID = simulationData.selectedProfileID
+        if isSimulationEnabled {
+            simulationSelectedProfileID = simulationData.selectedProfileID
+        }
         persistConfiguration()
+    }
+
+    private func addSimulationMeasurement(_ measurement: BodyMeasurement) {
+        var attributed = measurement
+        attributed.profileID = simulationSelectedProfileID
+        if let deviceID = measurement.deviceID,
+           let scale = simulationData.pairedScales.first(where: { $0.id == deviceID }) {
+            attributed.deviceName = scale.name
+        }
+        guard let profile = simulationData.profiles.first(where: { $0.id == simulationSelectedProfileID }) else { return }
+        let enriched = BodyCompositionEstimator.enriching(attributed, profile: profile)
+
+        if mergeFrequentMeasurements,
+           let index = simulationData.measurements.firstIndex(where: {
+               $0.profileID == enriched.profileID
+                   && $0.deviceID == enriched.deviceID
+                   && $0.source == enriched.source
+                   && abs($0.date.timeIntervalSince(enriched.date)) < 30
+           }) {
+            simulationData.measurements[index] = enriched
+        } else {
+            simulationData.measurements.append(enriched)
+        }
+        simulationData.measurements.sort { $0.date > $1.date }
     }
 
     private func persistConfiguration() {

@@ -151,9 +151,7 @@ struct MeasureView: View {
                         .stroke(AppColor.mint.opacity(0.14))
                 }
         }
-        .disabled(store.isSimulationEnabled)
-        .opacity(store.isSimulationEnabled ? 0.5 : 1)
-        .accessibilityHint(store.isSimulationEnabled ? "请先关闭模拟数据模式" : "打开手动测量数据输入表单")
+        .accessibilityHint("打开手动测量数据输入表单")
     }
 
     private var scaleStage: some View {
@@ -655,7 +653,9 @@ struct ManualEntryView: View {
                     Image(systemName: "lock.shield.fill")
                         .font(.caption)
                         .foregroundStyle(AppColor.mint)
-                    Text("手动记录仅保存在本机，并会清晰标记为“手动记录”来源。")
+                    Text(store.isSimulationEnabled
+                         ? "当前为模拟数据模式，本次记录只保存在内存中，重新打开应用后会消失。"
+                         : "手动记录仅保存在本机，并会清晰标记为“手动记录”来源。")
                         .font(.caption)
                         .foregroundStyle(AppColor.secondary)
                         .fixedSize(horizontal: false, vertical: true)

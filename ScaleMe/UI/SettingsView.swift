@@ -68,12 +68,12 @@ struct DisplaySettingsView: View {
 
             SettingsToggleRow(
                 title: "启用模拟数据",
-                detail: "全界面展示模拟成员、设备和近一年记录；真实资料与测量数据不会被删除或替换。",
+                detail: "全界面展示可操作的模拟成员、设备和近一年记录；真实资料与测量数据不会被删除或替换。",
                 isOn: $store.isSimulationEnabled
             )
 
             if store.isSimulationEnabled {
-                Label("模拟数据不会写入本机档案或同步到 iCloud。", systemImage: "sparkles")
+                Label("模拟模式下可手动录入，也可新增、编辑或删除模拟资料。所有变动只保存在应用内存中，不会写入本机档案或同步到 iCloud；关闭应用后再次打开，将恢复为初始模拟数据。", systemImage: "sparkles")
                     .font(.caption)
                     .foregroundStyle(AppColor.secondary)
                     .padding(12)

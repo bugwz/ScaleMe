@@ -38,13 +38,6 @@ struct DashboardView: View {
                     brandTitle
                         .padding(.horizontal, 18)
                     memberPager
-                    if store.isShowingDemoData {
-                        Label("模拟数据模式已开启，真实资料和记录保持不变", systemImage: "sparkles")
-                            .font(.caption)
-                            .foregroundStyle(AppColor.secondary)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.horizontal, 18)
-                    }
                     metricsSection
                         .padding(.horizontal, 18)
                 }
@@ -415,9 +408,7 @@ struct DashboardView: View {
             MemberCardTheme(primary: AppColor.mint, secondary: AppColor.sky)
         case .senior, .paternalGrandfather:
             MemberCardTheme(primary: AppColor.violet, secondary: AppColor.rose)
-        case .maternalGrandfather:
-            MemberCardTheme(primary: AppColor.sky, secondary: AppColor.mint)
-        case .maternalGrandmother:
+        case .maternalGrandfather, .maternalGrandmother:
             MemberCardTheme(primary: AppColor.rose, secondary: AppColor.mint)
         }
     }
