@@ -48,9 +48,37 @@ struct DashboardView: View {
                 store.selectDisplayProfile(newID)
             }
             .mainPageTopInset()
-            .pageBackground()
+            .background(dashboardBackground.ignoresSafeArea())
             .toolbar(.hidden, for: .navigationBar)
         }
+    }
+
+    private var dashboardBackground: some View {
+        ZStack(alignment: .top) {
+            LinearGradient(
+                colors: [AppColor.paleMint, AppColor.canvas, AppColor.sky.opacity(0.08)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+
+            ForEach(store.displayProfiles) { profile in
+                let theme = memberCardTheme(for: profile.avatar)
+                LinearGradient(
+                    colors: [
+                        theme.primary.opacity(0.22),
+                        theme.secondary.opacity(0.10),
+                        .clear
+                    ],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+                .frame(height: 590)
+                .opacity(profile.id == (selectedProfileID ?? store.displaySelectedProfileID) ? 1 : 0)
+            }
+        }
+        .animation(.easeOut(duration: 0.22), value: selectedProfileID)
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
     }
 
     private var brandTitle: some View {
@@ -261,7 +289,7 @@ struct DashboardView: View {
 
     private func compactTrend(
         measurements: [BodyMeasurement],
-        theme: MemberVisualTheme
+        theme: MemberCardTheme
     ) -> some View {
         let recentMeasurements = lastWeekMeasurements(from: measurements)
         let weightDomain = compactWeightDomain(for: recentMeasurements)
@@ -334,8 +362,19 @@ struct DashboardView: View {
         return (minimum - padding)...(maximum + padding)
     }
 
-    private func memberCardTheme(for avatar: MemberAvatar) -> MemberVisualTheme {
-        MemberVisualTheme.forAvatar(avatar)
+    private func memberCardTheme(for avatar: MemberAvatar) -> MemberCardTheme {
+        switch avatar {
+        case .child, .childDaughter:
+            MemberCardTheme(primary: AppColor.apricot, secondary: AppColor.rose)
+        case .youth, .teenDaughter:
+            MemberCardTheme(primary: AppColor.sky, secondary: AppColor.violet)
+        case .adult, .father:
+            MemberCardTheme(primary: AppColor.mint, secondary: AppColor.sky)
+        case .senior, .paternalGrandfather:
+            MemberCardTheme(primary: AppColor.violet, secondary: AppColor.rose)
+        case .maternalGrandfather, .maternalGrandmother:
+            MemberCardTheme(primary: AppColor.rose, secondary: AppColor.mint)
+        }
     }
 
     private var metricsSection: some View {
@@ -943,6 +982,11 @@ private struct DashboardMetricsEditorView: View {
             hidden = newHidden
         }
     }
+}
+
+private struct MemberCardTheme {
+    let primary: Color
+    let secondary: Color
 }
 
 private struct MetricTile: View {

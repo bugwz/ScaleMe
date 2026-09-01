@@ -36,8 +36,6 @@ struct RootView: View {
         .safeAreaInset(edge: .bottom, spacing: 0) {
             AppBottomNavigation(selection: $selection, language: store.appLanguage)
         }
-        .pageBackground()
-        .environment(\.appPageTheme, MemberVisualTheme.forAvatar(store.displaySelectedProfile.avatar))
         .ignoresSafeArea(.keyboard, edges: .bottom)
         .tint(AppColor.mint)
     }

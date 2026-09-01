@@ -25,26 +25,19 @@ struct ResponsiveTextField: UIViewRepresentable {
     var synchronizesFocusFromBinding = true
     var showsDoneAccessory = false
     var onSubmit: () -> Void = {}
-    var onTouchDown: () -> Void = {}
-    var onWillBeginEditing: (String?) -> Void = { _ in }
-    var onDidBeginEditing: (String?) -> Void = { _ in }
-    var onFirstTextChange: (String?) -> Void = { _ in }
 
     func makeCoordinator() -> Coordinator {
         Coordinator(parent: self)
     }
 
     func makeUIView(context: Context) -> UITextField {
-        let textField = TouchReportingTextField(frame: .zero)
+        let textField = UITextField(frame: .zero)
         textField.delegate = context.coordinator
         textField.addTarget(
             context.coordinator,
             action: #selector(Coordinator.textDidChange(_:)),
             for: .editingChanged
         )
-        textField.onTouchBegan = { [weak coordinator = context.coordinator] in
-            coordinator?.touchDown()
-        }
         textField.borderStyle = .none
         textField.backgroundColor = .clear
         textField.adjustsFontForContentSizeCategory = true
@@ -77,7 +70,6 @@ struct ResponsiveTextField: UIViewRepresentable {
     static func dismantleUIView(_ textField: UITextField, coordinator: Coordinator) {
         textField.resignFirstResponder()
         textField.delegate = nil
-        (textField as? TouchReportingTextField)?.onTouchBegan = nil
     }
 
     private func configure(_ textField: UITextField, coordinator: Coordinator) {
@@ -121,35 +113,22 @@ struct ResponsiveTextField: UIViewRepresentable {
     final class Coordinator: NSObject, UITextFieldDelegate {
         var parent: ResponsiveTextField
         weak var textField: UITextField?
-        private var hasRecordedFirstTextChange = false
-
         init(parent: ResponsiveTextField) {
             self.parent = parent
         }
 
         @objc func textDidChange(_ sender: UITextField) {
-            if !hasRecordedFirstTextChange {
-                hasRecordedFirstTextChange = true
-                parent.onFirstTextChange(sender.textInputMode?.primaryLanguage)
-            }
             let updatedText = sender.text ?? ""
             if parent.text != updatedText {
                 parent.text = updatedText
             }
         }
 
-        @objc func touchDown() {
-            hasRecordedFirstTextChange = false
-            parent.onTouchDown()
-        }
-
         func textFieldShouldBeginEditing(_ textField: UITextField) -> Bool {
-            parent.onWillBeginEditing(nil)
             return true
         }
 
         func textFieldDidBeginEditing(_ textField: UITextField) {
-            parent.onDidBeginEditing(nil)
             if !parent.isFocused { parent.isFocused = true }
         }
 
@@ -168,16 +147,6 @@ struct ResponsiveTextField: UIViewRepresentable {
             textField?.resignFirstResponder()
             if parent.isFocused { parent.isFocused = false }
         }
-    }
-}
-
-@MainActor
-private final class TouchReportingTextField: UITextField {
-    var onTouchBegan: (() -> Void)?
-
-    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        onTouchBegan?()
-        super.touchesBegan(touches, with: event)
     }
 }
 

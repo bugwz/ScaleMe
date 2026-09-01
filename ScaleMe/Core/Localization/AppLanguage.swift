@@ -110,8 +110,6 @@ enum AppText: String, CaseIterable {
     case dataSyncDetail = "settings.data-sync.detail"
     case communicationProtocol = "settings.communication.title"
     case communicationProtocolDetail = "settings.communication.detail"
-    case developerDiagnostics = "settings.diagnostics.title"
-    case developerDiagnosticsDetail = "settings.diagnostics.detail"
     case about = "settings.about.title"
     case aboutDetail = "settings.about.detail"
 
@@ -139,8 +137,6 @@ enum AppText: String, CaseIterable {
         case .dataSyncDetail: "iCloud 配置与测量数据"
         case .communicationProtocol: "通信协议"
         case .communicationProtocolDetail: "设备识别与数据解析"
-        case .developerDiagnostics: "开发诊断"
-        case .developerDiagnosticsDetail: "输入响应计时与日志导出"
         case .about: "关于观我"
         case .aboutDetail: "产品原则与版本信息"
         }

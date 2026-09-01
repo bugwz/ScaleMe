@@ -137,7 +137,6 @@ struct MeasureView: View {
 
     private var manualEntryButton: some View {
         Button {
-            InputDiagnosticsRecorder.shared.recordManualEntryButtonTapped()
             showManualEntry = true
         } label: {
             Label("手动录入测量数据", systemImage: "square.and.pencil")
@@ -483,9 +482,6 @@ struct ManualEntryView: View {
                 }
             }
         }
-        .onAppear {
-            InputDiagnosticsRecorder.shared.recordManualEntryPresented()
-        }
     }
 
     private var memberCard: some View {
@@ -551,7 +547,6 @@ struct ManualEntryView: View {
             VStack(spacing: 14) {
                 manualInputField(
                     title: "体重",
-                    diagnosticFieldID: "manual.weight",
                     unit: "kg",
                     placeholder: "必填，5.00 ~ 350.00",
                     text: $weight,
@@ -561,7 +556,6 @@ struct ManualEntryView: View {
 
                 manualInputField(
                     title: "生物电阻抗",
-                    diagnosticFieldID: "manual.impedance",
                     unit: "Ω",
                     placeholder: "可选，50 ~ 2000",
                     text: $impedance,
@@ -582,7 +576,6 @@ struct ManualEntryView: View {
                 LazyVGrid(columns: [.init(.flexible()), .init(.flexible())], spacing: 12) {
                     manualGridField(
                         title: "体脂率",
-                        diagnosticFieldID: "manual.bodyFat",
                         unit: "%",
                         placeholder: "1 ~ 75",
                         text: $bodyFat,
@@ -591,7 +584,6 @@ struct ManualEntryView: View {
 
                     manualGridField(
                         title: "肌肉量",
-                        diagnosticFieldID: "manual.muscleMass",
                         unit: "kg",
                         placeholder: "1 ~ 200",
                         text: $muscleMass,
@@ -600,7 +592,6 @@ struct ManualEntryView: View {
 
                     manualGridField(
                         title: "身体水分",
-                        diagnosticFieldID: "manual.water",
                         unit: "%",
                         placeholder: "10 ~ 85",
                         text: $water,
@@ -609,7 +600,6 @@ struct ManualEntryView: View {
 
                     manualGridField(
                         title: "内脏脂肪",
-                        diagnosticFieldID: "manual.visceralFat",
                         unit: "级",
                         placeholder: "1 ~ 60",
                         text: $visceralFat,
@@ -618,7 +608,6 @@ struct ManualEntryView: View {
 
                     manualGridField(
                         title: "基础代谢",
-                        diagnosticFieldID: "manual.basalMetabolism",
                         unit: "kcal",
                         placeholder: "300 ~ 5000",
                         text: $basalMetabolism,
@@ -627,7 +616,6 @@ struct ManualEntryView: View {
 
                     manualGridField(
                         title: "骨量",
-                        diagnosticFieldID: "manual.boneMass",
                         unit: "kg",
                         placeholder: "0.5 ~ 10",
                         text: $boneMass,
@@ -702,7 +690,6 @@ struct ManualEntryView: View {
 
     private func manualInputField(
         title: String,
-        diagnosticFieldID: String,
         unit: String,
         placeholder: String,
         text: Binding<String>,
@@ -711,7 +698,6 @@ struct ManualEntryView: View {
     ) -> some View {
         ManualNumericInputField(
             title: title,
-            diagnosticFieldID: diagnosticFieldID,
             unit: unit,
             placeholder: placeholder,
             text: text,
@@ -723,7 +709,6 @@ struct ManualEntryView: View {
 
     private func manualGridField(
         title: String,
-        diagnosticFieldID: String,
         unit: String,
         placeholder: String,
         text: Binding<String>,
@@ -731,7 +716,6 @@ struct ManualEntryView: View {
     ) -> some View {
         ManualNumericInputField(
             title: title,
-            diagnosticFieldID: diagnosticFieldID,
             unit: unit,
             placeholder: placeholder,
             text: text,
@@ -781,7 +765,6 @@ private struct ManualNumericInputField: View {
     }
 
     let title: String
-    let diagnosticFieldID: String
     let unit: String
     let placeholder: String
     @Binding var text: String
@@ -825,28 +808,7 @@ private struct ManualNumericInputField: View {
                     smartQuotesType: .no,
                     smartInsertDeleteType: .no,
                     synchronizesFocusFromBinding: false,
-                    showsDoneAccessory: true,
-                    onTouchDown: {
-                        InputDiagnosticsRecorder.shared.recordInputTouch(fieldID: diagnosticFieldID)
-                    },
-                    onWillBeginEditing: { inputLanguage in
-                        InputDiagnosticsRecorder.shared.recordInputWillBeginEditing(
-                            fieldID: diagnosticFieldID,
-                            inputLanguage: inputLanguage
-                        )
-                    },
-                    onDidBeginEditing: { inputLanguage in
-                        InputDiagnosticsRecorder.shared.recordInputDidBeginEditing(
-                            fieldID: diagnosticFieldID,
-                            inputLanguage: inputLanguage
-                        )
-                    },
-                    onFirstTextChange: { inputLanguage in
-                        InputDiagnosticsRecorder.shared.recordFirstTextChange(
-                            fieldID: diagnosticFieldID,
-                            inputLanguage: inputLanguage
-                        )
-                    }
+                    showsDoneAccessory: true
                 )
                 .frame(minHeight: layout == .regular ? 24 : 21)
 

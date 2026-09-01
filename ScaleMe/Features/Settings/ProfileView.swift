@@ -125,12 +125,6 @@ struct ProfileView: View {
                 }
                 SettingsSeparator().padding(.leading, 68)
                 NavigationLink {
-                    DeveloperDiagnosticsView()
-                } label: {
-                    settingsRow(store.appLanguage.text(.developerDiagnostics), detail: store.appLanguage.text(.developerDiagnosticsDetail), icon: "wrench.and.screwdriver.fill", color: AppColor.apricot)
-                }
-                SettingsSeparator().padding(.leading, 68)
-                NavigationLink {
                     AboutView()
                 } label: {
                     settingsRow(store.appLanguage.text(.about), detail: store.appLanguage.text(.aboutDetail), icon: "leaf.fill", color: AppColor.violet)

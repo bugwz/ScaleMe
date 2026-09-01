@@ -46,64 +46,6 @@ enum AppColor {
     static let trendBasalMetabolism = Color(red: 0.86, green: 0.50, blue: 0.24)
 }
 
-struct MemberVisualTheme {
-    let avatar: MemberAvatar
-    let primary: Color
-    let secondary: Color
-
-    static func forAvatar(_ avatar: MemberAvatar) -> MemberVisualTheme {
-        switch avatar {
-        case .child, .childDaughter:
-            MemberVisualTheme(avatar: avatar, primary: AppColor.apricot, secondary: AppColor.rose)
-        case .youth, .teenDaughter:
-            MemberVisualTheme(avatar: avatar, primary: AppColor.sky, secondary: AppColor.violet)
-        case .adult, .father:
-            MemberVisualTheme(avatar: avatar, primary: AppColor.mint, secondary: AppColor.sky)
-        case .senior, .paternalGrandfather:
-            MemberVisualTheme(avatar: avatar, primary: AppColor.violet, secondary: AppColor.rose)
-        case .maternalGrandfather, .maternalGrandmother:
-            MemberVisualTheme(avatar: avatar, primary: AppColor.rose, secondary: AppColor.mint)
-        }
-    }
-}
-
-private struct AppPageThemeKey: EnvironmentKey {
-    static let defaultValue = MemberVisualTheme.forAvatar(.adult)
-}
-
-extension EnvironmentValues {
-    var appPageTheme: MemberVisualTheme {
-        get { self[AppPageThemeKey.self] }
-        set { self[AppPageThemeKey.self] = newValue }
-    }
-}
-
-private struct AppPageBackground: View {
-    @Environment(\.appPageTheme) private var theme
-
-    var body: some View {
-        LinearGradient(
-            colors: [AppColor.paleMint, AppColor.canvas, AppColor.sky.opacity(0.08)],
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing
-        )
-        .overlay {
-            LinearGradient(
-                colors: [
-                    theme.primary.opacity(0.22),
-                    theme.secondary.opacity(0.10),
-                    .clear
-                ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-        }
-        .animation(.easeOut(duration: 0.22), value: theme.avatar)
-        .allowsHitTesting(false)
-        .accessibilityHidden(true)
-    }
-}
-
 struct SoftCard<Content: View>: View {
     var padding: CGFloat = 20
     @ViewBuilder var content: Content
@@ -853,7 +795,14 @@ struct SettingsValueRow: View {
 
 extension View {
     func pageBackground() -> some View {
-        background(AppPageBackground().ignoresSafeArea())
+        background(
+            LinearGradient(
+                colors: [AppColor.paleMint, AppColor.canvas, AppColor.sky.opacity(0.08)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+                .ignoresSafeArea()
+        )
     }
 }
 
