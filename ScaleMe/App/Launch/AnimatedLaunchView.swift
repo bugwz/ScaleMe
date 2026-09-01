@@ -25,10 +25,10 @@ struct AnimatedLaunchView: View {
                     .frame(width: 224, height: 224)
 
                 VStack(spacing: 9) {
-                    Text(language.text(.productName))
+                    productName
                         .font(.system(size: 39, weight: .semibold, design: .rounded))
-                        .tracking(language == .simplifiedChinese || language == .traditionalChinese ? 9 : 1.2)
                         .foregroundStyle(AppColor.ink)
+                        .frame(width: 224, alignment: .center)
 
                     Text(language.text(.tagline))
                         .font(.footnote)
@@ -80,6 +80,22 @@ struct AnimatedLaunchView: View {
 
         }
         .offset(y: isFloating ? -5 : 3)
+    }
+
+    @ViewBuilder
+    private var productName: some View {
+        let name = language.text(.productName)
+
+        if language == .simplifiedChinese || language == .traditionalChinese {
+            HStack(spacing: 9) {
+                ForEach(Array(name.enumerated()), id: \.offset) { _, character in
+                    Text(String(character))
+                }
+            }
+        } else {
+            Text(name)
+                .tracking(1.2)
+        }
     }
 
     @MainActor
