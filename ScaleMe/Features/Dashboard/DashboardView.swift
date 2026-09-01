@@ -17,6 +17,7 @@ struct DashboardView: View {
     }()
 
     @State private var selectedProfileID: UUID?
+    @State private var profileSelectionCommitTask: Task<Void, Never>?
     @State private var isEditingMetrics = false
 
     private var latest: BodyMeasurement { store.latest ?? MeasurementStore.demoMeasurements[0] }
@@ -40,16 +41,38 @@ struct DashboardView: View {
             }
             .onChange(of: store.displaySelectedProfileID) { _, newID in
                 if selectedProfileID != newID {
+                    profileSelectionCommitTask?.cancel()
+                    profileSelectionCommitTask = nil
                     selectedProfileID = newID
                 }
             }
             .onChange(of: selectedProfileID) { _, newID in
-                guard let newID, newID != store.displaySelectedProfileID else { return }
-                store.selectDisplayProfile(newID)
+                scheduleProfileSelectionCommit(newID)
+            }
+            .onDisappear {
+                profileSelectionCommitTask?.cancel()
+                profileSelectionCommitTask = nil
             }
             .mainPageTopInset()
             .pageBackground()
             .toolbar(.hidden, for: .navigationBar)
+        }
+    }
+
+    private func scheduleProfileSelectionCommit(_ profileID: UUID?) {
+        profileSelectionCommitTask?.cancel()
+        profileSelectionCommitTask = nil
+
+        guard let profileID, profileID != store.displaySelectedProfileID else { return }
+
+        // scrollPosition changes as soon as a card crosses the paging threshold. Updating the
+        // shared store at that instant invalidates every member-themed page while the scroll is
+        // still decelerating. Wait until the paging position has settled before publishing it.
+        profileSelectionCommitTask = Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(250))
+            guard !Task.isCancelled, selectedProfileID == profileID else { return }
+            store.selectDisplayProfile(profileID)
+            profileSelectionCommitTask = nil
         }
     }
 
