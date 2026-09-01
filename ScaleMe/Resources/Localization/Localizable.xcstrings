@@ -4750,49 +4750,49 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "体脂及相关指标是基于生物电阻抗和个人资料的消费级估算值，仅用于日常趋势参考，不构成医疗诊断。"
+            "value" : "Körperfett und verwandte Werte sind Verbraucherschätzungen auf Basis bioelektrischer Impedanz und persönlicher Daten. Sie dienen nur zur Beobachtung alltäglicher Trends und stellen keine medizinische Diagnose dar."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "体脂及相关指标是基于生物电阻抗和个人资料的消费级估算值，仅用于日常趋势参考，不构成医疗诊断。"
+            "value" : "Body fat and related metrics are consumer estimates based on bioelectrical impedance and profile data. They are for everyday trend tracking only and are not a medical diagnosis."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "体脂及相关指标是基于生物电阻抗和个人资料的消费级估算值，仅用于日常趋势参考，不构成医疗诊断。"
+            "value" : "La grasa corporal y los indicadores relacionados son estimaciones de consumo basadas en la impedancia bioeléctrica y los datos personales. Solo sirven para observar tendencias cotidianas y no constituyen un diagnóstico médico."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "体脂及相关指标是基于生物电阻抗和个人资料的消费级估算值，仅用于日常趋势参考，不构成医疗诊断。"
+            "value" : "La masse grasse et les indicateurs associés sont des estimations grand public fondées sur l’impédance bioélectrique et les données personnelles. Ils servent uniquement au suivi des tendances quotidiennes et ne constituent pas un diagnostic médical."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "体脂及相关指标是基于生物电阻抗和个人资料的消费级估算值，仅用于日常趋势参考，不构成医疗诊断。"
+            "value" : "体脂肪および関連指標は、生体電気インピーダンスと個人情報に基づく一般消費者向けの推定値です。日々の傾向を確認するための参考であり、医療診断ではありません。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "体脂及相关指标是基于生物电阻抗和个人资料的消费级估算值，仅用于日常趋势参考，不构成医疗诊断。"
+            "value" : "체지방 및 관련 지표는 생체전기 임피던스와 개인 정보를 바탕으로 한 소비자용 추정치입니다. 일상적인 추세 확인을 위한 참고 자료이며 의료 진단이 아닙니다."
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "体脂及相关指标是基于生物电阻抗和个人资料的消费级估算值，仅用于日常趋势参考，不构成医疗诊断。"
+            "value" : "A gordura corporal e os indicadores relacionados são estimativas de consumo baseadas na impedância bioelétrica e nos dados pessoais. Servem apenas para acompanhar tendências do dia a dia e não constituem diagnóstico médico."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "体脂及相关指标是基于生物电阻抗和个人资料的消费级估算值，仅用于日常趋势参考，不构成医疗诊断。"
+            "value" : "Жировая масса и связанные показатели — это потребительские оценки на основе биоэлектрического импеданса и личных данных. Они предназначены только для отслеживания повседневных тенденций и не являются медицинским диагнозом."
           }
         },
         "zh-Hans" : {
@@ -4804,7 +4804,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "体脂及相关指标是基于生物电阻抗和个人资料的消费级估算值，仅用于日常趋势参考，不构成医疗诊断。"
+            "value" : "體脂及相關指標是基於生物電阻抗和個人資料的消費級估算值，僅用於日常趨勢參考，不構成醫療診斷。"
           }
         }
       }
@@ -11426,7 +11426,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Basic metrics"
+            "value" : "Grundwerte"
           }
         },
         "en" : {
@@ -11438,37 +11438,37 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Basic metrics"
+            "value" : "Indicadores básicos"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Basic metrics"
+            "value" : "Indicateurs de base"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Basic metrics"
+            "value" : "基本指標"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Basic metrics"
+            "value" : "기본 지표"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Basic metrics"
+            "value" : "Indicadores básicos"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Basic metrics"
+            "value" : "Основные показатели"
           }
         },
         "zh-Hans" : {
@@ -11480,7 +11480,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "基础指标"
+            "value" : "基礎指標"
           }
         }
       }
@@ -24600,7 +24600,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Measurement details"
+            "value" : "Messdetails"
           }
         },
         "en" : {
@@ -24612,37 +24612,37 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Measurement details"
+            "value" : "Detalles de la medición"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Measurement details"
+            "value" : "Détails de la mesure"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Measurement details"
+            "value" : "測定の詳細"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Measurement details"
+            "value" : "측정 상세"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Measurement details"
+            "value" : "Detalhes da medição"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Measurement details"
+            "value" : "Сведения об измерении"
           }
         },
         "zh-Hans" : {
@@ -24654,7 +24654,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "测量详情"
+            "value" : "測量詳情"
           }
         }
       }
@@ -30825,7 +30825,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Raw device data"
+            "value" : "Rohdaten des Geräts"
           }
         },
         "en" : {
@@ -30837,37 +30837,37 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Raw device data"
+            "value" : "Datos sin procesar del dispositivo"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Raw device data"
+            "value" : "Données brutes de l’appareil"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Raw device data"
+            "value" : "デバイスの生データ"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Raw device data"
+            "value" : "기기 원시 데이터"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Raw device data"
+            "value" : "Dados brutos do dispositivo"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Raw device data"
+            "value" : "Исходные данные устройства"
           }
         },
         "zh-Hans" : {
@@ -30879,7 +30879,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "设备原始数据"
+            "value" : "裝置原始資料"
           }
         }
       }
@@ -33221,7 +33221,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Body composition estimates"
+            "value" : "Schätzwerte zur Körperzusammensetzung"
           }
         },
         "en" : {
@@ -33233,37 +33233,37 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Body composition estimates"
+            "value" : "Estimaciones de composición corporal"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Body composition estimates"
+            "value" : "Estimations de la composition corporelle"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Body composition estimates"
+            "value" : "体組成の推定値"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Body composition estimates"
+            "value" : "체성분 추정치"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Body composition estimates"
+            "value" : "Estimativas de composição corporal"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Body composition estimates"
+            "value" : "Оценка состава тела"
           }
         },
         "zh-Hans" : {
@@ -33275,7 +33275,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "身体成分估算"
+            "value" : "身體組成估算"
           }
         }
       }
@@ -36530,7 +36530,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Impedance channel 1"
+            "value" : "Impedanzkanal 1"
           }
         },
         "en" : {
@@ -36542,37 +36542,37 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Impedance channel 1"
+            "value" : "Canal de impedancia 1"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Impedance channel 1"
+            "value" : "Canal d’impédance 1"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Impedance channel 1"
+            "value" : "インピーダンスチャンネル 1"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Impedance channel 1"
+            "value" : "임피던스 채널 1"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Impedance channel 1"
+            "value" : "Canal de impedância 1"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Impedance channel 1"
+            "value" : "Канал импеданса 1"
           }
         },
         "zh-Hans" : {
@@ -36595,7 +36595,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Impedance channel 2"
+            "value" : "Impedanzkanal 2"
           }
         },
         "en" : {
@@ -36607,37 +36607,37 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Impedance channel 2"
+            "value" : "Canal de impedancia 2"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Impedance channel 2"
+            "value" : "Canal d’impédance 2"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Impedance channel 2"
+            "value" : "インピーダンスチャンネル 2"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Impedance channel 2"
+            "value" : "임피던스 채널 2"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Impedance channel 2"
+            "value" : "Canal de impedância 2"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Impedance channel 2"
+            "value" : "Канал импеданса 2"
           }
         },
         "zh-Hans" : {
@@ -36659,49 +36659,49 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "阻抗通道名称和频率尚未获得厂商定义，因此仅保留原始读数，不据此声称具体频率。"
+            "value" : "Herstellerdefinitionen für Namen und Frequenzen der Impedanzkanäle liegen noch nicht vor. Daher werden nur Rohmesswerte gespeichert, ohne bestimmte Frequenzen zuzuordnen."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "阻抗通道名称和频率尚未获得厂商定义，因此仅保留原始读数，不据此声称具体频率。"
+            "value" : "The manufacturer has not yet defined the impedance channel names or frequencies, so only raw readings are retained and no specific frequency is claimed."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "阻抗通道名称和频率尚未获得厂商定义，因此仅保留原始读数，不据此声称具体频率。"
+            "value" : "El fabricante aún no ha definido los nombres ni las frecuencias de los canales de impedancia. Por ello, solo se conservan las lecturas sin procesar y no se atribuye ninguna frecuencia específica."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "阻抗通道名称和频率尚未获得厂商定义，因此仅保留原始读数，不据此声称具体频率。"
+            "value" : "Le fabricant n’a pas encore défini le nom ni la fréquence des canaux d’impédance. Seules les mesures brutes sont donc conservées, sans attribution d’une fréquence précise."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "阻抗通道名称和频率尚未获得厂商定义，因此仅保留原始读数，不据此声称具体频率。"
+            "value" : "インピーダンスチャンネルの名称と周波数はメーカーにより定義されていないため、生の測定値のみを保持し、特定の周波数として扱いません。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "阻抗通道名称和频率尚未获得厂商定义，因此仅保留原始读数，不据此声称具体频率。"
+            "value" : "임피던스 채널 이름과 주파수에 대한 제조사 정의가 아직 없어 원시 측정값만 보관하며 특정 주파수로 표시하지 않습니다."
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "阻抗通道名称和频率尚未获得厂商定义，因此仅保留原始读数，不据此声称具体频率。"
+            "value" : "O fabricante ainda não definiu os nomes nem as frequências dos canais de impedância. Por isso, apenas as leituras brutas são mantidas, sem atribuir uma frequência específica."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "阻抗通道名称和频率尚未获得厂商定义，因此仅保留原始读数，不据此声称具体频率。"
+            "value" : "Производитель пока не определил названия и частоты каналов импеданса, поэтому сохраняются только исходные показания без указания конкретной частоты."
           }
         },
         "zh-Hans" : {
@@ -36713,7 +36713,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "阻抗通道名称和频率尚未获得厂商定义，因此仅保留原始读数，不据此声称具体频率。"
+            "value" : "阻抗通道名稱和頻率尚未取得廠商定義，因此僅保留原始讀數，不據此聲稱特定頻率。"
           }
         }
       }

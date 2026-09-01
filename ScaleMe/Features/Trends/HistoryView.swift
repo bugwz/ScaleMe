@@ -616,13 +616,15 @@ struct MeasurementDetailView: View {
 }
 
 private struct DetailRow: View {
+    @Environment(\.appLanguage) private var language
+
     let name: String, value: String
     var divider = true
 
     var body: some View {
         VStack(spacing: 0) {
             HStack {
-                Text(name).foregroundStyle(AppColor.secondary)
+                Text(language.text(name)).foregroundStyle(AppColor.secondary)
                 Spacer()
                 Text(value).fontWeight(.semibold)
             }
