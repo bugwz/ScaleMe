@@ -11737,6 +11737,71 @@
         }
       }
     },
+    "数据样本验证" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mit Datenmustern geprüft"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sample validated"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Validado con muestras"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Validé sur échantillons"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "データサンプル検証済み"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "데이터 샘플 검증"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Validado com amostras"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Проверено на образцах"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "数据样本验证"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "資料樣本驗證"
+          }
+        }
+      }
+    },
     "女" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -12447,6 +12512,71 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "实时捕获 (%lld 条)"
+          }
+        }
+      }
+    },
+    "实机样本" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hardwaremuster"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hardware sample"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Muestra de hardware"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Échantillon matériel"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "実機サンプル"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "실제 기기 샘플"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Amostra de hardware"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Образец устройства"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "实机样本"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "實機樣本"
           }
         }
       }
@@ -19978,6 +20108,71 @@
         }
       }
     },
+    "未经验证" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ungeprüft"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unverified"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sin verificar"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Non vérifié"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未検証"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "검증되지 않음"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Não verificado"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не проверено"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未经验证"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未經驗證"
+          }
+        }
+      }
+    },
     "未能读取设备能力，请唤醒秤后重试" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -21399,6 +21594,71 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "标准蓝牙体重秤"
+          }
+        }
+      }
+    },
+    "标准规范" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Standardspezifikation"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Standard specification"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Especificación estándar"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spécification standard"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "標準仕様"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "표준 사양"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Especificação padrão"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Стандартная спецификация"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "标准规范"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "標準規範"
           }
         }
       }
@@ -35475,6 +35735,71 @@
         }
       }
     },
+    "验证状态" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prüfstatus"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Validation status"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Estado de validación"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "État de validation"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "検証状態"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "검증 상태"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Estado da validação"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Статус проверки"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "验证状态"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "驗證狀態"
+          }
+        }
+      }
+    },
     "骨量" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -35604,7 +35929,64 @@
           }
         }
       }
-    }
+    },
+    "设备历史" : { "localizations" : {
+      "de" : { "stringUnit" : { "state" : "translated", "value" : "Geräteverlauf" } }, "en" : { "stringUnit" : { "state" : "translated", "value" : "Device history" } }, "es" : { "stringUnit" : { "state" : "translated", "value" : "Historial del dispositivo" } }, "fr" : { "stringUnit" : { "state" : "translated", "value" : "Historique de l’appareil" } }, "ja" : { "stringUnit" : { "state" : "translated", "value" : "デバイス履歴" } }, "ko" : { "stringUnit" : { "state" : "translated", "value" : "기기 기록" } }, "pt" : { "stringUnit" : { "state" : "translated", "value" : "Histórico do dispositivo" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "История устройства" } }, "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "设备历史" } }, "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "裝置歷史" } }
+    } },
+    "已读取 %lld 条记录，确认后导入当前成员。" : { "localizations" : {
+      "de" : { "stringUnit" : { "state" : "translated", "value" : "%lld Einträge gelesen. Nach Bestätigung werden sie für das aktuelle Mitglied importiert." } }, "en" : { "stringUnit" : { "state" : "translated", "value" : "%lld records read. Confirm to import them for the current member." } }, "es" : { "stringUnit" : { "state" : "translated", "value" : "Se han leído %lld registros. Confirma para importarlos al miembro actual." } }, "fr" : { "stringUnit" : { "state" : "translated", "value" : "%lld mesures lues. Confirmez pour les importer pour le membre actuel." } }, "ja" : { "stringUnit" : { "state" : "translated", "value" : "%lld 件を読み取りました。確認すると現在のメンバーに読み込みます。" } }, "ko" : { "stringUnit" : { "state" : "translated", "value" : "%lld개 기록을 읽었습니다. 확인하면 현재 구성원에게 가져옵니다." } }, "pt" : { "stringUnit" : { "state" : "translated", "value" : "%lld registos lidos. Confirme para os importar para o membro atual." } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Прочитано записей: %lld. Подтвердите импорт для текущего участника." } }, "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "已读取 %lld 条记录，确认后导入当前成员。" } }, "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "已讀取 %lld 筆記錄，確認後匯入目前成員。" } }
+    } },
+    "确认导入" : { "localizations" : {
+      "de" : { "stringUnit" : { "state" : "translated", "value" : "Import bestätigen" } }, "en" : { "stringUnit" : { "state" : "translated", "value" : "Confirm import" } }, "es" : { "stringUnit" : { "state" : "translated", "value" : "Confirmar importación" } }, "fr" : { "stringUnit" : { "state" : "translated", "value" : "Confirmer l’importation" } }, "ja" : { "stringUnit" : { "state" : "translated", "value" : "読み込みを確認" } }, "ko" : { "stringUnit" : { "state" : "translated", "value" : "가져오기 확인" } }, "pt" : { "stringUnit" : { "state" : "translated", "value" : "Confirmar importação" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Подтвердить импорт" } }, "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "确认导入" } }, "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "確認匯入" } }
+    } },
+    "已导入 %lld 条新记录" : { "localizations" : {
+      "de" : { "stringUnit" : { "state" : "translated", "value" : "%lld neue Einträge importiert" } }, "en" : { "stringUnit" : { "state" : "translated", "value" : "%lld new records imported" } }, "es" : { "stringUnit" : { "state" : "translated", "value" : "Se han importado %lld registros nuevos" } }, "fr" : { "stringUnit" : { "state" : "translated", "value" : "%lld nouvelles mesures importées" } }, "ja" : { "stringUnit" : { "state" : "translated", "value" : "%lld 件の新しい記録を読み込みました" } }, "ko" : { "stringUnit" : { "state" : "translated", "value" : "새 기록 %lld개를 가져왔습니다" } }, "pt" : { "stringUnit" : { "state" : "translated", "value" : "%lld novos registos importados" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Импортировано новых записей: %lld" } }, "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "已导入 %lld 条新记录" } }, "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "已匯入 %lld 筆新記錄" } }
+    } },
+    "读取完成前不会保存数据；确认导入后会向设备回执“最近历史已收到”。当前没有经过验证的清空全部历史命令。" : { "localizations" : {
+      "de" : { "stringUnit" : { "state" : "translated", "value" : "Vor Abschluss wird nichts gespeichert. Nach dem Import wird dem Gerät der Empfang des letzten Verlaufs bestätigt. Es gibt derzeit keinen verifizierten Befehl zum Löschen des gesamten Verlaufs." } }, "en" : { "stringUnit" : { "state" : "translated", "value" : "Nothing is saved before reading completes. After import, the device is told that recent history was received. There is currently no verified command to clear all history." } }, "es" : { "stringUnit" : { "state" : "translated", "value" : "No se guarda nada antes de finalizar la lectura. Tras importar, se confirma al dispositivo la recepción del historial reciente. No hay un comando verificado para borrar todo el historial." } }, "fr" : { "stringUnit" : { "state" : "translated", "value" : "Rien n’est enregistré avant la fin de la lecture. Après l’importation, la réception de l’historique récent est confirmée à l’appareil. Aucune commande d’effacement total n’est actuellement vérifiée." } }, "ja" : { "stringUnit" : { "state" : "translated", "value" : "読み取り完了前は保存されません。読み込み確認後、最近の履歴を受信したことをデバイスへ通知します。全履歴を消去する検証済みコマンドはありません。" } }, "ko" : { "stringUnit" : { "state" : "translated", "value" : "읽기가 끝나기 전에는 저장하지 않습니다. 가져오기 확인 후 최근 기록을 받았음을 기기에 알립니다. 전체 기록을 지우는 검증된 명령은 현재 없습니다." } }, "pt" : { "stringUnit" : { "state" : "translated", "value" : "Nada é guardado antes de terminar a leitura. Após a importação, o dispositivo recebe a confirmação do histórico recente. Não existe atualmente um comando verificado para limpar todo o histórico." } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "До завершения чтения данные не сохраняются. После импорта устройство получает подтверждение недавней истории. Проверенной команды очистки всей истории пока нет." } }, "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "读取完成前不会保存数据；确认导入后会向设备回执“最近历史已收到”。当前没有经过验证的清空全部历史命令。" } }, "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "讀取完成前不會儲存資料；確認匯入後會向裝置回覆「最近歷史已收到」。目前沒有經過驗證的清空全部歷史命令。" } }
+    } },
+    "读取秤内历史" : { "localizations" : {
+      "de" : { "stringUnit" : { "state" : "translated", "value" : "Waagenverlauf lesen" } }, "en" : { "stringUnit" : { "state" : "translated", "value" : "Read scale history" } }, "es" : { "stringUnit" : { "state" : "translated", "value" : "Leer historial de la báscula" } }, "fr" : { "stringUnit" : { "state" : "translated", "value" : "Lire l’historique de la balance" } }, "ja" : { "stringUnit" : { "state" : "translated", "value" : "体重計の履歴を読み取る" } }, "ko" : { "stringUnit" : { "state" : "translated", "value" : "체중계 기록 읽기" } }, "pt" : { "stringUnit" : { "state" : "translated", "value" : "Ler histórico da balança" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Прочитать историю весов" } }, "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "读取秤内历史" } }, "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "讀取秤內歷史" } }
+    } },
+    "正在读取：%lld / %lld 条" : { "localizations" : {
+      "de" : { "stringUnit" : { "state" : "translated", "value" : "Lesen: %lld von %lld" } }, "en" : { "stringUnit" : { "state" : "translated", "value" : "Reading: %lld of %lld" } }, "es" : { "stringUnit" : { "state" : "translated", "value" : "Leyendo: %lld de %lld" } }, "fr" : { "stringUnit" : { "state" : "translated", "value" : "Lecture : %lld sur %lld" } }, "ja" : { "stringUnit" : { "state" : "translated", "value" : "読み取り中：%lld / %lld 件" } }, "ko" : { "stringUnit" : { "state" : "translated", "value" : "읽는 중: %lld / %lld개" } }, "pt" : { "stringUnit" : { "state" : "translated", "value" : "A ler: %lld de %lld" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Чтение: %lld из %lld" } }, "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "正在读取：%lld / %lld 条" } }, "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "正在讀取：%lld / %lld 筆" } }
+    } },
+    "正在读取：已收到 %lld 条" : { "localizations" : {
+      "de" : { "stringUnit" : { "state" : "translated", "value" : "Lesen: %lld empfangen" } }, "en" : { "stringUnit" : { "state" : "translated", "value" : "Reading: %lld received" } }, "es" : { "stringUnit" : { "state" : "translated", "value" : "Leyendo: %lld recibidos" } }, "fr" : { "stringUnit" : { "state" : "translated", "value" : "Lecture : %lld reçues" } }, "ja" : { "stringUnit" : { "state" : "translated", "value" : "読み取り中：%lld 件受信" } }, "ko" : { "stringUnit" : { "state" : "translated", "value" : "읽는 중: %lld개 수신" } }, "pt" : { "stringUnit" : { "state" : "translated", "value" : "A ler: %lld recebidos" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Чтение: получено %lld" } }, "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "正在读取：已收到 %lld 条" } }, "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "正在讀取：已收到 %lld 筆" } }
+    } },
+    "设备操作" : { "localizations" : {
+      "de" : { "stringUnit" : { "state" : "translated", "value" : "Geräteaktionen" } }, "en" : { "stringUnit" : { "state" : "translated", "value" : "Device operations" } }, "es" : { "stringUnit" : { "state" : "translated", "value" : "Operaciones del dispositivo" } }, "fr" : { "stringUnit" : { "state" : "translated", "value" : "Opérations de l’appareil" } }, "ja" : { "stringUnit" : { "state" : "translated", "value" : "デバイス操作" } }, "ko" : { "stringUnit" : { "state" : "translated", "value" : "기기 작업" } }, "pt" : { "stringUnit" : { "state" : "translated", "value" : "Operações do dispositivo" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Операции устройства" } }, "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "设备操作" } }, "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "裝置操作" } }
+    } },
+    "历史记录" : { "localizations" : {
+      "de" : { "stringUnit" : { "state" : "translated", "value" : "Verlauf" } }, "en" : { "stringUnit" : { "state" : "translated", "value" : "History records" } }, "es" : { "stringUnit" : { "state" : "translated", "value" : "Historial" } }, "fr" : { "stringUnit" : { "state" : "translated", "value" : "Historique" } }, "ja" : { "stringUnit" : { "state" : "translated", "value" : "履歴記録" } }, "ko" : { "stringUnit" : { "state" : "translated", "value" : "기록" } }, "pt" : { "stringUnit" : { "state" : "translated", "value" : "Histórico" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "История" } }, "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "历史记录" } }, "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "歷史記錄" } }
+    } },
+    "支持读取" : { "localizations" : {
+      "de" : { "stringUnit" : { "state" : "translated", "value" : "Lesen unterstützt" } }, "en" : { "stringUnit" : { "state" : "translated", "value" : "Read supported" } }, "es" : { "stringUnit" : { "state" : "translated", "value" : "Lectura compatible" } }, "fr" : { "stringUnit" : { "state" : "translated", "value" : "Lecture prise en charge" } }, "ja" : { "stringUnit" : { "state" : "translated", "value" : "読み取り対応" } }, "ko" : { "stringUnit" : { "state" : "translated", "value" : "읽기 지원" } }, "pt" : { "stringUnit" : { "state" : "translated", "value" : "Leitura suportada" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Чтение поддерживается" } }, "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "支持读取" } }, "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "支援讀取" } }
+    } },
+    "清除设备历史" : { "localizations" : {
+      "de" : { "stringUnit" : { "state" : "translated", "value" : "Geräteverlauf löschen" } }, "en" : { "stringUnit" : { "state" : "translated", "value" : "Clear device history" } }, "es" : { "stringUnit" : { "state" : "translated", "value" : "Borrar historial del dispositivo" } }, "fr" : { "stringUnit" : { "state" : "translated", "value" : "Effacer l’historique de l’appareil" } }, "ja" : { "stringUnit" : { "state" : "translated", "value" : "デバイス履歴を消去" } }, "ko" : { "stringUnit" : { "state" : "translated", "value" : "기기 기록 지우기" } }, "pt" : { "stringUnit" : { "state" : "translated", "value" : "Limpar histórico do dispositivo" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Очистить историю устройства" } }, "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "清除设备历史" } }, "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "清除裝置歷史" } }
+    } },
+    "破坏性操作" : { "localizations" : {
+      "de" : { "stringUnit" : { "state" : "translated", "value" : "Destruktive Aktion" } }, "en" : { "stringUnit" : { "state" : "translated", "value" : "Destructive operation" } }, "es" : { "stringUnit" : { "state" : "translated", "value" : "Operación destructiva" } }, "fr" : { "stringUnit" : { "state" : "translated", "value" : "Opération destructive" } }, "ja" : { "stringUnit" : { "state" : "translated", "value" : "破壊的な操作" } }, "ko" : { "stringUnit" : { "state" : "translated", "value" : "파괴적 작업" } }, "pt" : { "stringUnit" : { "state" : "translated", "value" : "Operação destrutiva" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Необратимая операция" } }, "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "破坏性操作" } }, "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "破壞性操作" } }
+    } },
+    "操作受超时、响应字节数和最大记录数限制；清除命令不会自动运行。" : { "localizations" : {
+      "de" : { "stringUnit" : { "state" : "translated", "value" : "Aktionen sind durch Zeitlimit, Antwortgröße und Datensatzanzahl begrenzt. Löschbefehle werden nie automatisch ausgeführt." } }, "en" : { "stringUnit" : { "state" : "translated", "value" : "Operations are limited by timeout, response size, and record count. Clear commands never run automatically." } }, "es" : { "stringUnit" : { "state" : "translated", "value" : "Las operaciones tienen límites de tiempo, tamaño de respuesta y número de registros. Los comandos de borrado nunca se ejecutan automáticamente." } }, "fr" : { "stringUnit" : { "state" : "translated", "value" : "Les opérations sont limitées par un délai, une taille de réponse et un nombre de mesures. Les commandes d’effacement ne sont jamais exécutées automatiquement." } }, "ja" : { "stringUnit" : { "state" : "translated", "value" : "操作にはタイムアウト、応答サイズ、記録数の上限があります。消去コマンドが自動実行されることはありません。" } }, "ko" : { "stringUnit" : { "state" : "translated", "value" : "작업에는 시간 제한, 응답 크기 및 기록 수 제한이 있습니다. 지우기 명령은 자동으로 실행되지 않습니다." } }, "pt" : { "stringUnit" : { "state" : "translated", "value" : "As operações têm limites de tempo, tamanho de resposta e número de registos. Os comandos de limpeza nunca são executados automaticamente." } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Операции ограничены по времени, объёму ответа и числу записей. Команды очистки не запускаются автоматически." } }, "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "操作受超时、响应字节数和最大记录数限制；清除命令不会自动运行。" } }, "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "操作受逾時、回應位元組數和最大記錄數限制；清除命令不會自動執行。" } }
+    } },
+    "外部规则是受限的声明式协议：不能执行脚本；GATT 写入只能访问规则声明且设备实际公开的特征。破坏性操作必须单独声明并由用户确认。单个文件最大 512 KB。" : { "localizations" : {
+      "de" : { "stringUnit" : { "state" : "translated", "value" : "Externe Regeln sind eingeschränkte deklarative Protokolle: keine Skriptausführung; GATT-Schreibzugriffe gelten nur für deklarierte, tatsächlich verfügbare Merkmale. Destruktive Aktionen müssen separat deklariert und bestätigt werden. Maximal 512 KB pro Datei." } }, "en" : { "stringUnit" : { "state" : "translated", "value" : "External rules are restricted declarative protocols: they cannot run scripts, and GATT writes can only access declared characteristics actually exposed by the device. Destructive operations require a separate declaration and user confirmation. Maximum file size is 512 KB." } }, "es" : { "stringUnit" : { "state" : "translated", "value" : "Las reglas externas son protocolos declarativos restringidos: no ejecutan scripts y las escrituras GATT solo acceden a características declaradas y disponibles. Las operaciones destructivas requieren declaración separada y confirmación. Máximo 512 KB por archivo." } }, "fr" : { "stringUnit" : { "state" : "translated", "value" : "Les règles externes sont des protocoles déclaratifs limités : aucun script, et les écritures GATT n’accèdent qu’aux caractéristiques déclarées réellement exposées. Les opérations destructives exigent une déclaration séparée et une confirmation. Taille maximale : 512 Ko." } }, "ja" : { "stringUnit" : { "state" : "translated", "value" : "外部ルールは制限付き宣言型プロトコルです。スクリプトは実行できず、GATT 書き込みは宣言済みでデバイスが実際に公開する特性だけにアクセスします。破壊的操作は別途宣言と確認が必要です。1ファイル最大512 KBです。" } }, "ko" : { "stringUnit" : { "state" : "translated", "value" : "외부 규칙은 제한된 선언형 프로토콜입니다. 스크립트를 실행할 수 없고 GATT 쓰기는 선언되었으며 기기가 실제로 공개한 특성만 사용합니다. 파괴적 작업은 별도 선언과 확인이 필요합니다. 파일당 최대 512KB입니다." } }, "pt" : { "stringUnit" : { "state" : "translated", "value" : "As regras externas são protocolos declarativos restritos: não executam scripts e as escritas GATT só acedem a características declaradas e realmente expostas. Operações destrutivas exigem declaração separada e confirmação. Máximo de 512 KB por ficheiro." } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Внешние правила — ограниченные декларативные протоколы: они не запускают скрипты, а запись GATT доступна только для заявленных характеристик устройства. Необратимые операции требуют отдельного объявления и подтверждения. Размер файла — до 512 КБ." } }, "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "外部规则是受限的声明式协议：不能执行脚本；GATT 写入只能访问规则声明且设备实际公开的特征。破坏性操作必须单独声明并由用户确认。单个文件最大 512 KB。" } }, "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "外部規則是受限的宣告式協定：不能執行腳本；GATT 寫入只能存取規則宣告且裝置實際公開的特徵。破壞性操作必須單獨宣告並由使用者確認。單一檔案最大 512 KB。" } }
+    } },
+    "将按当前外部协议向体重秤发送破坏性清除命令。设备内记录可能无法恢复，发送后仍需重新读取确认结果。" : { "localizations" : {
+      "de" : { "stringUnit" : { "state" : "translated", "value" : "Ein destruktiver Löschbefehl wird gemäß dem aktuellen externen Protokoll an die Waage gesendet. Geräteeinträge sind möglicherweise nicht wiederherstellbar; lesen Sie den Verlauf danach erneut." } }, "en" : { "stringUnit" : { "state" : "translated", "value" : "A destructive clear command will be sent to the scale using the selected external protocol. Device records may not be recoverable; read history again afterward to verify." } }, "es" : { "stringUnit" : { "state" : "translated", "value" : "Se enviará a la báscula un comando destructivo según el protocolo externo seleccionado. Puede que los registros no se puedan recuperar; vuelve a leer el historial para verificarlo." } }, "fr" : { "stringUnit" : { "state" : "translated", "value" : "Une commande d’effacement destructive sera envoyée à la balance selon le protocole externe sélectionné. Les mesures peuvent être irrécupérables ; relisez ensuite l’historique pour vérifier." } }, "ja" : { "stringUnit" : { "state" : "translated", "value" : "選択した外部プロトコルに従って、破壊的な消去コマンドを体重計へ送信します。記録は復元できない可能性があります。送信後に履歴を再読み取りして確認してください。" } }, "ko" : { "stringUnit" : { "state" : "translated", "value" : "선택한 외부 프로토콜에 따라 파괴적 지우기 명령을 체중계에 보냅니다. 기기 기록은 복구하지 못할 수 있으므로 이후 기록을 다시 읽어 확인하세요." } }, "pt" : { "stringUnit" : { "state" : "translated", "value" : "Será enviado à balança um comando destrutivo segundo o protocolo externo selecionado. Os registos podem não ser recuperáveis; volte a ler o histórico para confirmar." } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "На весы будет отправлена необратимая команда очистки по выбранному внешнему протоколу. Записи могут не восстановиться; затем повторно прочитайте историю для проверки." } }, "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "将按当前外部协议向体重秤发送破坏性清除命令。设备内记录可能无法恢复，发送后仍需重新读取确认结果。" } }, "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "將按目前外部協定向體重秤傳送破壞性清除命令。裝置內記錄可能無法復原，傳送後仍需重新讀取確認結果。" } }
+    } },
+    "发送清除命令" : { "localizations" : {
+      "de" : { "stringUnit" : { "state" : "translated", "value" : "Löschbefehl senden" } }, "en" : { "stringUnit" : { "state" : "translated", "value" : "Send clear command" } }, "es" : { "stringUnit" : { "state" : "translated", "value" : "Enviar comando de borrado" } }, "fr" : { "stringUnit" : { "state" : "translated", "value" : "Envoyer la commande d’effacement" } }, "ja" : { "stringUnit" : { "state" : "translated", "value" : "消去コマンドを送信" } }, "ko" : { "stringUnit" : { "state" : "translated", "value" : "지우기 명령 보내기" } }, "pt" : { "stringUnit" : { "state" : "translated", "value" : "Enviar comando de limpeza" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Отправить команду очистки" } }, "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "发送清除命令" } }, "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "傳送清除命令" } }
+    } },
+    "清除命令已发送；请重新读取设备历史确认结果。" : { "localizations" : {
+      "de" : { "stringUnit" : { "state" : "translated", "value" : "Löschbefehl gesendet. Lesen Sie den Geräteverlauf erneut, um das Ergebnis zu prüfen." } }, "en" : { "stringUnit" : { "state" : "translated", "value" : "Clear command sent. Read device history again to verify the result." } }, "es" : { "stringUnit" : { "state" : "translated", "value" : "Comando de borrado enviado. Vuelve a leer el historial para comprobar el resultado." } }, "fr" : { "stringUnit" : { "state" : "translated", "value" : "Commande d’effacement envoyée. Relisez l’historique de l’appareil pour vérifier le résultat." } }, "ja" : { "stringUnit" : { "state" : "translated", "value" : "消去コマンドを送信しました。デバイス履歴を再読み取りして結果を確認してください。" } }, "ko" : { "stringUnit" : { "state" : "translated", "value" : "지우기 명령을 보냈습니다. 기기 기록을 다시 읽어 결과를 확인하세요." } }, "pt" : { "stringUnit" : { "state" : "translated", "value" : "Comando de limpeza enviado. Volte a ler o histórico para confirmar o resultado." } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Команда очистки отправлена. Повторно прочитайте историю устройства для проверки." } }, "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "清除命令已发送；请重新读取设备历史确认结果。" } }, "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "清除命令已傳送；請重新讀取裝置歷史確認結果。" } }
+    } },
+    "读取完成前不会保存数据。清除操作只会在二次确认后发送，结果需通过重新读取验证。" : { "localizations" : {
+      "de" : { "stringUnit" : { "state" : "translated", "value" : "Vor Abschluss wird nichts gespeichert. Eine Löschaktion wird erst nach einer zweiten Bestätigung gesendet und muss durch erneutes Lesen geprüft werden." } }, "en" : { "stringUnit" : { "state" : "translated", "value" : "Nothing is saved before reading completes. A clear operation is sent only after a second confirmation and must be verified by reading again." } }, "es" : { "stringUnit" : { "state" : "translated", "value" : "No se guarda nada antes de finalizar la lectura. El borrado solo se envía tras una segunda confirmación y debe verificarse volviendo a leer." } }, "fr" : { "stringUnit" : { "state" : "translated", "value" : "Rien n’est enregistré avant la fin de la lecture. L’effacement n’est envoyé qu’après une seconde confirmation et doit être vérifié par une nouvelle lecture." } }, "ja" : { "stringUnit" : { "state" : "translated", "value" : "読み取り完了前は保存されません。消去操作は再確認後にのみ送信され、再読み取りによる検証が必要です。" } }, "ko" : { "stringUnit" : { "state" : "translated", "value" : "읽기가 끝나기 전에는 저장하지 않습니다. 지우기 작업은 재확인 후에만 전송되며 다시 읽어 검증해야 합니다." } }, "pt" : { "stringUnit" : { "state" : "translated", "value" : "Nada é guardado antes de terminar a leitura. A limpeza só é enviada após uma segunda confirmação e deve ser verificada com nova leitura." } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "До завершения чтения данные не сохраняются. Очистка отправляется только после повторного подтверждения и проверяется повторным чтением." } }, "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "读取完成前不会保存数据。清除操作只会在二次确认后发送，结果需通过重新读取验证。" } }, "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "讀取完成前不會儲存資料。清除操作只會在二次確認後傳送，結果需透過重新讀取驗證。" } }
+    } }
   },
   "version" : "1.0"
 }

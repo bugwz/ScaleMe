@@ -124,41 +124,25 @@ Protocol smoke test:
 
 ```sh
 swiftc -module-cache-path /tmp/scaleme-swift-module-cache \
-  ScaleMe/Core/Localization/AppLanguage.swift \
-  ScaleMe/Domain/Models/Models.swift \
-  ScaleMe/Infrastructure/Bluetooth/ScaleDiscoveryClassifier.swift \
-  ScaleMe/Infrastructure/Bluetooth/ScalePayloadParsers.swift \
-  ScaleMe/Infrastructure/Bluetooth/CommunicationRules.swift \
+  @Tests/Smoke/Bluetooth/ProtocolSources.rsp \
   Tests/Smoke/Bluetooth/ParserSmoke.swift \
   -o /tmp/scaleme-parser-smoke
 /tmp/scaleme-parser-smoke
 
 swiftc -module-cache-path /tmp/scaleme-swift-module-cache \
-  ScaleMe/Core/Localization/AppLanguage.swift \
-  ScaleMe/Domain/Models/Models.swift \
-  ScaleMe/Infrastructure/Bluetooth/ScaleDiscoveryClassifier.swift \
-  ScaleMe/Infrastructure/Bluetooth/ScalePayloadParsers.swift \
-  ScaleMe/Infrastructure/Bluetooth/CommunicationRules.swift \
+  @Tests/Smoke/Bluetooth/ProtocolSources.rsp \
   Tests/Smoke/Bluetooth/CommunicationRuleSmoke.swift \
   -o /tmp/scaleme-rule-smoke
 /tmp/scaleme-rule-smoke
 
 swiftc -module-cache-path /tmp/scaleme-swift-module-cache \
-  ScaleMe/Core/Localization/AppLanguage.swift \
-  ScaleMe/Domain/Models/Models.swift \
-  ScaleMe/Infrastructure/Bluetooth/ScaleDiscoveryClassifier.swift \
-  ScaleMe/Infrastructure/Bluetooth/ScalePayloadParsers.swift \
-  ScaleMe/Infrastructure/Bluetooth/CommunicationRules.swift \
+  @Tests/Smoke/Bluetooth/ProtocolSources.rsp \
   Tests/Smoke/Localization/LocalizationSmoke.swift \
   -o /tmp/scaleme-localization-smoke
 /tmp/scaleme-localization-smoke
 
 swiftc -module-cache-path /tmp/scaleme-swift-module-cache \
-  ScaleMe/Core/Localization/AppLanguage.swift \
-  ScaleMe/Domain/Models/Models.swift \
-  ScaleMe/Infrastructure/Bluetooth/ScaleDiscoveryClassifier.swift \
-  ScaleMe/Infrastructure/Bluetooth/ScalePayloadParsers.swift \
-  ScaleMe/Infrastructure/Bluetooth/CommunicationRules.swift \
+  @Tests/Smoke/Bluetooth/ProtocolSources.rsp \
   ScaleMe/Domain/Models/SimulationData.swift \
   Tests/Smoke/Domain/SimulationDataSmoke.swift \
   -o /tmp/scaleme-simulation-smoke

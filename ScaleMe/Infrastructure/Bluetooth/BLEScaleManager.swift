@@ -30,6 +30,16 @@ struct ScaleDeviceSettingsSnapshot: Equatable {
     var writableCharacteristicUUIDs: [String] = []
 }
 
+enum ScaleHistoryState: Equatable {
+    case unavailable
+    case ready
+    case reading(received: Int, announced: Int?)
+    case awaitingImport([BodyMeasurement])
+    case imported(Int)
+    case clearCommandSent
+    case failed(String)
+}
+
 struct DeviceDiagnosticEvent: Identifiable, Equatable {
     enum Kind: String {
         case advertisement = "广播"
@@ -127,6 +137,7 @@ final class BLEScaleManager: NSObject, ObservableObject {
     @Published private(set) var settingsSnapshot = ScaleDeviceSettingsSnapshot()
     @Published private(set) var settingsOperationMessage: String?
     @Published private(set) var settingsOperationSucceeded = false
+    @Published private(set) var historyState: ScaleHistoryState = .unavailable
     @Published private(set) var isDeviceDiagnosticCaptureEnabled = false
     @Published private(set) var deviceDiagnosticEvents: [DeviceDiagnosticEvent] = []
 
@@ -151,6 +162,15 @@ final class BLEScaleManager: NSObject, ObservableObject {
     private var settingsScaleID: UUID?
     private var settingsConfigurationCharacteristic: CBCharacteristic?
     private var settingsCurrentTimeCharacteristic: CBCharacteristic?
+    private var settingsHistoryCharacteristic: CBCharacteristic?
+    private var xiaomiHistorySession: XiaomiScaleHistorySession?
+    private var declarativeHistorySession: DeclarativeHistoryOperationSession?
+    private var activeHistoryOperation: CommunicationGATTOperation?
+    private var activeHistorySessionToken: UInt16?
+    private var activeHistoryCompletionResponse: Data?
+    private var pendingHistorySubscriptions = Set<String>()
+    private var settingsCharacteristicsByTarget: [String: CBCharacteristic] = [:]
+    private var historyTimeoutTask: Task<Void, Never>?
     private var pendingSettingsServiceIDs: Set<ObjectIdentifier> = []
     private var pendingSettingsOperation: SettingsOperation?
     private var deviceDiagnosticCaptureStartedAt: Date?
@@ -316,6 +336,16 @@ final class BLEScaleManager: NSObject, ObservableObject {
         settingsReadbackTask = nil
         settingsScaleID = scale.id
         settingsSnapshot = ScaleDeviceSettingsSnapshot()
+        historyState = .unavailable
+        settingsHistoryCharacteristic = nil
+        xiaomiHistorySession = nil
+        declarativeHistorySession = nil
+        activeHistoryOperation = nil
+        activeHistorySessionToken = nil
+        activeHistoryCompletionResponse = nil
+        pendingHistorySubscriptions.removeAll()
+        settingsCharacteristicsByTarget.removeAll()
+        historyTimeoutTask?.cancel()
         settingsOperationMessage = nil
         settingsOperationSucceeded = false
         if !isDeviceDiagnosticCaptureEnabled {
@@ -333,6 +363,15 @@ final class BLEScaleManager: NSObject, ObservableObject {
         pendingSettingsOperation = nil
         settingsConfigurationCharacteristic = nil
         settingsCurrentTimeCharacteristic = nil
+        settingsHistoryCharacteristic = nil
+        xiaomiHistorySession = nil
+        declarativeHistorySession = nil
+        activeHistoryOperation = nil
+        activeHistorySessionToken = nil
+        activeHistoryCompletionResponse = nil
+        pendingHistorySubscriptions.removeAll()
+        settingsCharacteristicsByTarget.removeAll()
+        historyTimeoutTask?.cancel()
         pendingSettingsServiceIDs.removeAll()
         stopScanning()
         disconnectSettingsPeripheral()
@@ -421,6 +460,247 @@ final class BLEScaleManager: NSObject, ObservableObject {
         if writeType == .withoutResponse {
             verifySettingsWrite(on: connected, characteristic: characteristic, wasAcknowledged: false)
         }
+    }
+
+    func readDeviceHistory() {
+        if let scaleID = settingsScaleID,
+           let operation = selectedRule(for: scaleID)?.operations?.historyRead,
+           operation.historyResponse?.builtInParser == nil {
+            readDeclarativeHistory(operation)
+        } else {
+            readXiaomiHistory()
+        }
+    }
+
+    private func readXiaomiHistory() {
+        guard let connected,
+              connected.identifier == settingsScaleID,
+              let characteristic = settingsHistoryCharacteristic,
+              characteristic.properties.contains(.notify) || characteristic.properties.contains(.indicate),
+              characteristic.properties.contains(.write) || characteristic.properties.contains(.writeWithoutResponse) else {
+            historyState = .failed("当前连接未发现可读写的小米历史特征")
+            return
+        }
+        xiaomiHistorySession = XiaomiScaleHistorySession()
+        declarativeHistorySession = nil
+        activeHistoryOperation = nil
+        historyState = .reading(received: 0, announced: nil)
+        historyTimeoutTask?.cancel()
+        historyTimeoutTask = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(20))
+            guard !Task.isCancelled, let self, case .reading = self.historyState else { return }
+            self.xiaomiHistorySession = nil
+            self.historyState = .failed("读取历史超时，请唤醒秤后重试")
+        }
+        if characteristic.isNotifying {
+            sendXiaomiHistoryRequest(on: connected, characteristic: characteristic)
+        } else {
+            connected.setNotifyValue(true, for: characteristic)
+        }
+    }
+
+    func importPendingHistory(into store: MeasurementStore) {
+        guard case .awaitingImport(let measurements) = historyState,
+              let connected else { return }
+        let imported = store.importDeviceHistory(measurements)
+        if let operation = activeHistoryOperation {
+            write(operation.acknowledgementCommands, on: connected, response: activeHistoryCompletionResponse)
+        } else if let characteristic = settingsHistoryCharacteristic {
+            writeHistoryCommand(XiaomiScaleHistoryProtocol.acknowledgeRecent, on: connected, characteristic: characteristic)
+        }
+        historyState = .imported(imported)
+    }
+
+    func clearDeviceHistory() {
+        guard let scaleID = settingsScaleID,
+              let connected,
+              let operation = selectedRule(for: scaleID)?.operations?.historyClear else {
+            historyState = .failed("当前协议没有声明可执行的历史清除操作")
+            return
+        }
+        do {
+            try CommunicationOperationValidator.validate(.init(historyClear: operation))
+            guard operation.commands.allSatisfy({ command in
+                guard let characteristic = settingsCharacteristicsByTarget[targetKey(command.target)] else { return false }
+                switch command.writeMode {
+                case .withResponse: return characteristic.properties.contains(.write)
+                case .withoutResponse: return characteristic.properties.contains(.writeWithoutResponse)
+                }
+            }) else {
+                historyState = .failed("清除规则声明的服务或特征与当前设备不匹配")
+                return
+            }
+            activeHistorySessionToken = UInt16.random(in: .min ... .max)
+            write(operation.commands, on: connected)
+            historyState = .clearCommandSent
+        } catch {
+            historyState = .failed(error.localizedDescription)
+        }
+    }
+
+    private func readDeclarativeHistory(_ operation: CommunicationGATTOperation) {
+        guard let connected else { return }
+        do {
+            try CommunicationOperationValidator.validate(.init(historyRead: operation))
+            let commandTargets = operation.commands + operation.completionCommands + operation.acknowledgementCommands
+            guard operation.subscriptions.allSatisfy({ target in
+                guard let characteristic = settingsCharacteristicsByTarget[targetKey(target)] else { return false }
+                return characteristic.properties.contains(.notify) || characteristic.properties.contains(.indicate)
+            }), commandTargets.allSatisfy({ command in
+                guard let characteristic = settingsCharacteristicsByTarget[targetKey(command.target)] else { return false }
+                switch command.writeMode {
+                case .withResponse: return characteristic.properties.contains(.write)
+                case .withoutResponse: return characteristic.properties.contains(.writeWithoutResponse)
+                }
+            }) else {
+                historyState = .failed("规则声明的服务或特征与当前设备不匹配")
+                return
+            }
+            declarativeHistorySession = try DeclarativeHistoryOperationSession(operation: operation)
+            xiaomiHistorySession = nil
+            activeHistoryOperation = operation
+            activeHistorySessionToken = UInt16.random(in: .min ... .max)
+            activeHistoryCompletionResponse = nil
+            historyState = .reading(received: 0, announced: nil)
+            pendingHistorySubscriptions = Set(operation.subscriptions.compactMap { target in
+                guard let characteristic = settingsCharacteristicsByTarget[targetKey(target)], !characteristic.isNotifying else {
+                    return nil
+                }
+                connected.setNotifyValue(true, for: characteristic)
+                return targetKey(target)
+            })
+            armHistoryOperationTimeout(seconds: operation.timeoutSeconds)
+            if pendingHistorySubscriptions.isEmpty { write(operation.commands, on: connected) }
+        } catch {
+            historyState = .failed(error.localizedDescription)
+        }
+    }
+
+    private func armHistoryOperationTimeout(seconds: Double) {
+        historyTimeoutTask?.cancel()
+        historyTimeoutTask = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(seconds))
+            guard !Task.isCancelled, let self, case .reading = self.historyState else { return }
+            self.declarativeHistorySession = nil
+            self.activeHistoryOperation = nil
+            self.activeHistorySessionToken = nil
+            self.activeHistoryCompletionResponse = nil
+            self.historyState = .failed("读取历史超时，请唤醒秤后重试")
+        }
+    }
+
+    private func write(
+        _ commands: [CommunicationCommand],
+        on peripheral: CBPeripheral,
+        response: Data? = nil
+    ) {
+        for command in commands {
+            guard let characteristic = settingsCharacteristicsByTarget[targetKey(command.target)],
+                  let payload = try? CommunicationPayloadTemplate.render(
+                    command.payloadHexTemplate,
+                    sessionToken: activeHistorySessionToken ?? 0,
+                    response: response
+                  ) else { continue }
+            let type: CBCharacteristicWriteType = command.writeMode == .withResponse ? .withResponse : .withoutResponse
+            captureCharacteristicEvent(direction: .write, characteristic: characteristic, payload: payload, summary: "外部协议历史命令")
+            peripheral.writeValue(payload, for: characteristic, type: type)
+        }
+    }
+
+    private func targetKey(_ target: CommunicationGATTTarget) -> String {
+        "\(CommunicationRuleCodec.normalizeUUID(target.serviceUUID))|\(CommunicationRuleCodec.normalizeUUID(target.characteristicUUID))"
+    }
+
+    private func sendXiaomiHistoryRequest(on peripheral: CBPeripheral, characteristic: CBCharacteristic) {
+        writeHistoryCommand(XiaomiScaleHistoryProtocol.enableHistory, on: peripheral, characteristic: characteristic)
+        writeHistoryCommand(XiaomiScaleHistoryProtocol.requestRecent, on: peripheral, characteristic: characteristic)
+        writeHistoryCommand(XiaomiScaleHistoryProtocol.startTransfer, on: peripheral, characteristic: characteristic)
+    }
+
+    private func writeHistoryCommand(_ data: Data, on peripheral: CBPeripheral, characteristic: CBCharacteristic) {
+        let type: CBCharacteristicWriteType = characteristic.properties.contains(.write) ? .withResponse : .withoutResponse
+        captureCharacteristicEvent(direction: .write, characteristic: characteristic, payload: data, summary: "历史操作命令")
+        peripheral.writeValue(data, for: characteristic, type: type)
+    }
+
+    private func consumeXiaomiHistory(_ data: Data, peripheral: CBPeripheral, characteristic: CBCharacteristic) {
+        guard var session = xiaomiHistorySession else { return }
+        do {
+            guard let event = try session.consume(data) else {
+                xiaomiHistorySession = session
+                return
+            }
+            xiaomiHistorySession = session
+            switch event {
+            case .progress(let received, let announced):
+                historyState = .reading(received: received, announced: announced)
+            case .completed(let measurements):
+                historyTimeoutTask?.cancel()
+                xiaomiHistorySession = nil
+                writeHistoryCommand(XiaomiScaleHistoryProtocol.stop, on: peripheral, characteristic: characteristic)
+                let attributed = measurements.map { value -> BodyMeasurement in
+                    var result = value
+                    result.deviceID = peripheral.identifier
+                    result.deviceName = pairedScaleNames[peripheral.identifier] ?? peripheral.name
+                    return result
+                }
+                historyState = .awaitingImport(attributed)
+            }
+        } catch {
+            historyTimeoutTask?.cancel()
+            xiaomiHistorySession = nil
+            historyState = .failed("历史数据格式无效或超过安全上限")
+        }
+    }
+
+    private func consumeDeclarativeHistory(
+        _ data: Data,
+        peripheral: CBPeripheral,
+        characteristic: CBCharacteristic
+    ) -> Bool {
+        guard var session = declarativeHistorySession,
+              let operation = activeHistoryOperation,
+              let response = operation.historyResponse,
+              let serviceUUID = characteristic.service?.uuid.uuidString else { return false }
+        let target = CommunicationGATTTarget(
+            serviceUUID: CommunicationRuleCodec.normalizeUUID(serviceUUID),
+            characteristicUUID: CommunicationRuleCodec.normalizeUUID(characteristic.uuid.uuidString)
+        )
+        guard target == response.recordMatcher.target || target == response.completionMatcher.target else { return false }
+        do {
+            let event = try session.consume(
+                data,
+                serviceUUID: serviceUUID,
+                characteristicUUID: characteristic.uuid.uuidString
+            )
+            declarativeHistorySession = session
+            switch event {
+            case .progress(let received):
+                historyState = .reading(received: received, announced: nil)
+            case .completed(let measurements, let response):
+                historyTimeoutTask?.cancel()
+                declarativeHistorySession = nil
+                activeHistoryCompletionResponse = response
+                write(operation.completionCommands, on: peripheral, response: response)
+                let attributed = measurements.map { value -> BodyMeasurement in
+                    var result = value
+                    result.deviceID = peripheral.identifier
+                    result.deviceName = pairedScaleNames[peripheral.identifier] ?? peripheral.name
+                    return result
+                }
+                historyState = .awaitingImport(attributed)
+            case nil:
+                break
+            }
+        } catch {
+            historyTimeoutTask?.cancel()
+            declarativeHistorySession = nil
+            activeHistoryOperation = nil
+            activeHistorySessionToken = nil
+            activeHistoryCompletionResponse = nil
+            historyState = .failed("外部协议返回的数据无效或超过安全上限")
+        }
+        return true
     }
 
     private func connectForSettings(_ peripheral: CBPeripheral, name: String) {
@@ -717,11 +997,27 @@ final class BLEScaleManager: NSObject, ObservableObject {
             )
         }
         if let manufacturerData = data[CBAdvertisementDataManufacturerDataKey] as? Data {
+            let protocolSummary: String
+            if let match = ScaleBroadcastProtocolCatalog.parse(
+                name: name,
+                manufacturerData: manufacturerData,
+                advertisedServiceUUIDs: Set(advertisedServices.map(\.uuidString)),
+                now: receivedAt
+            ) {
+                protocolSummary = String(
+                    format: "%@ weight=%.3fkg stable=%@",
+                    match.family.rawValue,
+                    match.measurement.weightKG,
+                    match.measurement.isStable ? "1" : "0"
+                )
+            } else {
+                protocolSummary = "厂商自定义数据"
+            }
             appendDiagnosticEvent(
                 kind: .advertisement,
                 source: "ADV-MANUFACTURER",
                 payload: manufacturerData,
-                summary: "厂商自定义数据",
+                summary: protocolSummary,
                 receivedAt: receivedAt
             )
         }
@@ -774,10 +1070,20 @@ final class BLEScaleManager: NSObject, ObservableObject {
         }
     }
 
+    private func broadcastReliability(
+        for family: ScaleBroadcastProtocolFamily
+    ) -> MeasurementSampleReliability {
+        // Sinocare has no protocol-level stable bit and is finalized by repeated
+        // readings. Other built-in broadcast families expose an explicit stable
+        // or final state, which generic convergence must not replace.
+        family == .sinocare ? .requiresStability : .protocolStable
+    }
+
     private func discoveryAdvertisement(
         name: String,
         advertisement: [String: Any],
-        hasVerifiedXiaomiPayload: Bool
+        hasVerifiedXiaomiPayload: Bool,
+        verifiedBroadcastProtocol: ScaleBroadcastProtocolFamily?
     ) -> ScaleDiscoveryAdvertisement {
         let advertisedServices = [
             CBAdvertisementDataServiceUUIDsKey,
@@ -793,7 +1099,8 @@ final class BLEScaleManager: NSObject, ObservableObject {
             hasVerifiedIcomonAFUIdentity: IcomonAFUScaleAdapter.matchesIdentity(
                 name: name,
                 advertisedServiceUUIDs: Set(advertisedServices.map(\.uuidString))
-            )
+            ),
+            verifiedBroadcastProtocol: verifiedBroadcastProtocol
         )
     }
 
@@ -862,6 +1169,21 @@ extension BLEScaleManager: CBCentralManagerDelegate {
                 rssi: RSSI.intValue,
                 receivedAt: receivedAt
             )
+            let name = discoveredName(for: peripheral, advertisement: advertisementData)
+            let advertisedServiceUUIDs = Set([
+                CBAdvertisementDataServiceUUIDsKey,
+                CBAdvertisementDataOverflowServiceUUIDsKey,
+                CBAdvertisementDataSolicitedServiceUUIDsKey
+            ].flatMap { advertisementData[$0] as? [CBUUID] ?? [] }.map(\.uuidString))
+            let manufacturerData = advertisementData[CBAdvertisementDataManufacturerDataKey] as? Data
+            let broadcastMatch = manufacturerData.flatMap {
+                ScaleBroadcastProtocolCatalog.parse(
+                    name: name,
+                    manufacturerData: $0,
+                    advertisedServiceUUIDs: advertisedServiceUUIDs,
+                    now: receivedAt
+                )
+            }
             let serviceData = advertisementData[CBAdvertisementDataServiceDataKey] as? [CBUUID: Data]
             let xiaomiPayload = serviceData?[Self.bodyService]
             let hasVerifiedXiaomiPayload = xiaomiPayload.flatMap {
@@ -869,7 +1191,15 @@ extension BLEScaleManager: CBCentralManagerDelegate {
             } != nil
             if case .measuring = scanPurpose,
                pairedScaleIDs.contains(peripheral.identifier) {
-                if let custom = selectedRule(for: peripheral.identifier), custom.isDeclarative,
+                if let broadcastMatch,
+                   allowsBuiltInParser(broadcastMatch.family.builtInParserID, for: peripheral.identifier) {
+                    consume(
+                        broadcastMatch.measurement,
+                        reliability: broadcastReliability(for: broadcastMatch.family),
+                        deviceID: peripheral.identifier,
+                        deviceName: pairedScaleNames[peripheral.identifier] ?? peripheral.name
+                    )
+                } else if let custom = selectedRule(for: peripheral.identifier), custom.isDeclarative,
                    custom.match.transport == .advertisementServiceData,
                    let payload = serviceData?.first(where: {
                        CommunicationRuleCodec.normalizeUUID($0.key.uuidString) == custom.match.serviceUUID
@@ -893,7 +1223,6 @@ extension BLEScaleManager: CBCentralManagerDelegate {
                 }
             }
 
-            let name = discoveredName(for: peripheral, advertisement: advertisementData)
             if case .configuring(let scaleID) = scanPurpose,
                scaleID == peripheral.identifier,
                connected?.identifier != peripheral.identifier {
@@ -903,7 +1232,8 @@ extension BLEScaleManager: CBCentralManagerDelegate {
             let discovery = discoveryAdvertisement(
                 name: pairedScaleModelNames[peripheral.identifier] ?? name,
                 advertisement: advertisementData,
-                hasVerifiedXiaomiPayload: hasVerifiedXiaomiPayload
+                hasVerifiedXiaomiPayload: hasVerifiedXiaomiPayload,
+                verifiedBroadcastProtocol: broadcastMatch?.family
             )
             let compatibility = ScaleDiscoveryClassifier.compatibility(for: discovery)
             let item = DiscoveredScale(
@@ -926,6 +1256,7 @@ extension BLEScaleManager: CBCentralManagerDelegate {
                connected?.identifier != peripheral.identifier,
                (item.isVerifiedCompatible
                     || selectedRule(for: peripheral.identifier)?.match.transport == .characteristicNotification),
+               broadcastMatch == nil,
                (!hasVerifiedXiaomiPayload
                     || selectedRule(for: peripheral.identifier)?.match.transport == .characteristicNotification) {
                 connect(item)
@@ -1063,6 +1394,10 @@ extension BLEScaleManager: CBPeripheralDelegate {
                     peripheral.setNotifyValue(true, for: characteristic)
                 }
                 guard settingsScaleID == peripheral.identifier else { continue }
+                settingsCharacteristicsByTarget[targetKey(.init(
+                    serviceUUID: service.uuid.uuidString,
+                    characteristicUUID: characteristic.uuid.uuidString
+                ))] = characteristic
                 appendDiagnosticEvent(
                     kind: .characteristic,
                     source: characteristic.uuid.uuidString.uppercased(),
@@ -1123,6 +1458,13 @@ extension BLEScaleManager: CBPeripheralDelegate {
                     summary: diagnosticValueSummary(data, characteristic: characteristic)
                 )
                 consumeSettingsValue(data, from: characteristic)
+                if consumeDeclarativeHistory(data, peripheral: peripheral, characteristic: characteristic) {
+                    return
+                }
+                if characteristic.uuid == Self.xiaomiHistory {
+                    consumeXiaomiHistory(data, peripheral: peripheral, characteristic: characteristic)
+                    return
+                }
             }
 
             if let serviceUUID = characteristic.service?.uuid.uuidString,
@@ -1209,6 +1551,22 @@ extension BLEScaleManager: CBPeripheralDelegate {
                     characteristic: characteristic,
                     summary: characteristic.isNotifying ? "通知已订阅" : "通知已取消"
                 )
+                if characteristic.uuid == Self.xiaomiHistory,
+                   characteristic.isNotifying,
+                   case .reading = historyState {
+                    sendXiaomiHistoryRequest(on: peripheral, characteristic: characteristic)
+                }
+                if let service = characteristic.service {
+                    let key = targetKey(.init(
+                        serviceUUID: service.uuid.uuidString,
+                        characteristicUUID: characteristic.uuid.uuidString
+                    ))
+                    if pendingHistorySubscriptions.remove(key) != nil,
+                       pendingHistorySubscriptions.isEmpty,
+                       let operation = activeHistoryOperation {
+                        write(operation.commands, on: peripheral)
+                    }
+                }
             }
         }
     }
@@ -1279,7 +1637,12 @@ extension BLEScaleManager: CBPeripheralDelegate {
             settingsCurrentTimeCharacteristic = characteristic
             settingsSnapshot.canSynchronizeTime = isWritable
         case Self.xiaomiHistory:
-            settingsSnapshot.hasHistoryChannel = true
+            let canNotify = characteristic.properties.contains(.notify) || characteristic.properties.contains(.indicate)
+            settingsSnapshot.hasHistoryChannel = canNotify && isWritable
+            if settingsSnapshot.hasHistoryChannel {
+                settingsHistoryCharacteristic = characteristic
+                historyState = .ready
+            }
         default:
             break
         }

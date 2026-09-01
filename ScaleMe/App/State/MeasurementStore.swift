@@ -168,6 +168,33 @@ final class MeasurementStore: ObservableObject {
         persistArchive()
     }
 
+    @discardableResult
+    func importDeviceHistory(_ history: [BodyMeasurement]) -> Int {
+        guard !isSimulationEnabled else { return 0 }
+        var imported = 0
+        for measurement in history.sorted(by: { $0.date > $1.date }) {
+            let isDuplicate = measurements.contains { existing in
+                existing.profileID == selectedProfileID
+                    && existing.deviceID == measurement.deviceID
+                    && abs(existing.date.timeIntervalSince(measurement.date)) < 1
+                    && abs(existing.weightKG - measurement.weightKG) < 0.005
+            }
+            guard !isDuplicate else { continue }
+            var attributed = measurement
+            attributed.profileID = selectedProfileID
+            if let deviceID = attributed.deviceID,
+               let scale = pairedScales.first(where: { $0.id == deviceID }) {
+                attributed.deviceName = scale.name
+            }
+            measurements.append(BodyCompositionEstimator.enriching(attributed, profile: selectedProfile))
+            imported += 1
+        }
+        guard imported > 0 else { return 0 }
+        measurements.sort { $0.date > $1.date }
+        persistArchive()
+        return imported
+    }
+
     func addManual(
         weightKG: Double,
         impedanceOhm: Double? = nil,

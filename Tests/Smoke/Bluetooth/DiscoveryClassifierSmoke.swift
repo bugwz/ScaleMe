@@ -5,14 +5,16 @@ private func advertisement(
     advertised: Set<String> = [],
     serviceData: Set<String> = [],
     verifiedXiaomi: Bool = false,
-    verifiedIcomonAFU: Bool = false
+    verifiedIcomonAFU: Bool = false,
+    verifiedBroadcastProtocol: ScaleBroadcastProtocolFamily? = nil
 ) -> ScaleDiscoveryAdvertisement {
     ScaleDiscoveryAdvertisement(
         name: name,
         advertisedServiceUUIDs: advertised,
         serviceDataUUIDs: serviceData,
         hasVerifiedXiaomiPayload: verifiedXiaomi,
-        hasVerifiedIcomonAFUIdentity: verifiedIcomonAFU
+        hasVerifiedIcomonAFUIdentity: verifiedIcomonAFU,
+        verifiedBroadcastProtocol: verifiedBroadcastProtocol
     )
 }
 
@@ -50,6 +52,28 @@ struct DiscoveryClassifierSmoke {
             name: genericFFB0.name,
             advertisedServiceUUIDs: genericFFB0.advertisedServiceUUIDs
         ))
+
+        let qn = advertisement(verifiedBroadcastProtocol: .qnAABB)
+        precondition(ScaleDiscoveryClassifier.compatibility(for: qn) == .qnAABBBroadcast)
+
+        let aaa = advertisement(name: "AAA007", verifiedBroadcastProtocol: .aaaSeries)
+        precondition(ScaleDiscoveryClassifier.compatibility(for: aaa) == .aaaSeriesBroadcast)
+
+        let communityFamilies: [(ScaleBroadcastProtocolFamily, ScaleDiscoveryCompatibility)] = [
+            (.sinocare, .sinocareBroadcast),
+            (.scaleup, .scaleupBroadcast),
+            (.okok, .okokBroadcast),
+            (.etekcityFit8S, .etekcityFit8SBroadcast),
+            (.eufyC20, .eufyC20Broadcast),
+            (.yunmaiX, .yunmaiXBroadcast)
+        ]
+        for (family, expectedCompatibility) in communityFamilies {
+            precondition(
+                ScaleDiscoveryClassifier.compatibility(
+                    for: advertisement(verifiedBroadcastProtocol: family)
+                ) == expectedCompatibility
+            )
+        }
 
         let likelyPrivateScale = advertisement(name: "My Weight Device")
         let privateCompatibility = ScaleDiscoveryClassifier.compatibility(for: likelyPrivateScale)

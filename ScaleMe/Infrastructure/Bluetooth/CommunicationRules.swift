@@ -14,8 +14,25 @@ enum CommunicationRuleOrigin: String, Codable, CaseIterable {
     }
 }
 
+enum ProtocolVerificationLevel: String, Codable {
+    case standardSpecification
+    case fixtureValidated
+    case hardwareSample
+    case unverified
+
+    var title: String {
+        switch self {
+        case .standardSpecification: "标准规范"
+        case .fixtureValidated: "数据样本验证"
+        case .hardwareSample: "实机样本"
+        case .unverified: "未经验证"
+        }
+    }
+}
+
 enum CommunicationTransport: String, Codable {
     case advertisementServiceData
+    case advertisementManufacturerData
     case characteristicNotification
 }
 
@@ -44,6 +61,15 @@ struct CommunicationFlag: Codable, Equatable, Hashable {
     var equals: UInt8
 }
 
+struct CommunicationDateDecoder: Codable, Equatable, Hashable {
+    var year: CommunicationField
+    var month: CommunicationField
+    var day: CommunicationField
+    var hour: CommunicationField
+    var minute: CommunicationField
+    var second: CommunicationField? = nil
+}
+
 struct CommunicationRuleMatch: Codable, Equatable, Hashable {
     var transport: CommunicationTransport
     var serviceUUID: String
@@ -65,6 +91,7 @@ struct CommunicationRuleDecoder: Codable, Equatable, Hashable {
     var boneMassKG: CommunicationField?
     var stableWhen: CommunicationFlag?
     var removedWhen: CommunicationFlag?
+    var date: CommunicationDateDecoder? = nil
 }
 
 struct CommunicationRule: Codable, Identifiable, Equatable, Hashable {
@@ -78,15 +105,24 @@ struct CommunicationRule: Codable, Identifiable, Equatable, Hashable {
     var match: CommunicationRuleMatch
     var decoder: CommunicationRuleDecoder?
     var builtInParser: String?
+    var verification: ProtocolVerificationLevel? = nil
+    var operations: CommunicationRuleOperations? = nil
 
     var isDeclarative: Bool { decoder != nil }
+    var effectiveVerification: ProtocolVerificationLevel { verification ?? .unverified }
+    var capabilities: Set<CommunicationOperationCapability> {
+        var result = Set<CommunicationOperationCapability>()
+        if operations?.historyRead != nil { result.insert(.historyRead) }
+        if operations?.historyClear != nil { result.insert(.historyClear) }
+        return result
+    }
 }
 
 struct CommunicationRuleDocument: Codable, Equatable {
     var schemaVersion: Int
     var rules: [CommunicationRule]
 
-    static let currentSchemaVersion = 1
+    static let currentSchemaVersion = 2
 }
 
 enum CommunicationRuleError: LocalizedError, Equatable {
@@ -110,6 +146,14 @@ enum CommunicationRuleCatalog {
     static let bluetoothSIGBodyID = "app.scaleme.bluetooth-sig-body-composition"
     static let xiaomiLegacyID = "app.scaleme.xiaomi-legacy-advertisement"
     static let icomonAFUID = "app.scaleme.icomon-afu"
+    static let qnAABBID = "app.scaleme.qn-aabb-broadcast"
+    static let aaaSeriesID = "app.scaleme.aaa-series-broadcast"
+    static let sinocareID = "app.scaleme.sinocare-broadcast"
+    static let scaleupID = "app.scaleme.scaleup-broadcast"
+    static let okokID = "app.scaleme.okok-broadcast"
+    static let etekcityFit8SID = "app.scaleme.etekcity-fit8s-broadcast"
+    static let eufyC20ID = "app.scaleme.eufy-c20-broadcast"
+    static let yunmaiXID = "app.scaleme.yunmai-x-broadcast"
 
     static let builtIn: [CommunicationRule] = [
         CommunicationRule(
@@ -120,7 +164,8 @@ enum CommunicationRuleCatalog {
             origin: .builtIn,
             match: .init(transport: .characteristicNotification, serviceUUID: "181D", characteristicUUID: "2A9D", minimumLength: 3),
             decoder: nil,
-            builtInParser: "bluetoothSIGWeight"
+            builtInParser: "bluetoothSIGWeight",
+            verification: .standardSpecification
         ),
         CommunicationRule(
             id: bluetoothSIGBodyID,
@@ -130,7 +175,8 @@ enum CommunicationRuleCatalog {
             origin: .builtIn,
             match: .init(transport: .characteristicNotification, serviceUUID: "181B", characteristicUUID: "2A9C", minimumLength: 4),
             decoder: nil,
-            builtInParser: "bluetoothSIGBodyComposition"
+            builtInParser: "bluetoothSIGBodyComposition",
+            verification: .standardSpecification
         ),
         CommunicationRule(
             id: xiaomiLegacyID,
@@ -140,17 +186,160 @@ enum CommunicationRuleCatalog {
             origin: .builtIn,
             match: .init(transport: .advertisementServiceData, serviceUUID: "181B", characteristicUUID: nil, minimumLength: 13),
             decoder: nil,
-            builtInParser: "xiaomiLegacyAdvertisement"
+            builtInParser: "xiaomiLegacyAdvertisement",
+            verification: .fixtureValidated,
+            operations: CommunicationRuleOperations(
+                historyRead: CommunicationGATTOperation(
+                    capability: .historyRead,
+                    subscriptions: [
+                        CommunicationGATTTarget(
+                            serviceUUID: "181B",
+                            characteristicUUID: XiaomiScaleConfigurationProtocol.historyCharacteristicUUID
+                        )
+                    ],
+                    commands: [
+                        CommunicationCommand(
+                            target: .init(serviceUUID: "181B", characteristicUUID: XiaomiScaleConfigurationProtocol.historyCharacteristicUUID),
+                            payloadHexTemplate: "01968ABD62"
+                        ),
+                        CommunicationCommand(
+                            target: .init(serviceUUID: "181B", characteristicUUID: XiaomiScaleConfigurationProtocol.historyCharacteristicUUID),
+                            payloadHexTemplate: "01FFFFFFFF"
+                        ),
+                        CommunicationCommand(
+                            target: .init(serviceUUID: "181B", characteristicUUID: XiaomiScaleConfigurationProtocol.historyCharacteristicUUID),
+                            payloadHexTemplate: "02"
+                        )
+                    ],
+                    completionCommands: [
+                        CommunicationCommand(
+                            target: .init(serviceUUID: "181B", characteristicUUID: XiaomiScaleConfigurationProtocol.historyCharacteristicUUID),
+                            payloadHexTemplate: "03"
+                        )
+                    ],
+                    acknowledgementCommands: [
+                        CommunicationCommand(
+                            target: .init(serviceUUID: "181B", characteristicUUID: XiaomiScaleConfigurationProtocol.historyCharacteristicUUID),
+                            payloadHexTemplate: "04FFFFFFFF"
+                        )
+                    ],
+                    historyResponse: CommunicationHistoryResponse(
+                        recordMatcher: .init(
+                            target: .init(serviceUUID: "181B", characteristicUUID: XiaomiScaleConfigurationProtocol.historyCharacteristicUUID),
+                            minimumLength: 10,
+                            maximumLength: 512
+                        ),
+                        completionMatcher: .init(
+                            target: .init(serviceUUID: "181B", characteristicUUID: XiaomiScaleConfigurationProtocol.historyCharacteristicUUID),
+                            minimumLength: 1,
+                            maximumLength: 1,
+                            exactHex: "03"
+                        ),
+                        framing: .fixedLength,
+                        recordLength: 10,
+                        builtInParser: "xiaomiHistory10"
+                    )
+                )
+            )
         ),
         CommunicationRule(
             id: icomonAFUID,
             name: "ICOMON AFU",
             version: 1,
-            summary: "适用于已有实测帧夹具的 AFU-WL-TZ-A1 / FG2313UWB-D。",
+            summary: "适用于已有实机数据样本的 AFU-WL-TZ-A1 / FG2313UWB-D。",
             origin: .builtIn,
             match: .init(transport: .characteristicNotification, serviceUUID: IcomonAFUScaleAdapter.serviceUUID, characteristicUUID: IcomonAFUScaleAdapter.measurementCharacteristicUUID, minimumLength: 20, maximumLength: 20),
             decoder: nil,
-            builtInParser: "icomonAFU"
+            builtInParser: "icomonAFU",
+            verification: .hardwareSample
+        ),
+        CommunicationRule(
+            id: qnAABBID,
+            name: "QN/AABB 广播秤",
+            version: 1,
+            summary: "解析 Company ID FFFF 厂商广播中的 AABB 体重与稳定状态。已通过数据样本验证，待真机验证。",
+            origin: .builtIn,
+            match: .init(transport: .advertisementManufacturerData, serviceUUID: "FFFF", characteristicUUID: nil, minimumLength: 21),
+            decoder: nil,
+            builtInParser: "qnAABBBroadcast",
+            verification: .fixtureValidated
+        ),
+        CommunicationRule(
+            id: aaaSeriesID,
+            name: "AAA002 / AAA007 / AAA013",
+            version: 1,
+            summary: "解析 AAA 系列厂商广播的 XOR 数据、5 位校验、克数与稳定状态。已通过数据样本验证，待真机验证。",
+            origin: .builtIn,
+            match: .init(transport: .advertisementManufacturerData, serviceUUID: "ANY", characteristicUUID: nil, minimumLength: 14),
+            decoder: nil,
+            builtInParser: "aaaSeriesBroadcast",
+            verification: .fixtureValidated
+        ),
+        CommunicationRule(
+            id: sinocareID,
+            name: "Sinocare 广播秤",
+            version: 1,
+            summary: "解析 Company ID FF64 的 XOR 校验和广播体重。已通过数据样本验证，待真机验证。",
+            origin: .builtIn,
+            match: .init(transport: .advertisementManufacturerData, serviceUUID: "FF64", characteristicUUID: nil, minimumLength: 19),
+            decoder: nil,
+            builtInParser: "sinocareBroadcast",
+            verification: .fixtureValidated
+        ),
+        CommunicationRule(
+            id: scaleupID,
+            name: "Scaleup 广播秤",
+            version: 1,
+            summary: "解析 D0/E0 状态、0.01 kg 体重与稳定状态。已通过数据样本验证，待真机验证。",
+            origin: .builtIn,
+            match: .init(transport: .advertisementManufacturerData, serviceUUID: "xxD0/xxE0", characteristicUUID: nil, minimumLength: 11),
+            decoder: nil,
+            builtInParser: "scaleupBroadcast",
+            verification: .fixtureValidated
+        ),
+        CommunicationRule(
+            id: okokID,
+            name: "OKOK 广播秤",
+            version: 1,
+            summary: "解析 OKOK V20、V11、VF0 与 C0 广播变体。已通过数据样本验证，待真机验证。",
+            origin: .builtIn,
+            match: .init(transport: .advertisementManufacturerData, serviceUUID: "MULTI", characteristicUUID: nil, minimumLength: 6),
+            decoder: nil,
+            builtInParser: "okokBroadcast",
+            verification: .fixtureValidated
+        ),
+        CommunicationRule(
+            id: etekcityFit8SID,
+            name: "Etekcity Fit 8S",
+            version: 1,
+            summary: "解析 Company ID 06D0、FFD0 服务广播中的克数、阻抗与稳定状态。已通过数据样本验证，待真机验证。",
+            origin: .builtIn,
+            match: .init(transport: .advertisementManufacturerData, serviceUUID: "06D0 + FFD0", characteristicUUID: nil, minimumLength: 22, maximumLength: 22),
+            decoder: nil,
+            builtInParser: "etekcityFit8SBroadcast",
+            verification: .fixtureValidated
+        ),
+        CommunicationRule(
+            id: eufyC20ID,
+            name: "Eufy C20 / T9130",
+            version: 1,
+            summary: "解析 Company ID BC64 的体重与阻抗字段。已通过数据样本验证，待真机验证。",
+            origin: .builtIn,
+            match: .init(transport: .advertisementManufacturerData, serviceUUID: "BC64", characteristicUUID: nil, minimumLength: 16),
+            decoder: nil,
+            builtInParser: "eufyC20Broadcast",
+            verification: .fixtureValidated
+        ),
+        CommunicationRule(
+            id: yunmaiXID,
+            name: "Yunmai X / YMBS-M268",
+            version: 1,
+            summary: "解析 1320 服务、0B7417 签名、XOR 校验、体重与阻抗。已通过数据样本验证，待真机验证。",
+            origin: .builtIn,
+            match: .init(transport: .advertisementManufacturerData, serviceUUID: "1320 + dynamic", characteristicUUID: nil, minimumLength: 16, maximumLength: 16),
+            decoder: nil,
+            builtInParser: "yunmaiXBroadcast",
+            verification: .fixtureValidated
         )
     ]
 
@@ -181,8 +370,10 @@ enum CommunicationRuleCodec {
             var normalized = rule
             normalized.origin = sourceURL == nil ? .custom : .community
             normalized.sourceURL = sourceURL
+            normalized.verification = .unverified
             normalized.match.serviceUUID = normalizeUUID(rule.match.serviceUUID)
             normalized.match.characteristicUUID = rule.match.characteristicUUID.map(normalizeUUID)
+            normalized.operations = rule.operations.map(normalize)
             try validate(normalized)
             guard ids.insert(normalized.id).inserted else {
                 throw CommunicationRuleError.invalidDocument("规则 ID \(normalized.id) 重复")
@@ -194,7 +385,7 @@ enum CommunicationRuleCodec {
     static func encode(_ rules: [CommunicationRule], prettyPrinted: Bool = true) throws -> Data {
         let encoder = JSONEncoder()
         if prettyPrinted { encoder.outputFormatting = [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes] }
-        return try encoder.encode(CommunicationRuleDocument(schemaVersion: 1, rules: rules))
+        return try encoder.encode(CommunicationRuleDocument(schemaVersion: CommunicationRuleDocument.currentSchemaVersion, rules: rules))
     }
 
     static func validate(_ rule: CommunicationRule) throws {
@@ -205,8 +396,11 @@ enum CommunicationRuleCodec {
             throw CommunicationRuleError.invalidDocument("规则名称不能为空")
         }
         guard rule.version > 0 else { throw CommunicationRuleError.invalidDocument("规则版本必须大于 0") }
-        guard rule.builtInParser == nil, let decoder = rule.decoder else {
-            throw CommunicationRuleError.invalidDocument("外部规则只能使用声明式 decoder")
+        guard rule.builtInParser == nil, rule.decoder != nil || rule.operations != nil else {
+            throw CommunicationRuleError.invalidDocument("外部规则必须提供 decoder 或受限 GATT operations")
+        }
+        guard rule.match.transport != .advertisementManufacturerData else {
+            throw CommunicationRuleError.invalidDocument("外部规则暂不支持厂商广播数据")
         }
         guard !rule.match.serviceUUID.isEmpty else { throw CommunicationRuleError.invalidDocument("serviceUUID 不能为空") }
         if rule.match.transport == .characteristicNotification,
@@ -225,25 +419,80 @@ enum CommunicationRuleCodec {
                 throw CommunicationRuleError.invalidDocument("prefixHex 不能长于 minimumLength")
             }
         }
-        let fields = [decoder.weight, decoder.impedance, decoder.bodyFatPercent, decoder.muscleMassKG,
-                      decoder.waterPercent, decoder.visceralFat, decoder.basalMetabolismKCal, decoder.boneMassKG].compactMap { $0 }
-        for field in fields {
-            guard field.offset >= 0, (1...8).contains(field.length),
-                  field.scale.isFinite, field.scale > 0, field.add.isFinite,
-                  field.offset + field.length <= rule.match.minimumLength else {
-                throw CommunicationRuleError.invalidDocument("字段范围或缩放值无效")
+        if let decoder = rule.decoder {
+            let dateFields = decoder.date.map {
+                [$0.year, $0.month, $0.day, $0.hour, $0.minute, $0.second].compactMap { $0 }
+            } ?? []
+            let fields = [decoder.weight, decoder.impedance, decoder.bodyFatPercent, decoder.muscleMassKG,
+                          decoder.waterPercent, decoder.visceralFat, decoder.basalMetabolismKCal, decoder.boneMassKG].compactMap { $0 } + dateFields
+            for field in fields {
+                guard field.offset >= 0, (1...8).contains(field.length),
+                      field.scale.isFinite, field.scale > 0, field.add.isFinite,
+                      field.offset + field.length <= rule.match.minimumLength else {
+                    throw CommunicationRuleError.invalidDocument("字段范围或缩放值无效")
+                }
+            }
+            for flag in [decoder.stableWhen, decoder.removedWhen].compactMap({ $0 }) {
+                guard flag.offset >= 0, flag.offset < rule.match.minimumLength, flag.mask != 0,
+                      flag.equals & ~flag.mask == 0 else {
+                    throw CommunicationRuleError.invalidDocument("状态标志范围无效")
+                }
             }
         }
-        for flag in [decoder.stableWhen, decoder.removedWhen].compactMap({ $0 }) {
-            guard flag.offset >= 0, flag.offset < rule.match.minimumLength, flag.mask != 0,
-                  flag.equals & ~flag.mask == 0 else {
-                throw CommunicationRuleError.invalidDocument("状态标志范围无效")
+        if let operations = rule.operations {
+            let usesPrivateParser = [operations.historyRead, operations.historyClear]
+                .compactMap { $0?.historyResponse?.builtInParser }
+                .isEmpty == false
+            guard !usesPrivateParser else {
+                throw CommunicationRuleError.invalidDocument("外部规则不能调用内置私有解析器")
             }
+            try CommunicationOperationValidator.validate(operations)
         }
     }
 
     static func normalizeUUID(_ value: String) -> String {
         value.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
+    }
+
+    private static func normalize(_ operations: CommunicationRuleOperations) -> CommunicationRuleOperations {
+        var result = operations
+        result.historyRead = result.historyRead.map(normalize)
+        result.historyClear = result.historyClear.map(normalize)
+        return result
+    }
+
+    private static func normalize(_ operation: CommunicationGATTOperation) -> CommunicationGATTOperation {
+        var result = operation
+        result.subscriptions = result.subscriptions.map(normalize)
+        result.commands = result.commands.map { command in
+            var value = command
+            value.target = normalize(command.target)
+            return value
+        }
+        result.completionCommands = result.completionCommands.map { command in
+            var value = command
+            value.target = normalize(command.target)
+            return value
+        }
+        result.acknowledgementCommands = result.acknowledgementCommands.map { command in
+            var value = command
+            value.target = normalize(command.target)
+            return value
+        }
+        result.historyResponse = result.historyResponse.map { response in
+            var value = response
+            value.recordMatcher.target = normalize(response.recordMatcher.target)
+            value.completionMatcher.target = normalize(response.completionMatcher.target)
+            return value
+        }
+        return result
+    }
+
+    private static func normalize(_ target: CommunicationGATTTarget) -> CommunicationGATTTarget {
+        CommunicationGATTTarget(
+            serviceUUID: normalizeUUID(target.serviceUUID),
+            characteristicUUID: normalizeUUID(target.characteristicUUID)
+        )
     }
 
     static func hexBytes(_ value: String) throws -> [UInt8] {
@@ -309,8 +558,26 @@ struct DeclarativeCommunicationRuleParser {
               bone.map({ (0...20).contains($0) }) ?? true else {
             throw ScalePayloadError.unsupported
         }
+        let measurementDate: Date
+        if let date = decoder.date {
+            var components = DateComponents()
+            components.calendar = Calendar(identifier: .gregorian)
+            components.timeZone = .current
+            components.year = Int(try value(date.year, bytes: bytes))
+            components.month = Int(try value(date.month, bytes: bytes))
+            components.day = Int(try value(date.day, bytes: bytes))
+            components.hour = Int(try value(date.hour, bytes: bytes))
+            components.minute = Int(try value(date.minute, bytes: bytes))
+            components.second = try date.second.map { Int(try value($0, bytes: bytes)) } ?? 0
+            guard let parsed = components.date,
+                  parsed >= Date(timeIntervalSince1970: 946_684_800),
+                  parsed <= now.addingTimeInterval(86_400) else { throw ScalePayloadError.unsupported }
+            measurementDate = parsed
+        } else {
+            measurementDate = now
+        }
         return .measurement(BodyMeasurement(
-            date: now,
+            date: measurementDate,
             weightKG: weightKG,
             impedanceOhm: impedance,
             bodyFatPercent: bodyFat,

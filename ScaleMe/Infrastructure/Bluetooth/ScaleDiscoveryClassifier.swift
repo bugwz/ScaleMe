@@ -1,29 +1,17 @@
 import Foundation
 
-enum IcomonAFUScaleAdapter {
-    static let serviceUUID = "FFB0"
-    static let measurementCharacteristicUUID = "FFB2"
-
-    static func matchesIdentity(name: String, advertisedServiceUUIDs: Set<String>) -> Bool {
-        let normalizedName = name.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
-        return normalizedName == "AFU-WL-TZ-A1"
-            && advertisedServiceUUIDs.map(normalizedUUID).contains(serviceUUID)
-    }
-
-    private static func normalizedUUID(_ value: String) -> String {
-        let uppercase = value.uppercased()
-        let bluetoothBaseSuffix = "-0000-1000-8000-00805F9B34FB"
-        guard uppercase.hasPrefix("0000"), uppercase.hasSuffix(bluetoothBaseSuffix) else {
-            return uppercase
-        }
-        return String(uppercase.dropFirst(4).prefix(4))
-    }
-}
-
 enum ScaleDiscoveryCompatibility: String, Equatable {
     case bluetoothSIG = "Bluetooth SIG 标准"
     case xiaomiAdvertisement = "0x181B 广播格式"
     case icomonAFU = "ICOMON AFU 实机样本"
+    case qnAABBBroadcast = "QN/AABB 数据样本验证"
+    case aaaSeriesBroadcast = "AAA 系列数据样本验证"
+    case sinocareBroadcast = "Sinocare 数据样本验证"
+    case scaleupBroadcast = "Scaleup 数据样本验证"
+    case okokBroadcast = "OKOK 数据样本验证"
+    case etekcityFit8SBroadcast = "Etekcity Fit 8S 数据样本验证"
+    case eufyC20Broadcast = "Eufy C20 数据样本验证"
+    case yunmaiXBroadcast = "Yunmai X 数据样本验证"
     case unverified = "协议待验证"
 
     var isVerified: Bool { self != .unverified }
@@ -35,12 +23,24 @@ struct ScaleDiscoveryAdvertisement {
     var serviceDataUUIDs: Set<String>
     var hasVerifiedXiaomiPayload: Bool
     var hasVerifiedIcomonAFUIdentity = false
+    var verifiedBroadcastProtocol: ScaleBroadcastProtocolFamily?
 }
 
 enum ScaleDiscoveryClassifier {
     static func compatibility(for advertisement: ScaleDiscoveryAdvertisement) -> ScaleDiscoveryCompatibility {
         if advertisement.hasVerifiedIcomonAFUIdentity {
             return .icomonAFU
+        }
+        switch advertisement.verifiedBroadcastProtocol {
+        case .qnAABB: return .qnAABBBroadcast
+        case .aaaSeries: return .aaaSeriesBroadcast
+        case .sinocare: return .sinocareBroadcast
+        case .scaleup: return .scaleupBroadcast
+        case .okok: return .okokBroadcast
+        case .etekcityFit8S: return .etekcityFit8SBroadcast
+        case .eufyC20: return .eufyC20Broadcast
+        case .yunmaiX: return .yunmaiXBroadcast
+        case nil: break
         }
         if advertisement.hasVerifiedXiaomiPayload {
             return .xiaomiAdvertisement

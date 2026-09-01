@@ -45,6 +45,38 @@ enum ParserSmoke {
         precondition(abs(stableValue.weightKG - 60.0) < 0.001)
         precondition(stableValue.isStable)
 
+        let historyRecord = Data([0x20, 0xE0, 0x2E, 0xE4, 0x07, 1, 2, 3, 4, 5])
+        let historyValue = try XiaomiScaleHistoryProtocol.parseRecord(historyRecord)
+        precondition(abs(historyValue.weightKG - 60) < 0.001)
+        var historySession = XiaomiScaleHistorySession()
+        guard case .progress(received: 0, announced: 1) = try historySession.consume(
+            Data([0x01, 0x01, 0xFF, 0xFF, 0xFF, 0xFF])
+        ) else {
+            preconditionFailure("小米历史计数响应解析失败")
+        }
+        _ = try historySession.consume(historyRecord.prefix(4))
+        guard case .progress(received: 1, announced: 1) = try historySession.consume(historyRecord.dropFirst(4)),
+              case .completed(let importedHistory) = try historySession.consume(Data([0x03])) else {
+            preconditionFailure("小米历史分片重组失败")
+        }
+        precondition(importedHistory.count == 1)
+
+        let bodyHistoryRecord = Data([
+            0x00, 0x22, 0xEA, 0x07, 8, 29, 10, 13, 0,
+            0xF4, 0x01, 0xE0, 0x2E
+        ])
+        let bodyHistoryValue = try XiaomiScaleHistoryProtocol.parseBodyCompositionRecord(bodyHistoryRecord)
+        precondition(abs(bodyHistoryValue.weightKG - 60) < 0.001)
+        precondition(bodyHistoryValue.impedanceOhm == 500)
+        do {
+            var incompleteHistory = XiaomiScaleHistorySession()
+            _ = try incompleteHistory.consume(historyRecord.prefix(4))
+            _ = try incompleteHistory.consume(Data([0x03]))
+            preconditionFailure("不完整的小米历史记录不得被静默丢弃")
+        } catch ScalePayloadError.tooShort {
+            // Expected.
+        }
+
         let standardBody = Data([
             0x00, 0x04,             // weight present
             0xFA, 0x00,             // 25.0% body fat
@@ -126,6 +158,125 @@ enum ParserSmoke {
             _ = try IcomonAFUScaleParser.parse(hexData("AC29020001F40258018068EA600000000029D6"))
             preconditionFailure("截断的 ICOMON 帧必须被拒绝")
         } catch ScalePayloadError.tooShort {
+            // Expected.
+        }
+
+        let qnPayload = Data([
+            0xAA, 0xBB, 1, 2, 3, 4, 5, 6,
+            0, 0, 0, 0, 0, 0, 0, 0x20, 0,
+            0x43, 0x1C // 7235 / 100 = 72.35 kg
+        ])
+        let qn = try QNAABBScaleParser.parse(.init(companyID: 0xFFFF, payload: qnPayload))
+        precondition(abs(qn.weightKG - 72.35) < 0.001)
+        precondition(qn.isStable)
+        precondition(qn.source == .communityProtocol)
+
+        let aaaPayload = Data([
+            1, 2, 3, 4, 5, 6,
+            0x92, 0x13, 0x18, 0x88, 0xBF, 0x00
+        ])
+        let aaa = try AAASeriesScaleParser.parse(
+            .init(companyID: 0x1234, payload: aaaPayload),
+            advertisedName: "AAA007"
+        )
+        precondition(abs(aaa.weightKG - 68.25) < 0.001)
+        precondition(aaa.isStable)
+
+        let sinocare = try SinocareScaleParser.parse(.init(
+            companyID: 0xFF64,
+            payload: Data([0, 0, 0, 0, 0, 0, 0, 0, 0, 0x43, 0x1C, 0, 0, 0, 0, 0, 0x5F])
+        ))
+        precondition(abs(sinocare.weightKG - 72.35) < 0.001)
+        precondition(!sinocare.isStable)
+
+        let scaleup = try ScaleupScaleParser.parse(.init(
+            companyID: 0x1CE0,
+            payload: Data([0x43, 0x01, 0xF4, 0, 0, 0, 0, 0, 0])
+        ))
+        precondition(abs(scaleup.weightKG - 72.35) < 0.001)
+        precondition(scaleup.isStable)
+
+        let okokV20 = try OKOKScaleParser.parse(
+            .init(
+                companyID: 0x20CA,
+                payload: Data([0, 0, 0, 0, 0, 0, 0x05, 0, 0x1C, 0x43, 0x13, 0x88, 0xE1, 0, 0, 0, 0, 0, 0])
+            ),
+            advertisedName: "Chipsea-BLE"
+        )
+        precondition(abs(okokV20.weightKG - 72.35) < 0.001)
+        precondition(okokV20.impedanceOhm == 500)
+        precondition(okokV20.isStable)
+
+        do {
+            _ = try OKOKScaleParser.parse(
+                .init(
+                    companyID: 0x20CA,
+                    payload: Data([0, 0, 0, 0, 0, 0, 0x05, 0, 0x1C, 0x43, 0x13, 0x88, 0xE1, 0, 0, 0, 0, 0, 0])
+                ),
+                advertisedName: "unrelated-device"
+            )
+            preconditionFailure("OKOK 特定 Company ID 仍必须结合已知设备名")
+        } catch ScalePayloadError.unsupported {
+            // Expected.
+        }
+
+        let etekcityPayload = Data([
+            1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0x9E, 0x1A, 0x01, 0xF4, 0x01, 1, 0, 0, 0, 0
+        ])
+        let etekcity = try EtekcityFit8SScaleParser.parse(
+            .init(companyID: 0x06D0, payload: etekcityPayload),
+            advertisedServiceUUIDs: ["FFD0"]
+        )
+        precondition(abs(etekcity.weightKG - 72.35) < 0.001)
+        precondition(etekcity.impedanceOhm == 500)
+        precondition(etekcity.isStable)
+
+        let etekcityCatalogMatch = ScaleBroadcastProtocolCatalog.parse(
+            name: "Etekcity Fit 8S",
+            manufacturerData: Data([0xD0, 0x06]) + etekcityPayload,
+            advertisedServiceUUIDs: ["FFD0"]
+        )
+        precondition(etekcityCatalogMatch?.family == .etekcityFit8S)
+
+        let eufyPayload = Data([
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0x41, 0, 0x43, 0x1C, 0, 0, 0, 0x88, 0x13
+        ])
+        let eufy = try EufyC20ScaleParser.parse(.init(companyID: 48_228, payload: eufyPayload))
+        precondition(abs(eufy.weightKG - 72.35) < 0.001)
+        precondition(eufy.impedanceOhm == 500)
+        precondition(eufy.isStable)
+
+        let yunmaiXPayload = Data([
+            0, 0, 0, 0, 0x0B, 0x74, 0x17,
+            0x04, 0x03, 0x1C, 0x43, 0x01, 0xF4, 0xAD
+        ])
+        let yunmaiX = try YunmaiXScaleParser.parse(
+            .init(companyID: 0x1234, payload: yunmaiXPayload),
+            advertisedServiceUUIDs: ["00001320-0000-1000-8000-00805F9B34FB"]
+        )
+        precondition(abs(yunmaiX.weightKG - 72.35) < 0.001)
+        precondition(yunmaiX.impedanceOhm == 500)
+        precondition(yunmaiX.isStable)
+
+        let appleManufacturerData = Data([0xFF, 0xFF]) + qnPayload
+        let catalogMatch = ScaleBroadcastProtocolCatalog.parse(
+            name: "QN-Scale",
+            manufacturerData: appleManufacturerData
+        )
+        precondition(catalogMatch?.family == .qnAABB)
+        precondition(abs((catalogMatch?.measurement.weightKG ?? 0) - 72.35) < 0.001)
+
+        do {
+            var invalidAAA = aaaPayload
+            invalidAAA[invalidAAA.index(before: invalidAAA.endIndex)] = 0x01
+            _ = try AAASeriesScaleParser.parse(
+                .init(companyID: 0x1234, payload: invalidAAA),
+                advertisedName: "AAA007"
+            )
+            preconditionFailure("AAA 校验错误必须被拒绝")
+        } catch ScalePayloadError.unsupported {
             // Expected.
         }
 

@@ -34,6 +34,13 @@ ScaleMe/
 ├── Core/Localization/   # 支持语言与语义化文案 key
 ├── Domain/              # 领域模型、计算、模拟数据与趋势分析
 ├── Infrastructure/      # 蓝牙、持久化、iCloud 同步与诊断
+│   └── Bluetooth/Protocols/
+│       ├── Common/      # 解析器共享错误与基础类型
+│       ├── Standard/    # Bluetooth SIG 体重与体成分解析器
+│       ├── Xiaomi/      # 小米配置与后续授权协议
+│       ├── ICOMON/      # ICOMON 设备识别适配器
+│       ├── Advertisement/ # 厂商广播拆包与协议目录
+│       └── Community/   # 按协议家族隔离的社区逆向解析器
 ├── Features/            # Dashboard、Measurement、Trends、Devices、Settings
 ├── Shared/              # 共享组件、输入桥接与设计系统
 └── Resources/           # Assets、String Catalog 与配置资源
@@ -52,15 +59,20 @@ Tools/                   # 按用途分组的开发工具
 - Bluetooth SIG Body Composition Service `0x181B` / Body Composition Measurement `0x2A9C`
 - 小米体重秤、体脂秤旧款常见 `0x181B` 广播数据（重量、稳定状态、阻抗）
 - ICOMON `AFU-WL-TZ-A1` / `FG2313UWB-D` 的 `FFB0` / `FFB2` 私有协议（已用同一真机多轮采集验证实时、稳定、最终重量及双阻抗原始通道；改动后仍待真机回归验证）
+- QN 血统非连接式 AABB 厂商广播（Company ID `0xFFFF`，重量与稳定状态；已通过数据样本验证，尚未在本项目真机验证）
+- AAA002 / AAA007 / AAA013 厂商广播（XOR 解码、5 位校验、重量与稳定状态；已通过数据样本验证，尚未在本项目真机验证）
+- Sinocare、Scaleup、OKOK、Etekcity Fit 8S、Eufy C20 与 Yunmai X 非连接式厂商广播（已实现独立解析器并通过数据样本验证，尚未在本项目真机验证）
 - 其他可发现设备会显示为“协议待验证”，不会误报为已兼容
 
-不同品牌甚至同品牌不同型号常使用不同私有协议。新增品牌时，应在 `ScaleMe/Infrastructure/Bluetooth` 下增加独立 parser/adapter，并使用真实设备数据与固件版本做回归测试。
+不同品牌甚至同品牌不同型号常使用不同私有协议。新增品牌时，应在 `ScaleMe/Infrastructure/Bluetooth/Protocols/<来源>/<协议家族>` 下增加独立 parser/adapter，通过 `ScaleBroadcastProtocolCatalog` 或 GATT 分发层接入，并使用真实设备数据与固件版本做回归测试。
+
+完整状态与覆盖边界见 [`Docs/BluetoothProtocolSupport.md`](Docs/BluetoothProtocolSupport.md)。公开设备处理器并不等于可以直接复制的广播格式：大量型号依赖连接初始化、用户资料、时间同步、历史记录状态机或安全绑定，因此在具备安全实现和真实载荷前仍保持“待验证”，不会仅凭名称宣称兼容。
 
 ### 通信规则文件
 
-每台已关联设备都可在“设备设置 → 协议匹配”中选择通信规则。协议库会列出内置解析器，也支持粘贴 JSON，或从 HTTPS 地址拉取声明式社区规则。外部规则不能执行脚本或向秤写命令，只能匹配已经收到的服务广播 / GATT 特征通知，并读取经过边界约束的无符号字节字段。
+每台已关联设备都可在“设备设置 → 协议匹配”中选择通信规则。协议库会列出内置解析器，并以标签展示标准规范、数据样本验证、实机样本或未经验证状态。应用也支持粘贴 JSON，或从 HTTPS 地址拉取声明式外部规则。外部规则不能执行脚本；普通测量只读取经过边界约束的服务广播或 GATT 通知字段，历史操作则只能订阅和写入规则声明且设备实际公开、属性匹配的 GATT 特征。厂商广播目前只允许使用经过代码审查和数据样本测试的内置解析器，外部规则也不能自行声明已经过硬件验证。
 
-规则文件使用 `schemaVersion: 1`，可包含一条或多条规则。每条规则声明稳定 ID、传输方式、服务与可选特征 UUID、载荷长度/前缀、必需的体重字段，以及可选的阻抗、身体成分和状态字段。应用内可从“设置 → 通信规则 → 查看配置格式与示例”复制完整示例。社区规则在具有数据夹具和真机验证前始终标记为未经硬件验证。
+规则文件使用 `schemaVersion: 2`，可包含一条或多条规则。每条规则声明稳定 ID、传输方式、服务与可选特征 UUID、载荷长度/前缀、必需的体重字段，以及可选的阻抗、身体成分、状态字段和受限 GATT 历史操作。应用内可从“设置 → 通信规则 → 查看配置格式与示例”复制完整示例。外部规则在具有可复现数据样本和真机验证前始终标记为未经硬件验证。
 
 ## 运行
 
@@ -79,7 +91,9 @@ Tools/                   # 按用途分组的开发工具
 
 ATT 成功只表示外设接受了写请求；`0x1542` 的即时读回可能是缓存或非单位响应，因此只有可解析且匹配时才显示“读回确认”，其他情况保留原始载荷并提示核对秤面，不再误报写入失败。
 
-“合并频繁称重记录”是观我的本地记录策略：开启后，同一成员和设备 30 秒内连续完成的测量只保留后一条，不会写入秤端。“清空秤内数据/恢复设置”没有可信且跨固件可复现的公开命令，因此当前只显示为未验证能力，不提供可能误写设备的按钮。私有历史特征 `00002A2F-0000-3512-2118-0009AF100700` 目前只做能力探测，尚未宣称历史导入或删除已实现；小物称重需要独立的低重量记录模型，也不被误报为硬件设置。
+“合并频繁称重记录”是观我的本地记录策略：开启后，同一成员和设备 30 秒内连续完成的测量只保留后一条，不会写入秤端。设备实际公开可通知、可写的私有历史特征 `00002A2F-0000-3512-2118-0009AF100700` 后，设备设置页可手动读取旧款小米最近未确认的历史记录；数据先在内存预览，用户确认导入当前成员后才发送“已收到”回执。实现支持 10 字节体重历史帧的跨通知分片重组，以及 13/26 字节体脂秤历史帧，并包含日期、体重、阻抗校验、去重、超时和最大资源限制。该流程已经过数据样本验证，仍需针对具体型号与固件真机确认。
+
+公开逆向资料明确区分“确认最近历史已收到”和“清空全部历史”，且没有给出可信、可复现的旧款小米清空命令。因此应用不会把 `04 FF FF FF FF` 误称为清空，也不提供可能误写设备的按钮。外部通信规则格式版本 2 可声明 `historyRead` 与 `historyClear`：历史读取支持通知订阅、有序命令、固定长度分帧、时间字段、完成匹配、导入后确认命令、超时和资源上限；清除必须显式标记 `destructive`，不会自动运行。外部规则不能执行脚本或调用内置私有解析器，运行时只能访问规则声明且当前设备实际公开、属性匹配的 GATT 特征。小物称重需要独立的低重量记录模型，也不被误报为硬件设置。
 
 ### 小米二代设置真机验证
 
@@ -93,7 +107,7 @@ ATT 成功只表示外设接受了写请求；`0x1542` 的即时读回可能是�
 
 ```sh
 swiftc -module-cache-path /tmp/scaleme-swift-module-cache \
-  ScaleMe/Infrastructure/Bluetooth/XiaomiScaleConfiguration.swift \
+  ScaleMe/Infrastructure/Bluetooth/Protocols/Xiaomi/XiaomiScaleConfiguration.swift \
   Tests/Smoke/Bluetooth/DeviceConfigurationSmoke.swift \
   -o /tmp/scaleme-device-configuration-smoke
 /tmp/scaleme-device-configuration-smoke
@@ -108,27 +122,27 @@ swiftc -module-cache-path /tmp/scaleme-swift-module-cache \
 协议解析烟雾测试可运行：
 
 ```sh
-swiftc ScaleMe/Core/Localization/AppLanguage.swift ScaleMe/Domain/Models/Models.swift ScaleMe/Infrastructure/Bluetooth/ScaleDiscoveryClassifier.swift ScaleMe/Infrastructure/Bluetooth/ScalePayloadParsers.swift ScaleMe/Infrastructure/Bluetooth/CommunicationRules.swift Tests/Smoke/Bluetooth/ParserSmoke.swift -o /tmp/scaleme-parser-smoke
+swiftc @Tests/Smoke/Bluetooth/ProtocolSources.rsp Tests/Smoke/Bluetooth/ParserSmoke.swift -o /tmp/scaleme-parser-smoke
 /tmp/scaleme-parser-smoke
 
-swiftc ScaleMe/Core/Localization/AppLanguage.swift ScaleMe/Domain/Models/Models.swift ScaleMe/Infrastructure/Bluetooth/ScaleDiscoveryClassifier.swift ScaleMe/Infrastructure/Bluetooth/ScalePayloadParsers.swift ScaleMe/Infrastructure/Bluetooth/CommunicationRules.swift ScaleMe/Infrastructure/Bluetooth/MeasurementSession.swift Tests/Smoke/Bluetooth/MeasurementSessionSmoke.swift -o /tmp/scaleme-session-smoke
+swiftc @Tests/Smoke/Bluetooth/ProtocolSources.rsp ScaleMe/Infrastructure/Bluetooth/MeasurementSession.swift Tests/Smoke/Bluetooth/MeasurementSessionSmoke.swift -o /tmp/scaleme-session-smoke
 /tmp/scaleme-session-smoke
 
-swiftc ScaleMe/Core/Localization/AppLanguage.swift ScaleMe/Domain/Models/Models.swift ScaleMe/Infrastructure/Bluetooth/ScaleDiscoveryClassifier.swift ScaleMe/Infrastructure/Bluetooth/ScalePayloadParsers.swift ScaleMe/Infrastructure/Bluetooth/CommunicationRules.swift Tests/Smoke/Bluetooth/CommunicationRuleSmoke.swift -o /tmp/scaleme-rule-smoke
+swiftc @Tests/Smoke/Bluetooth/ProtocolSources.rsp Tests/Smoke/Bluetooth/CommunicationRuleSmoke.swift -o /tmp/scaleme-rule-smoke
 /tmp/scaleme-rule-smoke
 ```
 
 设备发现分类测试：
 
 ```bash
-swiftc ScaleMe/Infrastructure/Bluetooth/ScaleDiscoveryClassifier.swift Tests/Smoke/Bluetooth/DiscoveryClassifierSmoke.swift -o /tmp/scaleme-discovery-smoke
+swiftc @Tests/Smoke/Bluetooth/ProtocolSources.rsp Tests/Smoke/Bluetooth/DiscoveryClassifierSmoke.swift -o /tmp/scaleme-discovery-smoke
 /tmp/scaleme-discovery-smoke
 ```
 
 加密与数据合并烟雾测试可运行：
 
 ```sh
-swiftc ScaleMe/Core/Localization/AppLanguage.swift ScaleMe/Domain/Models/Models.swift ScaleMe/Infrastructure/Bluetooth/ScaleDiscoveryClassifier.swift ScaleMe/Infrastructure/Bluetooth/ScalePayloadParsers.swift ScaleMe/Infrastructure/Bluetooth/CommunicationRules.swift ScaleMe/Infrastructure/Persistence/SecureAppRepository.swift Tests/Smoke/Persistence/StorageSmoke.swift -o /tmp/scaleme-storage-smoke
+swiftc @Tests/Smoke/Bluetooth/ProtocolSources.rsp ScaleMe/Infrastructure/Persistence/SecureAppRepository.swift Tests/Smoke/Persistence/StorageSmoke.swift -o /tmp/scaleme-storage-smoke
 /tmp/scaleme-storage-smoke
 ```
 
@@ -144,15 +158,11 @@ swiftc ScaleMe/Core/Localization/AppLanguage.swift ScaleMe/Domain/Models/Models.
 
 - [Bluetooth SIG Weight Scale Service 1.0.1](https://www.bluetooth.com/wp-content/uploads/Files/Specification/HTML/WSS_v1.0.1/out/en/index-en.html)
 - [Bluetooth SIG Body Composition Service 1.0](https://www.bluetooth.com/specifications/specs/body-composition-service-1-0/)
-- [openScale: Xiaomi Bluetooth Mi Scale reverse engineering](https://github.com/oliexdev/openScale/wiki/Xiaomi-Bluetooth-Mi-Scale)
-- [openScale 支持设备与协议实现](https://github.com/oliexdev/openScale)
 - [Mi Body Composition Scale 服务与 0x1542 单位命令逆向记录](https://github.com/freenetwork/ble-in-xiaomi/blob/master/doc/devices/huami.health.scale2.md)
-- [openScale 当前 Mi Scale v1/v2 GATT 实现](https://github.com/oliexdev/openScale/blob/master/android_app/app/src/main/java/com/health/openscale/core/bluetooth/scales/MiScaleHandler.kt)
 - [Mi Scale 2 BLE 数据布局参考](https://github.com/NeMaksym/mi-scale-2)
-- [openScale MGB/ICOMON 处理器（`FFB0` / `FFB1` / `FFB2` 服务族参考）](https://github.com/oliexdev/openScale/blob/master/android_app/app/src/main/java/com/health/openscale/core/bluetooth/scales/MGBHandler.kt)
 - [E.volve / Fitdays `AC 29` 帧零点偏移逆向记录](https://community.home-assistant.io/t/e-volve-fitdays-smart-scale-solved/923243)
 
-本项目的 ICOMON `AC 29 ... D5/D6` 布局来自上述型号的本地真机采集分析，与 openScale 当前记录的复合帧布局不同；第三方仓库只用于确认服务族，未作为该帧字段定义。品牌名称用于兼容性描述，不代表厂商背书。
+本项目的 ICOMON `AC 29 ... D5/D6` 布局来自上述型号的本地真机采集分析；第三方资料只用于辅助确认服务族，未作为该帧字段定义。品牌名称用于兼容性描述，不代表厂商背书。其他私有协议的研究引用集中记录在 [协议支持矩阵](Docs/BluetoothProtocolSupport.md) 中，不作为应用内兼容性标签展示。
 
 ## 开发规范
 

@@ -112,7 +112,7 @@ struct CommunicationRulesView: View {
                             Image(systemName: "chevron.right").font(.caption.bold())
                         }
                     }
-                    Text("外部规则是受限的声明式字节映射，不能执行脚本，也不能主动写入体重秤。单个文件最大 512 KB。")
+                    Text("外部规则是受限的声明式协议：不能执行脚本；GATT 写入只能访问规则声明且设备实际公开的特征。破坏性操作必须单独声明并由用户确认。单个文件最大 512 KB。")
                         .font(.caption)
                         .foregroundStyle(AppColor.secondary)
                         .lineSpacing(3)
@@ -155,17 +155,44 @@ struct CommunicationRulesView: View {
     }
 
     private func ruleRow(_ rule: CommunicationRule) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack {
-                Text(rule.origin == .builtIn ? language.text(rule.name) : rule.name)
-                Spacer()
-                AppLocalizedText(rule.origin.title)
-                    .font(.caption2.weight(.semibold))
-                    .foregroundStyle(rule.origin == .builtIn ? AppColor.mint : AppColor.apricot)
+        VStack(alignment: .leading, spacing: 6) {
+            Text(rule.origin == .builtIn ? language.text(rule.name) : rule.name)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(AppColor.ink)
+                .fixedSize(horizontal: false, vertical: true)
+            HStack(spacing: 6) {
+                protocolTag(
+                    rule.origin.title,
+                    color: rule.origin == .builtIn ? AppColor.mint : AppColor.apricot
+                )
+                protocolTag(
+                    rule.effectiveVerification.title,
+                    color: verificationColor(rule.effectiveVerification)
+                )
+                Spacer(minLength: 0)
             }
             Text(language.format("v%lld · %@", Int64(rule.version), language.text(transportTitle(rule.match.transport))))
                 .font(.caption)
                 .foregroundStyle(AppColor.secondary)
+        }
+    }
+
+    private func protocolTag(_ title: String, color: Color) -> some View {
+        AppLocalizedText(title)
+            .font(.caption2.weight(.semibold))
+            .lineLimit(1)
+            .minimumScaleFactor(0.8)
+            .foregroundStyle(color)
+            .padding(.horizontal, 7)
+            .padding(.vertical, 3)
+            .background(color.opacity(0.11), in: Capsule())
+    }
+
+    private func verificationColor(_ level: ProtocolVerificationLevel) -> Color {
+        switch level {
+        case .standardSpecification, .hardwareSample: AppColor.mint
+        case .fixtureValidated: AppColor.sky
+        case .unverified: AppColor.apricot
         }
     }
 
@@ -282,6 +309,11 @@ private struct CommunicationRuleDetailView: View {
                     SettingsValueRow(title: "版本", value: String(rule.version))
                     Divider()
                     SettingsValueRow(title: "来源", value: language.text(rule.origin.title))
+                    Divider()
+                    SettingsValueRow(
+                        title: "验证状态",
+                        value: language.text(rule.effectiveVerification.title)
+                    )
                     if let author = rule.author {
                         Divider()
                         SettingsValueRow(title: "作者", value: author)
@@ -321,6 +353,21 @@ private struct CommunicationRuleDetailView: View {
                             .foregroundStyle(AppColor.apricot)
                     }
                 }
+
+                if !rule.capabilities.isEmpty {
+                    SettingsPanel(title: "设备操作", icon: "arrow.left.arrow.right") {
+                        if rule.capabilities.contains(.historyRead) {
+                            SettingsValueRow(title: "历史记录", value: "支持读取")
+                        }
+                        if rule.capabilities.contains(.historyClear) {
+                            if rule.capabilities.contains(.historyRead) { Divider() }
+                            SettingsValueRow(title: "清除设备历史", value: "破坏性操作")
+                        }
+                        Text("操作受超时、响应字节数和最大记录数限制；清除命令不会自动运行。")
+                            .font(.caption2)
+                            .foregroundStyle(AppColor.secondary)
+                    }
+                }
             }
             .padding(.horizontal, 18)
             .padding(.bottom, 28)
@@ -341,7 +388,7 @@ private struct CommunicationRuleDetailView: View {
 private struct CommunicationRuleFormatView: View {
     static let exampleJSON = #"""
     {
-      "schemaVersion" : 1,
+      "schemaVersion" : 2,
       "rules" : [
         {
           "id" : "community.example.scale-v1",
@@ -372,6 +419,54 @@ private struct CommunicationRuleFormatView: View {
               "mask" : 1,
               "equals" : 1
             }
+          },
+          "operations" : {
+            "historyRead" : {
+              "capability" : "historyRead",
+              "destructive" : false,
+              "subscriptions" : [
+                { "serviceUUID" : "FFB0", "characteristicUUID" : "FFB3" }
+              ],
+              "commands" : [
+                {
+                  "target" : { "serviceUUID" : "FFB0", "characteristicUUID" : "FFB1" },
+                  "payloadHexTemplate" : "F200",
+                  "writeMode" : "withResponse"
+                }
+              ],
+              "completionCommands" : [],
+              "acknowledgementCommands" : [],
+              "historyResponse" : {
+                "recordMatcher" : {
+                  "target" : { "serviceUUID" : "FFB0", "characteristicUUID" : "FFB3" },
+                  "minimumLength" : 1,
+                  "maximumLength" : 100
+                },
+                "completionMatcher" : {
+                  "target" : { "serviceUUID" : "FFB0", "characteristicUUID" : "FFB3" },
+                  "minimumLength" : 2,
+                  "maximumLength" : 2,
+                  "exactHex" : "F200"
+                },
+                "framing" : "fixedLength",
+                "recordLength" : 10,
+                "decoder" : {
+                  "weight" : { "offset" : 0, "length" : 2, "byteOrder" : "bigEndian", "scale" : 0.01 },
+                  "weightUnit" : "kilograms",
+                  "date" : {
+                    "year" : { "offset" : 2, "length" : 2, "byteOrder" : "bigEndian", "scale" : 1 },
+                    "month" : { "offset" : 4, "length" : 1, "byteOrder" : "bigEndian", "scale" : 1 },
+                    "day" : { "offset" : 5, "length" : 1, "byteOrder" : "bigEndian", "scale" : 1 },
+                    "hour" : { "offset" : 6, "length" : 1, "byteOrder" : "bigEndian", "scale" : 1 },
+                    "minute" : { "offset" : 7, "length" : 1, "byteOrder" : "bigEndian", "scale" : 1 },
+                    "second" : { "offset" : 8, "length" : 1, "byteOrder" : "bigEndian", "scale" : 1 }
+                  }
+                }
+              },
+              "timeoutSeconds" : 15,
+              "maximumResponseBytes" : 65536,
+              "maximumRecords" : 512
+            }
           }
         }
       ]
@@ -381,9 +476,9 @@ private struct CommunicationRuleFormatView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                Text("格式版本 1")
+                Text("格式版本 2")
                     .font(.title3.bold())
-                Text("规则先匹配传输方式、服务/特征 UUID、长度和可选帧前缀，再按无符号整数字段读取体重及可选身体成分。offset 从 0 开始，length 支持 1 至 8 字节。scale 和 add 的计算顺序为 raw × scale + add。")
+                Text("规则先匹配传输方式、服务/特征 UUID、长度和可选帧前缀，再按无符号整数字段读取测量值。operations 可声明历史读取或清除：命令只能写入声明的 GATT 目标，支持受限时间/会话字段，并强制设置超时、最大响应字节数和记录数。historyClear 必须标记 destructive，应用不会自动运行。")
                     .font(.subheadline)
                     .foregroundStyle(AppColor.secondary)
                     .lineSpacing(3)
@@ -409,6 +504,7 @@ private struct CommunicationRuleFormatView: View {
 private func transportTitle(_ transport: CommunicationTransport) -> String {
     switch transport {
     case .advertisementServiceData: "服务广播数据"
+    case .advertisementManufacturerData: "厂商广播数据"
     case .characteristicNotification: "GATT 特征通知"
     }
 }

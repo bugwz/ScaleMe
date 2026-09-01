@@ -20,6 +20,7 @@ enum MeasurementSource: String, Codable {
     case xiaomi = "小米体重秤"
     case icomonAFU = "ICOMON AFU 体脂秤"
     case bluetoothSIG = "标准蓝牙体重秤"
+    case communityProtocol = "社区协议体重秤"
     case customProtocol = "自定义通信协议"
     case manual = "手动记录"
     case demo = "示例数据"

@@ -560,6 +560,7 @@ private struct ScaleSettingsView: View {
     @Environment(\.dismiss) private var dismiss
     let scaleID: UUID
     @State private var confirmDelete = false
+    @State private var confirmClearHistory = false
     @State private var selectedHardwareUnit = XiaomiScaleHardwareUnit.kilograms
     @State private var showsProtocolMenu = false
 
@@ -573,6 +574,7 @@ private struct ScaleSettingsView: View {
                 namePanel
                 informationPanel
                 hardwarePanel
+                historyPanel
                 protocolPanel
                 capturePanel
 
@@ -636,7 +638,7 @@ private struct ScaleSettingsView: View {
         .onChange(of: bluetooth.settingsSnapshot.hardwareUnit) { _, unit in
             if let unit { selectedHardwareUnit = unit }
         }
-        .accessibilityHidden(confirmDelete)
+        .accessibilityHidden(confirmDelete || confirmClearHistory)
         .overlay {
             if confirmDelete {
                 DestructiveConfirmationOverlay(
@@ -651,9 +653,22 @@ private struct ScaleSettingsView: View {
                     onConfirm: deleteScale
                 )
                 .transition(.opacity)
+            } else if confirmClearHistory {
+                DestructiveConfirmationOverlay(
+                    icon: "trash.slash.fill",
+                    title: "清除设备历史",
+                    message: "将按当前外部协议向体重秤发送破坏性清除命令。设备内记录可能无法恢复，发送后仍需重新读取确认结果。",
+                    confirmTitle: "发送清除命令",
+                    onCancel: { confirmClearHistory = false },
+                    onConfirm: {
+                        confirmClearHistory = false
+                        bluetooth.clearDeviceHistory()
+                    }
+                )
+                .transition(.opacity)
             }
         }
-        .interactiveDismissDisabled(confirmDelete)
+        .interactiveDismissDisabled(confirmDelete || confirmClearHistory)
     }
 
     private var scaleDisplayName: String {
@@ -841,6 +856,113 @@ private struct ScaleSettingsView: View {
             Text("单位写入支持小米二代 0x1542 可写特征。ATT 交互响应会实时记录在下方诊断日志中。")
                 .font(.caption2).foregroundStyle(AppColor.secondary).lineSpacing(3)
         }
+    }
+
+    @ViewBuilder
+    private var historyPanel: some View {
+        if canReadDeviceHistory {
+            SettingsPanel(title: "设备历史", icon: "clock.arrow.2.circlepath") {
+                switch bluetooth.historyState {
+                case .reading(let received, let announced):
+                    HStack(spacing: 10) {
+                        ProgressView().tint(AppColor.mint)
+                        Text(historyProgressText(received: received, announced: announced))
+                            .font(.caption)
+                            .foregroundStyle(AppColor.secondary)
+                    }
+                case .awaitingImport(let measurements):
+                    Text(store.appLanguage.format("已读取 %lld 条记录，确认后导入当前成员。", Int64(measurements.count)))
+                        .font(.caption)
+                        .foregroundStyle(AppColor.ink)
+                    Button {
+                        bluetooth.importPendingHistory(into: store)
+                    } label: {
+                        Label("确认导入", systemImage: "square.and.arrow.down")
+                            .font(.caption.weight(.bold))
+                            .foregroundStyle(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 11)
+                            .background(AppColor.mint, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    }
+                    .buttonStyle(.plain)
+                case .imported(let count):
+                    Label(
+                        store.appLanguage.format("已导入 %lld 条新记录", Int64(count)),
+                        systemImage: "checkmark.circle.fill"
+                    )
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(AppColor.mint)
+                    historyReadButton
+                case .clearCommandSent:
+                    Label("清除命令已发送；请重新读取设备历史确认结果。", systemImage: "paperplane.circle.fill")
+                        .font(.caption)
+                        .foregroundStyle(AppColor.apricot)
+                    historyReadButton
+                case .failed(let message):
+                    Label(message, systemImage: "exclamationmark.triangle.fill")
+                        .font(.caption)
+                        .foregroundStyle(AppColor.apricot)
+                    historyReadButton
+                case .ready, .unavailable:
+                    historyReadButton
+                }
+
+                Text(canClearDeviceHistory
+                    ? "读取完成前不会保存数据。清除操作只会在二次确认后发送，结果需通过重新读取验证。"
+                    : "读取完成前不会保存数据；确认导入后会向设备回执“最近历史已收到”。当前没有经过验证的清空全部历史命令。")
+                    .font(.caption2)
+                    .foregroundStyle(AppColor.secondary)
+                    .lineSpacing(3)
+
+                if canClearDeviceHistory {
+                    Button(role: .destructive) {
+                        confirmClearHistory = true
+                    } label: {
+                        Label("清除设备历史", systemImage: "trash")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(AppColor.rose)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 10)
+                            .background(AppColor.rose.opacity(0.10), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(bluetooth.settingsState != .ready)
+                }
+            }
+        }
+    }
+
+    private var historyReadButton: some View {
+        Button {
+            bluetooth.readDeviceHistory()
+        } label: {
+            Label("读取秤内历史", systemImage: "arrow.down.circle")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(AppColor.mint)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 10)
+                .background(AppColor.paleMint, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        }
+        .buttonStyle(.plain)
+        .disabled(bluetooth.settingsState != .ready)
+    }
+
+    private func historyProgressText(received: Int, announced: Int?) -> String {
+        if let announced {
+            return store.appLanguage.format("正在读取：%lld / %lld 条", Int64(received), Int64(announced))
+        }
+        return store.appLanguage.format("正在读取：已收到 %lld 条", Int64(received))
+    }
+
+    private var canReadDeviceHistory: Bool {
+        guard let scale else { return false }
+        return bluetooth.settingsSnapshot.hasHistoryChannel
+            || store.communicationRule(for: scale)?.capabilities.contains(.historyRead) == true
+    }
+
+    private var canClearDeviceHistory: Bool {
+        guard let scale else { return false }
+        return store.communicationRule(for: scale)?.operations?.historyClear?.destructive == true
     }
 
     @ViewBuilder
