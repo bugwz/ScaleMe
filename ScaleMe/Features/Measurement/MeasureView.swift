@@ -144,7 +144,7 @@ struct MeasureView: View {
                 .foregroundStyle(AppColor.mint)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 13)
-                .background(.white.opacity(0.9), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                .background(AppColor.surface.opacity(0.9), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
                 .overlay {
                     RoundedRectangle(cornerRadius: 16, style: .continuous)
                         .stroke(AppColor.mint.opacity(0.14))
@@ -163,7 +163,7 @@ struct MeasureView: View {
                     .opacity(isPulsing && !reduceMotion ? 0.28 : 0.6)
                     .animation(reduceMotion ? nil : .easeInOut(duration: 1.4).repeatForever(autoreverses: true), value: isPulsing)
                 Circle()
-                    .fill(LinearGradient(colors: [.white, AppColor.paleMint], startPoint: .top, endPoint: .bottom))
+                    .fill(LinearGradient(colors: [AppColor.surface, AppColor.paleMint], startPoint: .top, endPoint: .bottom))
                     .frame(width: 230, height: 230)
                     .shadow(color: AppColor.mint.opacity(0.12), radius: 24, y: 10)
                 VStack(spacing: 10) {
@@ -223,7 +223,7 @@ struct MeasureView: View {
             .padding(.trailing, 6)
             .padding(.vertical, 5)
             .background(
-                showProfileDropdown ? AppColor.paleMint : Color.white.opacity(0.92),
+                showProfileDropdown ? AppColor.paleMint : AppColor.surface.opacity(0.92),
                 in: Capsule()
             )
             .overlay(
@@ -521,7 +521,7 @@ struct ManualEntryView: View {
                 .padding(.horizontal, 14)
                 .frame(maxWidth: .infinity)
                 .frame(height: 48)
-                .background(Color.white, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                .background(AppColor.surface, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
                 .overlay(
                     RoundedRectangle(cornerRadius: 12, style: .continuous)
                         .stroke(
@@ -828,7 +828,7 @@ private struct ManualNumericInputField: View {
             .padding(.horizontal, layout == .regular ? 14 : 10)
             .padding(.vertical, layout == .regular ? 11 : 9)
             .background(
-                Color.white,
+                AppColor.surface,
                 in: RoundedRectangle(cornerRadius: layout == .regular ? 12 : 10, style: .continuous)
             )
             .overlay {

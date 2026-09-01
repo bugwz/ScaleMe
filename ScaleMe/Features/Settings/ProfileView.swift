@@ -77,7 +77,7 @@ struct ProfileView: View {
                     .padding(.horizontal, 18)
                     .padding(.vertical, 13)
                 }
-                .background(.white.opacity(0.94))
+                .background(AppColor.surface.opacity(0.94))
                 .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
                 .overlay(RoundedRectangle(cornerRadius: 24, style: .continuous).stroke(AppColor.mint.opacity(0.10)))
                 .shadow(color: AppColor.mint.opacity(0.07), radius: 15, y: 6)
@@ -107,12 +107,6 @@ struct ProfileView: View {
                 }
                 SettingsSeparator().padding(.leading, 68)
                 NavigationLink {
-                    LanguageSettingsView()
-                } label: {
-                    settingsRow(store.appLanguage.text(.language), detail: store.appLanguage.nativeName, icon: "globe", color: AppColor.mint)
-                }
-                SettingsSeparator().padding(.leading, 68)
-                NavigationLink {
                     DataSyncSettingsView()
                 } label: {
                     settingsRow(store.appLanguage.text(.dataSync), detail: store.appLanguage.text(.dataSyncDetail), icon: "icloud.fill", color: AppColor.sky)
@@ -127,11 +121,11 @@ struct ProfileView: View {
                 NavigationLink {
                     AboutView()
                 } label: {
-                    settingsRow(store.appLanguage.text(.about), detail: store.appLanguage.text(.aboutDetail), icon: "leaf.fill", color: AppColor.violet)
+                    settingsRow(store.appLanguage.text(.about), detail: store.appLanguage.text(.aboutDetail), icon: "leaf.fill", color: AppColor.mint)
                 }
             }
             .padding(.horizontal, 14)
-            .background(.white.opacity(0.94))
+            .background(AppColor.surface.opacity(0.94))
             .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
             .overlay(RoundedRectangle(cornerRadius: 24, style: .continuous).stroke(AppColor.mint.opacity(0.08)))
         }
@@ -171,7 +165,7 @@ struct ProfileView: View {
     }
 }
 
-private struct LanguageSettingsView: View {
+struct LanguageSettingsView: View {
     @EnvironmentObject private var store: MeasurementStore
 
     var body: some View {
@@ -184,15 +178,15 @@ private struct LanguageSettingsView: View {
                     .padding(.horizontal, 2)
 
                 VStack(spacing: 0) {
-                    ForEach(Array(AppLanguage.allCases.enumerated()), id: \.element.id) { index, language in
-                        languageButton(language)
-                        if index < AppLanguage.allCases.count - 1 {
+                    ForEach(Array(AppLanguageSelection.allCases.enumerated()), id: \.element.id) { index, selection in
+                        languageButton(selection)
+                        if index < AppLanguageSelection.allCases.count - 1 {
                             SettingsSeparator().padding(.leading, 58)
                         }
                     }
                 }
                 .padding(.horizontal, 14)
-                .background(.white.opacity(0.94))
+                .background(AppColor.surface.opacity(0.94))
                 .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
                 .overlay(RoundedRectangle(cornerRadius: 24, style: .continuous).stroke(AppColor.mint.opacity(0.08)))
             }
@@ -206,11 +200,14 @@ private struct LanguageSettingsView: View {
         .localizedNavigationBackButton()
     }
 
-    private func languageButton(_ language: AppLanguage) -> some View {
-        let isSelected = store.appLanguage == language
+    private func languageButton(_ selection: AppLanguageSelection) -> some View {
+        let isSelected = store.languageSelection == selection
+        let title = selection == .system
+            ? store.appLanguage.text(.followSystem)
+            : selection.explicitLanguage?.nativeName ?? AppLanguage.english.nativeName
         return Button {
             withAnimation(.easeInOut(duration: 0.18)) {
-                store.appLanguage = language
+                store.languageSelection = selection
             }
         } label: {
             HStack(spacing: 14) {
@@ -223,7 +220,7 @@ private struct LanguageSettingsView: View {
                         in: RoundedRectangle(cornerRadius: 11, style: .continuous)
                     )
 
-                Text(language.nativeName)
+                Text(title)
                     .font(.body.weight(isSelected ? .semibold : .regular))
                     .foregroundStyle(AppColor.ink)
 
@@ -237,9 +234,92 @@ private struct LanguageSettingsView: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .accessibilityLabel(language.nativeName)
+        .accessibilityLabel(title)
         .accessibilityValue(isSelected ? store.appLanguage.text(.selected) : "")
         .accessibilityAddTraits(isSelected ? .isSelected : [])
+    }
+}
+
+struct AppearanceSettingsView: View {
+    @EnvironmentObject private var store: MeasurementStore
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 14) {
+                Text(store.appLanguage.text(.appearanceHint))
+                    .font(.subheadline)
+                    .foregroundStyle(AppColor.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.horizontal, 2)
+
+                VStack(spacing: 0) {
+                    ForEach(Array(AppAppearance.allCases.enumerated()), id: \.element.id) { index, appearance in
+                        appearanceButton(appearance)
+                        if index < AppAppearance.allCases.count - 1 {
+                            SettingsSeparator().padding(.leading, 58)
+                        }
+                    }
+                }
+                .padding(.horizontal, 14)
+                .background(AppColor.surface.opacity(0.94))
+                .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: 24, style: .continuous).stroke(AppColor.mint.opacity(0.08)))
+            }
+            .padding(.horizontal, 18)
+            .padding(.top, 8)
+            .padding(.bottom, 28)
+        }
+        .pageBackground()
+        .navigationTitle(store.appLanguage.text(.appearance))
+        .navigationBarTitleDisplayMode(.inline)
+        .localizedNavigationBackButton()
+    }
+
+    private func appearanceButton(_ appearance: AppAppearance) -> some View {
+        let isSelected = store.appearance == appearance
+        let title = title(for: appearance)
+        return Button {
+            withAnimation(.easeInOut(duration: 0.18)) {
+                store.appearance = appearance
+            }
+        } label: {
+            HStack(spacing: 14) {
+                Image(systemName: icon(for: appearance))
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(isSelected ? AppColor.mint : AppColor.secondary)
+                    .frame(width: 36, height: 36)
+                    .background(isSelected ? AppColor.paleMint : AppColor.canvas, in: RoundedRectangle(cornerRadius: 11, style: .continuous))
+                Text(title)
+                    .font(.body.weight(isSelected ? .semibold : .regular))
+                    .foregroundStyle(AppColor.ink)
+                Spacer()
+                Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                    .font(.title3)
+                    .foregroundStyle(isSelected ? AppColor.mint : AppColor.secondary.opacity(0.35))
+            }
+            .padding(.vertical, 10)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(title)
+        .accessibilityValue(isSelected ? store.appLanguage.text(.selected) : "")
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
+    }
+
+    private func title(for appearance: AppAppearance) -> String {
+        switch appearance {
+        case .system: store.appLanguage.text(.followSystem)
+        case .light: store.appLanguage.text(.lightAppearance)
+        case .dark: store.appLanguage.text(.darkAppearance)
+        }
+    }
+
+    private func icon(for appearance: AppAppearance) -> String {
+        switch appearance {
+        case .system: "circle.lefthalf.filled"
+        case .light: "sun.max.fill"
+        case .dark: "moon.stars.fill"
+        }
     }
 }
 
@@ -505,7 +585,7 @@ private struct MemberManagementView: View {
             }
         }
         .padding(14)
-        .background(isSelected ? AppColor.paleMint.opacity(0.72) : Color.white.opacity(0.94))
+        .background(isSelected ? AppColor.paleMint.opacity(0.72) : AppColor.surface.opacity(0.94))
         .clipShape(RoundedRectangle(cornerRadius: 19, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 19, style: .continuous)
@@ -718,7 +798,7 @@ private struct MemberManagementView: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 34)
-        .background(.white.opacity(0.86), in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .background(AppColor.surface.opacity(0.86), in: RoundedRectangle(cornerRadius: 20, style: .continuous))
     }
 }
 

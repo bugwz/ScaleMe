@@ -20,13 +20,19 @@ struct LocalizationSmoke {
             selectedProfileID: profile.id,
             pairedScales: [],
             unit: .kilograms,
-            appLanguage: .japanese,
+            languageSelection: .japanese,
+            appearance: .dark,
             mergeFrequentMeasurements: false,
             customCommunicationRules: []
         )
         let encoded = try JSONEncoder().encode(configuration)
         let decoded = try JSONDecoder().decode(AppConfiguration.self, from: encoded)
-        precondition(decoded.appLanguage == .japanese)
+        precondition(decoded.languageSelection == .japanese)
+        precondition(decoded.languageSelection.resolvedLanguage == .japanese)
+        precondition(decoded.appearance == .dark)
+        precondition(AppLanguage.matchingSystemLanguage(preferredLanguages: ["ar-SA"]) == .english)
+        precondition(AppLanguage.matchingSystemLanguage(preferredLanguages: ["zh-TW"]) == .traditionalChinese)
+        precondition(AppLanguageSelection.system.resolvedLanguage == AppLanguage.systemDefault)
 
         let requiredLocalizedKeys = [
             "健康指标", "体脂率", "基础代谢", "测量", "选择测量成员",
@@ -66,7 +72,7 @@ struct LocalizationSmoke {
             "正在扫描模拟设备", "已发现模拟设备", "设备设置", "连接状态",
             "秤端设置", "数据抓包", "成员管理", "添加成员",
             "编辑成员", "人物形象", "成员信息", "出生日期", "运动员模式",
-            "同步应用配置", "同步测量数据", "通信规则", "协议详情",
+            "同步应用配置", "同步测量数据", "协议详情",
             "规则配置格式", "关于观我",
             "我们的原则", "本地优先", "标准优先", "关注长期趋势", "重要说明",
             "返回", "正在连接", "正在读取设备能力", "设备能力已更新"

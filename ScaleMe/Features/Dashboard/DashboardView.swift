@@ -162,7 +162,7 @@ struct DashboardView: View {
                 .fill(
                     LinearGradient(
                         colors: [
-                            .white,
+                            AppColor.surface,
                             theme.primary.opacity(0.12),
                             theme.secondary.opacity(0.22)
                         ],
@@ -1007,6 +1007,6 @@ private struct MetricTile: View {
             AppLocalizedText(title).font(.caption).foregroundStyle(AppColor.secondary)
             Text(source).font(.caption2).foregroundStyle(AppColor.secondary).lineLimit(1)
         }
-        .padding(17).background(.white).clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .padding(17).background(AppColor.surface).clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
     }
 }

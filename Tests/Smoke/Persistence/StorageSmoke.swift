@@ -66,6 +66,8 @@ enum StorageSmoke {
         precondition(decoded == configuration, "multi-profile and paired-device configuration round trip failed")
         precondition(decoded.profiles[0].avatar == .senior, "member avatar selection must survive configuration round trip")
         precondition(decoded.isSimulationEnabled, "simulation preference must survive configuration round trip")
+        precondition(decoded.languageSelection == .system, "language should follow the system by default")
+        precondition(decoded.appearance == .system, "appearance should follow the system by default")
         print("Storage smoke tests passed")
     }
 }

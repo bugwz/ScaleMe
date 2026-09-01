@@ -3,44 +3,53 @@ import SwiftUI
 struct CommunicationRulesView: View {
     @EnvironmentObject private var store: MeasurementStore
     @Environment(\.appLanguage) private var language
-    @State private var remoteURL = ""
-    @State private var isRemoteURLFocused = false
-    @State private var isImportingRemote = false
-    @State private var showsJSONImporter = false
-    @State private var message: ImportMessage?
-
-    private struct ImportMessage: Identifiable {
-        let id = UUID()
-        var title: String
-        var detail: String
-    }
+    @State private var showsAddExternalProtocol = false
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
-                SettingsPanel(title: "内置协议", icon: "checkmark.seal.fill") {
-                    ForEach(CommunicationRuleCatalog.builtIn) { rule in
-                        ruleLink(rule)
-                        if rule.id != CommunicationRuleCatalog.builtIn.last?.id { SettingsSeparator() }
+                NavigationLink {
+                    BuiltInProtocolsView()
+                } label: {
+                    HStack(spacing: 14) {
+                        Image(systemName: "checkmark.seal.fill")
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(AppColor.mint)
+                            .frame(width: 40, height: 40)
+                            .background(AppColor.paleMint, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                        Text(language.text("内置协议"))
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(AppColor.ink)
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                            .font(.caption.bold())
+                            .foregroundStyle(AppColor.secondary.opacity(0.7))
                     }
-                    Text("“内置”表示解析器已实现；具体设备是否可用仍以实机、固件和已捕获数据验证为准。")
-                        .font(.caption)
-                        .foregroundStyle(AppColor.secondary)
-                        .lineSpacing(3)
+                    .padding(14)
+                    .background(AppColor.surface.opacity(0.94))
+                    .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                    .overlay(RoundedRectangle(cornerRadius: 20, style: .continuous).stroke(AppColor.mint.opacity(0.08)))
+                    .contentShape(Rectangle())
                 }
+                .buttonStyle(.plain)
 
-                SettingsPanel(title: "外部协议", icon: "person.2.wave.2") {
+                SettingsPanel(
+                    title: "外部协议",
+                    icon: "person.2.wave.2",
+                    headerActionTitle: "添加",
+                    headerAction: { showsAddExternalProtocol = true }
+                ) {
                     if store.customCommunicationRules.isEmpty {
                         ContentUnavailableView(
-                            "尚无外部规则",
+                            language.text("外部协议"),
                             systemImage: "doc.badge.plus",
-                            description: Text("可粘贴 JSON，或从可信的 HTTPS 地址拉取。")
+                            description: Text(language.text("点击“添加”并输入 HTTPS 地址导入。"))
                         )
                         .frame(maxWidth: .infinity, minHeight: 150)
                     } else {
                         ForEach(store.customCommunicationRules) { rule in
                             HStack(spacing: 12) {
-                                ruleLink(rule)
+                                ProtocolRuleLink(rule: rule)
                                 Button(role: .destructive) {
                                     store.removeCommunicationRule(rule.id)
                                 } label: {
@@ -58,61 +67,84 @@ struct CommunicationRulesView: View {
                         .lineSpacing(3)
                 }
 
-                SettingsPanel(title: "在线导入", icon: "link.badge.plus") {
+            }
+            .padding(.horizontal, 18)
+            .padding(.bottom, 28)
+        }
+        .pageBackground()
+        .navigationTitle(language.text(.communicationProtocol))
+        .navigationBarTitleDisplayMode(.inline)
+        .localizedNavigationBackButton()
+        .sheet(isPresented: $showsAddExternalProtocol) {
+            AddExternalProtocolView()
+        }
+    }
+
+}
+
+private struct BuiltInProtocolsView: View {
+    @Environment(\.appLanguage) private var language
+    @State private var searchText = ""
+    @State private var isSearchFocused = false
+
+    private var filteredRules: [CommunicationRule] {
+        let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !query.isEmpty else { return CommunicationRuleCatalog.builtIn }
+        return CommunicationRuleCatalog.builtIn.filter { rule in
+            [
+                language.text(rule.name),
+                language.text(rule.summary),
+                language.text(transportTitle(rule.match.transport)),
+                rule.id
+            ]
+            .joined(separator: " ")
+            .localizedCaseInsensitiveContains(query)
+        }
+    }
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
+                HStack(spacing: 10) {
+                    Image(systemName: "magnifyingglass")
+                        .foregroundStyle(AppColor.secondary)
                     ResponsiveTextField(
-                        text: $remoteURL,
-                        isFocused: $isRemoteURLFocused,
-                        placeholder: "https://example.com/scaleme-rules.json",
-                        keyboardType: .URL,
-                        returnKeyType: .done,
-                        autocapitalizationType: .none,
+                        text: $searchText,
+                        isFocused: $isSearchFocused,
+                        placeholder: "搜索内置协议",
+                        returnKeyType: .search,
                         autocorrectionType: .no,
-                        spellCheckingType: .no,
-                        onSubmit: { isRemoteURLFocused = false }
+                        onSubmit: { isSearchFocused = false }
                     )
-                        .padding(12)
-                        .background(AppColor.canvas, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                .stroke(AppColor.mint.opacity(0.18))
-                                .allowsHitTesting(false)
-                        )
-
-                    Button {
-                        importRemoteRules()
-                    } label: {
-                        HStack {
-                            Label("拉取并校验规则", systemImage: "arrow.down.doc")
-                                .font(.caption.weight(.bold))
-                                .foregroundStyle(.white)
-                            Spacer()
-                            if isImportingRemote { ProgressView().tint(.white) }
+                    if !searchText.isEmpty {
+                        Button {
+                            searchText = ""
+                        } label: {
+                            Image(systemName: "xmark.circle.fill")
+                                .foregroundStyle(AppColor.secondary.opacity(0.55))
                         }
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 12)
-                        .padding(.horizontal, 16)
-                        .background(AppColor.mint, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                        .buttonStyle(.plain)
+                        .accessibilityLabel(language.text("清除搜索"))
                     }
-                    .buttonStyle(.plain)
-                    .disabled(remoteURL.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isImportingRemote)
                 }
+                .padding(.horizontal, 14)
+                .frame(minHeight: 48)
+                .background(AppColor.surface.opacity(0.94), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).stroke(AppColor.mint.opacity(0.10)))
 
-                SettingsPanel(title: "开发工具", icon: "wrench.and.screwdriver.fill") {
-                    Button { showsJSONImporter = true } label: {
-                        Label("粘贴 JSON 规则", systemImage: "curlybraces")
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                    }
-                    SettingsSeparator()
-                    NavigationLink {
-                        CommunicationRuleFormatView()
-                    } label: {
-                        HStack {
-                            Label("查看配置格式与示例", systemImage: "doc.text.magnifyingglass")
-                            Spacer()
-                            Image(systemName: "chevron.right").font(.caption.bold())
+                SettingsPanel(title: "内置协议", icon: "checkmark.seal.fill") {
+                    if filteredRules.isEmpty {
+                        Label("未找到匹配的内置协议", systemImage: "magnifyingglass")
+                            .font(.subheadline)
+                            .foregroundStyle(AppColor.secondary)
+                            .frame(maxWidth: .infinity, minHeight: 100)
+                    } else {
+                        ForEach(filteredRules) { rule in
+                            ProtocolRuleLink(rule: rule)
+                            if rule.id != filteredRules.last?.id { SettingsSeparator() }
                         }
                     }
-                    Text("外部规则是受限的声明式协议：不能执行脚本；GATT 写入只能访问规则声明且设备实际公开的特征。破坏性操作必须单独声明并由用户确认。单个文件最大 512 KB。")
+                    Text("“内置”表示解析器已实现；具体设备是否可用仍以实机、固件和已捕获数据验证为准。")
                         .font(.caption)
                         .foregroundStyle(AppColor.secondary)
                         .lineSpacing(3)
@@ -121,29 +153,23 @@ struct CommunicationRulesView: View {
             .padding(.horizontal, 18)
             .padding(.bottom, 28)
         }
+        .scrollDismissesKeyboard(.interactively)
         .pageBackground()
-        .navigationTitle("通信规则")
+        .navigationTitle("内置协议")
         .navigationBarTitleDisplayMode(.inline)
         .localizedNavigationBackButton()
-        .scrollDismissesKeyboard(.interactively)
-        .sheet(isPresented: $showsJSONImporter) {
-            CommunicationRuleJSONImporter()
-        }
-        .alert(item: $message) { item in
-            Alert(
-                title: Text(language.text(item.title)),
-                message: Text(language.text(item.detail)),
-                dismissButton: .default(Text(language.text("好")))
-            )
-        }
     }
+}
 
-    private func ruleLink(_ rule: CommunicationRule) -> some View {
+private struct ProtocolRuleLink: View {
+    let rule: CommunicationRule
+
+    var body: some View {
         NavigationLink {
             CommunicationRuleDetailView(rule: rule)
         } label: {
             HStack(spacing: 10) {
-                ruleRow(rule)
+                ProtocolRuleRow(rule: rule)
                 Spacer()
                 Image(systemName: "chevron.right")
                     .font(.caption.bold())
@@ -153,22 +179,21 @@ struct CommunicationRulesView: View {
         }
         .buttonStyle(.plain)
     }
+}
 
-    private func ruleRow(_ rule: CommunicationRule) -> some View {
+private struct ProtocolRuleRow: View {
+    @Environment(\.appLanguage) private var language
+    let rule: CommunicationRule
+
+    var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             Text(rule.origin == .builtIn ? language.text(rule.name) : rule.name)
                 .font(.subheadline.weight(.semibold))
                 .foregroundStyle(AppColor.ink)
                 .fixedSize(horizontal: false, vertical: true)
             HStack(spacing: 6) {
-                protocolTag(
-                    rule.origin.title,
-                    color: rule.origin == .builtIn ? AppColor.mint : AppColor.apricot
-                )
-                protocolTag(
-                    rule.effectiveVerification.title,
-                    color: verificationColor(rule.effectiveVerification)
-                )
+                protocolTag(rule.origin.title, color: rule.origin == .builtIn ? AppColor.mint : AppColor.apricot)
+                protocolTag(rule.effectiveVerification.title, color: verificationColor(rule.effectiveVerification))
                 Spacer(minLength: 0)
             }
             Text(language.format("v%lld · %@", Int64(rule.version), language.text(transportTitle(rule.match.transport))))
@@ -195,100 +220,142 @@ struct CommunicationRulesView: View {
         case .unverified: AppColor.apricot
         }
     }
+}
 
-    private func importRemoteRules() {
-        let text = remoteURL.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard let url = URL(string: text), url.scheme?.lowercased() == "https" else {
-            message = .init(title: "地址不可用", detail: CommunicationRuleError.unsupportedRemoteURL.localizedDescription)
+private struct AddExternalProtocolView: View {
+    @Environment(\.appLanguage) private var language
+    @EnvironmentObject private var store: MeasurementStore
+    @Environment(\.dismiss) private var dismiss
+    @State private var remoteURL = ""
+    @State private var isRemoteURLFocused = false
+    @State private var isImporting = false
+    @State private var errorMessage: String?
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 18) {
+                    SettingsPanel(title: "在线导入", icon: "link.badge.plus") {
+                        Text("点击导入后会检查地址、网络资源与协议格式；校验通过才会保存。")
+                            .font(.caption)
+                            .foregroundStyle(AppColor.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+
+                        ResponsiveTextField(
+                            text: $remoteURL,
+                            isFocused: $isRemoteURLFocused,
+                            placeholder: "https://example.com/scaleme-protocols.json",
+                            keyboardType: .URL,
+                            returnKeyType: .go,
+                            autocapitalizationType: .none,
+                            autocorrectionType: .no,
+                            spellCheckingType: .no,
+                            onSubmit: importProtocol
+                        )
+                        .padding(12)
+                        .background(AppColor.canvas, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                .stroke(errorMessage == nil ? AppColor.mint.opacity(0.18) : AppColor.rose, lineWidth: errorMessage == nil ? 1 : 1.5)
+                                .allowsHitTesting(false)
+                        )
+
+                        if let errorMessage {
+                            Label {
+                                Text(language.text(errorMessage))
+                                    .fixedSize(horizontal: false, vertical: true)
+                            } icon: {
+                                Image(systemName: "exclamationmark.triangle.fill")
+                            }
+                            .font(.caption)
+                            .foregroundStyle(AppColor.rose)
+                        }
+
+                        Button(action: importProtocol) {
+                            HStack {
+                                Label("导入", systemImage: "arrow.down.doc.fill")
+                                    .font(.subheadline.weight(.semibold))
+                                Spacer()
+                                if isImporting {
+                                    ProgressView().tint(.white)
+                                }
+                            }
+                            .foregroundStyle(hasImportAddress ? Color.white : AppColor.secondary)
+                            .frame(maxWidth: .infinity)
+                            .padding(.horizontal, 16)
+                            .frame(minHeight: 48)
+                            .background(
+                                hasImportAddress ? AppColor.mint : AppColor.paleMint,
+                                in: RoundedRectangle(cornerRadius: 14, style: .continuous)
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                    .stroke(hasImportAddress ? Color.clear : AppColor.secondary.opacity(0.18))
+                            )
+                        }
+                        .buttonStyle(.plain)
+                        .disabled(!hasImportAddress || isImporting)
+                    }
+                }
+                .padding(.horizontal, 18)
+                .padding(.bottom, 28)
+            }
+            .scrollDismissesKeyboard(.interactively)
+            .pageBackground()
+            .navigationTitle("外部协议")
+            .navigationBarTitleDisplayMode(.inline)
+            .interactiveDismissDisabled(isImporting)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("取消") { dismiss() }
+                        .disabled(isImporting)
+                }
+            }
+        }
+    }
+
+    private var trimmedURL: String {
+        remoteURL.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private var hasImportAddress: Bool {
+        !trimmedURL.isEmpty
+    }
+
+    private func importProtocol() {
+        KeyboardFocus.dismiss()
+        errorMessage = nil
+        guard let url = URL(string: trimmedURL), url.scheme?.lowercased() == "https" else {
+            errorMessage = CommunicationRuleError.unsupportedRemoteURL.localizedDescription
             return
         }
-        isImportingRemote = true
+
+        isImporting = true
         Task {
-            defer { isImportingRemote = false }
+            defer { isImporting = false }
             do {
                 var request = URLRequest(url: url)
                 request.timeoutInterval = 15
                 request.cachePolicy = .reloadIgnoringLocalCacheData
-                let (data, response) = try await URLSession.shared.data(for: request)
+                let (bytes, response) = try await URLSession.shared.bytes(for: request)
                 guard let http = response as? HTTPURLResponse,
                       (200...299).contains(http.statusCode),
-                      http.url?.scheme?.lowercased() == "https" else {
+                      let resolvedURL = http.url,
+                      resolvedURL.scheme?.lowercased() == "https" else {
                     throw URLError(.badServerResponse)
                 }
-                let count = try store.importCommunicationRules(data, sourceURL: url)
-                remoteURL = ""
-                message = .init(
-                    title: "导入完成",
-                    detail: language.format(
-                        "已校验并保存 %lld 条社区规则。请在具体设备的“通信协议”中选择。",
-                        Int64(count)
-                    )
-                )
+                var data = Data()
+                data.reserveCapacity(max(0, min(Int(http.expectedContentLength), 512 * 1024)))
+                for try await byte in bytes {
+                    guard data.count < 512 * 1024 else {
+                        throw CommunicationRuleError.responseTooLarge
+                    }
+                    data.append(byte)
+                }
+                _ = try store.importCommunicationRules(data, sourceURL: resolvedURL)
+                dismiss()
             } catch {
-                message = .init(title: "导入失败", detail: error.localizedDescription)
-            }
-        }
-    }
-}
-
-private struct CommunicationRuleJSONImporter: View {
-    @Environment(\.appLanguage) private var language
-    @EnvironmentObject private var store: MeasurementStore
-    @Environment(\.dismiss) private var dismiss
-    @State private var json = CommunicationRuleFormatView.exampleJSON
-    @State private var errorMessage: String?
-    @State private var isJSONFocused = false
-
-    var body: some View {
-        NavigationStack {
-            VStack(alignment: .leading, spacing: 12) {
-                Text("粘贴完整的 ScaleMe 通信规则文件。示例可直接修改。")
-                    .font(.caption)
-                    .foregroundStyle(AppColor.secondary)
-                ResponsiveTextEditor(
-                    text: $json,
-                    isFocused: $isJSONFocused,
-                    autocapitalizationType: .none,
-                    autocorrectionType: .no,
-                    spellCheckingType: .no,
-                    usesMonospacedFont: true,
-                    showsDoneAccessory: true
-                )
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .frame(minHeight: 280)
-                    .padding(8)
-                    .background(.white, in: RoundedRectangle(cornerRadius: 12))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12)
-                            .stroke(AppColor.mint.opacity(0.18))
-                            .allowsHitTesting(false)
-                    )
-                if let errorMessage {
-                    Label {
-                        Text(language.text(errorMessage))
-                    } icon: {
-                        Image(systemName: "exclamationmark.triangle.fill")
-                    }
-                        .font(.caption)
-                        .foregroundStyle(AppColor.rose)
-                }
-            }
-            .padding()
-            .pageBackground()
-            .navigationTitle("导入 JSON")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) { Button("取消") { dismiss() } }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("导入") {
-                        do {
-                            _ = try store.importCommunicationRules(Data(json.utf8))
-                            dismiss()
-                        } catch {
-                            errorMessage = error.localizedDescription
-                        }
-                    }
-                }
+                errorMessage = error.localizedDescription
             }
         }
     }
@@ -385,121 +452,6 @@ private struct CommunicationRuleDetailView: View {
     }
 }
 
-private struct CommunicationRuleFormatView: View {
-    static let exampleJSON = #"""
-    {
-      "schemaVersion" : 2,
-      "rules" : [
-        {
-          "id" : "protocol.custom.example",
-          "name" : "示例非标准体重秤",
-          "version" : 1,
-          "summary" : "示例：FFB0 服务的 FFB2 通知，体重位于第 3、4 字节。",
-          "author" : "Community",
-          "origin" : "custom",
-          "match" : {
-            "transport" : "characteristicNotification",
-            "serviceUUID" : "FFB0",
-            "characteristicUUID" : "FFB2",
-            "minimumLength" : 5,
-            "maximumLength" : 20,
-            "prefixHex" : "AC29"
-          },
-          "decoder" : {
-            "weight" : {
-              "offset" : 2,
-              "length" : 2,
-              "byteOrder" : "bigEndian",
-              "scale" : 0.01,
-              "add" : 0
-            },
-            "weightUnit" : "kilograms",
-            "stableWhen" : {
-              "offset" : 4,
-              "mask" : 1,
-              "equals" : 1
-            }
-          },
-          "operations" : {
-            "historyRead" : {
-              "capability" : "historyRead",
-              "destructive" : false,
-              "subscriptions" : [
-                { "serviceUUID" : "FFB0", "characteristicUUID" : "FFB3" }
-              ],
-              "commands" : [
-                {
-                  "target" : { "serviceUUID" : "FFB0", "characteristicUUID" : "FFB1" },
-                  "payloadHexTemplate" : "F200",
-                  "writeMode" : "withResponse"
-                }
-              ],
-              "completionCommands" : [],
-              "acknowledgementCommands" : [],
-              "historyResponse" : {
-                "recordMatcher" : {
-                  "target" : { "serviceUUID" : "FFB0", "characteristicUUID" : "FFB3" },
-                  "minimumLength" : 1,
-                  "maximumLength" : 100
-                },
-                "completionMatcher" : {
-                  "target" : { "serviceUUID" : "FFB0", "characteristicUUID" : "FFB3" },
-                  "minimumLength" : 2,
-                  "maximumLength" : 2,
-                  "exactHex" : "F200"
-                },
-                "framing" : "fixedLength",
-                "recordLength" : 10,
-                "decoder" : {
-                  "weight" : { "offset" : 0, "length" : 2, "byteOrder" : "bigEndian", "scale" : 0.01 },
-                  "weightUnit" : "kilograms",
-                  "date" : {
-                    "year" : { "offset" : 2, "length" : 2, "byteOrder" : "bigEndian", "scale" : 1 },
-                    "month" : { "offset" : 4, "length" : 1, "byteOrder" : "bigEndian", "scale" : 1 },
-                    "day" : { "offset" : 5, "length" : 1, "byteOrder" : "bigEndian", "scale" : 1 },
-                    "hour" : { "offset" : 6, "length" : 1, "byteOrder" : "bigEndian", "scale" : 1 },
-                    "minute" : { "offset" : 7, "length" : 1, "byteOrder" : "bigEndian", "scale" : 1 },
-                    "second" : { "offset" : 8, "length" : 1, "byteOrder" : "bigEndian", "scale" : 1 }
-                  }
-                }
-              },
-              "timeoutSeconds" : 15,
-              "maximumResponseBytes" : 65536,
-              "maximumRecords" : 512
-            }
-          }
-        }
-      ]
-    }
-    """#
-
-    var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
-                Text("格式版本 2")
-                    .font(.title3.bold())
-                Text("规则先匹配传输方式、服务/特征 UUID、长度和可选帧前缀，再按无符号整数字段读取测量值。operations 可声明历史读取或清除：命令只能写入声明的 GATT 目标，支持受限时间/会话字段，并强制设置超时、最大响应字节数和记录数。historyClear 必须标记 destructive，应用不会自动运行。")
-                    .font(.subheadline)
-                    .foregroundStyle(AppColor.secondary)
-                    .lineSpacing(3)
-                Text(Self.exampleJSON)
-                    .font(.system(.caption, design: .monospaced))
-                    .textSelection(.enabled)
-                    .padding(14)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(.white, in: RoundedRectangle(cornerRadius: 14))
-                ShareLink(item: Self.exampleJSON) {
-                    Label("分享示例 JSON", systemImage: "square.and.arrow.up")
-                }
-            }
-            .padding()
-        }
-        .pageBackground()
-        .navigationTitle("规则配置格式")
-        .navigationBarTitleDisplayMode(.inline)
-        .localizedNavigationBackButton()
-    }
-}
 
 private func transportTitle(_ transport: CommunicationTransport) -> String {
     switch transport {

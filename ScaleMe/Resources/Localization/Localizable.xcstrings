@@ -1,13 +1,6 @@
 {
   "sourceLanguage" : "zh-Hans",
   "strings" : {
-    "保存数据" : { "extractionState" : "manual", "localizations" : { "de" : { "stringUnit" : { "state" : "translated", "value" : "Daten speichern" } }, "en" : { "stringUnit" : { "state" : "translated", "value" : "Save data" } }, "es" : { "stringUnit" : { "state" : "translated", "value" : "Guardar datos" } }, "fr" : { "stringUnit" : { "state" : "translated", "value" : "Enregistrer les données" } }, "ja" : { "stringUnit" : { "state" : "translated", "value" : "データを保存" } }, "ko" : { "stringUnit" : { "state" : "translated", "value" : "데이터 저장" } }, "pt" : { "stringUnit" : { "state" : "translated", "value" : "Guardar dados" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Сохранить данные" } }, "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "保存数据" } }, "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "儲存資料" } } } },
-    "报告已准备完成，可以保存到文件或通过其他应用分享。" : { "extractionState" : "manual", "localizations" : { "de" : { "stringUnit" : { "state" : "translated", "value" : "Der Bericht ist bereit. Du kannst ihn als Datei speichern oder über eine andere App teilen." } }, "en" : { "stringUnit" : { "state" : "translated", "value" : "The report is ready. Save it to a file or share it with another app." } }, "es" : { "stringUnit" : { "state" : "translated", "value" : "El informe está listo. Guárdalo en un archivo o compártelo con otra app." } }, "fr" : { "stringUnit" : { "state" : "translated", "value" : "Le rapport est prêt. Enregistrez-le dans un fichier ou partagez-le avec une autre app." } }, "ja" : { "stringUnit" : { "state" : "translated", "value" : "レポートの準備ができました。ファイルに保存するか、ほかのアプリで共有できます。" } }, "ko" : { "stringUnit" : { "state" : "translated", "value" : "보고서가 준비되었습니다. 파일로 저장하거나 다른 앱으로 공유할 수 있습니다." } }, "pt" : { "stringUnit" : { "state" : "translated", "value" : "O relatório está pronto. Guarde-o num ficheiro ou partilhe-o com outra app." } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Отчёт готов. Сохраните его в файл или поделитесь через другое приложение." } }, "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "报告已准备完成，可以保存到文件或通过其他应用分享。" } }, "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "報告已準備完成，可以儲存到檔案或透過其他 App 分享。" } } } },
-    "导出完成" : { "extractionState" : "manual", "localizations" : { "de" : { "stringUnit" : { "state" : "translated", "value" : "Export abgeschlossen" } }, "en" : { "stringUnit" : { "state" : "translated", "value" : "Export complete" } }, "es" : { "stringUnit" : { "state" : "translated", "value" : "Exportación completada" } }, "fr" : { "stringUnit" : { "state" : "translated", "value" : "Exportation terminée" } }, "ja" : { "stringUnit" : { "state" : "translated", "value" : "エクスポート完了" } }, "ko" : { "stringUnit" : { "state" : "translated", "value" : "내보내기 완료" } }, "pt" : { "stringUnit" : { "state" : "translated", "value" : "Exportação concluída" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Экспорт завершён" } }, "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "导出完成" } }, "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "匯出完成" } } } },
-    "分享" : { "extractionState" : "manual", "localizations" : { "de" : { "stringUnit" : { "state" : "translated", "value" : "Teilen" } }, "en" : { "stringUnit" : { "state" : "translated", "value" : "Share" } }, "es" : { "stringUnit" : { "state" : "translated", "value" : "Compartir" } }, "fr" : { "stringUnit" : { "state" : "translated", "value" : "Partager" } }, "ja" : { "stringUnit" : { "state" : "translated", "value" : "共有" } }, "ko" : { "stringUnit" : { "state" : "translated", "value" : "공유" } }, "pt" : { "stringUnit" : { "state" : "translated", "value" : "Partilhar" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Поделиться" } }, "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "分享" } }, "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "分享" } } } },
-    "数据抓包" : { "extractionState" : "manual", "localizations" : { "de" : { "stringUnit" : { "state" : "translated", "value" : "Datenerfassung" } }, "en" : { "stringUnit" : { "state" : "translated", "value" : "Data capture" } }, "es" : { "stringUnit" : { "state" : "translated", "value" : "Captura de datos" } }, "fr" : { "stringUnit" : { "state" : "translated", "value" : "Capture de données" } }, "ja" : { "stringUnit" : { "state" : "translated", "value" : "データキャプチャ" } }, "ko" : { "stringUnit" : { "state" : "translated", "value" : "데이터 캡처" } }, "pt" : { "stringUnit" : { "state" : "translated", "value" : "Captura de dados" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Захват данных" } }, "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "数据抓包" } }, "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "資料擷取" } } } },
-    "正在导出" : { "extractionState" : "manual", "localizations" : { "de" : { "stringUnit" : { "state" : "translated", "value" : "Export läuft" } }, "en" : { "stringUnit" : { "state" : "translated", "value" : "Exporting" } }, "es" : { "stringUnit" : { "state" : "translated", "value" : "Exportando" } }, "fr" : { "stringUnit" : { "state" : "translated", "value" : "Exportation en cours" } }, "ja" : { "stringUnit" : { "state" : "translated", "value" : "エクスポート中" } }, "ko" : { "stringUnit" : { "state" : "translated", "value" : "내보내는 중" } }, "pt" : { "stringUnit" : { "state" : "translated", "value" : "A exportar" } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Экспорт…" } }, "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "正在导出" } }, "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "正在匯出" } } } },
-    "正在整理抓包数据，请稍候。" : { "extractionState" : "manual", "localizations" : { "de" : { "stringUnit" : { "state" : "translated", "value" : "Die erfassten Daten werden vorbereitet. Bitte warte einen Moment." } }, "en" : { "stringUnit" : { "state" : "translated", "value" : "Preparing the captured data. Please wait." } }, "es" : { "stringUnit" : { "state" : "translated", "value" : "Preparando los datos capturados. Espera un momento." } }, "fr" : { "stringUnit" : { "state" : "translated", "value" : "Préparation des données capturées. Veuillez patienter." } }, "ja" : { "stringUnit" : { "state" : "translated", "value" : "キャプチャしたデータを準備しています。しばらくお待ちください。" } }, "ko" : { "stringUnit" : { "state" : "translated", "value" : "캡처한 데이터를 준비하고 있습니다. 잠시 기다려 주세요." } }, "pt" : { "stringUnit" : { "state" : "translated", "value" : "A preparar os dados capturados. Aguarde um momento." } }, "ru" : { "stringUnit" : { "state" : "translated", "value" : "Подготовка захваченных данных. Подождите." } }, "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "正在整理抓包数据，请稍候。" } }, "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "正在整理擷取資料，請稍候。" } } } },
     "“内置”表示解析器已实现；具体设备是否可用仍以实机、固件和已捕获数据验证为准。" : {
       "localizations" : {
         "de" : {
@@ -1887,66 +1880,66 @@
         }
       }
     },
-    "iCloud 中的成员、设备、显示单位和通信规则将替换本机配置。测量记录不受影响。" : {
+    "iCloud 中的成员、设备、显示单位和通信协议将替换本机配置。测量记录不受影响。" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Members, devices, display units, and communication rules from iCloud will replace local configuration. Measurements are not affected."
+            "value" : "Mitglieder, Geräte, Anzeigeeinheiten und Kommunikationsprotokolle aus iCloud ersetzen die lokale Konfiguration. Messungen bleiben unberührt."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Members, devices, display units, and communication rules from iCloud will replace local configuration. Measurements are not affected."
+            "value" : "Members, devices, display units, and communication protocols from iCloud will replace local configuration. Measurements are not affected."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Members, devices, display units, and communication rules from iCloud will replace local configuration. Measurements are not affected."
+            "value" : "Los miembros, dispositivos, unidades de visualización y protocolos de comunicación de iCloud reemplazarán la configuración local. Las mediciones no se verán afectadas."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Members, devices, display units, and communication rules from iCloud will replace local configuration. Measurements are not affected."
+            "value" : "Les membres, appareils, unités d’affichage et protocoles de communication d’iCloud remplaceront la configuration locale. Les mesures ne sont pas affectées."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Members, devices, display units, and communication rules from iCloud will replace local configuration. Measurements are not affected."
+            "value" : "iCloud のメンバー、デバイス、表示単位、通信プロトコルでローカル設定を置き換えます。測定記録には影響しません。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Members, devices, display units, and communication rules from iCloud will replace local configuration. Measurements are not affected."
+            "value" : "iCloud의 구성원, 기기, 표시 단위 및 통신 프로토콜이 로컬 구성을 대체합니다. 측정 기록에는 영향을 주지 않습니다."
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Members, devices, display units, and communication rules from iCloud will replace local configuration. Measurements are not affected."
+            "value" : "Os membros, dispositivos, unidades de apresentação e protocolos de comunicação do iCloud substituirão a configuração local. As medições não serão afetadas."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Members, devices, display units, and communication rules from iCloud will replace local configuration. Measurements are not affected."
+            "value" : "Участники, устройства, единицы отображения и протоколы связи из iCloud заменят локальную конфигурацию. Измерения не изменятся."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "iCloud 中的成员、设备、显示单位和通信规则将替换本机配置。测量记录不受影响。"
+            "value" : "iCloud 中的成员、设备、显示单位和通信协议将替换本机配置。测量记录不受影响。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "iCloud 中的成员、设备、显示单位和通信规则将替换本机配置。测量记录不受影响。"
+            "value" : "iCloud 中的成員、裝置、顯示單位和通訊協定將取代本機設定。測量記錄不受影響。"
           }
         }
       }
@@ -3121,6 +3114,266 @@
         }
       }
     },
+    "settings.appearance.dark" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dunkel"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dark"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Oscuro"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sombre"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ダーク"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "다크"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Escuro"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Тёмная"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "深色"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "深色"
+          }
+        }
+      }
+    },
+    "settings.appearance.hint" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wähle das Erscheinungsbild von ScaleMe. „System folgen“ wechselt automatisch mit den Geräteeinstellungen."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose ScaleMe’s appearance. Follow System switches automatically with your device settings."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Elige la apariencia de ScaleMe. Seguir el sistema cambia automáticamente con los ajustes del dispositivo."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choisissez l’apparence de ScaleMe. Suivre le système s’adapte automatiquement aux réglages de l’appareil."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ScaleMeの外観を選択します。「システムに従う」はデバイス設定に合わせて自動で切り替わります。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ScaleMe의 화면 모드를 선택하세요. 시스템 설정을 따르면 기기 설정에 맞춰 자동 전환됩니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Escolha a aparência do ScaleMe. Seguir o sistema alterna automaticamente com as definições do dispositivo."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выберите оформление ScaleMe. Системный вариант автоматически следует настройкам устройства."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "选择观我的界面外观；跟随系统会随设备设置自动切换。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "選擇見微的介面外觀；跟隨系統會隨裝置設定自動切換。"
+          }
+        }
+      }
+    },
+    "settings.appearance.light" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hell"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Light"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Claro"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clair"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ライト"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "라이트"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Claro"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Светлая"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "浅色"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "淺色"
+          }
+        }
+      }
+    },
+    "settings.appearance.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erscheinungsbild"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Appearance"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apariencia"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apparence"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "外観"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "화면 모드"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aparência"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Оформление"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "外观"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "外觀"
+          }
+        }
+      }
+    },
     "settings.communication.detail" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3507,6 +3760,71 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "顯示設定"
+          }
+        }
+      }
+    },
+    "settings.follow-system" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "System folgen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Follow System"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seguir el sistema"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Suivre le système"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "システムに従う"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "시스템 설정 따르기"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seguir o sistema"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Системная"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "跟随系统"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "跟隨系統"
           }
         }
       }
@@ -5260,6 +5578,71 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "儲存"
+          }
+        }
+      }
+    },
+    "保存数据" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Daten speichern"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Save data"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Guardar datos"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enregistrer les données"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "データを保存"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "데이터 저장"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Guardar dados"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сохранить данные"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保存数据"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "儲存資料"
           }
         }
       }
@@ -7405,7 +7788,6 @@
       }
     },
     "内置协议" : {
-      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -8183,7 +8565,73 @@
         }
       }
     },
+    "分享" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Teilen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Share"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Compartir"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Partager"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "共有"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "공유"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Partilhar"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Поделиться"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "分享"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "分享"
+          }
+        }
+      }
+    },
     "分享示例 JSON" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -9929,6 +10377,7 @@
       }
     },
     "可粘贴 JSON，或从可信的 HTTPS 地址拉取。" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -11681,7 +12130,6 @@
       }
     },
     "外部协议" : {
-      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -11811,6 +12259,7 @@
       }
     },
     "外部规则是受限的声明式协议：不能执行脚本；GATT 写入只能访问规则声明且设备实际公开的特征。破坏性操作必须单独声明并由用户确认。单个文件最大 512 KB。" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -12848,6 +13297,7 @@
       }
     },
     "导入 JSON" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -13037,6 +13487,71 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "导入完成"
+          }
+        }
+      }
+    },
+    "导出完成" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Export abgeschlossen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Export complete"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exportación completada"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exportation terminée"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "エクスポート完了"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "내보내기 완료"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exportação concluída"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Экспорт завершён"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "导出完成"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "匯出完成"
           }
         }
       }
@@ -13431,6 +13946,7 @@
       }
     },
     "尚无外部规则" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -16352,67 +16868,67 @@
         }
       }
     },
-    "成员、设备、显示单位和通信规则。" : {
+    "成员、设备、显示单位和通信协议。" : {
       "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Members, devices, display units, and communication rules."
+            "value" : "Mitglieder, Geräte, Anzeigeeinheiten und Kommunikationsprotokolle."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Members, devices, display units, and communication rules."
+            "value" : "Members, devices, display units, and communication protocols."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Members, devices, display units, and communication rules."
+            "value" : "Miembros, dispositivos, unidades de visualización y protocolos de comunicación."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Members, devices, display units, and communication rules."
+            "value" : "Membres, appareils, unités d’affichage et protocoles de communication."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Members, devices, display units, and communication rules."
+            "value" : "メンバー、デバイス、表示単位、通信プロトコル。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Members, devices, display units, and communication rules."
+            "value" : "구성원, 기기, 표시 단위 및 통신 프로토콜."
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Members, devices, display units, and communication rules."
+            "value" : "Membros, dispositivos, unidades de apresentação e protocolos de comunicação."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Members, devices, display units, and communication rules."
+            "value" : "Участники, устройства, единицы отображения и протоколы связи."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "成员、设备、显示单位和通信规则。"
+            "value" : "成员、设备、显示单位和通信协议。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "成员、设备、显示单位和通信规则。"
+            "value" : "成員、裝置、顯示單位和通訊協定。"
           }
         }
       }
@@ -17389,6 +17905,71 @@
         }
       }
     },
+    "报告已准备完成，可以保存到文件或通过其他应用分享。" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Bericht ist bereit. Du kannst ihn als Datei speichern oder über eine andere App teilen."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The report is ready. Save it to a file or share it with another app."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El informe está listo. Guárdalo en un archivo o compártelo con otra app."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le rapport est prêt. Enregistrez-le dans un fichier ou partagez-le avec une autre app."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "レポートの準備ができました。ファイルに保存するか、ほかのアプリで共有できます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "보고서가 준비되었습니다. 파일로 저장하거나 다른 앱으로 공유할 수 있습니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O relatório está pronto. Guarde-o num ficheiro ou partilhe-o com outra app."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Отчёт готов. Сохраните его в файл или поделитесь через другое приложение."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "报告已准备完成，可以保存到文件或通过其他应用分享。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "報告已準備完成，可以儲存到檔案或透過其他 App 分享。"
+          }
+        }
+      }
+    },
     "拉取" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -17519,6 +18100,7 @@
       }
     },
     "拉取并校验规则" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -17968,6 +18550,71 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "搜尋、切換或編輯資料"
+          }
+        }
+      }
+    },
+    "搜索内置协议" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Integrierte Protokolle suchen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Search built-in protocols"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Buscar protocolos integrados"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rechercher les protocoles intégrés"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "内蔵プロトコルを検索"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "내장 프로토콜 검색"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pesquisar protocolos integrados"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Поиск встроенных протоколов"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "搜索内置协议"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "搜尋內建通訊協定"
           }
         }
       }
@@ -18487,6 +19134,71 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "資料呈現"
+          }
+        }
+      }
+    },
+    "数据抓包" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Datenerfassung"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Data capture"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Captura de datos"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Capture de données"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "データキャプチャ"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "데이터 캡처"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Captura de dados"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Захват данных"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "数据抓包"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "資料擷取"
           }
         }
       }
@@ -20634,6 +21346,71 @@
         }
       }
     },
+    "未找到匹配的内置协议" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keine passenden integrierten Protokolle gefunden"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No matching built-in protocols"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se encontraron protocolos integrados coincidentes"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucun protocole intégré correspondant"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "一致する内蔵プロトコルがありません"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "일치하는 내장 프로토콜이 없습니다"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nenhum protocolo integrado correspondente"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Подходящие встроенные протоколы не найдены"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未找到匹配的内置协议"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "找不到相符的內建通訊協定"
+          }
+        }
+      }
+    },
     "未经验证" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -21671,6 +22448,7 @@
       }
     },
     "查看配置格式与示例" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -22253,9 +23031,6 @@
           }
         }
       }
-    },
-    "格式版本 2" : {
-
     },
     "模拟" : {
       "extractionState" : "manual",
@@ -23101,6 +23876,71 @@
         }
       }
     },
+    "正在导出" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Export läuft"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exporting"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exportando"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exportation en cours"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "エクスポート中"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "내보내는 중"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A exportar"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Экспорт…"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在导出"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在匯出"
+          }
+        }
+      }
+    },
     "正在扫描周围设备" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -23292,6 +24132,71 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "正在搜尋附近的藍牙體重計；如有需要，請踩亮或喚醒體重計。"
+          }
+        }
+      }
+    },
+    "正在整理抓包数据，请稍候。" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die erfassten Daten werden vorbereitet. Bitte warte einen Moment."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Preparing the captured data. Please wait."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Preparando los datos capturados. Espera un momento."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Préparation des données capturées. Veuillez patienter."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "キャプチャしたデータを準備しています。しばらくお待ちください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "캡처한 데이터를 준비하고 있습니다. 잠시 기다려 주세요."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A preparar os dados capturados. Aguarde um momento."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Подготовка захваченных данных. Подождите."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在整理抓包数据，请稍候。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在整理擷取資料，請稍候。"
           }
         }
       }
@@ -24723,6 +25628,71 @@
         }
       }
     },
+    "添加" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hinzufügen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Añadir"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajouter"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "追加"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "추가"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adicionar"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Добавить"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "添加"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新增"
+          }
+        }
+      }
+    },
     "添加家庭成员" : {
       "localizations" : {
         "de" : {
@@ -25300,6 +26270,136 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "示範掃描並連結預設模擬裝置"
+          }
+        }
+      }
+    },
+    "点击“添加”并输入 HTTPS 地址导入。" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tippe auf „Hinzufügen“ und gib zum Importieren eine HTTPS-Adresse ein."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tap Add and enter an HTTPS address to import."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toca Añadir e introduce una dirección HTTPS para importar."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Touchez Ajouter et saisissez une adresse HTTPS pour importer."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「追加」をタップし、HTTPS アドレスを入力して読み込みます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "추가를 탭하고 HTTPS 주소를 입력해 가져오세요."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toque em Adicionar e introduza um endereço HTTPS para importar."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Нажмите «Добавить» и введите HTTPS-адрес для импорта."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "点击“添加”并输入 HTTPS 地址导入。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "點按「新增」並輸入 HTTPS 位址以匯入。"
+          }
+        }
+      }
+    },
+    "点击导入后会检查地址、网络资源与协议格式；校验通过才会保存。" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Beim Import werden Adresse, Netzwerkressource und Protokollformat geprüft. Gespeichert wird nur nach erfolgreicher Validierung."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Import checks the address, network resource, and protocol format. It saves only after validation succeeds."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La importación comprueba la dirección, el recurso de red y el formato del protocolo. Solo se guarda si la validación es correcta."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L’importation vérifie l’adresse, la ressource réseau et le format du protocole. L’enregistrement n’a lieu qu’après validation."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "読み込み時にアドレス、ネットワークリソース、プロトコル形式を確認し、検証に成功した場合のみ保存します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "가져오기는 주소, 네트워크 리소스 및 프로토콜 형식을 검사하며 검증에 성공한 경우에만 저장합니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A importação verifica o endereço, o recurso de rede e o formato do protocolo. Só guarda após uma validação bem-sucedida."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "При импорте проверяются адрес, сетевой ресурс и формат протокола. Сохранение выполняется только после успешной проверки."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "点击导入后会检查地址、网络资源与协议格式；校验通过才会保存。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "點按匯入後會檢查位址、網路資源與通訊協定格式；驗證通過後才會儲存。"
           }
         }
       }
@@ -27966,6 +29066,7 @@
       }
     },
     "粘贴 JSON 规则" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -28029,66 +29130,67 @@
         }
       }
     },
-    "粘贴完整的 ScaleMe 通信规则文件。示例可直接修改。" : {
+    "粘贴完整的 ScaleMe 通信协议文件。示例可直接修改。" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Paste a complete ScaleMe communication rules file. You can edit the example directly."
+            "value" : "Füge eine vollständige ScaleMe-Kommunikationsprotokolldatei ein. Das Beispiel kann direkt bearbeitet werden."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Paste a complete ScaleMe communication rules file. You can edit the example directly."
+            "value" : "Paste a complete ScaleMe communication protocol file. You can edit the example directly."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Paste a complete ScaleMe communication rules file. You can edit the example directly."
+            "value" : "Pega un archivo completo de protocolo de comunicación de ScaleMe. Puedes editar el ejemplo directamente."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Paste a complete ScaleMe communication rules file. You can edit the example directly."
+            "value" : "Collez un fichier complet de protocole de communication ScaleMe. Vous pouvez modifier l’exemple directement."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Paste a complete ScaleMe communication rules file. You can edit the example directly."
+            "value" : "ScaleMe の完全な通信プロトコルファイルを貼り付けます。サンプルは直接編集できます。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Paste a complete ScaleMe communication rules file. You can edit the example directly."
+            "value" : "완전한 ScaleMe 통신 프로토콜 파일을 붙여 넣으세요. 예시는 바로 수정할 수 있습니다."
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Paste a complete ScaleMe communication rules file. You can edit the example directly."
+            "value" : "Cole um ficheiro completo de protocolo de comunicação do ScaleMe. Pode editar o exemplo diretamente."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Paste a complete ScaleMe communication rules file. You can edit the example directly."
+            "value" : "Вставьте полный файл протокола связи ScaleMe. Пример можно редактировать напрямую."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "粘贴完整的 ScaleMe 通信规则文件。示例可直接修改。"
+            "value" : "粘贴完整的 ScaleMe 通信协议文件。示例可直接修改。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "粘贴完整的 ScaleMe 通信规则文件。示例可直接修改。"
+            "value" : "貼上完整的 ScaleMe 通訊協定檔案。範例可直接修改。"
           }
         }
       }
@@ -28154,70 +29256,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "级"
-          }
-        }
-      }
-    },
-    "绑定通信规则" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Assign communication rule"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Assign communication rule"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Assign communication rule"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Assign communication rule"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Assign communication rule"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Assign communication rule"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Assign communication rule"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Assign communication rule"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "绑定通信规则"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "绑定通信规则"
           }
         }
       }
@@ -30103,9 +31141,6 @@
         }
       }
     },
-    "规则先匹配传输方式、服务/特征 UUID、长度和可选帧前缀，再按无符号整数字段读取测量值。operations 可声明历史读取或清除：命令只能写入声明的 GATT 目标，支持受限时间/会话字段，并强制设置超时、最大响应字节数和记录数。historyClear 必须标记 destructive，应用不会自动运行。" : {
-
-    },
     "规则名称不能为空" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -30302,6 +31337,7 @@
       }
     },
     "规则配置格式" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -35354,134 +36390,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "逐次測量"
-          }
-        }
-      }
-    },
-    "通信规则" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Communication rules"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Communication rules"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Communication rules"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Communication rules"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Communication rules"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Communication rules"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Communication rules"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Communication rules"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "通信规则"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "通信规则"
-          }
-        }
-      }
-    },
-    "通信规则库" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Communication rule library"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Communication rule library"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Communication rule library"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Communication rule library"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Communication rule library"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Communication rule library"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Communication rule library"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Communication rule library"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "通信规则库"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "通信规则库"
           }
         }
       }

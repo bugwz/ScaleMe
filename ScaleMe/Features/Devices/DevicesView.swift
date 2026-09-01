@@ -124,7 +124,7 @@ struct DevicesView: View {
             }
             .padding(.horizontal, 14)
             .padding(.vertical, 12)
-            .background(Color.white.opacity(0.94))
+            .background(AppColor.surface.opacity(0.94))
             .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
             .overlay(RoundedRectangle(cornerRadius: 24, style: .continuous).stroke(AppColor.mint.opacity(0.08)))
         }
@@ -156,7 +156,7 @@ struct DevicesView: View {
                     }
                 }
                 .padding(.horizontal, 14)
-                .background(Color.white.opacity(0.94))
+                .background(AppColor.surface.opacity(0.94))
                 .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
                 .overlay(RoundedRectangle(cornerRadius: 24, style: .continuous).stroke(AppColor.mint.opacity(0.08)))
             }
@@ -180,7 +180,7 @@ struct DevicesView: View {
         }
         .padding(24)
         .frame(maxWidth: .infinity)
-        .background(Color.white.opacity(0.94))
+        .background(AppColor.surface.opacity(0.94))
         .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
         .overlay(RoundedRectangle(cornerRadius: 24, style: .continuous).stroke(AppColor.mint.opacity(0.08)))
     }
@@ -339,7 +339,7 @@ private struct DeviceScannerView: View {
                 Circle()
                     .fill(
                         LinearGradient(
-                            colors: [.white, AppColor.paleMint],
+                            colors: [AppColor.surface, AppColor.paleMint],
                             startPoint: .top,
                             endPoint: .bottom
                         )
@@ -544,7 +544,7 @@ private struct DeviceScannerView: View {
             .disabled(existing)
         }
         .padding(12)
-        .background(Color.white, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .background(AppColor.surface, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
         .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).stroke(accent.opacity(0.12)))
     }
 
@@ -753,7 +753,7 @@ private struct ScaleSettingsView: View {
                 .fill(
                     LinearGradient(
                         colors: [
-                            .white,
+                            AppColor.surface,
                             settingsStatusColor.opacity(0.12),
                             AppColor.sky.opacity(0.18)
                         ],
@@ -1018,7 +1018,7 @@ private struct ScaleSettingsView: View {
         if let scale {
             SettingsPanel(title: "settings.communication.title", icon: "point.3.connected.trianglepath.dotted") {
                 VStack(alignment: .leading, spacing: 10) {
-                    Text("绑定通信规则")
+                    Text(store.appLanguage.text(.communicationProtocol))
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(AppColor.ink)
 
@@ -1055,7 +1055,7 @@ private struct ScaleSettingsView: View {
                         CommunicationRulesView()
                     } label: {
                         HStack {
-                            Label("通信规则库", systemImage: "books.vertical")
+                            Label(store.appLanguage.text(.communicationProtocol), systemImage: "books.vertical")
                                 .font(.caption.weight(.semibold))
                             Spacer()
                             Image(systemName: "chevron.right").font(.caption.bold())
@@ -1109,7 +1109,7 @@ private struct ScaleSettingsView: View {
         }
         .buttonStyle(.plain)
         .anchorPreference(key: ScaleProtocolMenuAnchorKey.self, value: .bounds) { $0 }
-        .accessibilityLabel("通信规则")
+        .accessibilityLabel(store.appLanguage.text(.communicationProtocol))
         .accessibilityValue(store.appLanguage.text(selectedRule?.name ?? "自动识别"))
         .accessibilityHint(store.appLanguage.text(showsProtocolMenu ? "收起选项" : "展开选项"))
     }
@@ -1139,7 +1139,7 @@ private struct ScaleSettingsView: View {
             }
             .padding(6)
         }
-        .background(.white, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .background(AppColor.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
         .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(AppColor.mint.opacity(0.14)))
         .shadow(color: AppColor.ink.opacity(0.12), radius: 16, y: 6)
     }
@@ -1284,7 +1284,7 @@ private struct ScaleSettingsView: View {
                                 .font(.caption2).foregroundStyle(AppColor.secondary)
                         }
                         .padding(8)
-                        .background(Color.white, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                        .background(AppColor.surface, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
                     }
                 }
             }
@@ -1427,7 +1427,7 @@ private struct DiagnosticExportOverlay: View {
             .frame(maxWidth: 340)
             .background(
                 LinearGradient(
-                    colors: [.white, AppColor.canvas],
+                    colors: [AppColor.surface, AppColor.canvas],
                     startPoint: .top,
                     endPoint: .bottom
                 )
@@ -1536,13 +1536,19 @@ private struct ScaleNameEditor: View, Equatable {
                 Button(action: save) {
                     Image(systemName: "checkmark")
                         .font(.subheadline.weight(.bold))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(canSave ? Color.white : AppColor.secondary)
                         .frame(width: 44, height: 44)
-                        .background(AppColor.mint, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                        .background(
+                            canSave ? AppColor.mint : AppColor.paleMint,
+                            in: RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                .stroke(canSave ? Color.clear : AppColor.secondary.opacity(0.18))
+                        )
                 }
                 .buttonStyle(.plain)
                 .disabled(!canSave)
-                .opacity(canSave ? 1 : 0.45)
                 .accessibilityLabel("保存设备名称")
             }
         }

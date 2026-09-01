@@ -57,7 +57,7 @@ struct ScaleMeApp: App {
 
             }
             .background(AppColor.canvas.ignoresSafeArea())
-            .preferredColorScheme(.light)
+            .preferredColorScheme(store.appearance.colorScheme)
             .environment(\.locale, store.appLanguage.locale)
             .environment(\.appLanguage, store.appLanguage)
             .onReceive(bluetooth.$latestMeasurement.compactMap { $0 }) { measurement in
@@ -72,6 +72,7 @@ struct ScaleMeApp: App {
             }
             .onChange(of: scenePhase) { _, newPhase in
                 if newPhase == .active {
+                    store.refreshSystemLanguage()
                     cloudSync.syncWhenAppBecomesActive()
                 }
             }
@@ -86,6 +87,16 @@ struct ScaleMeApp: App {
                 try? await Task.sleep(for: .seconds(0.55))
                 isShowingLaunchScreen = false
             }
+        }
+    }
+}
+
+private extension AppAppearance {
+    var colorScheme: ColorScheme? {
+        switch self {
+        case .system: nil
+        case .light: .light
+        case .dark: .dark
         }
     }
 }

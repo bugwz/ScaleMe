@@ -31,7 +31,11 @@ enum AppLanguage: String, CaseIterable, Codable, Identifiable {
     }
 
     static var systemDefault: AppLanguage {
-        for identifier in Locale.preferredLanguages {
+        matchingSystemLanguage(preferredLanguages: Locale.preferredLanguages)
+    }
+
+    static func matchingSystemLanguage(preferredLanguages: [String]) -> AppLanguage {
+        for identifier in preferredLanguages {
             let normalized = identifier.lowercased()
             if normalized.hasPrefix("zh-hant") || normalized.hasPrefix("zh-tw") || normalized.hasPrefix("zh-hk") {
                 return .traditionalChinese
@@ -41,7 +45,7 @@ enum AppLanguage: String, CaseIterable, Codable, Identifiable {
                 return language
             }
         }
-        return .simplifiedChinese
+        return .english
     }
 
     func text(_ key: AppText) -> String {
@@ -87,6 +91,31 @@ enum AppLanguage: String, CaseIterable, Codable, Identifiable {
     }
 }
 
+enum AppLanguageSelection: String, CaseIterable, Codable, Identifiable {
+    case system
+    case simplifiedChinese = "zh-Hans"
+    case traditionalChinese = "zh-Hant"
+    case english = "en"
+    case japanese = "ja"
+    case french = "fr"
+    case german = "de"
+    case spanish = "es"
+    case portuguese = "pt"
+    case russian = "ru"
+    case korean = "ko"
+
+    var id: String { rawValue }
+
+    var resolvedLanguage: AppLanguage {
+        guard self != .system else { return .systemDefault }
+        return AppLanguage(rawValue: rawValue) ?? .english
+    }
+
+    var explicitLanguage: AppLanguage? {
+        self == .system ? nil : AppLanguage(rawValue: rawValue)
+    }
+}
+
 enum AppText: String, CaseIterable {
     case productName = "app.product.name"
     case tagline = "app.product.tagline"
@@ -101,6 +130,11 @@ enum AppText: String, CaseIterable {
     case languageDetail = "settings.language.detail"
     case languageSettings = "settings.language.navigation-title"
     case languageHint = "settings.language.hint"
+    case followSystem = "settings.follow-system"
+    case appearance = "settings.appearance.title"
+    case appearanceHint = "settings.appearance.hint"
+    case lightAppearance = "settings.appearance.light"
+    case darkAppearance = "settings.appearance.dark"
     case selected = "accessibility.selected"
     case userInformation = "settings.user-information"
     case appSettings = "settings.app-settings"
@@ -128,6 +162,11 @@ enum AppText: String, CaseIterable {
         case .languageDetail: "选择应用界面与启动页语言"
         case .languageSettings: "语言设置"
         case .languageHint: "更改后立即应用到界面，无需重新启动。"
+        case .followSystem: "跟随系统"
+        case .appearance: "外观"
+        case .appearanceHint: "选择观我的界面外观；跟随系统会随设备设置自动切换。"
+        case .lightAppearance: "浅色"
+        case .darkAppearance: "深色"
         case .selected: "已选择"
         case .userInformation: "用户信息"
         case .appSettings: "应用设置"

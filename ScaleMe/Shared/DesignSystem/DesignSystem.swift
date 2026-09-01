@@ -15,19 +15,32 @@ enum KeyboardFocus {
 
 enum AppColor {
     // Fresh health palette: soft natural surfaces with clear, accessible accents.
-    static let ink = Color(red: 0.07, green: 0.20, blue: 0.18)
-    static let secondary = Color(red: 0.36, green: 0.47, blue: 0.45)
-    static let canvas = Color(red: 0.965, green: 0.988, blue: 0.980)
+    static let ink = adaptive(light: 0x12332E, dark: 0xE7F5F1)
+    static let secondary = adaptive(light: 0x5C7873, dark: 0x9BB8B2)
+    static let canvas = adaptive(light: 0xF6FCFA, dark: 0x0C1715)
+    static let surface = adaptive(light: 0xFFFFFF, dark: 0x142522)
     static let mint = Color(red: 0.08, green: 0.68, blue: 0.55)
     static let lime = Color(red: 0.74, green: 0.91, blue: 0.64)
-    static let paleMint = Color(red: 0.90, green: 0.98, blue: 0.95)
+    static let paleMint = adaptive(light: 0xE6FAF2, dark: 0x173A32)
     static let sky = Color(red: 0.43, green: 0.76, blue: 0.90)
     static let violet = Color(red: 0.58, green: 0.66, blue: 0.88)
     static let apricot = Color(red: 0.98, green: 0.67, blue: 0.43)
     static let rose = Color(red: 0.94, green: 0.55, blue: 0.61)
     static let bottomNavigationSelected = Color(red: 38 / 255, green: 155 / 255, blue: 112 / 255)
     static let bottomNavigationInactive = Color(red: 0.62, green: 0.63, blue: 0.75)
-    static let bottomNavigationSurface = Color.white
+    static let bottomNavigationSurface = surface
+
+    private static func adaptive(light: UInt32, dark: UInt32) -> Color {
+        Color(uiColor: UIColor { traits in
+            let value = traits.userInterfaceStyle == .dark ? dark : light
+            return UIColor(
+                red: CGFloat((value >> 16) & 0xFF) / 255,
+                green: CGFloat((value >> 8) & 0xFF) / 255,
+                blue: CGFloat(value & 0xFF) / 255,
+                alpha: 1
+            )
+        })
+    }
 
     // Distinct, calm series colors keep adjacent body-metric charts easy to scan.
     static let trendWeight = mint
@@ -101,7 +114,7 @@ struct SoftCard<Content: View>: View {
     var body: some View {
         content
             .padding(padding)
-            .background(Color.white.opacity(0.94))
+            .background(AppColor.surface.opacity(0.94))
             .clipShape(RoundedRectangle(cornerRadius: 26, style: .continuous))
             .overlay(RoundedRectangle(cornerRadius: 26, style: .continuous).stroke(AppColor.mint.opacity(0.08)))
             .shadow(color: AppColor.mint.opacity(0.08), radius: 18, y: 8)
@@ -326,7 +339,23 @@ private final class NavigationControllerResolver: UIViewController {
 struct SettingsPanel<Content: View>: View {
     let title: String
     let icon: String
+    let headerActionTitle: String?
+    let headerAction: (() -> Void)?
     @ViewBuilder let content: Content
+
+    init(
+        title: String,
+        icon: String,
+        headerActionTitle: String? = nil,
+        headerAction: (() -> Void)? = nil,
+        @ViewBuilder content: () -> Content
+    ) {
+        self.title = title
+        self.icon = icon
+        self.headerActionTitle = headerActionTitle
+        self.headerAction = headerAction
+        self.content = content()
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -339,12 +368,28 @@ struct SettingsPanel<Content: View>: View {
                 AppLocalizedText(title)
                     .font(.headline)
                     .foregroundStyle(AppColor.ink)
+                Spacer()
+                if let headerActionTitle, let headerAction {
+                    Button(action: headerAction) {
+                        Label {
+                            AppLocalizedText(headerActionTitle)
+                        } icon: {
+                            Image(systemName: "plus")
+                        }
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(AppColor.mint)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 7)
+                        .background(AppColor.paleMint, in: Capsule())
+                    }
+                    .buttonStyle(.plain)
+                }
             }
             content
         }
         .padding(18)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.white.opacity(0.94))
+        .background(AppColor.surface.opacity(0.94))
         .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
         .overlay(RoundedRectangle(cornerRadius: 24, style: .continuous).stroke(AppColor.mint.opacity(0.08)))
         .shadow(color: AppColor.mint.opacity(0.06), radius: 16, y: 6)
@@ -479,7 +524,7 @@ struct AppDropdownField: View {
                     .foregroundStyle(AppColor.mint)
                     .frame(width: 34, height: 34)
                     .background(
-                        appearance == .compact ? AppColor.paleMint : Color.white.opacity(0.88),
+                        appearance == .compact ? AppColor.paleMint : AppColor.surface.opacity(0.88),
                         in: RoundedRectangle(cornerRadius: 10, style: .continuous)
                     )
 
@@ -589,7 +634,7 @@ struct AppDropdownMenuLayer<Option: Hashable>: View {
                                                 : AnyShapeStyle(
                                                     LinearGradient(
                                                         colors: [
-                                                            Color.white.opacity(0.96),
+                                                            AppColor.surface.opacity(0.96),
                                                             AppColor.mint.opacity(0.13),
                                                             AppColor.sky.opacity(0.12)
                                                         ],
@@ -622,11 +667,11 @@ struct AppDropdownMenuLayer<Option: Hashable>: View {
                 RoundedRectangle(cornerRadius: appearance == .compact ? 14 : 16, style: .continuous)
                     .fill(
                         appearance == .compact
-                            ? AnyShapeStyle(Color.white)
+                            ? AnyShapeStyle(AppColor.surface)
                             : AnyShapeStyle(
                                 LinearGradient(
                                     colors: [
-                                        Color.white.opacity(0.99),
+                                        AppColor.surface.opacity(0.99),
                                         AppColor.paleMint.opacity(0.97)
                                     ],
                                     startPoint: .topLeading,
@@ -742,7 +787,7 @@ struct DestructiveConfirmationOverlay: View {
             }
             .padding(22)
             .frame(maxWidth: 340)
-            .background(Color.white)
+            .background(AppColor.surface)
             .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
             .overlay(
                 RoundedRectangle(cornerRadius: 24, style: .continuous)
@@ -767,7 +812,7 @@ struct ScaleAvatarIconView: View {
                 .fill(
                     LinearGradient(
                         colors: [
-                            .white,
+                            AppColor.surface,
                             accent.opacity(0.16),
                             AppColor.sky.opacity(0.12)
                         ],

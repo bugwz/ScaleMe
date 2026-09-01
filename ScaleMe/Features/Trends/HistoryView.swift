@@ -186,7 +186,7 @@ struct HistoryView: View {
             )
         }
         .padding(6)
-        .background(Color.white.opacity(0.7), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .background(AppColor.surface.opacity(0.7), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
                 .stroke(AppColor.mint.opacity(0.08))

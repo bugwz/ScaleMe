@@ -242,7 +242,8 @@ struct AppConfiguration: Codable, Equatable {
     var selectedProfileID: UUID
     var pairedScales: [PairedScale]
     var unit: WeightUnit
-    var appLanguage: AppLanguage
+    var languageSelection: AppLanguageSelection
+    var appearance: AppAppearance
     var mergeFrequentMeasurements: Bool
     var isSimulationEnabled: Bool
     var customCommunicationRules: [CommunicationRule]
@@ -254,7 +255,8 @@ struct AppConfiguration: Codable, Equatable {
         selectedProfileID: UUID,
         pairedScales: [PairedScale],
         unit: WeightUnit,
-        appLanguage: AppLanguage = .systemDefault,
+        languageSelection: AppLanguageSelection = .system,
+        appearance: AppAppearance = .system,
         mergeFrequentMeasurements: Bool,
         isSimulationEnabled: Bool = false,
         customCommunicationRules: [CommunicationRule],
@@ -265,7 +267,8 @@ struct AppConfiguration: Codable, Equatable {
         self.selectedProfileID = selectedProfileID
         self.pairedScales = pairedScales
         self.unit = unit
-        self.appLanguage = appLanguage
+        self.languageSelection = languageSelection
+        self.appearance = appearance
         self.mergeFrequentMeasurements = mergeFrequentMeasurements
         self.isSimulationEnabled = isSimulationEnabled
         self.customCommunicationRules = customCommunicationRules
@@ -278,7 +281,8 @@ struct AppConfiguration: Codable, Equatable {
         case selectedProfileID
         case pairedScales
         case unit
-        case appLanguage
+        case languageSelection
+        case appearance
         case mergeFrequentMeasurements
         case isSimulationEnabled
         case customCommunicationRules
@@ -292,7 +296,8 @@ struct AppConfiguration: Codable, Equatable {
         selectedProfileID = try container.decode(UUID.self, forKey: .selectedProfileID)
         pairedScales = try container.decode([PairedScale].self, forKey: .pairedScales)
         unit = try container.decode(WeightUnit.self, forKey: .unit)
-        appLanguage = try container.decodeIfPresent(AppLanguage.self, forKey: .appLanguage) ?? .systemDefault
+        languageSelection = try container.decodeIfPresent(AppLanguageSelection.self, forKey: .languageSelection) ?? .system
+        appearance = try container.decodeIfPresent(AppAppearance.self, forKey: .appearance) ?? .system
         mergeFrequentMeasurements = try container.decode(Bool.self, forKey: .mergeFrequentMeasurements)
         isSimulationEnabled = try container.decodeIfPresent(Bool.self, forKey: .isSimulationEnabled) ?? false
         customCommunicationRules = try container.decode([CommunicationRule].self, forKey: .customCommunicationRules)
@@ -312,6 +317,14 @@ struct AppConfiguration: Codable, Equatable {
             customCommunicationRules: []
         )
     }
+}
+
+enum AppAppearance: String, CaseIterable, Codable, Identifiable {
+    case system
+    case light
+    case dark
+
+    var id: String { rawValue }
 }
 
 struct MeasurementArchive: Codable, Equatable {

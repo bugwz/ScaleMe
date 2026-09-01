@@ -42,6 +42,32 @@ struct DisplaySettingsView: View {
 
     private var preferencesPanel: some View {
         SettingsPanel(title: "显示与记录", icon: "slider.horizontal.3") {
+            NavigationLink {
+                AppearanceSettingsView()
+            } label: {
+                navigationRow(
+                    title: store.appLanguage.text(.appearance),
+                    detail: appearanceTitle,
+                    icon: "circle.lefthalf.filled"
+                )
+            }
+            .buttonStyle(.plain)
+
+            SettingsSeparator()
+
+            NavigationLink {
+                LanguageSettingsView()
+            } label: {
+                navigationRow(
+                    title: store.appLanguage.text(.language),
+                    detail: languageSelectionTitle,
+                    icon: "globe"
+                )
+            }
+            .buttonStyle(.plain)
+
+            SettingsSeparator()
+
             VStack(alignment: .leading, spacing: 10) {
                 Text("体重单位")
                     .font(.subheadline.weight(.semibold))
@@ -81,6 +107,44 @@ struct DisplaySettingsView: View {
                     .background(AppColor.paleMint.opacity(0.7), in: RoundedRectangle(cornerRadius: 14))
             }
         }
+    }
+
+    private var languageSelectionTitle: String {
+        if store.languageSelection == .system {
+            return store.appLanguage.text(.followSystem)
+        }
+        return store.languageSelection.explicitLanguage?.nativeName ?? AppLanguage.english.nativeName
+    }
+
+    private var appearanceTitle: String {
+        switch store.appearance {
+        case .system: store.appLanguage.text(.followSystem)
+        case .light: store.appLanguage.text(.lightAppearance)
+        case .dark: store.appLanguage.text(.darkAppearance)
+        }
+    }
+
+    private func navigationRow(title: String, detail: String, icon: String) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: icon)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(AppColor.mint)
+                .frame(width: 36, height: 36)
+                .background(AppColor.paleMint, in: RoundedRectangle(cornerRadius: 11, style: .continuous))
+            VStack(alignment: .leading, spacing: 3) {
+                Text(title)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(AppColor.ink)
+                Text(detail)
+                    .font(.caption)
+                    .foregroundStyle(AppColor.secondary)
+            }
+            Spacer()
+            Image(systemName: "chevron.right")
+                .font(.caption.bold())
+                .foregroundStyle(AppColor.secondary.opacity(0.7))
+        }
+        .contentShape(Rectangle())
     }
 
     private func toggleWeightUnitDropdown() {
@@ -132,7 +196,7 @@ struct DataSyncSettingsView: View {
         .alert(item: $pendingCloudAction) { action in
             Alert(
                 title: Text("从 iCloud 拉取配置？"),
-                message: Text("iCloud 中的成员、设备、显示单位和通信规则将替换本机配置。测量记录不受影响。"),
+                message: Text("iCloud 中的成员、设备、显示单位和通信协议将替换本机配置。测量记录不受影响。"),
                 primaryButton: .destructive(Text("拉取并替换")) {
                     cloudSync.configurationStrategy = .pull
                     if action == .enableConfigurationSync {
@@ -152,7 +216,7 @@ struct DataSyncSettingsView: View {
 
             SettingsToggleRow(
                 title: "同步应用配置",
-                detail: "成员、设备、显示单位和通信规则。",
+                detail: "成员、设备、显示单位和通信协议。",
                 isOn: configurationSyncBinding
             )
 

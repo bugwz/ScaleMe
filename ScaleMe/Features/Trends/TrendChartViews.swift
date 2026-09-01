@@ -311,7 +311,7 @@ struct TrendMetricDropdown: View {
             }
             .frame(maxHeight: 344)
         }
-        .background(.white)
+        .background(AppColor.surface)
         .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 18, style: .continuous)
@@ -356,7 +356,7 @@ struct TrendTimeRangeDropdown: View {
                     .transition(.opacity.combined(with: .move(edge: .leading)))
             }
         }
-        .background(.white)
+        .background(AppColor.surface)
         .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 18, style: .continuous)
@@ -662,7 +662,7 @@ struct TrendDisplayDropdown: View {
             }
             .padding(8)
         }
-        .background(.white)
+        .background(AppColor.surface)
         .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 18, style: .continuous)
@@ -793,7 +793,7 @@ struct TrendSingleChoiceDropdown<Value: Hashable>: View {
             }
             .frame(maxHeight: 344)
         }
-        .background(.white)
+        .background(AppColor.surface)
         .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 18, style: .continuous)
