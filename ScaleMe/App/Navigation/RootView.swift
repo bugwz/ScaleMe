@@ -1,9 +1,10 @@
 import SwiftUI
+import UIKit
 
 struct RootView: View {
     @EnvironmentObject private var store: MeasurementStore
     @State private var selection = RootTab.home
-    @State private var tabRootIDs = RootTab.initialRootIDs
+    @State private var navigationStore = RootNavigationControllerStore()
 
     var body: some View {
         TabView(selection: $selection) {
@@ -14,29 +15,29 @@ struct RootView: View {
                 },
                 onShowTrends: { selection = .trends }
             )
-            .id(tabRootIDs[.home])
+            .onRootNavigationControllerResolved { navigationStore.register($0, for: .home) }
             .tabItem { Label(RootTab.home.title(in: store.appLanguage), systemImage: RootTab.home.systemImage) }
             .tag(RootTab.home)
 
             MeasureView()
-                .id(tabRootIDs[.measure])
-                .tabItem { Label(RootTab.measure.title(in: store.appLanguage), systemImage: RootTab.measure.systemImage) }
-                .tag(RootTab.measure)
+            .onRootNavigationControllerResolved { navigationStore.register($0, for: .measure) }
+            .tabItem { Label(RootTab.measure.title(in: store.appLanguage), systemImage: RootTab.measure.systemImage) }
+            .tag(RootTab.measure)
 
             HistoryView()
-                .id(tabRootIDs[.trends])
-                .tabItem { Label(RootTab.trends.title(in: store.appLanguage), systemImage: RootTab.trends.systemImage) }
-                .tag(RootTab.trends)
+            .onRootNavigationControllerResolved { navigationStore.register($0, for: .trends) }
+            .tabItem { Label(RootTab.trends.title(in: store.appLanguage), systemImage: RootTab.trends.systemImage) }
+            .tag(RootTab.trends)
 
             DevicesView()
-                .id(tabRootIDs[.devices])
-                .tabItem { Label(RootTab.devices.title(in: store.appLanguage), image: "ScaleDeviceTabIcon") }
-                .tag(RootTab.devices)
+            .onRootNavigationControllerResolved { navigationStore.register($0, for: .devices) }
+            .tabItem { Label(RootTab.devices.title(in: store.appLanguage), image: "ScaleDeviceTabIcon") }
+            .tag(RootTab.devices)
 
             ProfileView()
-                .id(tabRootIDs[.settings])
-                .tabItem { Label(RootTab.settings.title(in: store.appLanguage), systemImage: RootTab.settings.systemImage) }
-                .tag(RootTab.settings)
+            .onRootNavigationControllerResolved { navigationStore.register($0, for: .settings) }
+            .tabItem { Label(RootTab.settings.title(in: store.appLanguage), systemImage: RootTab.settings.systemImage) }
+            .tag(RootTab.settings)
         }
         .toolbar(.hidden, for: .tabBar)
         .background(
@@ -55,7 +56,7 @@ struct RootView: View {
     }
 
     private func resetTabToRoot(_ tab: RootTab) {
-        tabRootIDs[tab] = UUID()
+        navigationStore.popToRoot(for: tab)
     }
 }
 
@@ -67,10 +68,6 @@ private enum RootTab: Int, CaseIterable, Identifiable {
     case settings
 
     var id: Self { self }
-
-    static var initialRootIDs: [Self: UUID] {
-        Dictionary(uniqueKeysWithValues: allCases.map { ($0, UUID()) })
-    }
 
     func title(in language: AppLanguage) -> String {
         switch self {
@@ -90,6 +87,27 @@ private enum RootTab: Int, CaseIterable, Identifiable {
         case .devices: "scalemass.fill"
         case .settings: "gearshape.fill"
         }
+    }
+}
+
+@MainActor
+private final class RootNavigationControllerStore {
+    private var navigationControllers: [RootTab: WeakNavigationController] = [:]
+
+    func register(_ navigationController: UINavigationController, for tab: RootTab) {
+        navigationControllers[tab] = WeakNavigationController(navigationController)
+    }
+
+    func popToRoot(for tab: RootTab) {
+        navigationControllers[tab]?.value?.popToRootViewController(animated: true)
+    }
+}
+
+private final class WeakNavigationController {
+    weak var value: UINavigationController?
+
+    init(_ value: UINavigationController) {
+        self.value = value
     }
 }
 

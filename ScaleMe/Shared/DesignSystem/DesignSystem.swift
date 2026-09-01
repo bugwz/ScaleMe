@@ -155,13 +155,62 @@ private enum MainPageLayout {
     static let topInset: CGFloat = 8
 }
 
+private struct RootNavigationControllerHandlerKey: EnvironmentKey {
+    static let defaultValue: (UINavigationController) -> Void = { _ in }
+}
+
+private extension EnvironmentValues {
+    var rootNavigationControllerHandler: (UINavigationController) -> Void {
+        get { self[RootNavigationControllerHandlerKey.self] }
+        set { self[RootNavigationControllerHandlerKey.self] = newValue }
+    }
+}
+
 extension View {
     func mainPageTopInset() -> some View {
-        contentMargins(.top, MainPageLayout.topInset, for: .scrollContent)
+        modifier(MainPageTopInsetModifier())
+    }
+
+    func onRootNavigationControllerResolved(
+        _ handler: @escaping (UINavigationController) -> Void
+    ) -> some View {
+        environment(\.rootNavigationControllerHandler, handler)
     }
 
     func localizedNavigationBackButton() -> some View {
         modifier(LocalizedNavigationBackButtonModifier())
+    }
+}
+
+private struct MainPageTopInsetModifier: ViewModifier {
+    @Environment(\.rootNavigationControllerHandler) private var navigationControllerHandler
+
+    func body(content: Content) -> some View {
+        content
+            .contentMargins(.top, MainPageLayout.topInset, for: .scrollContent)
+            .background(NavigationControllerObserver(onResolve: navigationControllerHandler))
+    }
+}
+
+private struct NavigationControllerObserver: UIViewControllerRepresentable {
+    let onResolve: (UINavigationController) -> Void
+
+    func makeUIViewController(context: Context) -> NavigationControllerResolver {
+        let resolver = NavigationControllerResolver()
+        resolver.onResolve = onResolve
+        return resolver
+    }
+
+    func updateUIViewController(_ controller: NavigationControllerResolver, context: Context) {
+        controller.onResolve = onResolve
+        controller.resolveNavigationController()
+    }
+
+    static func dismantleUIViewController(
+        _ controller: NavigationControllerResolver,
+        coordinator: Void
+    ) {
+        controller.onResolve = nil
     }
 }
 
