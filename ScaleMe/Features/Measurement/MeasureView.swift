@@ -7,15 +7,23 @@ private struct MeasureProfileAnchorKey: PreferenceKey {
     }
 }
 
+private struct MeasureScaleAnchorKey: PreferenceKey {
+    static var defaultValue: Anchor<CGRect>? = nil
+    static func reduce(value: inout Anchor<CGRect>?, nextValue: () -> Anchor<CGRect>?) {
+        value = nextValue() ?? value
+    }
+}
+
 struct MeasureView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @EnvironmentObject private var bluetooth: BLEScaleManager
     @EnvironmentObject private var store: MeasurementStore
-    @State private var showSafety = false
     @State private var showManualEntry = false
     @State private var isPulsing = false
     @State private var isMeasurementViewActive = false
     @State private var showProfileDropdown = false
+    @State private var showScaleDropdown = false
+    @State private var selectedScaleID: UUID?
 
     private var liveMeasurement: BodyMeasurement? {
         if store.isSimulationEnabled { return store.latest }
@@ -36,14 +44,42 @@ struct MeasureView: View {
         }
     }
 
+    private var scaleOptions: [TrendDropdownOption<UUID?>] {
+        let automatic = TrendDropdownOption<UUID?>(
+            id: "automatic",
+            value: nil,
+            title: "自动选择",
+            subtitle: "等待任一已关联设备",
+            icon: .asset("ScaleDeviceTabIcon")
+        )
+        return [automatic] + store.displayPairedScales.map { scale in
+            TrendDropdownOption(
+                id: scale.id.uuidString,
+                value: Optional(scale.id),
+                title: scale.name,
+                subtitle: scale.modelName,
+                icon: .asset("ScaleDeviceTabIcon")
+            )
+        }
+    }
+
+    private var selectedScaleName: String {
+        guard let selectedScaleID,
+              let scale = store.displayPairedScales.first(where: { $0.id == selectedScaleID }) else {
+            return store.appLanguage.text("自动选择")
+        }
+        return scale.name
+    }
+
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 20) {
                     VStack(alignment: .leading, spacing: 6) {
                         MainPageTitle(text: store.appLanguage.text(.measure))
-                        HStack {
-                            Spacer()
+                        HStack(spacing: 8) {
+                            scaleSwitchButton
+                            Spacer(minLength: 8)
                             userSwitchButton
                         }
                     }
@@ -63,7 +99,7 @@ struct MeasureView: View {
                 isMeasurementViewActive = true
                 isPulsing = true
                 if !store.isSimulationEnabled {
-                    bluetooth.startMeasurementMonitoring(scales: store.pairedScales)
+                    startMeasurementMonitoring()
                 }
             }
             .onDisappear {
@@ -74,23 +110,32 @@ struct MeasureView: View {
             .onChange(of: store.pairedScales) {
                 guard !store.isSimulationEnabled else { return }
                 bluetooth.updatePairedScales(store.pairedScales, communicationRules: store.communicationRules)
-                bluetooth.startMeasurementMonitoring(scales: store.pairedScales)
+                if let selectedScaleID,
+                   !store.pairedScales.contains(where: { $0.id == selectedScaleID }) {
+                    self.selectedScaleID = nil
+                } else {
+                    startMeasurementMonitoring()
+                }
             }
             .onChange(of: store.isSimulationEnabled) { _, isEnabled in
                 if isEnabled {
                     bluetooth.stopScanning()
                 } else {
-                    bluetooth.startMeasurementMonitoring(scales: store.pairedScales)
+                    if let selectedScaleID,
+                       !store.pairedScales.contains(where: { $0.id == selectedScaleID }) {
+                        self.selectedScaleID = nil
+                    } else {
+                        startMeasurementMonitoring()
+                    }
                 }
             }
             .onChange(of: store.selectedProfileID) {
                 guard isMeasurementViewActive, !store.isSimulationEnabled else { return }
-                bluetooth.startMeasurementMonitoring(scales: store.pairedScales)
+                startMeasurementMonitoring()
             }
-            .alert("安全提醒", isPresented: $showSafety) {
-                Button("知道了") {}
-            } message: {
-                Text("请确保地板、秤面和脚底干燥。孕期、植入心脏起搏器或其他医疗设备时，请勿依赖生物电阻抗体脂结果，并遵循设备厂商及医生建议。")
+            .onChange(of: selectedScaleID) {
+                guard isMeasurementViewActive, !store.isSimulationEnabled else { return }
+                startMeasurementMonitoring()
             }
         }
         .overlayPreferenceValue(MeasureProfileAnchorKey.self) { anchor in
@@ -129,6 +174,43 @@ struct MeasureView: View {
                         .frame(width: dropdownWidth)
                         .offset(x: dropdownX, y: buttonFrame.maxY + 8)
                         .transition(.scale(scale: 0.96, anchor: .topTrailing).combined(with: .opacity))
+                    }
+                }
+            }
+        }
+        .overlayPreferenceValue(MeasureScaleAnchorKey.self) { anchor in
+            GeometryReader { proxy in
+                if showScaleDropdown, let anchor {
+                    let buttonFrame = proxy[anchor]
+                    let dropdownWidth: CGFloat = min(320, proxy.size.width - 36)
+                    let dropdownX = min(
+                        max(buttonFrame.minX, 18),
+                        proxy.size.width - dropdownWidth - 18
+                    )
+
+                    ZStack(alignment: .topLeading) {
+                        Color.black.opacity(0.001)
+                            .ignoresSafeArea()
+                            .contentShape(Rectangle())
+                            .onTapGesture {
+                                withAnimation(.easeOut(duration: 0.18)) {
+                                    showScaleDropdown = false
+                                }
+                            }
+
+                        TrendSingleChoiceDropdown(
+                            title: "选择测量设备",
+                            options: scaleOptions,
+                            selection: $selectedScaleID,
+                            onDismiss: {
+                                withAnimation(.easeOut(duration: 0.18)) {
+                                    showScaleDropdown = false
+                                }
+                            }
+                        )
+                        .frame(width: dropdownWidth)
+                        .offset(x: dropdownX, y: buttonFrame.maxY + 8)
+                        .transition(.scale(scale: 0.96, anchor: .topLeading).combined(with: .opacity))
                     }
                 }
             }
@@ -194,6 +276,7 @@ struct MeasureView: View {
                 : "轻踩唤醒体重秤后站稳，观我会自动接收读数")
                 .font(.subheadline).foregroundStyle(AppColor.secondary)
                 .multilineTextAlignment(.center)
+
         }
         .frame(maxWidth: .infinity, minHeight: 330)
     }
@@ -201,6 +284,7 @@ struct MeasureView: View {
     private var userSwitchButton: some View {
         Button {
             withAnimation(.easeOut(duration: 0.18)) {
+                showScaleDropdown = false
                 showProfileDropdown.toggle()
             }
         } label: {
@@ -236,6 +320,57 @@ struct MeasureView: View {
         .anchorPreference(key: MeasureProfileAnchorKey.self, value: .bounds) { $0 }
         .accessibilityLabel(store.appLanguage.format("切换测量成员，当前为 %@", store.displaySelectedProfile.name))
         .accessibilityHint(store.appLanguage.text("点击选择本次测量数据所属的成员"))
+    }
+
+    private var scaleSwitchButton: some View {
+        Button {
+            withAnimation(.easeOut(duration: 0.18)) {
+                showProfileDropdown = false
+                showScaleDropdown.toggle()
+            }
+        } label: {
+            HStack(spacing: 6) {
+                Image("ScaleDeviceTabIcon")
+                    .renderingMode(.template)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 15, height: 15)
+                    .foregroundStyle(AppColor.mint)
+                    .frame(width: 24, height: 24)
+                    .background(AppColor.paleMint, in: Circle())
+
+                Text(selectedScaleName)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(AppColor.ink)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+                    .minimumScaleFactor(0.82)
+            }
+            .padding(.leading, 6)
+            .padding(.trailing, 12)
+            .padding(.vertical, 5)
+            .background(
+                showScaleDropdown ? AppColor.paleMint : AppColor.surface.opacity(0.92),
+                in: Capsule()
+            )
+            .overlay(
+                Capsule()
+                    .stroke(AppColor.mint.opacity(showScaleDropdown ? 0.35 : 0.16), lineWidth: 1)
+            )
+            .shadow(color: AppColor.mint.opacity(0.08), radius: 8, y: 3)
+        }
+        .buttonStyle(.plain)
+        .frame(maxWidth: 156, alignment: .leading)
+        .anchorPreference(key: MeasureScaleAnchorKey.self, value: .bounds) { $0 }
+        .accessibilityLabel(store.appLanguage.format("切换测量设备，当前为 %@", selectedScaleName))
+        .accessibilityHint(store.appLanguage.text("点击选择本次测量使用的体重秤或体脂秤"))
+    }
+
+    private func startMeasurementMonitoring() {
+        bluetooth.startMeasurementMonitoring(
+            scales: store.pairedScales,
+            selectedScaleID: selectedScaleID
+        )
     }
 
     private var liveWeightText: String {
@@ -363,9 +498,6 @@ struct MeasureView: View {
         VStack(spacing: 8) {
             Label("数据默认保存在本机", systemImage: "lock.shield.fill")
             Text("体脂等身体成分为消费级估算，仅用于观察长期趋势。")
-            Button("查看安全提醒") { showSafety = true }
-                .fontWeight(.semibold)
-                .foregroundStyle(AppColor.mint)
         }
         .font(.caption).foregroundStyle(AppColor.secondary)
         .multilineTextAlignment(.center)

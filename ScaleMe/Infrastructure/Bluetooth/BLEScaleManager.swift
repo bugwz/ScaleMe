@@ -157,6 +157,7 @@ final class BLEScaleManager: NSObject, ObservableObject {
     private var pairedScaleModelNames: [UUID: String] = [:]
     private var pairedScaleRuleIDs: [UUID: String] = [:]
     private var communicationRulesByID: [String: CommunicationRule] = [:]
+    private var measurementScaleID: UUID?
     private var activeScaleID: UUID?
     private var activeScaleName: String?
     private var settingsScaleID: UUID?
@@ -217,13 +218,14 @@ final class BLEScaleManager: NSObject, ObservableObject {
         beginScanning(clearDevices: true)
     }
 
-    func startMeasurementMonitoring(scales: [PairedScale]) {
+    func startMeasurementMonitoring(scales: [PairedScale], selectedScaleID: UUID? = nil) {
         pairedScaleIDs = Set(scales.map(\.id))
         pairedScaleNames = Dictionary(uniqueKeysWithValues: scales.map { ($0.id, $0.name) })
         pairedScaleModelNames = Dictionary(uniqueKeysWithValues: scales.map { ($0.id, $0.modelName) })
         pairedScaleRuleIDs = Dictionary(uniqueKeysWithValues: scales.compactMap { scale in
             scale.communicationRuleID.map { (scale.id, $0) }
         })
+        measurementScaleID = selectedScaleID.flatMap { pairedScaleIDs.contains($0) ? $0 : nil }
         scanPurpose = .measuring
         liveWeightKG = nil
         latestMeasurement = nil
@@ -232,6 +234,13 @@ final class BLEScaleManager: NSObject, ObservableObject {
         isWaitingForNextLoad = false
         minimumWeightAfterCompletionKG = nil
         didCompleteIcomonFinal = false
+        if let connected, !isMonitoredScale(connected.identifier) {
+            connectionTimeoutTask?.cancel()
+            central.cancelPeripheralConnection(connected)
+            self.connected = nil
+            activeScaleID = nil
+            activeScaleName = nil
+        }
         guard !scales.isEmpty else {
             scanRequested = false
             central.stopScan()
@@ -260,6 +269,11 @@ final class BLEScaleManager: NSObject, ObservableObject {
 
     private func selectedRule(for deviceID: UUID) -> CommunicationRule? {
         pairedScaleRuleIDs[deviceID].flatMap { communicationRulesByID[$0] }
+    }
+
+    private func isMonitoredScale(_ deviceID: UUID) -> Bool {
+        pairedScaleIDs.contains(deviceID)
+            && (measurementScaleID == nil || measurementScaleID == deviceID)
     }
 
     private func allowsBuiltInParser(_ parser: String, for deviceID: UUID) -> Bool {
@@ -1063,8 +1077,9 @@ final class BLEScaleManager: NSObject, ObservableObject {
         guard central.state == .poweredOn,
               connected == nil,
               let scale = scales.first(where: {
-                  $0.compatibility == "Bluetooth SIG 标准"
-                      || selectedRule(for: $0.id)?.match.transport == .characteristicNotification
+                  isMonitoredScale($0.id)
+                      && ($0.compatibility == "Bluetooth SIG 标准"
+                          || selectedRule(for: $0.id)?.match.transport == .characteristicNotification)
               }) else { return }
         let peripherals = central.retrievePeripherals(withIdentifiers: [scale.id])
         guard let peripheral = peripherals.first else { return }
@@ -1220,7 +1235,7 @@ extension BLEScaleManager: CBCentralManagerDelegate {
                 huaweiHagridDeviceIDs.insert(peripheral.identifier)
             }
             if case .measuring = scanPurpose,
-               pairedScaleIDs.contains(peripheral.identifier) {
+               isMonitoredScale(peripheral.identifier) {
                 if let broadcastMatch,
                    allowsBuiltInParser(broadcastMatch.family.builtInParserID, for: peripheral.identifier) {
                     consume(
@@ -1282,7 +1297,7 @@ extension BLEScaleManager: CBCentralManagerDelegate {
             }
 
             if case .measuring = scanPurpose,
-               pairedScaleIDs.contains(peripheral.identifier),
+               isMonitoredScale(peripheral.identifier),
                connected?.identifier != peripheral.identifier,
                (item.isVerifiedCompatible
                     || selectedRule(for: peripheral.identifier)?.match.transport == .characteristicNotification),
@@ -1343,6 +1358,7 @@ extension BLEScaleManager: CBCentralManagerDelegate {
     nonisolated func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
         Task { @MainActor in
             connectionTimeoutTask?.cancel()
+            guard connected?.identifier == peripheral.identifier else { return }
             connected = nil
             activeScaleID = nil
             activeScaleName = nil
