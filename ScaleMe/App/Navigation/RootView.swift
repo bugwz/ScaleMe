@@ -3,10 +3,41 @@ import UIKit
 
 struct RootView: View {
     @EnvironmentObject private var store: MeasurementStore
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var selection = RootTab.home
     @State private var navigationStore = RootNavigationControllerStore()
+    @State private var expandedTrend: ExpandedTrendPresentation?
+    @State private var isOrientationTransitioning = false
+    @State private var orientationTask: Task<Void, Never>?
 
     var body: some View {
+        ZStack {
+            rootTabs
+                .opacity(expandedTrend == nil ? 1 : 0)
+                .allowsHitTesting(expandedTrend == nil)
+                .accessibilityHidden(expandedTrend != nil)
+                .transaction { transaction in
+                    if expandedTrend != nil {
+                        transaction.animation = nil
+                    }
+                }
+
+            if let expandedTrend {
+                ExpandedTrendChartView(
+                    presentation: expandedTrend,
+                    onClose: dismissExpandedTrend
+                )
+                .transition(expandedTrendTransition)
+                .zIndex(1)
+            }
+        }
+        .statusBarHidden(expandedTrend != nil || isOrientationTransitioning)
+        .onDisappear {
+            orientationTask?.cancel()
+        }
+    }
+
+    private var rootTabs: some View {
         TabView(selection: $selection) {
             DashboardView(
                 onMeasure: { profileID in
@@ -24,7 +55,7 @@ struct RootView: View {
             .tabItem { Label(RootTab.measure.title(in: store.appLanguage), systemImage: RootTab.measure.systemImage) }
             .tag(RootTab.measure)
 
-            HistoryView()
+            HistoryView(expandedTrend: expandedTrendBinding)
             .onRootNavigationControllerResolved { navigationStore.register($0, for: .trends) }
             .tabItem { Label(RootTab.trends.title(in: store.appLanguage), systemImage: RootTab.trends.systemImage) }
             .tag(RootTab.trends)
@@ -45,14 +76,74 @@ struct RootView: View {
                 .ignoresSafeArea()
         )
         .safeAreaInset(edge: .bottom, spacing: 0) {
-            AppBottomNavigation(
-                selection: $selection,
-                language: store.appLanguage,
-                onDoubleTap: resetTabToRoot
-            )
+            if expandedTrend == nil {
+                AppBottomNavigation(
+                    selection: $selection,
+                    language: store.appLanguage,
+                    onDoubleTap: resetTabToRoot
+                )
+            }
         }
         .ignoresSafeArea(.keyboard, edges: .bottom)
         .tint(AppColor.mint)
+    }
+
+    private var expandedTrendTransition: AnyTransition {
+        guard !reduceMotion else { return .opacity }
+        return .asymmetric(
+            insertion: .scale(scale: 0.96).combined(with: .opacity),
+            removal: .scale(scale: 0.985).combined(with: .opacity)
+        )
+    }
+
+    private var expandedTrendBinding: Binding<ExpandedTrendPresentation?> {
+        Binding(
+            get: { expandedTrend },
+            set: { presentation in
+                guard let presentation else {
+                    dismissExpandedTrend()
+                    return
+                }
+                presentExpandedTrend(presentation)
+            }
+        )
+    }
+
+    private func presentExpandedTrend(_ presentation: ExpandedTrendPresentation) {
+        guard expandedTrend == nil else { return }
+        orientationTask?.cancel()
+        withTransaction(Transaction(animation: nil)) {
+            isOrientationTransitioning = true
+        }
+        withAnimation(reduceMotion ? nil : .smooth(duration: 0.34)) {
+            expandedTrend = presentation
+        }
+        orientationTask = Task { @MainActor in
+            await Task.yield()
+            guard !Task.isCancelled else { return }
+            AppOrientation.request(.landscape)
+            try? await Task.sleep(for: .milliseconds(reduceMotion ? 120 : 500))
+            guard !Task.isCancelled else { return }
+            isOrientationTransitioning = false
+        }
+    }
+
+    private func dismissExpandedTrend() {
+        guard expandedTrend != nil else { return }
+        orientationTask?.cancel()
+        isOrientationTransitioning = true
+        AppOrientation.request(.portrait)
+
+        orientationTask = Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(reduceMotion ? 120 : 420))
+            guard !Task.isCancelled else { return }
+            withAnimation(reduceMotion ? nil : .easeOut(duration: 0.2)) {
+                expandedTrend = nil
+            }
+            try? await Task.sleep(for: .milliseconds(reduceMotion ? 30 : 220))
+            guard !Task.isCancelled else { return }
+            isOrientationTransitioning = false
+        }
     }
 
     private func resetTabToRoot(_ tab: RootTab) {

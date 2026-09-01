@@ -11,6 +11,17 @@ struct ExpandedTrendContext: Identifiable {
     var id: String { metric.id }
 }
 
+struct ExpandedTrendPresentation: Identifiable {
+    let context: ExpandedTrendContext
+    let unit: WeightUnit
+    let range: TrendTimeRange
+    let rangeTitle: String
+    let dateInterval: ClosedRange<Date>?
+    let displayScope: TrendDisplayScope
+
+    var id: String { context.id }
+}
+
 struct TrendChartCard: View {
     @Environment(\.appLanguage) private var language
     let metric: TrendMetric
@@ -114,20 +125,17 @@ struct TrendChartCard: View {
 }
 
 struct ExpandedTrendChartView: View {
-    @Environment(\.dismiss) private var dismiss
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.appLanguage) private var language
 
-    let context: ExpandedTrendContext
-    let unit: WeightUnit
-    let range: TrendTimeRange
-    let rangeTitle: String
-    let dateInterval: ClosedRange<Date>?
-    let displayScope: TrendDisplayScope
+    let presentation: ExpandedTrendPresentation
+    let onClose: () -> Void
 
     @State private var selectedDate: Date?
-    @State private var isContentVisible = false
+    @State private var isContentVisible = true
     @State private var isClosing = false
+
+    private var context: ExpandedTrendContext { presentation.context }
 
     var body: some View {
         VStack(spacing: 12) {
@@ -139,7 +147,7 @@ struct ExpandedTrendChartView: View {
                     Text(
                         language.format(
                             "%@ · %lld 次测量",
-                            language.text(rangeTitle),
+                            language.text(presentation.rangeTitle),
                             context.measurementCount
                         )
                     )
@@ -148,7 +156,15 @@ struct ExpandedTrendChartView: View {
                 }
                 Spacer()
                 Button {
-                    closeExpandedTrend()
+                    guard !isClosing else { return }
+                    isClosing = true
+                    withAnimation(reduceMotion ? nil : .smooth(duration: 0.18)) {
+                        isContentVisible = false
+                    }
+                    Task { @MainActor in
+                        try? await Task.sleep(for: .milliseconds(reduceMotion ? 0 : 180))
+                        onClose()
+                    }
                 } label: {
                     Image(systemName: "xmark")
                         .font(.body.weight(.semibold))
@@ -164,10 +180,10 @@ struct ExpandedTrendChartView: View {
             TrendChartPlot(
                 metric: context.metric,
                 points: context.points,
-                unit: unit,
-                range: range,
-                dateInterval: dateInterval,
-                displayScope: displayScope,
+                unit: presentation.unit,
+                range: presentation.range,
+                dateInterval: presentation.dateInterval,
+                displayScope: presentation.displayScope,
                 chartMode: context.chartMode,
                 aggregation: context.aggregation,
                 selectedDate: $selectedDate,
@@ -178,37 +194,10 @@ struct ExpandedTrendChartView: View {
         .padding(.horizontal, 24)
         .padding(.vertical, 14)
         .opacity(isContentVisible ? 1 : 0)
-        .scaleEffect(isContentVisible || reduceMotion ? 1 : 0.985)
+        .scaleEffect(isContentVisible || reduceMotion ? 1 : 0.99)
         .pageBackground()
-        .interactiveDismissDisabled()
-        .onAppear {
-            AppOrientation.request(.landscape)
-            if reduceMotion {
-                isContentVisible = true
-            } else {
-                withAnimation(.easeOut(duration: 0.2)) { isContentVisible = true }
-            }
-        }
-        .onDisappear {
-            AppOrientation.request(.portrait)
-        }
-    }
-
-    private func closeExpandedTrend() {
-        guard !isClosing else { return }
-        isClosing = true
-        if reduceMotion {
-            isContentVisible = false
-        } else {
-            withAnimation(.easeInOut(duration: 0.16)) {
-                isContentVisible = false
-            }
-        }
-        AppOrientation.request(.portrait)
-        Task { @MainActor in
-            try? await Task.sleep(for: .milliseconds(reduceMotion ? 80 : 180))
-            dismiss()
-        }
+        .background(AppColor.canvas.ignoresSafeArea())
+        .compositingGroup()
     }
 }
 

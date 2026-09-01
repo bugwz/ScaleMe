@@ -7,6 +7,7 @@ private enum TrendFilterIcon {
 
 struct HistoryView: View {
     @EnvironmentObject private var store: MeasurementStore
+    @Binding var expandedTrend: ExpandedTrendPresentation?
     @State private var selectedMetrics: Set<TrendMetric> = [.weight, .bmi, .bodyFat]
     @State private var range = TrendTimeRange.week
     @State private var customStartDate = Calendar.current.date(byAdding: .day, value: -6, to: Date.now) ?? .now
@@ -16,7 +17,6 @@ struct HistoryView: View {
     @State private var selectedDeviceID: UUID?
     @State private var selectedTrendProfileID: UUID?
     @State private var activeFilterPopover: TrendFilterPopover?
-    @State private var expandedTrend: ExpandedTrendContext?
 
     private var trendProfile: UserProfile {
         guard let selectedTrendProfileID,
@@ -116,16 +116,6 @@ struct HistoryView: View {
                    !store.displayProfiles.contains(where: { $0.id == profileID }) {
                     selectedTrendProfileID = nil
                 }
-            }
-            .fullScreenCover(item: $expandedTrend) { context in
-                ExpandedTrendChartView(
-                    context: context,
-                    unit: store.unit,
-                    range: range,
-                    rangeTitle: selectedRangeTitle,
-                    dateInterval: selectedDateInterval,
-                    displayScope: displayScope
-                )
             }
         }
         .overlayPreferenceValue(TrendFilterAnchorKey.self) { anchors in
@@ -345,11 +335,14 @@ struct HistoryView: View {
     private func presentExpandedTrend(_ context: ExpandedTrendContext) {
         guard expandedTrend == nil else { return }
         activeFilterPopover = nil
-        AppOrientation.request(.landscape)
-        Task { @MainActor in
-            await Task.yield()
-            expandedTrend = context
-        }
+        expandedTrend = ExpandedTrendPresentation(
+            context: context,
+            unit: store.unit,
+            range: range,
+            rangeTitle: selectedRangeTitle,
+            dateInterval: selectedDateInterval,
+            displayScope: displayScope
+        )
     }
 
     private var records: some View {
