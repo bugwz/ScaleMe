@@ -3,6 +3,7 @@ import SwiftUI
 struct RootView: View {
     @EnvironmentObject private var store: MeasurementStore
     @State private var selection = RootTab.home
+    @State private var tabRootIDs = RootTab.initialRootIDs
 
     var body: some View {
         TabView(selection: $selection) {
@@ -13,31 +14,44 @@ struct RootView: View {
                 },
                 onShowTrends: { selection = .trends }
             )
+            .id(tabRootIDs[.home])
             .tabItem { Label(RootTab.home.title(in: store.appLanguage), systemImage: RootTab.home.systemImage) }
             .tag(RootTab.home)
 
             MeasureView()
+                .id(tabRootIDs[.measure])
                 .tabItem { Label(RootTab.measure.title(in: store.appLanguage), systemImage: RootTab.measure.systemImage) }
                 .tag(RootTab.measure)
 
             HistoryView()
+                .id(tabRootIDs[.trends])
                 .tabItem { Label(RootTab.trends.title(in: store.appLanguage), systemImage: RootTab.trends.systemImage) }
                 .tag(RootTab.trends)
 
             DevicesView()
+                .id(tabRootIDs[.devices])
                 .tabItem { Label(RootTab.devices.title(in: store.appLanguage), image: "ScaleDeviceTabIcon") }
                 .tag(RootTab.devices)
 
             ProfileView()
+                .id(tabRootIDs[.settings])
                 .tabItem { Label(RootTab.settings.title(in: store.appLanguage), systemImage: RootTab.settings.systemImage) }
                 .tag(RootTab.settings)
         }
         .toolbar(.hidden, for: .tabBar)
         .safeAreaInset(edge: .bottom, spacing: 0) {
-            AppBottomNavigation(selection: $selection, language: store.appLanguage)
+            AppBottomNavigation(
+                selection: $selection,
+                language: store.appLanguage,
+                onDoubleTap: resetTabToRoot
+            )
         }
         .ignoresSafeArea(.keyboard, edges: .bottom)
         .tint(AppColor.mint)
+    }
+
+    private func resetTabToRoot(_ tab: RootTab) {
+        tabRootIDs[tab] = UUID()
     }
 }
 
@@ -49,6 +63,10 @@ private enum RootTab: Int, CaseIterable, Identifiable {
     case settings
 
     var id: Self { self }
+
+    static var initialRootIDs: [Self: UUID] {
+        Dictionary(uniqueKeysWithValues: allCases.map { ($0, UUID()) })
+    }
 
     func title(in language: AppLanguage) -> String {
         switch self {
@@ -74,6 +92,11 @@ private enum RootTab: Int, CaseIterable, Identifiable {
 private struct AppBottomNavigation: View {
     @Binding var selection: RootTab
     let language: AppLanguage
+    let onDoubleTap: (RootTab) -> Void
+
+    @State private var previousTap: (tab: RootTab, time: Date)?
+
+    private let doubleTapInterval: TimeInterval = 0.35
 
     var body: some View {
         HStack(spacing: 0) {
@@ -101,6 +124,7 @@ private struct AppBottomNavigation: View {
 
         return Button {
             KeyboardFocus.dismiss()
+            handleTap(on: tab)
             withAnimation(.easeOut(duration: 0.18)) {
                 selection = tab
             }
@@ -124,6 +148,18 @@ private struct AppBottomNavigation: View {
         .accessibilityLabel(tab.title(in: language))
         .accessibilityValue(isSelected ? language.text(.currentPage) : "")
         .accessibilityAddTraits(isSelected ? .isSelected : [])
+    }
+
+    private func handleTap(on tab: RootTab) {
+        let now = Date()
+        if let previousTap,
+           previousTap.tab == tab,
+           now.timeIntervalSince(previousTap.time) <= doubleTapInterval {
+            self.previousTap = nil
+            onDoubleTap(tab)
+        } else {
+            previousTap = (tab, now)
+        }
     }
 
     @ViewBuilder
