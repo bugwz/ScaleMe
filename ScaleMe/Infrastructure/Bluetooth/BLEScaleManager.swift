@@ -40,8 +40,8 @@ enum ScaleHistoryState: Equatable {
     case failed(String)
 }
 
-struct DeviceDiagnosticEvent: Identifiable, Equatable {
-    enum Kind: String {
+struct DeviceDiagnosticEvent: Identifiable, Equatable, Sendable {
+    enum Kind: String, Sendable {
         case advertisement = "广播"
         case service = "服务"
         case characteristic = "特征"
@@ -381,11 +381,15 @@ final class BLEScaleManager: NSObject, ObservableObject {
         settingsState = .idle
     }
 
-    var deviceDiagnosticReport: String {
+    func makeDeviceDiagnosticReport() async -> String {
         let services = settingsSnapshot.discoveredServiceUUIDs.joined(separator: ", ")
         let device = settingsScaleID?.uuidString ?? "-"
-        let header = "ScaleMe device diagnostic capture\ndevice: \(device)\nservices: \(services)\nelapsed  type  source                                payload                   summary\n"
-        return header + deviceDiagnosticEvents.map(\.reportLine).joined(separator: "\n")
+        let events = deviceDiagnosticEvents
+
+        return await Task.detached(priority: .userInitiated) {
+            let header = "ScaleMe device diagnostic capture\ndevice: \(device)\nservices: \(services)\nelapsed  type  source                                payload                   summary\n"
+            return header + events.map(\.reportLine).joined(separator: "\n")
+        }.value
     }
 
     func startDeviceDiagnosticCapture(for scale: PairedScale) {

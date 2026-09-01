@@ -220,7 +220,7 @@ struct CommunicationRulesView: View {
                 message = .init(
                     title: "导入完成",
                     detail: language.format(
-                        "已校验并保存 %lld 条社区规则。请在具体设备的“协议匹配”中选择。",
+                        "已校验并保存 %lld 条社区规则。请在具体设备的“通信协议”中选择。",
                         Int64(count)
                     )
                 )

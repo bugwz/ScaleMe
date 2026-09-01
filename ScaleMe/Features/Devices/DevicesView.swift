@@ -1,4 +1,32 @@
 import SwiftUI
+import UniformTypeIdentifiers
+
+private enum DiagnosticExportState {
+    case exporting
+    case ready(String)
+}
+
+private struct DiagnosticReportDocument: FileDocument {
+    static var readableContentTypes: [UTType] { [.plainText] }
+
+    var report = ""
+
+    init(report: String = "") {
+        self.report = report
+    }
+
+    init(configuration: ReadConfiguration) throws {
+        guard let data = configuration.file.regularFileContents,
+              let report = String(data: data, encoding: .utf8) else {
+            throw CocoaError(.fileReadCorruptFile)
+        }
+        self.report = report
+    }
+
+    func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
+        FileWrapper(regularFileWithContents: Data(report.utf8))
+    }
+}
 
 private struct ScaleProtocolMenuAnchorKey: PreferenceKey {
     static var defaultValue: Anchor<CGRect>? = nil
@@ -563,6 +591,10 @@ private struct ScaleSettingsView: View {
     @State private var confirmClearHistory = false
     @State private var selectedHardwareUnit = XiaomiScaleHardwareUnit.kilograms
     @State private var showsProtocolMenu = false
+    @State private var diagnosticExportState: DiagnosticExportState?
+    @State private var diagnosticReportDocument = DiagnosticReportDocument()
+    @State private var showsDiagnosticFileExporter = false
+    @State private var diagnosticExportTask: Task<Void, Never>?
 
     private var scale: PairedScale? { store.displayPairedScales.first { $0.id == scaleID } }
 
@@ -634,11 +666,14 @@ private struct ScaleSettingsView: View {
         .onAppear {
             if let scale, !store.isSimulationEnabled { bluetooth.inspectSettings(for: scale) }
         }
-        .onDisappear { bluetooth.endSettingsInspection() }
+        .onDisappear {
+            diagnosticExportTask?.cancel()
+            bluetooth.endSettingsInspection()
+        }
         .onChange(of: bluetooth.settingsSnapshot.hardwareUnit) { _, unit in
             if let unit { selectedHardwareUnit = unit }
         }
-        .accessibilityHidden(confirmDelete || confirmClearHistory)
+        .accessibilityHidden(confirmDelete || confirmClearHistory || diagnosticExportState != nil)
         .overlay {
             if confirmDelete {
                 DestructiveConfirmationOverlay(
@@ -666,9 +701,22 @@ private struct ScaleSettingsView: View {
                     }
                 )
                 .transition(.opacity)
+            } else if let diagnosticExportState {
+                DiagnosticExportOverlay(
+                    state: diagnosticExportState,
+                    onSave: saveDiagnosticReport,
+                    onDismiss: dismissDiagnosticExport
+                )
+                .transition(.opacity)
             }
         }
-        .interactiveDismissDisabled(confirmDelete || confirmClearHistory)
+        .fileExporter(
+            isPresented: $showsDiagnosticFileExporter,
+            document: diagnosticReportDocument,
+            contentType: .plainText,
+            defaultFilename: diagnosticReportFilename
+        ) { _ in }
+        .interactiveDismissDisabled(confirmDelete || confirmClearHistory || diagnosticExportState != nil)
     }
 
     private var scaleDisplayName: String {
@@ -968,7 +1016,7 @@ private struct ScaleSettingsView: View {
     @ViewBuilder
     private var protocolPanel: some View {
         if let scale {
-            SettingsPanel(title: "协议匹配", icon: "point.3.connected.trianglepath.dotted") {
+            SettingsPanel(title: "settings.communication.title", icon: "point.3.connected.trianglepath.dotted") {
                 VStack(alignment: .leading, spacing: 10) {
                     Text("绑定通信规则")
                         .font(.subheadline.weight(.semibold))
@@ -1167,7 +1215,7 @@ private struct ScaleSettingsView: View {
     }
 
     private var capturePanel: some View {
-        SettingsPanel(title: "抓包与诊断日志", icon: "waveform.path.ecg") {
+        SettingsPanel(title: "数据抓包", icon: "waveform.path.ecg") {
             Toggle(isOn: Binding(
                 get: { bluetooth.isDeviceDiagnosticCaptureEnabled },
                 set: { isEnabled in
@@ -1196,11 +1244,12 @@ private struct ScaleSettingsView: View {
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(AppColor.secondary)
                 Spacer()
-                ShareLink(item: bluetooth.deviceDiagnosticReport) {
+                Button(action: beginDiagnosticExport) {
                     Label("导出诊断报告", systemImage: "square.and.arrow.up")
                         .font(.caption.weight(.semibold))
                         .foregroundStyle(AppColor.mint)
                 }
+                .buttonStyle(.plain)
                 .disabled(bluetooth.deviceDiagnosticEvents.isEmpty)
             }
 
@@ -1212,7 +1261,7 @@ private struct ScaleSettingsView: View {
                     .font(.caption2).foregroundStyle(AppColor.secondary)
             } else {
                 VStack(spacing: 8) {
-                    ForEach(Array(bluetooth.deviceDiagnosticEvents.suffix(12))) { event in
+                    ForEach(Array(bluetooth.deviceDiagnosticEvents.suffix(3))) { event in
                         VStack(alignment: .leading, spacing: 4) {
                             HStack {
                                 StatusPill(text: event.kind.rawValue, color: diagnosticEventColor(event.kind))
@@ -1240,6 +1289,39 @@ private struct ScaleSettingsView: View {
                 }
             }
         }
+    }
+
+    private func beginDiagnosticExport() {
+        guard !bluetooth.deviceDiagnosticEvents.isEmpty else { return }
+        diagnosticExportTask?.cancel()
+        withAnimation(.easeOut(duration: 0.16)) {
+            diagnosticExportState = .exporting
+        }
+        diagnosticExportTask = Task {
+            await Task.yield()
+            let report = await bluetooth.makeDeviceDiagnosticReport()
+            guard !Task.isCancelled else { return }
+            diagnosticReportDocument = DiagnosticReportDocument(report: report)
+            withAnimation(.easeInOut(duration: 0.2)) {
+                diagnosticExportState = .ready(report)
+            }
+        }
+    }
+
+    private func saveDiagnosticReport() {
+        showsDiagnosticFileExporter = true
+    }
+
+    private func dismissDiagnosticExport() {
+        diagnosticExportTask?.cancel()
+        diagnosticExportTask = nil
+        withAnimation(.easeOut(duration: 0.16)) {
+            diagnosticExportState = nil
+        }
+    }
+
+    private var diagnosticReportFilename: String {
+        "ScaleMe-DataCapture-\(Int(Date.now.timeIntervalSince1970))"
     }
 
     private var settingsStatusIcon: String {
@@ -1280,6 +1362,137 @@ private struct ScaleSettingsView: View {
         return normalized
     }
 
+}
+
+private struct DiagnosticExportOverlay: View {
+    let state: DiagnosticExportState
+    let onSave: () -> Void
+    let onDismiss: () -> Void
+
+    var body: some View {
+        ZStack {
+            Color.black.opacity(0.24)
+                .ignoresSafeArea()
+                .contentShape(Rectangle())
+                .onTapGesture { }
+
+            VStack(spacing: 18) {
+                statusIcon
+
+                VStack(spacing: 8) {
+                    AppLocalizedText(title)
+                        .font(.title3.weight(.bold))
+                        .foregroundStyle(AppColor.ink)
+
+                    AppLocalizedText(message)
+                        .font(.subheadline)
+                        .foregroundStyle(AppColor.secondary)
+                        .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+
+                if case .ready(let report) = state {
+                    HStack(spacing: 10) {
+                        Button(action: onSave) {
+                            Label {
+                                AppLocalizedText("保存数据")
+                            } icon: {
+                                Image(systemName: "folder.badge.plus")
+                            }
+                        }
+                        .buttonStyle(DiagnosticExportActionButtonStyle())
+
+                        ShareLink(item: report) {
+                            Label {
+                                AppLocalizedText("分享")
+                            } icon: {
+                                Image(systemName: "square.and.arrow.up")
+                            }
+                        }
+                        .buttonStyle(DiagnosticExportActionButtonStyle(isProminent: true))
+                    }
+
+                    Button(action: onDismiss) {
+                        AppLocalizedText("完成")
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(AppColor.secondary)
+                            .frame(maxWidth: .infinity)
+                            .frame(minHeight: 38)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding(22)
+            .frame(maxWidth: 340)
+            .background(
+                LinearGradient(
+                    colors: [.white, AppColor.canvas],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+            )
+            .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 24, style: .continuous)
+                    .stroke(AppColor.mint.opacity(0.12))
+            )
+            .shadow(color: AppColor.ink.opacity(0.16), radius: 28, y: 12)
+            .padding(.horizontal, 28)
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityAddTraits(.isModal)
+    }
+
+    @ViewBuilder
+    private var statusIcon: some View {
+        switch state {
+        case .exporting:
+            ProgressView()
+                .controlSize(.large)
+                .tint(AppColor.mint)
+                .frame(width: 58, height: 58)
+                .background(AppColor.paleMint, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        case .ready:
+            Image(systemName: "checkmark.circle.fill")
+                .font(.system(size: 30, weight: .semibold))
+                .foregroundStyle(AppColor.mint)
+                .frame(width: 58, height: 58)
+                .background(AppColor.paleMint, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        }
+    }
+
+    private var title: String {
+        switch state {
+        case .exporting: "正在导出"
+        case .ready: "导出完成"
+        }
+    }
+
+    private var message: String {
+        switch state {
+        case .exporting: "正在整理抓包数据，请稍候。"
+        case .ready: "报告已准备完成，可以保存到文件或通过其他应用分享。"
+        }
+    }
+}
+
+private struct DiagnosticExportActionButtonStyle: ButtonStyle {
+    var isProminent = false
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.subheadline.weight(.semibold))
+            .foregroundStyle(isProminent ? Color.white : AppColor.mint)
+            .frame(maxWidth: .infinity)
+            .frame(minHeight: 46)
+            .background(
+                isProminent ? AppColor.mint : AppColor.paleMint,
+                in: RoundedRectangle(cornerRadius: 14, style: .continuous)
+            )
+            .scaleEffect(configuration.isPressed ? 0.985 : 1)
+            .animation(.easeOut(duration: 0.12), value: configuration.isPressed)
+    }
 }
 
 private struct ScaleNameEditor: View, Equatable {
