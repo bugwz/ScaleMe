@@ -70,7 +70,7 @@ struct AnimatedLaunchView: View {
                 .overlay {
                     LaunchLogoMark()
                         .trim(from: 0, to: isMarkVisible ? 1 : 0)
-                        .stroke(.white, style: StrokeStyle(lineWidth: 16.3, lineCap: .round, lineJoin: .round))
+                        .stroke(.white, style: StrokeStyle(lineWidth: 13.8, lineCap: .round, lineJoin: .round))
                 }
                 .frame(width: 172, height: 172)
                 .scaleEffect(isBodyVisible ? 1 : 0.74)
