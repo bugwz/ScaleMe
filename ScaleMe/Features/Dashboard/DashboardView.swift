@@ -20,7 +20,13 @@ struct DashboardView: View {
     @State private var profileSelectionCommitTask: Task<Void, Never>?
     @State private var isEditingMetrics = false
 
-    private var latest: BodyMeasurement { store.latest ?? MeasurementStore.demoMeasurements[0] }
+    private var visibleProfileID: UUID {
+        selectedProfileID ?? store.displaySelectedProfileID
+    }
+
+    private var latest: BodyMeasurement {
+        store.displayMeasurements(for: visibleProfileID).first ?? MeasurementStore.demoMeasurements[0]
+    }
 
     var body: some View {
         NavigationStack {
@@ -54,9 +60,17 @@ struct DashboardView: View {
                 profileSelectionCommitTask = nil
             }
             .mainPageTopInset()
-            .pageBackground()
+            .background(
+                AppPageBackground(avatar: visibleProfileAvatar)
+                    .ignoresSafeArea()
+            )
             .toolbar(.hidden, for: .navigationBar)
         }
+    }
+
+    private var visibleProfileAvatar: MemberAvatar {
+        store.displayProfiles.first(where: { $0.id == visibleProfileID })?.avatar
+            ?? store.displaySelectedProfile.avatar
     }
 
     private func scheduleProfileSelectionCommit(_ profileID: UUID?) {
