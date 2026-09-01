@@ -18,7 +18,7 @@
 
 </div>
 
-观我提供 SwiftUI 身体数据仪表盘、多成员档案、多个体重秤管理、可交互历史趋势、本地加密记录、手动录入、BLE 扫描、可选 iCloud 文件同步，以及可扩展的体重秤协议解析层。
+观我提供 SwiftUI 身体数据仪表盘、多成员档案、多个体重秤管理、可交互历史趋势、本地加密记录、手动录入、BLE 扫描、可选 iCloud 文件同步、Apple 健康写入，以及可扩展的体重秤协议解析层。
 
 界面内 Logo 使用纯薄荷绿圆形与白色对称 `M` 折线，由 [`Design/Logo/logo.svg`](Design/Logo/logo.svg) 生成并通过 Xcode Asset Catalog 管理；README 使用透明背景、无白色外圈的 [`readme-logo.svg`](Design/Logo/readme-logo.svg)。iOS 应用图标使用纯白外部区域，并将 Logo 居中呈现。
 
@@ -77,9 +77,10 @@ Tools/                   # 按用途分组的开发工具
 ## 运行
 
 1. 使用 Xcode 26 或更新版本打开 `ScaleMe.xcodeproj`。
-2. 模拟器可查看界面；在“设置 → 偏好与同步”开启模拟数据后，全界面会使用覆盖儿童、青少年、父母和祖辈角色的 10 位三代家庭模拟成员、2 台模拟设备和近一年不等间隔的早晚测量记录。模拟快照不会写入或替换真实资料与加密测量档案；蓝牙扫描仍必须使用真机。
+2. 模拟器可查看界面；在“设置 → 数据管理”的“数据模拟”栏目开启模拟数据后，全界面会使用覆盖儿童、青少年、父母和祖辈角色的 10 位三代家庭模拟成员、2 台模拟设备和近一年不等间隔的早晚测量记录。模拟快照不会写入或替换真实资料与加密测量档案，也不会同步到 iCloud 或写入 Apple 健康；“数据共享”设置中的授权、同步开关、模拟用户和模拟设备选择仍可操作，但相关选择只在内存中用于演示。蓝牙扫描仍必须使用真机。
 3. 选择开发团队后安装到 iPhone，首次搜索设备时允许蓝牙权限。
 4. 如需使用 iCloud 同步，请在开发者账号为 App ID 启用 iCloud Documents，并确认 Xcode 中的 `iCloud.com.scaleme.app` 容器可用于当前团队。
+5. 如需同步到 Apple 健康，请在“设置 → 数据共享”的“Apple 健康”栏目开启同步，再从下拉选项中单选同步用户、多选确认数据可靠的同步设备。系统授权后，观我只写入该用户来自所选设备的后续稳定体重，以及所选设备明确提供的体脂率；未关联来源、未勾选设备和手动记录不会写入，也不会读取健康数据、补传历史记录或写入观我推导的身体成分。该流程需要真机和实际健康授权验证。
 
 添加设备时会扫描并展示所有附近正在广播的低功耗蓝牙设备，标准秤和已验证的旧款小米广播会优先排列，其余设备标记为“协议待验证”。如果进入页面时蓝牙仍在初始化，应用会在蓝牙可用后自动继续扫描。设备被发现不代表其测量协议已经兼容。
 
@@ -144,15 +145,18 @@ swiftc @Tests/Smoke/Bluetooth/ProtocolSources.rsp Tests/Smoke/Bluetooth/Discover
 ```sh
 swiftc @Tests/Smoke/Bluetooth/ProtocolSources.rsp ScaleMe/Infrastructure/Persistence/SecureAppRepository.swift Tests/Smoke/Persistence/StorageSmoke.swift -o /tmp/scaleme-storage-smoke
 /tmp/scaleme-storage-smoke
+
+swiftc @Tests/Smoke/Bluetooth/ProtocolSources.rsp ScaleMe/Infrastructure/Persistence/SecureAppRepository.swift ScaleMe/Infrastructure/Persistence/LocalDataTransferService.swift Tests/Smoke/Persistence/LocalDataTransferSmoke.swift -o /tmp/scaleme-local-transfer-smoke
+/tmp/scaleme-local-transfer-smoke
 ```
 
 ## 数据与医学边界
 
-配置与记录默认保存在应用沙盒的 `ScaleMe/` 目录：`configuration-v4.json` 保存成员、设备、界面语言和应用配置，`measurements-v2.enc` 使用 AES-GCM 加密保存带成员及设备归属的测量记录。设置中可分别开启配置与数据的 iCloud 文件同步；配置策略只能选择单向推送或单向拉取，云端操作均异步执行。本机数据使用仅限当前设备的 Keychain 密钥；开启数据同步后，云端文件使用独立的可同步 iCloud Keychain 密钥，使同一 Apple 账户的设备能够解密数据文件。
+配置与记录默认保存在应用沙盒的 `ScaleMe/` 目录：`configuration-v4.json` 保存成员、设备、界面语言和应用配置，`measurements-v2.enc` 使用 AES-GCM 加密保存带成员及设备归属的测量记录。“设置 → 数据管理”可分别导入或导出配置文件与测量文件；配置导入会在确认后替换本机配置，测量导入会按记录 ID 合并。本机测量导出使用当前设备的 Keychain 密钥加密，不会把密钥写入文件。设置中也可分别开启配置与数据的 iCloud 文件同步；配置策略只能选择单向推送或单向拉取，云端操作均异步执行。云端文件使用独立的可同步 iCloud Keychain 密钥，使同一 Apple 账户的设备能够解密数据文件。
 
 界面语言可在应用设置中即时切换，支持简体中文、繁體中文、English、日本語、Français、Deutsch、Español、Português、Русский与한국어。首次启动会匹配系统首选语言；首页与启动动画始终只显示当前所选语言的单一品牌名称和标语。模拟模式的预设家庭成员使用符合各语言姓名习惯的独立人物姓名与亲属称谓，模拟设备卡片及历史记录中的设备名称也使用对应语言。切换语言会直接载入该语言的整套内置模拟数据，并丢弃此前对模拟资料、设备、排序或记录所做的临时修改。
 
-阻抗推导的体脂等指标是消费级估算，不能用于诊断。正式发布前还应完成 HealthKit capability、隐私清单、iCloud 多设备实测、设备矩阵实测和 App Store 隐私申报。
+阻抗推导的体脂等指标是消费级估算，不能用于诊断。HealthKit capability 与仅写入链路已实现并通过 iPhoneOS 编译检查，仍需在签名真机上验证授权与健康样本落库。正式发布前还应完成隐私清单、iCloud 多设备实测、设备矩阵实测和 App Store 隐私申报。
 
 ## 协议资料
 

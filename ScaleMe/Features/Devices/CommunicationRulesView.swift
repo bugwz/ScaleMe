@@ -113,8 +113,7 @@ private struct BuiltInProtocolsView: View {
                         isFocused: $isSearchFocused,
                         placeholder: "搜索内置协议",
                         returnKeyType: .search,
-                        autocorrectionType: .no,
-                        onSubmit: { isSearchFocused = false }
+                        autocorrectionType: .no
                     )
                     if !searchText.isEmpty {
                         Button {
@@ -246,11 +245,10 @@ private struct AddExternalProtocolView: View {
                             isFocused: $isRemoteURLFocused,
                             placeholder: "https://example.com/scaleme-protocols.json",
                             keyboardType: .URL,
-                            returnKeyType: .go,
+                            returnKeyType: .done,
                             autocapitalizationType: .none,
                             autocorrectionType: .no,
-                            spellCheckingType: .no,
-                            onSubmit: importProtocol
+                            spellCheckingType: .no
                         )
                         .padding(12)
                         .background(AppColor.canvas, in: RoundedRectangle(cornerRadius: 12, style: .continuous))

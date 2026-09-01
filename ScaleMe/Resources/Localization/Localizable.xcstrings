@@ -1,6 +1,2510 @@
 {
   "sourceLanguage" : "zh-Hans",
   "strings" : {
+    "加密保存的称重和身体成分记录。" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Verschlüsselte Gewichts- und Körperzusammensetzungsaufzeichnungen." } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Encrypted weight and body composition records." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Registros cifrados de peso y composición corporal." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Mesures chiffrées du poids et de la composition corporelle." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "暗号化して保存された体重と身体組成の記録。" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "암호화하여 저장된 체중 및 체성분 기록입니다." } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Registos encriptados de peso e composição corporal." } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Зашифрованные записи веса и состава тела." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "加密保存的称重和身体成分记录。" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "加密儲存的體重和身體組成記錄。" } }
+      }
+    },
+    "数据导入/导出" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Datenimport/-export" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Data Import/Export" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Importación/exportación de datos" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Importation/exportation des données" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "データのインポート／エクスポート" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "데이터 가져오기/내보내기" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Importação/exportação de dados" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Импорт/экспорт данных" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "数据导入/导出" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "資料匯入/匯出" } }
+      }
+    },
+    "导出" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Exportieren" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Export" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Exportar" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Exporter" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "エクスポート" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "내보내기" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Exportar" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Экспорт" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "导出" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "匯出" } }
+      }
+    },
+    "配置文件可跨设备导入；测量文件使用本机 Keychain 密钥加密，只能由持有同一密钥的本应用读取。" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Konfigurationsdateien können geräteübergreifend importiert werden. Messdateien sind mit dem Schlüsselbund-Schlüssel dieses Geräts verschlüsselt und nur mit demselben Schlüssel lesbar." } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Config files can be imported across devices. Measurement files are encrypted with this device's Keychain key and can only be read with the same key." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Los archivos de configuración pueden importarse entre dispositivos. Los archivos de medición se cifran con la clave del llavero de este dispositivo y solo pueden leerse con la misma clave." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Les fichiers de configuration peuvent être importés entre appareils. Les fichiers de mesure sont chiffrés avec la clé du trousseau de cet appareil et ne sont lisibles qu’avec cette même clé." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "設定ファイルはデバイス間でインポートできます。測定ファイルはこのデバイスのキーチェーン鍵で暗号化され、同じ鍵を持つ本アプリだけが読み取れます。" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "설정 파일은 기기 간에 가져올 수 있습니다. 측정 파일은 이 기기의 키체인 키로 암호화되며 동일한 키를 가진 이 앱에서만 읽을 수 있습니다." } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Os ficheiros de configuração podem ser importados entre dispositivos. Os ficheiros de medição são encriptados com a chave do Porta-chaves deste dispositivo e só podem ser lidos com a mesma chave." } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Файлы конфигурации можно импортировать между устройствами. Файлы измерений зашифрованы ключом Связки ключей этого устройства и читаются только при наличии того же ключа." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "配置文件可跨设备导入；测量文件使用本机 Keychain 密钥加密，只能由持有同一密钥的本应用读取。" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "設定檔可跨裝置匯入；測量檔使用本機 Keychain 金鑰加密，只能由持有相同金鑰的本應用程式讀取。" } }
+      }
+    },
+    "iCloud 同步" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "iCloud-Synchronisierung" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "iCloud Sync" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Sincronización con iCloud" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Synchronisation iCloud" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "iCloud同期" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "iCloud 동기화" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Sincronização com iCloud" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Синхронизация с iCloud" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "iCloud 同步" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "iCloud 同步" } }
+      }
+    },
+    "数据模拟" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Datensimulation" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Data Simulation" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Simulación de datos" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Simulation de données" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "データシミュレーション" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "데이터 시뮬레이션" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Simulação de dados" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Симуляция данных" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "数据模拟" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "資料模擬" } }
+      }
+    },
+    "导出失败" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Export fehlgeschlagen" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Export Failed" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Error al exportar" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Échec de l’exportation" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "エクスポートに失敗しました" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "내보내기 실패" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Falha ao exportar" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Ошибка экспорта" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "导出失败" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "匯出失敗" } }
+      }
+    },
+    "导入配置？" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Konfiguration importieren?" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Import Configuration?" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "¿Importar configuración?" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Importer la configuration ?" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "設定をインポートしますか？" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "설정을 가져오시겠습니까?" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Importar configuração?" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Импортировать конфигурацию?" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "导入配置？" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "匯入設定？" } }
+      }
+    },
+    "导入的成员、设备、显示单位和通信协议将替换本机配置。测量记录不受影响。" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Importierte Mitglieder, Geräte, Anzeigeeinheiten und Kommunikationsprotokolle ersetzen die lokale Konfiguration. Messungen bleiben unverändert." } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Imported members, devices, display units, and communication protocols will replace the local configuration. Measurements are not affected." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Los miembros, dispositivos, unidades de visualización y protocolos importados sustituirán la configuración local. Las mediciones no se verán afectadas." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Les membres, appareils, unités d’affichage et protocoles importés remplaceront la configuration locale. Les mesures ne seront pas affectées." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "インポートしたメンバー、デバイス、表示単位、通信プロトコルでローカル設定を置き換えます。測定記録には影響しません。" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "가져온 구성원, 기기, 표시 단위 및 통신 프로토콜이 로컬 설정을 대체합니다. 측정 기록에는 영향을 주지 않습니다." } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Os membros, dispositivos, unidades de apresentação e protocolos importados substituirão a configuração local. As medições não serão afetadas." } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Импортированные участники, устройства, единицы отображения и протоколы заменят локальную конфигурацию. Измерения не изменятся." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "导入的成员、设备、显示单位和通信协议将替换本机配置。测量记录不受影响。" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "匯入的成員、裝置、顯示單位和通訊協定將取代本機設定。測量記錄不受影響。" } }
+      }
+    },
+    "导入并替换" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Importieren und ersetzen" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Import and Replace" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Importar y reemplazar" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Importer et remplacer" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "インポートして置き換える" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "가져와서 대체" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Importar e substituir" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Импортировать и заменить" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "导入并替换" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "匯入並取代" } }
+      }
+    },
+    "导入测量数据？" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Messdaten importieren?" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Import Measurement Data?" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "¿Importar datos de medición?" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Importer les données de mesure ?" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "測定データをインポートしますか？" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "측정 데이터를 가져오시겠습니까?" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Importar dados de medição?" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Импортировать данные измерений?" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "导入测量数据？" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "匯入測量資料？" } }
+      }
+    },
+    "将把文件中的 %lld 条测量记录与本机记录合并，重复记录不会重复保存。" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "%lld Messungen aus der Datei werden mit den lokalen Daten zusammengeführt. Duplikate werden nicht erneut gespeichert." } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "%lld measurements from the file will be merged with local records. Duplicates will not be saved again." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Se combinarán %lld mediciones del archivo con los registros locales. Los duplicados no se guardarán de nuevo." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "%lld mesures du fichier seront fusionnées avec les enregistrements locaux. Les doublons ne seront pas enregistrés à nouveau." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "ファイル内の%lld件の測定記録をローカル記録と統合します。重複する記録は再保存されません。" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "파일의 측정 기록 %lld개를 로컬 기록과 병합합니다. 중복 기록은 다시 저장하지 않습니다." } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Serão combinadas %lld medições do ficheiro com os registos locais. Os duplicados não serão guardados novamente." } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "%lld измерений из файла будут объединены с локальными записями. Дубликаты не будут сохранены повторно." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "将把文件中的 %lld 条测量记录与本机记录合并，重复记录不会重复保存。" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "將把檔案中的 %lld 筆測量記錄與本機記錄合併，重複記錄不會重複儲存。" } }
+      }
+    },
+    "合并导入" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Zusammenführen und importieren" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Merge and Import" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Combinar e importar" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Fusionner et importer" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "統合してインポート" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "병합하여 가져오기" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Combinar e importar" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Объединить и импортировать" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "合并导入" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "合併匯入" } }
+      }
+    },
+    "配置文件格式无效" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Ungültiges Konfigurationsdateiformat" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Invalid configuration file format" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Formato de archivo de configuración no válido" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Format de fichier de configuration non valide" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "設定ファイルの形式が無効です" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "설정 파일 형식이 올바르지 않습니다" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Formato de ficheiro de configuração inválido" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Недопустимый формат файла конфигурации" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "配置文件格式无效" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "設定檔格式無效" } }
+      }
+    },
+    "测量数据文件格式无效或无法使用本机密钥解密" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Ungültige Messdatendatei oder Entschlüsselung mit dem lokalen Schlüssel nicht möglich" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "The measurement data file is invalid or cannot be decrypted with this device's key" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "El archivo de mediciones no es válido o no puede descifrarse con la clave de este dispositivo" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Le fichier de mesures n’est pas valide ou ne peut pas être déchiffré avec la clé de cet appareil" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "測定データファイルが無効か、このデバイスの鍵で復号できません" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "측정 데이터 파일이 올바르지 않거나 이 기기의 키로 복호화할 수 없습니다" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "O ficheiro de medições é inválido ou não pode ser desencriptado com a chave deste dispositivo" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Файл измерений недопустим или не может быть расшифрован ключом этого устройства" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "测量数据文件格式无效或无法使用本机密钥解密" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "測量資料檔格式無效，或無法使用本機金鑰解密" } }
+      }
+    },
+    "同步到 Apple 健康" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mit Apple Health synchronisieren"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sync to Apple Health"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sincronizar con Apple Salud"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Synchroniser avec Apple Santé"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Appleヘルスケアと同期"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple 건강에 동기화"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sincronizar com a Saúde Apple"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Синхронизация с Apple Здоровье"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "同步到 Apple 健康"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "同步到 Apple 健康"
+          }
+        }
+      }
+    },
+    "同步用户" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Synchronisierte Person"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sync person"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usuario de sincronización"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Utilisateur synchronisé"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "同期するユーザー"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "동기화 사용자"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Utilizador sincronizado"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Профиль синхронизации"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "同步用户"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "同步使用者"
+          }
+        }
+      }
+    },
+    "同步设备" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Synchronisierte Geräte"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sync devices"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dispositivos sincronizados"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Appareils synchronisés"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "同期するデバイス"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "동기화 기기"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dispositivos sincronizados"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Устройства синхронизации"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "同步设备"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "同步裝置"
+          }
+        }
+      }
+    },
+    "请选择设备" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geräte auswählen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Select devices"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seleccionar dispositivos"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sélectionner des appareils"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "デバイスを選択"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "기기 선택"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Selecionar dispositivos"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выберите устройства"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请选择设备"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請選擇裝置"
+          }
+        }
+      }
+    },
+    "已选择 %lld 台设备" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld Geräte ausgewählt"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld devices selected"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld dispositivos seleccionados"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld appareils sélectionnés"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld台のデバイスを選択済み"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "기기 %lld대 선택됨"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld dispositivos selecionados"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выбрано устройств: %lld"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已选择 %lld 台设备"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已選擇 %lld 台裝置"
+          }
+        }
+      }
+    },
+    "请先在设备页关联体重秤，再选择允许同步的来源。" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verbinden Sie zuerst eine Waage auf der Geräteseite und wählen Sie dann die Quelle für die Synchronisierung aus."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pair a scale on the Devices page first, then select the source allowed to sync."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vincula primero una báscula en la página Dispositivos y luego selecciona la fuente que puede sincronizarse."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Associez d’abord une balance dans la page Appareils, puis choisissez la source autorisée à se synchroniser."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "先にデバイス画面で体重計を関連付けてから、同期を許可するデータ元を選択してください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "먼저 기기 페이지에서 체중계를 연결한 다음 동기화를 허용할 소스를 선택하세요."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Associe primeiro uma balança na página Dispositivos e depois selecione a fonte que pode sincronizar."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сначала подключите весы на странице устройств, затем выберите источник для синхронизации."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请先在设备页关联体重秤，再选择允许同步的来源。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請先在裝置頁關聯體重計，再選擇允許同步的來源。"
+          }
+        }
+      }
+    },
+    "开启同步后仍需至少选择一台设备，新的测量才会写入 Apple 健康。" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auch nach dem Aktivieren muss mindestens ein Gerät ausgewählt sein, damit neue Messungen in Apple Health geschrieben werden."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "After enabling sync, select at least one device before new measurements can be written to Apple Health."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Después de activar la sincronización, selecciona al menos un dispositivo para que las nuevas mediciones se escriban en Apple Salud."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Après avoir activé la synchronisation, sélectionnez au moins un appareil pour que les nouvelles mesures soient écrites dans Apple Santé."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "同期を有効にした後も、新しい測定値をAppleヘルスケアに書き込むには少なくとも1台のデバイスを選択してください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "동기화를 켠 후에도 새 측정값을 Apple 건강에 기록하려면 기기를 하나 이상 선택해야 합니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Depois de ativar a sincronização, selecione pelo menos um dispositivo para que novas medições sejam escritas na Saúde Apple."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "После включения синхронизации выберите хотя бы одно устройство, чтобы новые измерения записывались в Apple Здоровье."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "开启同步后仍需至少选择一台设备，新的测量才会写入 Apple 健康。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "開啟同步後仍需至少選擇一台裝置，新的測量才會寫入 Apple 健康。"
+          }
+        }
+      }
+    },
+    "数据同步范围" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Umfang der Datensynchronisierung"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Data sync scope"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alcance de la sincronización"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Données synchronisées"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "データ同期の範囲"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "데이터 동기화 범위"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Âmbito da sincronização"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Объем синхронизации"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "数据同步范围"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "資料同步範圍"
+          }
+        }
+      }
+    },
+
+    "共享设备" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Freigegebene Geräte"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shared devices"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dispositivos compartidos"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Appareils partagés"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "共有するデバイス"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "공유 기기"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dispositivos partilhados"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Устройства-источники"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "共享设备"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "共享裝置"
+          }
+        }
+      }
+    },
+    "仅勾选你确认数据可靠的设备。未选择的设备、无法关联设备的数据和手动记录不会写入 Apple 健康。" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wählen Sie nur Geräte aus, deren Daten Sie für zuverlässig halten. Nicht ausgewählte Geräte, Daten ohne zugeordnetes Gerät und manuelle Einträge werden nicht in Apple Health geschrieben."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Select only devices whose data you trust. Unselected devices, data that cannot be linked to a device, and manual entries are not written to Apple Health."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Selecciona solo dispositivos cuyos datos consideres fiables. Los dispositivos no seleccionados, los datos sin un dispositivo asociado y las entradas manuales no se escriben en Apple Salud."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sélectionnez uniquement les appareils dont les données vous semblent fiables. Les appareils non sélectionnés, les données sans appareil associé et les saisies manuelles ne sont pas écrits dans Apple Santé."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "データが信頼できると確認したデバイスだけを選択してください。未選択のデバイス、デバイスに関連付けられないデータ、手動入力はAppleヘルスケアに書き込まれません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "데이터를 신뢰할 수 있는 기기만 선택하세요. 선택하지 않은 기기, 기기에 연결할 수 없는 데이터 및 수동 기록은 Apple 건강에 기록되지 않습니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Selecione apenas dispositivos cujos dados considera fiáveis. Dispositivos não selecionados, dados sem dispositivo associado e registos manuais não são escritos na Saúde Apple."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выбирайте только устройства, данным которых доверяете. Данные с невыбранных или неопределенных устройств и ручные записи не передаются в Apple Здоровье."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "仅勾选你确认数据可靠的设备。未选择的设备、无法关联设备的数据和手动记录不会写入 Apple 健康。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "僅勾選你確認資料可靠的裝置。未選擇的裝置、無法關聯裝置的資料和手動記錄不會寫入 Apple 健康。"
+          }
+        }
+      }
+    },
+    "暂无可选设备" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keine Geräte verfügbar"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No devices available"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No hay dispositivos disponibles"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucun appareil disponible"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "選択できるデバイスがありません"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "선택 가능한 기기 없음"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nenhum dispositivo disponível"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Нет доступных устройств"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "暂无可选设备"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "暫無可選裝置"
+          }
+        }
+      }
+    },
+    "开启共享后仍需至少选择一台设备，新的测量才会写入 Apple 健康。" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auch nach dem Aktivieren muss mindestens ein Gerät ausgewählt sein, damit neue Messungen in Apple Health geschrieben werden."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "After enabling sharing, select at least one device before new measurements can be written to Apple Health."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Después de activar el uso compartido, selecciona al menos un dispositivo para que las nuevas mediciones se escriban en Apple Salud."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Après avoir activé le partage, sélectionnez au moins un appareil pour que les nouvelles mesures soient écrites dans Apple Santé."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "共有を有効にした後も、新しい測定値をAppleヘルスケアに書き込むには少なくとも1台のデバイスを選択してください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "공유를 켠 후에도 새 측정값을 Apple 건강에 기록하려면 기기를 하나 이상 선택해야 합니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Depois de ativar a partilha, selecione pelo menos um dispositivo para que novas medições sejam escritas na Saúde Apple."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "После включения передачи выберите хотя бы одно устройство, чтобы новые измерения записывались в Apple Здоровье."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "开启共享后仍需至少选择一台设备，新的测量才会写入 Apple 健康。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "開啟共享後仍需至少選擇一台裝置，新的測量才會寫入 Apple 健康。"
+          }
+        }
+      }
+    },
+    "仅共享所选设备明确提供的数值" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nur ausdrücklich von ausgewählten Geräten bereitgestellte Werte"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Only values explicitly provided by selected devices"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Solo valores proporcionados explícitamente por los dispositivos seleccionados"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uniquement les valeurs explicitement fournies par les appareils sélectionnés"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "選択したデバイスが明示的に提供した値のみ"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "선택한 기기에서 명시적으로 제공된 값만"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apenas valores explicitamente fornecidos pelos dispositivos selecionados"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Только значения, явно предоставленные выбранными устройствами"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "仅共享所选设备明确提供的数值"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "僅共享所選裝置明確提供的數值"
+          }
+        }
+      }
+    },
+
+    "当前为模拟数据模式。你仍可完成 Apple 健康授权、开启同步并选择模拟成员，但模拟成员和模拟测量不会写入 Apple 健康。这里的同步开关与成员选择仅用于演示，关闭应用后会重置。" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Simulationsmodus ist aktiv. Sie können Apple Health weiterhin autorisieren, das Teilen aktivieren und eine simulierte Person auswählen. Simulierte Personen und Messungen werden jedoch nicht in Apple Health geschrieben. Der Schalter und die Personenauswahl dienen nur zur Demonstration und werden beim Beenden der App zurückgesetzt."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Simulation data mode is active. You can still authorize Apple Health, enable sharing, and select a simulated person, but simulated people and measurements are never written to Apple Health. The sharing switch and person selection are for demonstration only and reset when the app closes."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El modo de datos simulados está activo. Puedes autorizar Apple Salud, activar el uso compartido y seleccionar un miembro simulado, pero los miembros y las mediciones simulados nunca se escriben en Apple Salud. El interruptor y la selección solo sirven como demostración y se restablecen al cerrar la app."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le mode de données simulées est actif. Vous pouvez toujours autoriser Apple Santé, activer le partage et choisir un membre simulé, mais les membres et mesures simulés ne sont jamais écrits dans Apple Santé. L’interrupteur et le choix du membre servent uniquement à la démonstration et sont réinitialisés à la fermeture de l’app."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "現在はシミュレーションデータモードです。Appleヘルスケアの許可、共有の有効化、シミュレーションメンバーの選択は操作できますが、シミュレーションのメンバーと測定値がAppleヘルスケアに書き込まれることはありません。共有スイッチとメンバー選択はデモ専用で、アプリを終了するとリセットされます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "현재 시뮬레이션 데이터 모드입니다. Apple 건강 권한을 승인하고 공유를 켜며 시뮬레이션 구성원을 선택할 수 있지만, 시뮬레이션 구성원과 측정값은 Apple 건강에 기록되지 않습니다. 공유 스위치와 구성원 선택은 데모 전용이며 앱을 종료하면 초기화됩니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O modo de dados simulados está ativo. Pode autorizar a Saúde Apple, ativar a partilha e selecionar um membro simulado, mas os membros e as medições simulados nunca são escritos na Saúde Apple. O interruptor e a seleção servem apenas para demonstração e são repostos ao fechar a app."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Включен режим симуляции данных. Можно авторизовать Apple Здоровье, включить отправку и выбрать демонстрационный профиль, но демонстрационные профили и измерения никогда не записываются в Apple Здоровье. Переключатель и выбор профиля служат только для демонстрации и сбрасываются после закрытия приложения."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "当前为模拟数据模式。你仍可完成 Apple 健康授权、开启同步并选择模拟成员，但模拟成员和模拟测量不会写入 Apple 健康。这里的同步开关与成员选择仅用于演示，关闭应用后会重置。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "目前為模擬資料模式。你仍可完成 Apple 健康授權、開啟同步並選擇模擬成員，但模擬成員和模擬測量不會寫入 Apple 健康。這裡的同步開關與成員選擇僅用於示範，關閉 App 後會重置。"
+          }
+        }
+      }
+    },
+
+    "settings.data-sharing.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Datenfreigabe"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Data sharing"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Compartir datos"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Partage des données"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "データ共有"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "데이터 공유"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Partilha de dados"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Обмен данными"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "数据共享"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "資料共享"
+          }
+        }
+      }
+    },
+    "settings.data-sharing.detail" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple-Health-Synchronisierung verwalten"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Manage Apple Health sync"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gestionar la sincronización con Apple Salud"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gérer la synchronisation Apple Santé"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Appleヘルスケア同期を管理"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple 건강 동기화 관리"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gerir sincronização com a Saúde Apple"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Настройка синхронизации с Apple Здоровье"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "管理 Apple 健康同步范围"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "管理 Apple 健康同步範圍"
+          }
+        }
+      }
+    },
+    "Apple 健康" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple Health"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple Health"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple Salud"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple Santé"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Appleヘルスケア"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple 건강"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saúde Apple"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple Здоровье"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple 健康"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple 健康"
+          }
+        }
+      }
+    },
+    "开启时会请求 Apple 健康写入权限；关闭后观我不会继续写入新数据。" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Beim Aktivieren wird die Schreibberechtigung für Apple Health angefordert. Nach dem Deaktivieren schreibt ScaleMe keine neuen Daten mehr."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enabling requests permission to write to Apple Health. After you turn it off, ScaleMe will stop writing new data."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Al activarlo se solicitará permiso para escribir en Apple Salud. Al desactivarlo, ScaleMe dejará de escribir datos nuevos."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L’activation demande l’autorisation d’écrire dans Apple Santé. Une fois désactivé, ScaleMe n’écrit plus de nouvelles données."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "オンにするとAppleヘルスケアへの書き込み許可を求めます。オフにすると、ScaleMeは新しいデータを書き込みません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "켜면 Apple 건강 쓰기 권한을 요청합니다. 끄면 ScaleMe가 새 데이터를 더 이상 기록하지 않습니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ao ativar, será pedida permissão para escrever na Saúde Apple. Depois de desativar, o ScaleMe deixa de escrever novos dados."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "При включении запрашивается разрешение на запись в Apple Здоровье. После отключения ScaleMe перестанет записывать новые данные."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "开启时会请求 Apple 健康写入权限；关闭后观我不会继续写入新数据。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "開啟時會要求 Apple 健康寫入權限；關閉後觀我不會繼續寫入新資料。"
+          }
+        }
+      }
+    },
+    "健康资料对应成员" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Person für Gesundheitsdaten"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Person represented in Health"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Miembro correspondiente a los datos de Salud"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Membre correspondant aux données de Santé"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ヘルスケアデータに対応するメンバー"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "건강 데이터에 해당하는 구성원"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Membro correspondente aos dados de Saúde"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Профиль для данных Здоровья"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "健康资料对应成员"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "健康資料對應成員"
+          }
+        }
+      }
+    },
+    "请选择成员" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Person auswählen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Select a person"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seleccionar miembro"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sélectionner un membre"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "メンバーを選択"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "구성원 선택"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Selecionar membro"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выберите профиль"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请选择成员"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請選擇成員"
+          }
+        }
+      }
+    },
+    "共享范围" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geteilte Daten"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shared data"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Datos compartidos"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Données partagées"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "共有するデータ"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "공유 범위"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dados partilhados"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Общие данные"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "共享范围"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "共享範圍"
+          }
+        }
+      }
+    },
+    "每次稳定称重的千克值" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kilogrammwert jeder stabilen Messung"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kilogram value from each stable weigh-in"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Valor en kilogramos de cada pesaje estable"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Valeur en kilogrammes de chaque pesée stable"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "安定した各計量のキログラム値"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "안정적으로 측정된 각 체중의 킬로그램 값"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Valor em quilogramas de cada pesagem estável"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Значение в килограммах для каждого стабильного взвешивания"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "每次稳定称重的千克值"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "每次穩定稱重的公斤值"
+          }
+        }
+      }
+    },
+    "仅共享设备或手动记录明确提供的数值" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nur ausdrücklich vom Gerät oder manuell erfasste Werte"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Only values explicitly provided by the device or manual entry"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Solo valores proporcionados explícitamente por el dispositivo o una entrada manual"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uniquement les valeurs explicitement fournies par l’appareil ou saisies manuellement"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "デバイスまたは手動入力で明示された値のみ"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "기기 또는 수동 기록에서 명시적으로 제공된 값만"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apenas valores explicitamente fornecidos pelo dispositivo ou introduzidos manualmente"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Только значения, явно предоставленные устройством или введенные вручную"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "仅共享设备或手动记录明确提供的数值"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "僅共享裝置或手動記錄明確提供的數值"
+          }
+        }
+      }
+    },
+    "观我不会读取 Apple 健康数据。开启后仅共享所选成员的新测量，不补传历史记录；估算的身体成分不会写入。" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ScaleMe liest keine Daten aus Apple Health. Nach dem Aktivieren werden nur neue Messungen der ausgewählten Person geteilt; frühere Datensätze und geschätzte Körperzusammensetzung werden nicht geschrieben."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ScaleMe does not read Apple Health data. Once enabled, only new measurements for the selected person are shared; history is not backfilled, and estimated body composition is not written."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ScaleMe no lee datos de Apple Salud. Al activarlo, solo se comparten nuevas mediciones del miembro seleccionado; no se envía el historial ni la composición corporal estimada."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ScaleMe ne lit pas les données d’Apple Santé. Une fois activé, seules les nouvelles mesures du membre sélectionné sont partagées ; l’historique et la composition corporelle estimée ne sont pas écrits."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ScaleMeはAppleヘルスケアのデータを読み取りません。有効にすると選択したメンバーの新しい測定値のみを共有し、履歴や推定された身体組成は書き込みません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ScaleMe는 Apple 건강 데이터를 읽지 않습니다. 켜면 선택한 구성원의 새 측정값만 공유하며, 이전 기록이나 추정 신체 구성은 기록하지 않습니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O ScaleMe não lê dados da Saúde Apple. Depois de ativado, apenas são partilhadas novas medições do membro selecionado; o histórico e a composição corporal estimada não são escritos."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ScaleMe не читает данные Apple Здоровье. После включения передаются только новые измерения выбранного профиля; история и расчетный состав тела не записываются."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "观我不会读取 Apple 健康数据。开启后仅共享所选成员的新测量，不补传历史记录；估算的身体成分不会写入。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "觀我不會讀取 Apple 健康資料。開啟後僅共享所選成員的新測量，不補傳歷史記錄；估算的身體成分不會寫入。"
+          }
+        }
+      }
+    },
+    "最近一次共享失败" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Letztes Teilen fehlgeschlagen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Most recent share failed"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Error al compartir por última vez"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Échec du dernier partage"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "直近の共有に失敗しました"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "최근 공유 실패"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Falha na partilha mais recente"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Последняя отправка не удалась"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最近一次共享失败"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最近一次共享失敗"
+          }
+        }
+      }
+    },
+    "正在请求授权" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Berechtigung wird angefordert"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Requesting permission"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Solicitando permiso"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Demande d’autorisation"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "許可をリクエスト中"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "권한 요청 중"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A pedir permissão"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Запрос разрешения"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在请求授权"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在要求授權"
+          }
+        }
+      }
+    },
+    "Apple 健康不可用" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple Health nicht verfügbar"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple Health unavailable"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple Salud no está disponible"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple Santé indisponible"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Appleヘルスケアを利用できません"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple 건강을 사용할 수 없음"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saúde Apple indisponível"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple Здоровье недоступно"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple 健康不可用"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple 健康無法使用"
+          }
+        }
+      }
+    },
+    "尚未授权" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Noch nicht autorisiert"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not authorized yet"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aún no autorizado"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pas encore autorisé"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未許可"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "아직 권한 없음"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ainda sem autorização"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Разрешение еще не предоставлено"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "尚未授权"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "尚未授權"
+          }
+        }
+      }
+    },
+    "已获写入权限" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Schreibzugriff erlaubt"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Write access granted"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Permiso de escritura concedido"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Accès en écriture autorisé"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "書き込み許可済み"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "쓰기 권한 허용됨"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Acesso de escrita autorizado"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Запись разрешена"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已获写入权限"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已取得寫入權限"
+          }
+        }
+      }
+    },
+    "写入权限已关闭" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Schreibzugriff deaktiviert"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Write access is off"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El permiso de escritura está desactivado"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Accès en écriture désactivé"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "書き込み許可がオフです"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "쓰기 권한이 꺼져 있음"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Acesso de escrita desativado"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Запись отключена"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "写入权限已关闭"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "寫入權限已關閉"
+          }
+        }
+      }
+    },
+    "授权请求失败" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Berechtigungsanfrage fehlgeschlagen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Permission request failed"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Error al solicitar permiso"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Échec de la demande d’autorisation"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "許可のリクエストに失敗しました"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "권한 요청 실패"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Falha ao pedir permissão"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось запросить разрешение"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "授权请求失败"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "授權要求失敗"
+          }
+        }
+      }
+    },
+    "当前设备不支持健康数据。" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dieses Gerät unterstützt keine Gesundheitsdaten."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Health data is not supported on this device."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Este dispositivo no admite datos de Salud."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les données de Santé ne sont pas prises en charge sur cet appareil."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このデバイスはヘルスケアデータに対応していません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 기기는 건강 데이터를 지원하지 않습니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Este dispositivo não suporta dados de Saúde."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Это устройство не поддерживает данные Здоровья."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "当前设备不支持健康数据。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "目前裝置不支援健康資料。"
+          }
+        }
+      }
+    },
+    "开启同步后，由系统显示权限确认。" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nach dem Aktivieren zeigt das System die Berechtigungsabfrage an."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "After sharing is enabled, the system displays the permission prompt."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tras activar el uso compartido, el sistema mostrará la solicitud de permiso."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Après activation du partage, le système affiche la demande d’autorisation."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "共有をオンにすると、システムが許可確認を表示します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "공유를 켜면 시스템이 권한 확인을 표시합니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Depois de ativar a partilha, o sistema apresenta o pedido de permissão."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "После включения система покажет запрос разрешения."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "开启同步后，由系统显示权限确认。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "開啟同步後，由系統顯示權限確認。"
+          }
+        }
+      }
+    },
+    "观我可以写入您允许的健康数据类型。" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ScaleMe kann die von Ihnen erlaubten Gesundheitsdatentypen schreiben."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ScaleMe can write the health data types you allow."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ScaleMe puede escribir los tipos de datos de Salud que permitas."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ScaleMe peut écrire les types de données de Santé que vous autorisez."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ScaleMeは許可されたヘルスケアデータの種類を書き込めます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ScaleMe는 허용한 건강 데이터 유형을 기록할 수 있습니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O ScaleMe pode escrever os tipos de dados de Saúde que permitir."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ScaleMe может записывать разрешенные вами типы данных Здоровья."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "观我可以写入您允许的健康数据类型。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "觀我可以寫入您允許的健康資料類型。"
+          }
+        }
+      }
+    },
+    "请在系统的健康权限设置中允许观我写入。" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erlauben Sie ScaleMe das Schreiben in den Gesundheitseinstellungen des Systems."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allow ScaleMe to write in the system Health permission settings."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Permite que ScaleMe escriba desde los ajustes de permisos de Salud del sistema."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Autorisez ScaleMe à écrire dans les réglages d’autorisation Santé du système."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "システムのヘルスケア権限設定でScaleMeの書き込みを許可してください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "시스템 건강 권한 설정에서 ScaleMe의 쓰기를 허용하세요."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Permita que o ScaleMe escreva nas definições de permissões de Saúde do sistema."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Разрешите ScaleMe запись в системных настройках доступа к Здоровью."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请在系统的健康权限设置中允许观我写入。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請在系統的健康權限設定中允許觀我寫入。"
+          }
+        }
+      }
+    },
+
     "“内置”表示解析器已实现；具体设备是否可用仍以实机、固件和已捕获数据验证为准。" : {
       "localizations" : {
         "de" : {
@@ -2990,61 +5494,61 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Über ScaleMe"
+            "value" : "Über die App"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "About ScaleMe"
+            "value" : "About the App"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Acerca de ScaleMe"
+            "value" : "Acerca de la app"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "À propos de ScaleMe"
+            "value" : "À propos de l’application"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ScaleMe について"
+            "value" : "アプリについて"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ScaleMe 정보"
+            "value" : "앱 정보"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Acerca do ScaleMe"
+            "value" : "Acerca da aplicação"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "О ScaleMe"
+            "value" : "О приложении"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "关于观我"
+            "value" : "关于应用"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "關於見微"
+            "value" : "關於應用程式"
           }
         }
       }
@@ -3504,132 +6008,132 @@
         }
       }
     },
-    "settings.data-sync.detail" : {
+    "settings.data-management.detail" : {
       "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "iCloud-Konfiguration und Messdaten"
+            "value" : "Import, Export, iCloud und Demodaten"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "iCloud settings and measurement data"
+            "value" : "Import, export, iCloud, and demo data"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Configuración de iCloud y datos de medición"
+            "value" : "Importación, exportación, iCloud y datos de demostración"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Configuration iCloud et données de mesure"
+            "value" : "Importation, exportation, iCloud et données de démonstration"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "iCloud 設定と測定データ"
+            "value" : "インポート、エクスポート、iCloud、デモデータ"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "iCloud 설정 및 측정 데이터"
+            "value" : "가져오기, 내보내기, iCloud 및 데모 데이터"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Configuração do iCloud e dados de medição"
+            "value" : "Importação, exportação, iCloud e dados de demonstração"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Настройки iCloud и данные измерений"
+            "value" : "Импорт, экспорт, iCloud и демонстрационные данные"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "iCloud 配置与测量数据"
+            "value" : "导入导出、iCloud 与数据模拟"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "iCloud 設定與測量資料"
+            "value" : "匯入匯出、iCloud 與資料模擬"
           }
         }
       }
     },
-    "settings.data-sync.title" : {
+    "settings.data-management.title" : {
       "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Datensynchronisierung"
+            "value" : "Datenverwaltung"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Data sync"
+            "value" : "Data Management"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sincronización de datos"
+            "value" : "Gestión de datos"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Synchronisation"
+            "value" : "Gestion des données"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "データ同期"
+            "value" : "データ管理"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "데이터 동기화"
+            "value" : "데이터 관리"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sincronização de dados"
+            "value" : "Gestão de dados"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Синхронизация данных"
+            "value" : "Управление данными"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "数据同步"
+            "value" : "数据管理"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "資料同步"
+            "value" : "資料管理"
           }
         }
       }
@@ -3640,61 +6144,61 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Gewichtseinheit, Folgemessungen und Demodaten"
+            "value" : "Gewichtseinheit, Darstellung und Folgemessungen"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Weight unit, repeated measurements, and demo data"
+            "value" : "Weight unit, appearance, and repeated measurements"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Unidad de peso, mediciones seguidas y datos de demostración"
+            "value" : "Unidad de peso, apariencia y mediciones seguidas"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Unité de poids, mesures répétées et données de démo"
+            "value" : "Unité de poids, apparence et mesures répétées"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "体重単位、連続測定、デモデータ"
+            "value" : "体重単位、外観、連続測定"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "체중 단위, 연속 측정 및 데모 데이터"
+            "value" : "체중 단위, 화면 스타일 및 연속 측정"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Unidade de peso, medições seguidas e dados de demonstração"
+            "value" : "Unidade de peso, aparência e medições seguidas"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Единицы веса, повторные измерения и демоданные"
+            "value" : "Единицы веса, оформление и повторные измерения"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "体重单位、连续称重与模拟数据"
+            "value" : "体重单位、外观与连续称重"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "體重單位、連續測量與模擬資料"
+            "value" : "體重單位、外觀與連續測量"
           }
         }
       }
@@ -32375,66 +34879,66 @@
         }
       }
     },
-    "设备设置" : {
+    "设备管理" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Device settings"
+            "value" : "Geräteverwaltung"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Device settings"
+            "value" : "Device Management"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Device settings"
+            "value" : "Gestión del dispositivo"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Device settings"
+            "value" : "Gestion de l’appareil"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Device settings"
+            "value" : "デバイス管理"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Device settings"
+            "value" : "기기 관리"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Device settings"
+            "value" : "Gestão do dispositivo"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Device settings"
+            "value" : "Управление устройством"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "设备设置"
+            "value" : "设备管理"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "设备设置"
+            "value" : "裝置管理"
           }
         }
       }

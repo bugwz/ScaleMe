@@ -24,7 +24,6 @@ struct ResponsiveTextField: UIViewRepresentable {
     var smartInsertDeleteType: UITextSmartInsertDeleteType = .default
     var synchronizesFocusFromBinding = true
     var showsDoneAccessory = false
-    var onSubmit: () -> Void = {}
 
     func makeCoordinator() -> Coordinator {
         Coordinator(parent: self)
@@ -137,7 +136,6 @@ struct ResponsiveTextField: UIViewRepresentable {
         }
 
         func textFieldShouldReturn(_ textField: UITextField) -> Bool {
-            parent.onSubmit()
             textField.resignFirstResponder()
             if parent.isFocused { parent.isFocused = false }
             return true

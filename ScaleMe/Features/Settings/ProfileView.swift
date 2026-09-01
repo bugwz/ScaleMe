@@ -107,9 +107,15 @@ struct ProfileView: View {
                 }
                 SettingsSeparator().padding(.leading, 68)
                 NavigationLink {
-                    DataSyncSettingsView()
+                    DataManagementSettingsView()
                 } label: {
-                    settingsRow(store.appLanguage.text(.dataSync), detail: store.appLanguage.text(.dataSyncDetail), icon: "icloud.fill", color: AppColor.sky)
+                    settingsRow(store.appLanguage.text(.dataManagement), detail: store.appLanguage.text(.dataManagementDetail), icon: "externaldrive.fill", color: AppColor.sky)
+                }
+                SettingsSeparator().padding(.leading, 68)
+                NavigationLink {
+                    AppleHealthSettingsView()
+                } label: {
+                    settingsRow(store.appLanguage.text(.dataSharing), detail: store.appLanguage.text(.dataSharingDetail), icon: "heart.fill", color: AppColor.rose)
                 }
                 SettingsSeparator().padding(.leading, 68)
                 NavigationLink {
@@ -1191,8 +1197,7 @@ private struct MemberSearchField: View {
                 text: $text,
                 isFocused: $isFocused,
                 placeholder: "搜索姓名或关系",
-                returnKeyType: .done,
-                onSubmit: { isFocused = false }
+                returnKeyType: .done
             )
             .frame(minHeight: 24)
             if !text.isEmpty {
@@ -1273,8 +1278,7 @@ private struct MemberNameInput: View {
                 text: $text,
                 isFocused: $isFocused,
                 placeholder: "请输入姓名或昵称",
-                returnKeyType: .done,
-                onSubmit: { isFocused = false }
+                returnKeyType: .done
             )
             .frame(minHeight: 24)
         }

@@ -34,6 +34,7 @@ struct ScaleMeApp: App {
     @StateObject private var store = MeasurementStore()
     @StateObject private var bluetooth = BLEScaleManager()
     @StateObject private var cloudSync = ICloudSyncManager()
+    @StateObject private var appleHealth = AppleHealthManager()
     @State private var isShowingLaunchScreen = true
     @State private var isLeavingLaunchScreen = false
 
@@ -44,6 +45,7 @@ struct ScaleMeApp: App {
                     .environmentObject(store)
                     .environmentObject(bluetooth)
                     .environmentObject(cloudSync)
+                    .environmentObject(appleHealth)
                     .opacity(isShowingLaunchScreen && !isLeavingLaunchScreen ? 0 : 1)
                     .scaleEffect(isShowingLaunchScreen && !isLeavingLaunchScreen ? 1.012 : 1)
                     .allowsHitTesting(!isShowingLaunchScreen)
@@ -70,15 +72,24 @@ struct ScaleMeApp: App {
             .onChange(of: store.archive) {
                 cloudSync.measurementsDidChange()
             }
+            .onReceive(store.$latestHealthShareCandidate.compactMap { $0 }) { measurement in
+                guard !store.isSimulationEnabled,
+                      measurement.profileID == store.appleHealthProfileID,
+                      let deviceID = measurement.deviceID,
+                      store.appleHealthDeviceIDs.contains(deviceID) else { return }
+                appleHealth.share(measurement)
+            }
             .onChange(of: scenePhase) { _, newPhase in
                 if newPhase == .active {
                     store.refreshSystemLanguage()
                     cloudSync.syncWhenAppBecomesActive()
+                    appleHealth.refreshAuthorizationState()
                 }
             }
             .task {
                 bluetooth.updatePairedScales(store.pairedScales, communicationRules: store.communicationRules)
                 cloudSync.attach(to: store)
+                appleHealth.refreshAuthorizationState()
                 guard isShowingLaunchScreen else { return }
                 try? await Task.sleep(for: .seconds(2.75))
                 withAnimation(.easeInOut(duration: 0.55)) {

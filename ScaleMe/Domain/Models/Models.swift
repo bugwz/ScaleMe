@@ -246,6 +246,8 @@ struct AppConfiguration: Codable, Equatable {
     var appearance: AppAppearance
     var mergeFrequentMeasurements: Bool
     var isSimulationEnabled: Bool
+    var appleHealthProfileID: UUID?
+    var appleHealthDeviceIDs: Set<UUID>
     var customCommunicationRules: [CommunicationRule]
     var dashboardMetricOrder: [DashboardMetricKind]
     var dashboardVisibleMetrics: Set<DashboardMetricKind>
@@ -259,6 +261,8 @@ struct AppConfiguration: Codable, Equatable {
         appearance: AppAppearance = .system,
         mergeFrequentMeasurements: Bool,
         isSimulationEnabled: Bool = false,
+        appleHealthProfileID: UUID? = nil,
+        appleHealthDeviceIDs: Set<UUID> = [],
         customCommunicationRules: [CommunicationRule],
         dashboardMetricOrder: [DashboardMetricKind] = DashboardMetricKind.allCases,
         dashboardVisibleMetrics: Set<DashboardMetricKind> = DashboardMetricKind.defaultVisible
@@ -271,6 +275,8 @@ struct AppConfiguration: Codable, Equatable {
         self.appearance = appearance
         self.mergeFrequentMeasurements = mergeFrequentMeasurements
         self.isSimulationEnabled = isSimulationEnabled
+        self.appleHealthProfileID = appleHealthProfileID
+        self.appleHealthDeviceIDs = appleHealthDeviceIDs
         self.customCommunicationRules = customCommunicationRules
         self.dashboardMetricOrder = dashboardMetricOrder
         self.dashboardVisibleMetrics = dashboardVisibleMetrics
@@ -285,6 +291,8 @@ struct AppConfiguration: Codable, Equatable {
         case appearance
         case mergeFrequentMeasurements
         case isSimulationEnabled
+        case appleHealthProfileID
+        case appleHealthDeviceIDs
         case customCommunicationRules
         case dashboardMetricOrder
         case dashboardVisibleMetrics
@@ -300,6 +308,8 @@ struct AppConfiguration: Codable, Equatable {
         appearance = try container.decodeIfPresent(AppAppearance.self, forKey: .appearance) ?? .system
         mergeFrequentMeasurements = try container.decode(Bool.self, forKey: .mergeFrequentMeasurements)
         isSimulationEnabled = try container.decodeIfPresent(Bool.self, forKey: .isSimulationEnabled) ?? false
+        appleHealthProfileID = try container.decodeIfPresent(UUID.self, forKey: .appleHealthProfileID)
+        appleHealthDeviceIDs = try container.decodeIfPresent(Set<UUID>.self, forKey: .appleHealthDeviceIDs) ?? []
         customCommunicationRules = try container.decode([CommunicationRule].self, forKey: .customCommunicationRules)
         dashboardMetricOrder = try container.decodeIfPresent([DashboardMetricKind].self, forKey: .dashboardMetricOrder) ?? DashboardMetricKind.allCases
         dashboardVisibleMetrics = try container.decodeIfPresent(Set<DashboardMetricKind>.self, forKey: .dashboardVisibleMetrics) ?? DashboardMetricKind.defaultVisible

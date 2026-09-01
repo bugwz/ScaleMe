@@ -601,7 +601,7 @@ private struct ScaleSettingsView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                scaleHeroCard
+                deviceSummaryCard
                 connectionPanel
                 namePanel
                 informationPanel
@@ -660,7 +660,7 @@ private struct ScaleSettingsView: View {
             }
         }
         .pageBackground()
-        .navigationTitle("设备设置")
+        .navigationTitle("设备管理")
         .navigationBarTitleDisplayMode(.inline)
         .localizedNavigationBackButton()
         .onAppear {
@@ -747,44 +747,53 @@ private struct ScaleSettingsView: View {
         dismiss()
     }
 
-    private var scaleHeroCard: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .fill(
-                    LinearGradient(
-                        colors: [
-                            AppColor.surface,
-                            settingsStatusColor.opacity(0.12),
-                            AppColor.sky.opacity(0.18)
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
+    private var deviceSummaryCard: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack(spacing: 14) {
+                ScaleAvatarIconView(size: 52, iconSize: 24, accent: settingsStatusColor)
 
-            HStack(spacing: 16) {
-                ScaleAvatarIconView(size: 68, iconSize: 32, accent: settingsStatusColor)
-
-                VStack(alignment: .leading, spacing: 6) {
+                VStack(alignment: .leading, spacing: 4) {
                     AppLocalizedText(scale?.name ?? "蓝牙秤")
-                        .font(.title2.bold())
+                        .font(.headline)
                         .foregroundStyle(AppColor.ink)
+                        .lineLimit(2)
                     Text(scale?.modelName ?? "")
                         .font(.caption)
                         .foregroundStyle(AppColor.secondary)
-
-                    StatusPill(
-                        text: bluetooth.settingsState.title(in: store.appLanguage),
-                        color: settingsStatusColor
-                    )
+                        .lineLimit(1)
                 }
-                Spacer()
+
+                Spacer(minLength: 8)
             }
-            .padding(18)
+
+            SettingsSeparator()
+
+            HStack(spacing: 10) {
+                Label {
+                    AppLocalizedText(scale?.compatibility ?? "协议待验证")
+                } icon: {
+                    Image(systemName: "checkmark.shield")
+                }
+                .font(.caption.weight(.medium))
+                .foregroundStyle(AppColor.secondary)
+                .lineLimit(1)
+
+                Spacer(minLength: 8)
+
+                StatusPill(
+                    text: bluetooth.settingsState.title(in: store.appLanguage),
+                    color: settingsStatusColor
+                )
+                .fixedSize(horizontal: true, vertical: false)
+            }
         }
+        .padding(16)
+        .background(AppColor.surface.opacity(0.94))
         .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 24, style: .continuous).stroke(settingsStatusColor.opacity(0.12)))
-        .shadow(color: settingsStatusColor.opacity(0.08), radius: 14, y: 6)
+        .overlay(
+            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                .stroke(AppColor.mint.opacity(0.08))
+        )
     }
 
     private var connectionPanel: some View {
@@ -1521,8 +1530,7 @@ private struct ScaleNameEditor: View, Equatable {
                     text: $name,
                     isFocused: $isNameFocused,
                     placeholder: "设备自定义名称",
-                    returnKeyType: .done,
-                    onSubmit: save
+                    returnKeyType: .done
                 )
                     .padding(.horizontal, 12)
                     .frame(minHeight: 44)

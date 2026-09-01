@@ -15,6 +15,7 @@ struct LocalizationSmoke {
         }
 
         let profile = UserProfile()
+        let healthDeviceID = UUID()
         let configuration = AppConfiguration(
             profiles: [profile],
             selectedProfileID: profile.id,
@@ -23,6 +24,8 @@ struct LocalizationSmoke {
             languageSelection: .japanese,
             appearance: .dark,
             mergeFrequentMeasurements: false,
+            appleHealthProfileID: profile.id,
+            appleHealthDeviceIDs: [healthDeviceID],
             customCommunicationRules: []
         )
         let encoded = try JSONEncoder().encode(configuration)
@@ -30,6 +33,8 @@ struct LocalizationSmoke {
         precondition(decoded.languageSelection == .japanese)
         precondition(decoded.languageSelection.resolvedLanguage == .japanese)
         precondition(decoded.appearance == .dark)
+        precondition(decoded.appleHealthProfileID == profile.id)
+        precondition(decoded.appleHealthDeviceIDs == [healthDeviceID])
         precondition(AppLanguage.matchingSystemLanguage(preferredLanguages: ["ar-SA"]) == .english)
         precondition(AppLanguage.matchingSystemLanguage(preferredLanguages: ["zh-TW"]) == .traditionalChinese)
         precondition(AppLanguageSelection.system.resolvedLanguage == AppLanguage.systemDefault)
@@ -69,9 +74,16 @@ struct LocalizationSmoke {
             "阻抗通道 1", "阻抗通道 2",
             "体脂及相关指标是基于生物电阻抗和个人资料的消费级估算值，仅用于日常趋势参考，不构成医疗诊断。",
             "阻抗通道名称和频率尚未获得厂商定义，因此仅保留原始读数，不据此声称具体频率。",
-            "正在扫描模拟设备", "已发现模拟设备", "设备设置", "连接状态",
+            "正在扫描模拟设备", "已发现模拟设备", "设备管理", "连接状态",
             "秤端设置", "数据抓包", "成员管理", "添加成员",
             "编辑成员", "人物形象", "成员信息", "出生日期", "运动员模式",
+            "数据导入/导出", "导入", "导出", "iCloud 同步", "数据模拟",
+            "加密保存的称重和身体成分记录。",
+            "配置文件可跨设备导入；测量文件使用本机 Keychain 密钥加密，只能由持有同一密钥的本应用读取。",
+            "导入配置？", "导入并替换", "导入测量数据？", "合并导入", "导出失败",
+            "导入的成员、设备、显示单位和通信协议将替换本机配置。测量记录不受影响。",
+            "将把文件中的 %lld 条测量记录与本机记录合并，重复记录不会重复保存。",
+            "配置文件格式无效", "测量数据文件格式无效或无法使用本机密钥解密",
             "同步应用配置", "同步测量数据", "协议详情",
             "规则配置格式", "关于观我",
             "我们的原则", "本地优先", "标准优先", "关注长期趋势", "重要说明",
@@ -151,6 +163,20 @@ struct LocalizationSmoke {
         precondition(
             AppLanguage.allCases.allSatisfy { displayNameLocalizations[$0.rawValue] != nil },
             "every supported language needs a localized app display name"
+        )
+        guard
+            let healthUpdateDescription = infoStrings["NSHealthUpdateUsageDescription"] as? [String: Any],
+            let healthUpdateLocalizations = healthUpdateDescription["localizations"] as? [String: Any]
+        else {
+            preconditionFailure("InfoPlist.xcstrings must localize HealthKit write permission")
+        }
+        precondition(
+            AppLanguage.allCases.allSatisfy { healthUpdateLocalizations[$0.rawValue] != nil },
+            "every supported language needs a localized HealthKit write permission"
+        )
+        precondition(
+            infoStrings["NSHealthShareUsageDescription"] == nil,
+            "write-only Apple Health integration must not declare read access"
         )
 
         if let appBundlePath = CommandLine.arguments.dropFirst().first {

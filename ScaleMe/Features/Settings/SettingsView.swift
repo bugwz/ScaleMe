@@ -1,4 +1,5 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct DisplaySettingsView: View {
     @EnvironmentObject private var store: MeasurementStore
@@ -90,22 +91,6 @@ struct DisplaySettingsView: View {
                 isOn: $store.mergeFrequentMeasurements
             )
 
-            SettingsSeparator()
-
-            SettingsToggleRow(
-                title: "启用模拟数据",
-                detail: "全界面展示可操作的模拟成员、设备和近一年记录；真实资料与测量数据不会被删除或替换。",
-                isOn: $store.isSimulationEnabled
-            )
-
-            if store.isSimulationEnabled {
-                Label("模拟模式下可手动录入，也可新增、编辑或删除模拟资料。所有变动只保存在应用内存中，不会写入本机档案或同步到 iCloud；关闭应用后再次打开，将恢复为初始模拟数据。", systemImage: "sparkles")
-                    .font(.caption)
-                    .foregroundStyle(AppColor.secondary)
-                    .padding(12)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(AppColor.paleMint.opacity(0.7), in: RoundedRectangle(cornerRadius: 14))
-            }
         }
     }
 
@@ -171,10 +156,41 @@ private extension WeightUnit {
     }
 }
 
-struct DataSyncSettingsView: View {
+private struct LocalTransferDocument: FileDocument {
+    static let readableContentTypes: [UTType] = [.json, .data]
+
+    var data: Data
+
+    init(data: Data = Data()) {
+        self.data = data
+    }
+
+    init(configuration: ReadConfiguration) throws {
+        guard let data = configuration.file.regularFileContents else {
+            throw CocoaError(.fileReadCorruptFile)
+        }
+        self.data = data
+    }
+
+    func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
+        FileWrapper(regularFileWithContents: data)
+    }
+}
+
+struct DataManagementSettingsView: View {
     @EnvironmentObject private var store: MeasurementStore
     @EnvironmentObject private var cloudSync: ICloudSyncManager
-    @State private var pendingCloudAction: PendingCloudAction?
+    @State private var activeAlert: DataManagementAlert?
+    @State private var pendingConfiguration: AppConfiguration?
+    @State private var pendingArchive: MeasurementArchive?
+    @State private var showsConfigurationImporter = false
+    @State private var showsMeasurementImporter = false
+    @State private var showsExporter = false
+    @State private var exportDocument = LocalTransferDocument()
+    @State private var exportContentType = UTType.json
+    @State private var exportFilename = "ScaleMe-Configuration.json"
+
+    private let transferService = LocalDataTransferService()
 
     var body: some View {
         ScrollView {
@@ -183,33 +199,122 @@ struct DataSyncSettingsView: View {
                     storageErrorBanner(storageError)
                 }
 
+                localTransferPanel
                 cloudPanel
+                simulationPanel
             }
             .padding(.horizontal, 18)
             .padding(.top, 8)
             .padding(.bottom, 28)
         }
         .pageBackground()
-        .navigationTitle(store.appLanguage.text(.dataSync))
+        .navigationTitle(store.appLanguage.text(.dataManagement))
         .navigationBarTitleDisplayMode(.inline)
         .localizedNavigationBackButton()
-        .alert(item: $pendingCloudAction) { action in
-            Alert(
-                title: Text("从 iCloud 拉取配置？"),
-                message: Text("iCloud 中的成员、设备、显示单位和通信协议将替换本机配置。测量记录不受影响。"),
-                primaryButton: .destructive(Text("拉取并替换")) {
-                    cloudSync.configurationStrategy = .pull
-                    if action == .enableConfigurationSync {
-                        cloudSync.isConfigurationSyncEnabled = true
-                    }
-                },
-                secondaryButton: .cancel(Text("取消"))
-            )
+        .fileImporter(
+            isPresented: $showsConfigurationImporter,
+            allowedContentTypes: [.json]
+        ) { result in
+            importConfiguration(result)
+        }
+        .fileImporter(
+            isPresented: $showsMeasurementImporter,
+            allowedContentTypes: [.data]
+        ) { result in
+            importMeasurements(result)
+        }
+        .fileExporter(
+            isPresented: $showsExporter,
+            document: exportDocument,
+            contentType: exportContentType,
+            defaultFilename: exportFilename
+        ) { result in
+            if case .failure(let error) = result {
+                activeAlert = .message(title: "导出失败", message: error.localizedDescription)
+            }
+        }
+        .alert(item: $activeAlert) { alert in
+            alertContent(for: alert)
         }
     }
 
+    private var localTransferPanel: some View {
+        SettingsPanel(title: "数据导入/导出", icon: "arrow.up.arrow.down.square") {
+            transferSection(
+                title: "配置",
+                detail: "成员、设备、显示单位和通信协议。",
+                importAction: { showsConfigurationImporter = true },
+                exportAction: { exportConfiguration() }
+            )
+
+            SettingsSeparator()
+
+            transferSection(
+                title: "测量记录",
+                detail: "加密保存的称重和身体成分记录。",
+                importAction: { showsMeasurementImporter = true },
+                exportAction: { exportMeasurements() }
+            )
+
+            Label("配置文件可跨设备导入；测量文件使用本机 Keychain 密钥加密，只能由持有同一密钥的本应用读取。", systemImage: "lock.shield.fill")
+                .font(.caption)
+                .foregroundStyle(AppColor.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(12)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(AppColor.paleMint.opacity(0.7), in: RoundedRectangle(cornerRadius: 14))
+        }
+    }
+
+    private func transferSection(
+        title: String,
+        detail: String,
+        importAction: @escaping () -> Void,
+        exportAction: @escaping () -> Void
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .top, spacing: 12) {
+                Image(systemName: title == "配置" ? "gearshape.2.fill" : "waveform.path.ecg")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(title == "配置" ? AppColor.sky : AppColor.mint)
+                    .frame(width: 36, height: 36)
+                    .background(AppColor.paleMint, in: RoundedRectangle(cornerRadius: 11, style: .continuous))
+                VStack(alignment: .leading, spacing: 3) {
+                    AppLocalizedText(title)
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(AppColor.ink)
+                    AppLocalizedText(detail)
+                        .font(.caption)
+                        .foregroundStyle(AppColor.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+
+            HStack(spacing: 10) {
+                transferButton(title: "导入", icon: "square.and.arrow.down", action: importAction)
+                transferButton(title: "导出", icon: "square.and.arrow.up", action: exportAction)
+            }
+        }
+    }
+
+    private func transferButton(title: String, icon: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Label {
+                AppLocalizedText(title)
+            } icon: {
+                Image(systemName: icon)
+            }
+            .font(.caption.weight(.semibold))
+            .foregroundStyle(AppColor.mint)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 10)
+            .background(AppColor.paleMint, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        }
+        .buttonStyle(.plain)
+    }
+
     private var cloudPanel: some View {
-        SettingsPanel(title: "iCloud", icon: "icloud") {
+        SettingsPanel(title: "iCloud 同步", icon: "icloud") {
             cloudStatusRow
 
             SettingsSeparator()
@@ -271,6 +376,27 @@ struct DataSyncSettingsView: View {
         .animation(.easeInOut(duration: 0.2), value: cloudSync.isEnabled)
     }
 
+    private var simulationPanel: some View {
+        SettingsPanel(title: "数据模拟", icon: "sparkles") {
+            SettingsToggleRow(
+                title: "启用模拟数据",
+                detail: "全界面展示可操作的模拟成员、设备和近一年记录；真实资料与测量数据不会被删除或替换。",
+                isOn: $store.isSimulationEnabled
+            )
+
+            if store.isSimulationEnabled {
+                Label("模拟模式下可手动录入，也可新增、编辑或删除模拟资料。所有变动只保存在应用内存中，不会写入本机档案或同步到 iCloud；关闭应用后再次打开，将恢复为初始模拟数据。", systemImage: "sparkles")
+                    .font(.caption)
+                    .foregroundStyle(AppColor.secondary)
+                    .padding(12)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(AppColor.paleMint.opacity(0.7), in: RoundedRectangle(cornerRadius: 14))
+                    .transition(.opacity.combined(with: .move(edge: .top)))
+            }
+        }
+        .animation(.easeInOut(duration: 0.2), value: store.isSimulationEnabled)
+    }
+
     private var cloudStatusRow: some View {
         HStack(spacing: 12) {
             Image(systemName: statusIcon)
@@ -319,7 +445,7 @@ struct DataSyncSettingsView: View {
             get: { cloudSync.isConfigurationSyncEnabled },
             set: { isEnabled in
                 if isEnabled, cloudSync.configurationStrategy == .pull {
-                    pendingCloudAction = .enableConfigurationSync
+                    activeAlert = .cloud(.enableConfigurationSync)
                 } else {
                     cloudSync.isConfigurationSyncEnabled = isEnabled
                 }
@@ -332,7 +458,7 @@ struct DataSyncSettingsView: View {
             get: { cloudSync.configurationStrategy },
             set: { strategy in
                 if strategy == .pull {
-                    pendingCloudAction = .selectPull
+                    activeAlert = .cloud(.selectPull)
                 } else {
                     cloudSync.configurationStrategy = strategy
                 }
@@ -370,11 +496,131 @@ struct DataSyncSettingsView: View {
         }
     }
 
+    private func exportConfiguration() {
+        do {
+            exportDocument = LocalTransferDocument(data: try transferService.exportConfiguration(store.configuration))
+            exportContentType = .json
+            exportFilename = "ScaleMe-Configuration-\(Int(Date.now.timeIntervalSince1970)).json"
+            showsExporter = true
+        } catch {
+            activeAlert = .message(title: "导出失败", message: error.localizedDescription)
+        }
+    }
+
+    private func exportMeasurements() {
+        do {
+            exportDocument = LocalTransferDocument(data: try transferService.exportMeasurements(store.archive))
+            exportContentType = .data
+            exportFilename = "ScaleMe-Measurements-\(Int(Date.now.timeIntervalSince1970)).enc"
+            showsExporter = true
+        } catch {
+            activeAlert = .message(title: "导出失败", message: error.localizedDescription)
+        }
+    }
+
+    private func importConfiguration(_ result: Result<URL, Error>) {
+        do {
+            pendingConfiguration = try transferService.importConfiguration(from: importedData(from: result))
+            activeAlert = .configurationImport
+        } catch {
+            activeAlert = .message(title: "导入失败", message: error.localizedDescription)
+        }
+    }
+
+    private func importMeasurements(_ result: Result<URL, Error>) {
+        do {
+            let archive = try transferService.importMeasurements(from: importedData(from: result))
+            pendingArchive = archive
+            activeAlert = .measurementImport(count: archive.measurements.count)
+        } catch {
+            activeAlert = .message(title: "导入失败", message: error.localizedDescription)
+        }
+    }
+
+    private func importedData(from result: Result<URL, Error>) throws -> Data {
+        let url = try result.get()
+        let hasSecurityScope = url.startAccessingSecurityScopedResource()
+        defer {
+            if hasSecurityScope { url.stopAccessingSecurityScopedResource() }
+        }
+        return try Data(contentsOf: url)
+    }
+
+    private func alertContent(for alert: DataManagementAlert) -> Alert {
+        switch alert {
+        case .cloud(let action):
+            Alert(
+                title: Text("从 iCloud 拉取配置？"),
+                message: Text("iCloud 中的成员、设备、显示单位和通信协议将替换本机配置。测量记录不受影响。"),
+                primaryButton: .destructive(Text("拉取并替换")) {
+                    cloudSync.configurationStrategy = .pull
+                    if action == .enableConfigurationSync {
+                        cloudSync.isConfigurationSyncEnabled = true
+                    }
+                },
+                secondaryButton: .cancel(Text("取消"))
+            )
+        case .configurationImport:
+            Alert(
+                title: Text("导入配置？"),
+                message: Text("导入的成员、设备、显示单位和通信协议将替换本机配置。测量记录不受影响。"),
+                primaryButton: .destructive(Text("导入并替换")) {
+                    if let pendingConfiguration {
+                        store.apply(configuration: pendingConfiguration)
+                    }
+                    self.pendingConfiguration = nil
+                },
+                secondaryButton: .cancel {
+                    pendingConfiguration = nil
+                }
+            )
+        case .measurementImport(let count):
+            Alert(
+                title: Text("导入测量数据？"),
+                message: Text(store.appLanguage.format(
+                    "将把文件中的 %lld 条测量记录与本机记录合并，重复记录不会重复保存。",
+                    Int64(count)
+                )),
+                primaryButton: .default(Text("合并导入")) {
+                    if let pendingArchive {
+                        store.apply(archive: store.archive.merging(pendingArchive))
+                    }
+                    self.pendingArchive = nil
+                },
+                secondaryButton: .cancel {
+                    pendingArchive = nil
+                }
+            )
+        case .message(let title, let message):
+            Alert(
+                title: Text(store.appLanguage.text(title)),
+                message: Text(store.appLanguage.text(message)),
+                dismissButton: .default(Text(store.appLanguage.text("完成")))
+            )
+        }
+    }
+
     private enum PendingCloudAction: String, Identifiable {
         case selectPull
         case enableConfigurationSync
 
         var id: String { rawValue }
+    }
+
+    private enum DataManagementAlert: Identifiable {
+        case cloud(PendingCloudAction)
+        case configurationImport
+        case measurementImport(count: Int)
+        case message(title: String, message: String)
+
+        var id: String {
+            switch self {
+            case .cloud(let action): "cloud-\(action.rawValue)"
+            case .configurationImport: "configuration-import"
+            case .measurementImport: "measurement-import"
+            case .message(let title, let message): "message-\(title)-\(message)"
+            }
+        }
     }
 }
 

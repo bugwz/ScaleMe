@@ -102,26 +102,68 @@
         }
       }
     },
-    "NSHealthShareUsageDescription" : {
-      "comment" : "Privacy - Health Share Usage Description",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "观我读取健康资料，用于统一展示您的身体趋势。"
-          }
-        }
-      }
-    },
     "NSHealthUpdateUsageDescription" : {
       "comment" : "Privacy - Health Update Usage Description",
-      "extractionState" : "extracted_with_value",
+      "extractionState" : "manual",
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ScaleMe schreibt nur mit Ihrer Zustimmung Gewicht und ausdrücklich erfassten Körperfettanteil in Apple Health."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "With your permission, ScaleMe writes weight and explicitly recorded body fat percentage to Apple Health."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Con tu permiso, ScaleMe escribe el peso y el porcentaje de grasa registrado explícitamente en Apple Salud."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Avec votre autorisation, ScaleMe écrit le poids et le taux de graisse explicitement enregistré dans Apple Santé."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "許可された場合のみ、ScaleMeは体重と明示的に記録された体脂肪率をAppleヘルスケアに書き込みます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "사용자가 허용한 경우에만 ScaleMe가 체중 및 명시적으로 기록된 체지방률을 Apple 건강에 기록합니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Com a sua permissão, o ScaleMe escreve o peso e a percentagem de gordura explicitamente registada na Saúde Apple."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "С вашего разрешения ScaleMe записывает вес и явно указанный процент жира в Apple Здоровье."
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "观我可在您同意后，将体重和身体成分写入健康。"
+            "state" : "translated",
+            "value" : "观我仅在您同意后，将体重和明确记录的体脂率写入 Apple 健康。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "觀我僅在您同意後，將體重和明確記錄的體脂率寫入 Apple 健康。"
           }
         }
       }
