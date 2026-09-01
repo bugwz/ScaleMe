@@ -142,18 +142,18 @@ enum CommunicationRuleError: LocalizedError, Equatable {
 }
 
 enum CommunicationRuleCatalog {
-    static let bluetoothSIGWeightID = "app.scaleme.bluetooth-sig-weight"
-    static let bluetoothSIGBodyID = "app.scaleme.bluetooth-sig-body-composition"
-    static let xiaomiLegacyID = "app.scaleme.xiaomi-legacy-advertisement"
-    static let icomonAFUID = "app.scaleme.icomon-afu"
-    static let qnAABBID = "app.scaleme.qn-aabb-broadcast"
-    static let aaaSeriesID = "app.scaleme.aaa-series-broadcast"
-    static let sinocareID = "app.scaleme.sinocare-broadcast"
-    static let scaleupID = "app.scaleme.scaleup-broadcast"
-    static let okokID = "app.scaleme.okok-broadcast"
-    static let etekcityFit8SID = "app.scaleme.etekcity-fit8s-broadcast"
-    static let eufyC20ID = "app.scaleme.eufy-c20-broadcast"
-    static let yunmaiXID = "app.scaleme.yunmai-x-broadcast"
+    static let bluetoothSIGWeightID = "protocol.builtin.sig-weight"
+    static let bluetoothSIGBodyID = "protocol.builtin.sig-body"
+    static let xiaomiLegacyID = "protocol.builtin.xiaomi-legacy"
+    static let icomonAFUID = "protocol.builtin.icomon-afu"
+    static let qnAABBID = "protocol.builtin.qn-aabb"
+    static let aaaSeriesID = "protocol.builtin.aaa-series"
+    static let sinocareID = "protocol.builtin.sinocare"
+    static let scaleupID = "protocol.builtin.scaleup"
+    static let okokID = "protocol.builtin.okok"
+    static let etekcityFit8SID = "protocol.builtin.fit8s"
+    static let eufyC20ID = "protocol.builtin.eufy-c20"
+    static let yunmaiXID = "protocol.builtin.yunmai-x"
 
     static let builtIn: [CommunicationRule] = [
         CommunicationRule(
@@ -350,6 +350,7 @@ enum CommunicationRuleCatalog {
 
 enum CommunicationRuleCodec {
     static let maximumDocumentBytes = 512 * 1_024
+    static let customIDPrefix = "protocol.custom."
 
     static func decode(_ data: Data, importedFrom sourceURL: URL? = nil) throws -> [CommunicationRule] {
         guard data.count <= maximumDocumentBytes else { throw CommunicationRuleError.responseTooLarge }
@@ -389,8 +390,10 @@ enum CommunicationRuleCodec {
     }
 
     static func validate(_ rule: CommunicationRule) throws {
-        guard rule.id.range(of: #"^[A-Za-z0-9][A-Za-z0-9._-]{2,127}$"#, options: .regularExpression) != nil else {
-            throw CommunicationRuleError.invalidDocument("规则 ID 需为 3 至 128 位 ASCII 标识符")
+        let shortID = String(rule.id.dropFirst(customIDPrefix.count))
+        guard rule.id.hasPrefix(customIDPrefix),
+              shortID.range(of: #"^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$"#, options: .regularExpression) != nil else {
+            throw CommunicationRuleError.invalidDocument("外部规则 ID 必须为 protocol.custom.<名称>，名称限 1 至 64 位 ASCII 字符")
         }
         guard !rule.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             throw CommunicationRuleError.invalidDocument("规则名称不能为空")

@@ -391,7 +391,7 @@ private struct CommunicationRuleFormatView: View {
       "schemaVersion" : 2,
       "rules" : [
         {
-          "id" : "community.example.scale-v1",
+          "id" : "protocol.custom.example",
           "name" : "示例非标准体重秤",
           "version" : 1,
           "summary" : "示例：FFB0 服务的 FFB2 通知，体重位于第 3、4 字节。",

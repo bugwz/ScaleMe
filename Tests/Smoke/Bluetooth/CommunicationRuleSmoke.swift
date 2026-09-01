@@ -11,7 +11,7 @@ let json = #"""
 {
   "schemaVersion": 2,
   "rules": [{
-    "id": "community.fixture.demo-scale",
+    "id": "protocol.custom.demo-scale",
     "name": "Fixture Demo Scale",
     "version": 1,
     "summary": "smoke fixture",
@@ -52,6 +52,7 @@ struct CommunicationRuleSmoke {
     static func main() throws {
         let rules = try CommunicationRuleCodec.decode(Data(json.utf8))
         expect(rules.count == 1, "one rule should decode")
+        expect(rules[0].id == "protocol.custom.demo-scale", "external rule should use the custom protocol namespace")
         expect(rules[0].match.serviceUUID == "FFF0", "UUID should normalize")
         expect(rules[0].effectiveVerification == .unverified, "external rules cannot claim hardware validation")
         expect(
@@ -149,6 +150,18 @@ struct CommunicationRuleSmoke {
                 .allSatisfy { $0.effectiveVerification == .fixtureValidated },
             "manufacturer broadcast built-ins should be labeled as sample validated"
         )
+        expect(
+            CommunicationRuleCatalog.builtIn.allSatisfy { $0.id.hasPrefix("protocol.builtin.") },
+            "built-in rules should use the built-in protocol namespace"
+        )
+
+        let invalidID = json.replacingOccurrences(of: "protocol.custom.demo-scale", with: "demo-scale")
+        do {
+            _ = try CommunicationRuleCodec.decode(Data(invalidID.utf8))
+            fatalError("external rule without the custom protocol namespace should fail validation")
+        } catch {
+            // Expected.
+        }
 
         let invalid = json.replacingOccurrences(of: "\"minimumLength\": 6", with: "\"minimumLength\": 3")
         do {
