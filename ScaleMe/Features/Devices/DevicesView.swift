@@ -52,7 +52,7 @@ struct DevicesView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(alignment: .leading, spacing: 22) {
+                VStack(alignment: .leading, spacing: 24) {
                     MainPageTitle(text: store.appLanguage.text(.devices))
                     addDeviceCard
                     deviceSection
@@ -70,46 +70,35 @@ struct DevicesView: View {
         NavigationLink {
             DeviceScannerView()
         } label: {
-            ZStack {
-                RoundedRectangle(cornerRadius: 24, style: .continuous)
-                    .fill(
-                        LinearGradient(
-                            colors: [
-                                .white,
-                                AppColor.paleMint.opacity(0.6),
-                                AppColor.sky.opacity(0.15)
-                            ],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
+            HStack(spacing: 14) {
+                Image(systemName: "plus")
+                    .font(.subheadline.weight(.bold))
+                    .foregroundStyle(AppColor.mint)
+                    .frame(width: 40, height: 40)
+                    .background(AppColor.paleMint, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
 
-                HStack(spacing: 16) {
-                    ScaleAvatarIconView(size: 54, iconSize: 26, accent: AppColor.mint)
-
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("添加设备")
-                            .font(.headline.weight(.bold))
-                            .foregroundStyle(AppColor.ink)
-                        AppLocalizedText(store.isSimulationEnabled
-                            ? "演示扫描并关联预设模拟设备"
-                            : "扫描并关联附近的体重秤或体脂秤")
-                            .font(.caption)
-                            .foregroundStyle(AppColor.secondary)
-                    }
-                    Spacer()
-
-                    Image(systemName: "chevron.right")
-                        .font(.caption.bold())
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("添加设备")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(AppColor.ink)
+                    AppLocalizedText(store.isSimulationEnabled
+                        ? "演示扫描并关联预设模拟设备"
+                        : "扫描并关联附近的体重秤或体脂秤")
+                        .font(.caption)
                         .foregroundStyle(AppColor.secondary)
-                        .padding(10)
-                        .background(Color.white.opacity(0.8), in: Circle())
                 }
-                .padding(18)
+
+                Spacer(minLength: 8)
+
+                Image(systemName: "chevron.right")
+                    .font(.caption.bold())
+                    .foregroundStyle(AppColor.secondary.opacity(0.7))
             }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 12)
+            .background(Color.white.opacity(0.94))
             .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: 24, style: .continuous).stroke(AppColor.mint.opacity(0.12)))
-            .shadow(color: AppColor.mint.opacity(0.08), radius: 14, y: 6)
+            .overlay(RoundedRectangle(cornerRadius: 24, style: .continuous).stroke(AppColor.mint.opacity(0.08)))
         }
         .buttonStyle(.plain)
     }
@@ -130,80 +119,77 @@ struct DevicesView: View {
             if store.displayPairedScales.isEmpty {
                 emptyDevicesCard
             } else {
-                VStack(spacing: 12) {
-                    ForEach(store.displayPairedScales) { scale in
-                        singleDeviceCard(for: scale)
+                VStack(spacing: 0) {
+                    ForEach(Array(store.displayPairedScales.enumerated()), id: \.element.id) { index, scale in
+                        singleDeviceRow(for: scale)
+                        if index < store.displayPairedScales.count - 1 {
+                            SettingsSeparator().padding(.leading, 68)
+                        }
                     }
                 }
+                .padding(.horizontal, 14)
+                .background(Color.white.opacity(0.94))
+                .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: 24, style: .continuous).stroke(AppColor.mint.opacity(0.08)))
             }
         }
     }
 
     private var emptyDevicesCard: some View {
-        SoftCard(padding: 28) {
-            VStack(spacing: 14) {
-                ZStack {
-                    Circle()
-                        .fill(AppColor.paleMint)
-                        .frame(width: 72, height: 72)
-                    ScaleAvatarIconView(size: 52, iconSize: 24, accent: AppColor.mint)
-                }
+        VStack(spacing: 14) {
+            ScaleAvatarIconView(size: 52, iconSize: 24, accent: AppColor.mint)
 
-                VStack(spacing: 6) {
-                    Text("还没有绑定设备")
-                        .font(.headline.weight(.semibold))
-                        .foregroundStyle(AppColor.ink)
-                    Text("添加设备后，测量页会自动接收并关联这些设备上报的健康数据。")
-                        .font(.caption)
-                        .foregroundStyle(AppColor.secondary)
-                        .multilineTextAlignment(.center)
-                        .lineSpacing(3)
-                }
+            VStack(spacing: 6) {
+                Text("还没有绑定设备")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(AppColor.ink)
+                Text("添加设备后，测量页会自动接收并关联这些设备上报的健康数据。")
+                    .font(.caption)
+                    .foregroundStyle(AppColor.secondary)
+                    .multilineTextAlignment(.center)
+                    .lineSpacing(3)
             }
-            .frame(maxWidth: .infinity)
         }
+        .padding(24)
+        .frame(maxWidth: .infinity)
+        .background(Color.white.opacity(0.94))
+        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 24, style: .continuous).stroke(AppColor.mint.opacity(0.08)))
     }
 
-    private func singleDeviceCard(for scale: PairedScale) -> some View {
+    private func singleDeviceRow(for scale: PairedScale) -> some View {
         let isUnverified = scale.compatibility == "协议待验证"
         let accentColor = isUnverified ? AppColor.apricot : AppColor.mint
 
         return NavigationLink {
             ScaleSettingsView(scaleID: scale.id)
         } label: {
-            ZStack {
-                RoundedRectangle(cornerRadius: 22, style: .continuous)
-                    .fill(Color.white.opacity(0.94))
+            HStack(spacing: 14) {
+                ScaleAvatarIconView(size: 40, iconSize: 19, accent: accentColor)
 
-                HStack(spacing: 14) {
-                    ScaleAvatarIconView(size: 50, iconSize: 24, accent: accentColor)
-
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(scale.name)
-                            .font(.body.weight(.bold))
-                            .foregroundStyle(AppColor.ink)
-                        Text(scale.modelName)
-                            .font(.caption)
-                            .foregroundStyle(AppColor.secondary)
-                            .lineLimit(1)
-                    }
-
-                    Spacer()
-
-                    StatusPill(
-                        text: isUnverified ? "待验证" : "已关联",
-                        color: accentColor
-                    )
-
-                    Image(systemName: "chevron.right")
-                        .font(.caption.bold())
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(scale.name)
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(AppColor.ink)
+                    Text(scale.modelName)
+                        .font(.caption)
                         .foregroundStyle(AppColor.secondary)
+                        .lineLimit(1)
                 }
-                .padding(16)
+
+                Spacer(minLength: 8)
+
+                StatusPill(
+                    text: isUnverified ? "待验证" : "已关联",
+                    color: accentColor
+                )
+
+                Image(systemName: "chevron.right")
+                    .font(.caption.bold())
+                    .foregroundStyle(AppColor.secondary.opacity(0.7))
             }
-            .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: 22, style: .continuous).stroke(accentColor.opacity(0.10)))
-            .shadow(color: accentColor.opacity(0.06), radius: 12, y: 4)
+            .padding(.vertical, 12)
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
     }
@@ -285,89 +271,112 @@ private struct DeviceScannerView: View {
     }
 
     private var scanArea: some View {
-        SoftCard(padding: 24) {
-            VStack(spacing: 18) {
-                ZStack {
-                    Circle()
-                        .stroke(AppColor.mint.opacity(0.08), lineWidth: 24)
-                        .frame(width: 154, height: 154)
-                        .scaleEffect(isPulsing && !reduceMotion ? 1.08 : 0.95)
-                        .opacity(isPulsing && !reduceMotion ? 0.3 : 0.7)
-                        .animation(
-                            reduceMotion ? nil : .easeInOut(duration: 1.5).repeatForever(autoreverses: true),
-                            value: isPulsing
+        VStack(spacing: 24) {
+            scanStage
+
+            HStack(alignment: .top, spacing: 8) {
+                Image(systemName: "info.circle.fill")
+                    .foregroundStyle(AppColor.mint)
+                    .font(.caption)
+                AppLocalizedText(scanInformation)
+                    .font(.caption)
+                    .foregroundStyle(AppColor.secondary)
+                    .lineSpacing(2)
+            }
+            .padding(.horizontal, 2)
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            if scannerDevices.isEmpty {
+                emptyScanState
+            } else {
+                discoveryResults
+            }
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    private var scanStage: some View {
+        VStack(spacing: 18) {
+            ZStack {
+                Circle()
+                    .stroke(AppColor.mint.opacity(0.08), lineWidth: 28)
+                    .frame(width: 250, height: 250)
+                    .scaleEffect(isPulsing && !reduceMotion ? 1.06 : 0.98)
+                    .opacity(isPulsing && !reduceMotion ? 0.28 : 0.6)
+                    .animation(
+                        reduceMotion ? nil : .easeInOut(duration: 1.4).repeatForever(autoreverses: true),
+                        value: isPulsing
+                    )
+
+                Circle()
+                    .fill(
+                        LinearGradient(
+                            colors: [.white, AppColor.paleMint],
+                            startPoint: .top,
+                            endPoint: .bottom
                         )
+                    )
+                    .frame(width: 204, height: 204)
+                    .shadow(color: AppColor.mint.opacity(0.12), radius: 24, y: 10)
 
-                    Circle()
-                        .stroke(
-                            LinearGradient(
-                                colors: [AppColor.mint.opacity(0.35), AppColor.sky.opacity(0.25)],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            ),
-                            lineWidth: 3
-                        )
-                        .frame(width: 112, height: 112)
-                        .scaleEffect(isPulsing && !reduceMotion ? 1.04 : 0.96)
-                        .opacity(isPulsing && !reduceMotion ? 0.8 : 0.4)
-                        .animation(
-                            reduceMotion ? nil : .easeInOut(duration: 1.2).repeatForever(autoreverses: true),
-                            value: isPulsing
-                        )
+                VStack(spacing: 13) {
+                    ScaleAvatarIconView(size: 78, iconSize: 36, accent: scanStageColor)
 
-                    ScaleAvatarIconView(size: 72, iconSize: 34, accent: AppColor.mint)
-                }
-
-                VStack(spacing: 6) {
-                    AppLocalizedText(scanTitle)
-                        .font(.title3.bold())
-                        .foregroundStyle(AppColor.ink)
-
-                    AppLocalizedText(scanDescription)
-                        .font(.caption)
-                        .foregroundStyle(AppColor.secondary)
-                        .multilineTextAlignment(.center)
-                        .lineSpacing(3)
-                }
-
-                HStack(alignment: .top, spacing: 8) {
-                    Image(systemName: "info.circle.fill")
-                        .foregroundStyle(AppColor.mint)
-                        .font(.caption)
-                    AppLocalizedText(scanInformation)
-                        .font(.caption2)
-                        .foregroundStyle(AppColor.secondary)
-                        .lineSpacing(2)
-                }
-                .padding(12)
-                .background(AppColor.paleMint.opacity(0.6), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-
-                if scannerDevices.isEmpty {
-                    if !store.isSimulationEnabled, case .unavailable = bluetooth.state {
-                        Button(action: startScan) {
-                            Label("重试扫描", systemImage: "arrow.clockwise")
-                                .font(.subheadline.weight(.semibold))
-                                .foregroundStyle(.white)
-                                .padding(.horizontal, 20)
-                                .padding(.vertical, 10)
-                                .background(AppColor.mint, in: Capsule())
-                        }
-                        .padding(.top, 6)
-                    } else {
-                        VStack(spacing: 8) {
-                            ProgressView().tint(AppColor.mint)
-                            AppLocalizedText(store.isSimulationEnabled ? "正在载入预设模拟设备" : "暂未发现设备，请唤醒体重秤并靠近手机")
-                                .font(.caption2)
-                                .foregroundStyle(AppColor.secondary)
-                        }
-                        .padding(.top, 8)
-                    }
-                } else {
-                    discoveryResults
+                    StatusPill(text: scanStageLabel, color: scanStageColor)
                 }
             }
             .frame(maxWidth: .infinity)
+
+            VStack(spacing: 7) {
+                AppLocalizedText(scanTitle)
+                    .font(.title3.bold())
+                    .foregroundStyle(AppColor.ink)
+
+                AppLocalizedText(scanDescription)
+                    .font(.subheadline)
+                    .foregroundStyle(AppColor.secondary)
+                    .multilineTextAlignment(.center)
+                    .lineSpacing(3)
+            }
         }
+        .frame(maxWidth: .infinity, minHeight: 330)
+    }
+
+    @ViewBuilder
+    private var emptyScanState: some View {
+        if !store.isSimulationEnabled, case .unavailable = bluetooth.state {
+            Button(action: startScan) {
+                Label("重试扫描", systemImage: "arrow.clockwise")
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(MintActionButtonStyle())
+        } else {
+            HStack(spacing: 10) {
+                ProgressView()
+                    .tint(AppColor.mint)
+                AppLocalizedText(store.isSimulationEnabled ? "正在载入预设模拟设备" : "暂未发现设备，请唤醒体重秤并靠近手机")
+                    .font(.caption)
+                    .foregroundStyle(AppColor.secondary)
+            }
+            .frame(maxWidth: .infinity)
+        }
+    }
+
+    private var scanStageLabel: String {
+        if !store.isSimulationEnabled, case .unavailable = bluetooth.state {
+            return "扫描不可用"
+        }
+        if scannerDevices.isEmpty {
+            return "搜索中"
+        }
+        return store.appLanguage.format("已发现 %lld 台", Int64(scannerDevices.count))
+    }
+
+    private var scanStageColor: Color {
+        if !store.isSimulationEnabled, case .unavailable = bluetooth.state {
+            return AppColor.apricot
+        }
+        return scannerDevices.isEmpty ? AppColor.sky : AppColor.mint
     }
 
     private var scanTitle: String {
