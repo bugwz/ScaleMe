@@ -45,6 +45,24 @@ enum StorageSmoke {
         precondition(merged.measurements == [retained], "deleted records must not be resurrected")
         precondition(merged.measurements[0].deviceName == "浴室秤", "measurement source attribution must survive archive merge")
 
+        let conflictRecord = BodyMeasurement(
+            id: UUID(),
+            date: .now.addingTimeInterval(-120),
+            weightKG: 57.5,
+            source: .manual,
+            isStable: true,
+            profileID: profileID
+        )
+        let conflictVersion = MeasurementArchive(
+            updatedAt: .now.addingTimeInterval(-10),
+            measurements: [conflictRecord, retained],
+            deletedMeasurementIDs: [retained.id]
+        )
+        let conflictMerged = merged.merging(conflictVersion)
+
+        precondition(conflictMerged.measurements == [conflictRecord], "conflict tombstones must win across all archive versions")
+        precondition(conflictMerged.merging(conflictVersion) == conflictMerged, "archive merging must be idempotent")
+
         let profile = UserProfile(name: "测试成员", relation: "本人", avatar: .senior)
         let scale = PairedScale(
             id: scaleID,

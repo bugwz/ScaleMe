@@ -187,12 +187,14 @@ private enum ICloudSyncError: LocalizedError {
     case unavailable
     case missingConfiguration
     case missingArchive
+    case downloadTimedOut
 
     var errorDescription: String? {
         switch self {
         case .unavailable: "无法访问观我的 iCloud 目录"
         case .missingConfiguration: "iCloud 中还没有配置文件"
         case .missingArchive: "没有可同步的数据文件"
+        case .downloadTimedOut: "等待 iCloud 文件下载超时，请稍后重试"
         }
     }
 }
@@ -202,7 +204,7 @@ private actor ICloudFileRepository {
     private let encoder = JSONEncoder()
     private let decoder = JSONDecoder()
 
-    func sync(_ request: CloudSyncRequest) -> CloudSyncResult {
+    func sync(_ request: CloudSyncRequest) async -> CloudSyncResult {
         var result = CloudSyncResult()
 
         do {
@@ -230,6 +232,7 @@ private actor ICloudFileRepository {
                         guard fileManager.fileExists(atPath: url.path) else {
                             throw ICloudSyncError.missingConfiguration
                         }
+                        try await ensureDownloaded(at: url)
                         let document = try decoder.decode(
                             CloudConfigurationDocument.self,
                             from: coordinatedRead(from: url)
@@ -247,25 +250,18 @@ private actor ICloudFileRepository {
                     guard let localArchive = request.archive else { throw ICloudSyncError.missingArchive }
                     let url = directory.appending(path: AppStorageLayout.measurementsFileName)
                     let cloudFileExists = fileManager.fileExists(atPath: url.path)
+                    if cloudFileExists {
+                        try await ensureDownloaded(at: url)
+                    }
                     let cipher = try MeasurementFileCipher(
                         scope: .cloud,
                         createIfMissing: !cloudFileExists
                     )
-                    let mergedArchive: MeasurementArchive
-
-                    if cloudFileExists {
-                        let encryptedData = try coordinatedRead(from: url)
-                        let cloudArchive = try decoder.decode(
-                            MeasurementArchive.self,
-                            from: cipher.decrypt(encryptedData)
-                        )
-                        mergedArchive = localArchive.merging(cloudArchive)
-                    } else {
-                        mergedArchive = localArchive
-                    }
-
-                    let plaintext = try encoder.encode(mergedArchive)
-                    try coordinatedWrite(try cipher.encrypt(plaintext), to: url)
+                    let mergedArchive = try coordinatedMergeAndWrite(
+                        localArchive,
+                        cipher: cipher,
+                        to: url
+                    )
                     result.archive = mergedArchive
                     result.didCompleteAnyOperation = true
                 } catch {
@@ -289,7 +285,6 @@ private actor ICloudFileRepository {
     }
 
     private func coordinatedRead(from url: URL) throws -> Data {
-        try? fileManager.startDownloadingUbiquitousItem(at: url)
         let coordinator = NSFileCoordinator(filePresenter: nil)
         var coordinationError: NSError?
         var operationResult: Result<Data, Error>?
@@ -301,6 +296,79 @@ private actor ICloudFileRepository {
         if let coordinationError { throw coordinationError }
         guard let operationResult else { throw ICloudSyncError.unavailable }
         return try operationResult.get()
+    }
+
+    private func ensureDownloaded(at url: URL) async throws {
+        try fileManager.startDownloadingUbiquitousItem(at: url)
+
+        let deadline = ContinuousClock.now.advanced(by: .seconds(15))
+        while ContinuousClock.now < deadline {
+            try Task.checkCancellation()
+            let values = try url.resourceValues(forKeys: [
+                .ubiquitousItemDownloadingStatusKey,
+                .ubiquitousItemDownloadingErrorKey
+            ])
+            if let error = values.ubiquitousItemDownloadingError {
+                throw error
+            }
+            guard let status = values.ubiquitousItemDownloadingStatus else {
+                return
+            }
+            if status == .current || status == .downloaded {
+                return
+            }
+            try await Task.sleep(for: .milliseconds(150))
+        }
+
+        throw ICloudSyncError.downloadTimedOut
+    }
+
+    private func coordinatedMergeAndWrite(
+        _ localArchive: MeasurementArchive,
+        cipher: MeasurementFileCipher,
+        to url: URL
+    ) throws -> MeasurementArchive {
+        let coordinator = NSFileCoordinator(filePresenter: nil)
+        var coordinationError: NSError?
+        var operationResult: Result<MeasurementArchive, Error>?
+        let options: NSFileCoordinator.WritingOptions = fileManager.fileExists(atPath: url.path) ? .forReplacing : []
+
+        coordinator.coordinate(writingItemAt: url, options: options, error: &coordinationError) { coordinatedURL in
+            operationResult = Result {
+                var mergedArchive = localArchive
+                if fileManager.fileExists(atPath: coordinatedURL.path) {
+                    mergedArchive = try mergedArchive.merging(decodeArchive(at: coordinatedURL, cipher: cipher))
+                }
+
+                let conflictVersions = NSFileVersion.unresolvedConflictVersionsOfItem(at: coordinatedURL) ?? []
+                for version in conflictVersions {
+                    mergedArchive = try mergedArchive.merging(decodeArchive(at: version.url, cipher: cipher))
+                }
+
+                let plaintext = try encoder.encode(mergedArchive)
+                try cipher.encrypt(plaintext).write(
+                    to: coordinatedURL,
+                    options: [.atomic, .completeFileProtectionUntilFirstUserAuthentication]
+                )
+
+                for version in conflictVersions {
+                    version.isResolved = true
+                }
+                if !conflictVersions.isEmpty {
+                    try NSFileVersion.removeOtherVersionsOfItem(at: coordinatedURL)
+                }
+                return mergedArchive
+            }
+        }
+
+        if let coordinationError { throw coordinationError }
+        guard let operationResult else { throw ICloudSyncError.unavailable }
+        return try operationResult.get()
+    }
+
+    private func decodeArchive(at url: URL, cipher: MeasurementFileCipher) throws -> MeasurementArchive {
+        let encryptedData = try Data(contentsOf: url)
+        return try decoder.decode(MeasurementArchive.self, from: cipher.decrypt(encryptedData))
     }
 
     private func coordinatedWrite(_ data: Data, to url: URL) throws {
