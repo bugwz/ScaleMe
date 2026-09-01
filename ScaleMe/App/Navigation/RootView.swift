@@ -39,6 +39,10 @@ struct RootView: View {
                 .tag(RootTab.settings)
         }
         .toolbar(.hidden, for: .tabBar)
+        .background(
+            AppPageBackground(avatar: store.displaySelectedProfile.avatar)
+                .ignoresSafeArea()
+        )
         .safeAreaInset(edge: .bottom, spacing: 0) {
             AppBottomNavigation(
                 selection: $selection,

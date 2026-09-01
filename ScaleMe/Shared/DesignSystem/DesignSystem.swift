@@ -44,6 +44,54 @@ enum AppColor {
     static let trendBonePercent = Color(red: 0.67, green: 0.52, blue: 0.79)
     static let trendVisceralFat = rose
     static let trendBasalMetabolism = Color(red: 0.86, green: 0.50, blue: 0.24)
+
+    static func memberTheme(for avatar: MemberAvatar) -> MemberVisualTheme {
+        switch avatar {
+        case .child, .childDaughter:
+            MemberVisualTheme(primary: apricot, secondary: rose)
+        case .youth, .teenDaughter:
+            MemberVisualTheme(primary: sky, secondary: violet)
+        case .adult, .father:
+            MemberVisualTheme(primary: mint, secondary: sky)
+        case .senior, .paternalGrandfather:
+            MemberVisualTheme(primary: violet, secondary: rose)
+        case .maternalGrandfather, .maternalGrandmother:
+            MemberVisualTheme(primary: rose, secondary: mint)
+        }
+    }
+}
+
+struct MemberVisualTheme {
+    let primary: Color
+    let secondary: Color
+}
+
+struct AppPageBackground: View {
+    let avatar: MemberAvatar
+
+    var body: some View {
+        let theme = AppColor.memberTheme(for: avatar)
+
+        ZStack {
+            LinearGradient(
+                colors: [AppColor.paleMint, AppColor.canvas, AppColor.sky.opacity(0.08)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+
+            LinearGradient(
+                colors: [
+                    theme.primary.opacity(0.22),
+                    theme.secondary.opacity(0.10),
+                    .clear
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        }
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
+    }
 }
 
 struct SoftCard<Content: View>: View {
@@ -795,12 +843,16 @@ struct SettingsValueRow: View {
 
 extension View {
     func pageBackground() -> some View {
-        background(
-            LinearGradient(
-                colors: [AppColor.paleMint, AppColor.canvas, AppColor.sky.opacity(0.08)],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
+        modifier(AppPageBackgroundModifier())
+    }
+}
+
+private struct AppPageBackgroundModifier: ViewModifier {
+    @EnvironmentObject private var store: MeasurementStore
+
+    func body(content: Content) -> some View {
+        content.background(
+            AppPageBackground(avatar: store.displaySelectedProfile.avatar)
                 .ignoresSafeArea()
         )
     }
