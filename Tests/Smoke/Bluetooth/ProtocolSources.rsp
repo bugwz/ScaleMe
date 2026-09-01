@@ -18,5 +18,6 @@ ScaleMe/Infrastructure/Bluetooth/Protocols/EtekcityFit8S/EtekcityFit8SScaleParse
 ScaleMe/Infrastructure/Bluetooth/Protocols/EufyC20/EufyC20ScaleParser.swift
 ScaleMe/Infrastructure/Bluetooth/Protocols/YunmaiX/YunmaiXScaleParser.swift
 ScaleMe/Infrastructure/Bluetooth/Protocols/ICOMON/IcomonAFUScaleAdapter.swift
+ScaleMe/Infrastructure/Bluetooth/Protocols/Huawei/HuaweiHagridProtocol.swift
 ScaleMe/Infrastructure/Bluetooth/CommunicationRules.swift
 ScaleMe/Infrastructure/Bluetooth/ProtocolOperations.swift

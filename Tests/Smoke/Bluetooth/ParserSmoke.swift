@@ -6,6 +6,52 @@ import Foundation
 @main
 enum ParserSmoke {
     static func main() throws {
+        let huaweiProbe = HuaweiHagridProtocol.makeAuthenticationProbe()
+        precondition(huaweiProbe == hexData("DB0300C140"))
+        let huaweiChallenge = hexData("BD1300000102030405060708090A0B0C0D0E0F92C5")
+        let huaweiFrame = try HuaweiHagridProtocol.parseNotificationFrame(huaweiChallenge)
+        precondition(!huaweiFrame.isEncrypted)
+        precondition(huaweiFrame.totalFrames == 1 && huaweiFrame.frameIndex == 0)
+        precondition(huaweiFrame.payload == Data((0...15).map(UInt8.init)))
+        let huaweiMeasuring = try HuaweiHagridProtocol.parseNotificationFrame(hexData("BD040001A449"))
+        let huaweiMeasuringStatus = try HuaweiHagridProtocol.parseMeasurementStatus(huaweiMeasuring)
+        precondition(huaweiMeasuringStatus == .measuring)
+        let huaweiReady = try HuaweiHagridProtocol.parseNotificationFrame(hexData("BD0400006589"))
+        let huaweiReadyStatus = try HuaweiHagridProtocol.parseMeasurementStatus(huaweiReady)
+        precondition(huaweiReadyStatus == .ready)
+        let huaweiChallengePart1 = try HuaweiHagridProtocol.parseNotificationFrame(
+            hexData("BD1210A0A1A2A3A4A5A6A7A8A9AAABACADAEC9A1")
+        )
+        let huaweiChallengePart2 = try HuaweiHagridProtocol.parseNotificationFrame(
+            hexData("BD0511AF006522")
+        )
+        var huaweiAccumulator = HuaweiHagridProtocol.NotificationAccumulator()
+        precondition(huaweiAccumulator.ingest(huaweiChallengePart1) == nil)
+        let completedHuaweiChallenge = huaweiAccumulator.ingest(huaweiChallengePart2)
+        precondition(completedHuaweiChallenge?.payload.count == 17)
+        let huaweiRandom = try HuaweiHagridProtocol.parseAuthenticationChallenge(
+            completedHuaweiChallenge?.payload ?? Data()
+        )
+        precondition(huaweiRandom == hexData("A0A1A2A3A4A5A6A7A8A9AAABACADAEAF"))
+        let huaweiCredentials = try HuaweiHagridProtocol.Credentials(
+            cakHex: "00112233445566778899AABBCCDDEEFF",
+            c1Hex: "FFEEDDCCBBAA99887766554433221100",
+            c2Hex: "0123456789ABCDEFFEDCBA9876543210"
+        )
+        precondition(huaweiCredentials.encoded.count == 48)
+        let decodedHuaweiCredentials = try HuaweiHagridProtocol.Credentials(encoded: huaweiCredentials.encoded)
+        precondition(decodedHuaweiCredentials == huaweiCredentials)
+        precondition(HuaweiHagridProtocol.normalizedCredentialInput("00:11 zz 2233445566778899aabbccddeeff")
+            == "00112233445566778899AABBCCDDEEFF")
+        do {
+            var invalidHuaweiChallenge = huaweiChallenge
+            invalidHuaweiChallenge[invalidHuaweiChallenge.index(before: invalidHuaweiChallenge.endIndex)] ^= 0x01
+            _ = try HuaweiHagridProtocol.parseNotificationFrame(invalidHuaweiChallenge)
+            preconditionFailure("Huawei WSP 校验错误必须被拒绝")
+        } catch ScalePayloadError.unsupported {
+            // Expected.
+        }
+
         let xiaomi = Data([
             0x00, 0x22,             // kg, stabilized, impedance stabilized
             0xE4, 0x07, 1, 2, 3, 4, 5,

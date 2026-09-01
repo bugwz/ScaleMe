@@ -12,9 +12,12 @@ enum ScaleDiscoveryCompatibility: String, Equatable {
     case etekcityFit8SBroadcast = "Etekcity Fit 8S 数据样本验证"
     case eufyC20Broadcast = "Eufy C20 数据样本验证"
     case yunmaiXBroadcast = "Yunmai X 数据样本验证"
+    case huaweiHagridAuthorizationRequired = "华为 Hagrid 认证待配置"
     case unverified = "协议待验证"
 
-    var isVerified: Bool { self != .unverified }
+    var isVerified: Bool {
+        self != .unverified && self != .huaweiHagridAuthorizationRequired
+    }
 }
 
 struct ScaleDiscoveryAdvertisement {
@@ -23,6 +26,7 @@ struct ScaleDiscoveryAdvertisement {
     var serviceDataUUIDs: Set<String>
     var hasVerifiedXiaomiPayload: Bool
     var hasVerifiedIcomonAFUIdentity = false
+    var hasHuaweiHagridIdentity = false
     var verifiedBroadcastProtocol: ScaleBroadcastProtocolFamily?
 }
 
@@ -30,6 +34,9 @@ enum ScaleDiscoveryClassifier {
     static func compatibility(for advertisement: ScaleDiscoveryAdvertisement) -> ScaleDiscoveryCompatibility {
         if advertisement.hasVerifiedIcomonAFUIdentity {
             return .icomonAFU
+        }
+        if advertisement.hasHuaweiHagridIdentity {
+            return .huaweiHagridAuthorizationRequired
         }
         switch advertisement.verifiedBroadcastProtocol {
         case .qnAABB: return .qnAABBBroadcast

@@ -7,6 +7,7 @@
 - `BluetoothSIG/`：Bluetooth SIG 标准特征。
 - `Xiaomi/`：小米旧款广播及已确认的设备配置命令。
 - `ICOMON/`：ICOMON AFU 私有 GATT 帧与设备适配器。
+- `Huawei/`：华为 Hagrid/WSP 设备识别、帧校验与认证探针。
 - `QNAABB/`、`AAASeries/`、`Sinocare/` 等：每个私有协议族直接占用一个同级目录。
 - `ScaleBroadcastProtocolCatalog.swift`：非连接式厂商广播的统一分发入口。
 - `ScalePayloadError.swift`：解析器共享的错误类型。
@@ -31,6 +32,7 @@
 | Etekcity Fit 8S | Manufacturer Data + `FFD0` | 体重、阻抗、稳定状态 | 数据样本验证通过，待真机 |
 | Eufy C20 | Manufacturer Data | 体重、可选阻抗、稳定状态 | 数据样本验证通过，待真机 |
 | Yunmai X | Manufacturer Data + `1320` | 校验、阶段、体重、最终阻抗 | 数据样本验证通过，待真机 |
+| Huawei Scale 3 Hagrid/WSP | `FDEE` 广播 + `181C` 私有 GATT | 提供内置协议手动选择；已识别本地实机 GATT 表，支持无密钥认证探针、WSP 帧校验及 CAK/C1/C2 本机 Keychain 配置 | 完整认证与测量未实现，不宣称兼容 |
 
 “数据样本验证通过”只说明给定字节样本可被确定性解析，不代表任意同品牌设备或固件都已兼容。设备 UI 应继续展示验证级别，不得把数据样本验证等同于真机支持。
 
@@ -42,6 +44,7 @@
 
 - 需要 GATT 初始化命令、用户资料或多阶段状态机的私有协议。后续必须在对应协议族目录中以独立 adapter 实现，不能塞入广播分发器。
 - Xiaomi S400 / S800 等需要绑定密钥或加密载荷的变体。未安全实现授权与密钥保存前不得宣称支持。
+- Huawei Scale 2/3 Hagrid 变体要求设备对应的 CAK/C1/C2 完成认证，并使用会话工作密钥保护后续数据。本地 Scale 3 样本已确认 `FDEE` 广播、`181C` 认证特征、WSP 多帧重组，以及“16 字节随机挑战 + `00` 状态码”的认证响应形态；尚未取得实时测量载荷，因此仅识别为“认证待配置”。
 - 只有设备名称或型号表、没有可复现载荷数据样本的型号。
 - 厨房秤、血压计等非本项目体重/体脂秤范围设备。
 
@@ -73,6 +76,8 @@
 - [EtekcityFit8SHandler.kt](https://github.com/oliexdev/openScale/blob/master/android_app/app/src/main/java/com/health/openscale/core/bluetooth/scales/EtekcityFit8SHandler.kt)
 - [EufyC20Handler.kt](https://github.com/oliexdev/openScale/blob/master/android_app/app/src/main/java/com/health/openscale/core/bluetooth/scales/EufyC20Handler.kt)
 - [YunmaiXHandler.kt](https://github.com/oliexdev/openScale/blob/master/android_app/app/src/main/java/com/health/openscale/core/bluetooth/scales/YunmaiXHandler.kt)
+- [HuaweiHagridWspHandler.kt](https://github.com/oliexdev/openScale/blob/master/android_app/app/src/main/java/com/health/openscale/core/bluetooth/scales/HuaweiHagridWspHandler.kt)
+- [HuaweiHagridWspLib.kt](https://github.com/oliexdev/openScale/blob/master/android_app/app/src/main/java/com/health/openscale/core/bluetooth/libs/HuaweiHagridWspLib.kt)
 - [Bluetooth SIG Weight Scale Service 1.0.1](https://www.bluetooth.com/wp-content/uploads/Files/Specification/HTML/WSS_v1.0.1/out/en/index-en.html)
 - [Bluetooth SIG Body Composition Service 1.0](https://www.bluetooth.com/specifications/specs/body-composition-service-1-0/)
 - [Xiaomi Bluetooth Mi Scale reverse engineering](https://github.com/oliexdev/openScale/wiki/Xiaomi-Bluetooth-Mi-Scale)

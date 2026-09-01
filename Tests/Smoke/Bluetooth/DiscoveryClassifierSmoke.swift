@@ -6,6 +6,7 @@ private func advertisement(
     serviceData: Set<String> = [],
     verifiedXiaomi: Bool = false,
     verifiedIcomonAFU: Bool = false,
+    huaweiHagrid: Bool = false,
     verifiedBroadcastProtocol: ScaleBroadcastProtocolFamily? = nil
 ) -> ScaleDiscoveryAdvertisement {
     ScaleDiscoveryAdvertisement(
@@ -14,6 +15,7 @@ private func advertisement(
         serviceDataUUIDs: serviceData,
         hasVerifiedXiaomiPayload: verifiedXiaomi,
         hasVerifiedIcomonAFUIdentity: verifiedIcomonAFU,
+        hasHuaweiHagridIdentity: huaweiHagrid,
         verifiedBroadcastProtocol: verifiedBroadcastProtocol
     )
 }
@@ -52,6 +54,30 @@ struct DiscoveryClassifierSmoke {
             name: genericFFB0.name,
             advertisedServiceUUIDs: genericFFB0.advertisedServiceUUIDs
         ))
+
+        let huawei = advertisement(
+            name: "HUAWEI Scale 3 BLE-379",
+            serviceData: ["FDEE"],
+            huaweiHagrid: true
+        )
+        precondition(HuaweiHagridProtocol.matchesIdentity(
+            name: huawei.name,
+            serviceDataUUIDs: huawei.serviceDataUUIDs
+        ))
+        precondition(
+            ScaleDiscoveryClassifier.compatibility(for: huawei)
+                == .huaweiHagridAuthorizationRequired
+        )
+        precondition(!ScaleDiscoveryClassifier.compatibility(for: huawei).isVerified)
+        guard let huaweiRule = CommunicationRuleCatalog.builtIn.first(where: {
+            $0.id == CommunicationRuleCatalog.huaweiHagridID
+        }) else {
+            preconditionFailure("华为 Hagrid 内置通信协议缺失")
+        }
+        precondition(huaweiRule.match.transport == .characteristicNotification)
+        precondition(huaweiRule.match.serviceUUID == HuaweiHagridProtocol.userDataServiceUUID)
+        precondition(huaweiRule.match.characteristicUUID == HuaweiHagridProtocol.requestAuthenticationCharacteristicUUID)
+        precondition(huaweiRule.effectiveVerification == .unverified)
 
         let qn = advertisement(verifiedBroadcastProtocol: .qnAABB)
         precondition(ScaleDiscoveryClassifier.compatibility(for: qn) == .qnAABBBroadcast)

@@ -186,7 +186,7 @@ struct DevicesView: View {
     }
 
     private func singleDeviceRow(for scale: PairedScale) -> some View {
-        let isUnverified = scale.compatibility == "协议待验证"
+        let isUnverified = ScaleDiscoveryCompatibility(rawValue: scale.compatibility)?.isVerified != true
         let accentColor = isUnverified ? AppColor.apricot : AppColor.mint
 
         return NavigationLink {
@@ -608,6 +608,9 @@ private struct ScaleSettingsView: View {
                 hardwarePanel
                 historyPanel
                 protocolPanel
+                if showsHuaweiHagridCredentials {
+                    HuaweiHagridCredentialsPanel(scaleID: scaleID)
+                }
                 capturePanel
 
                 Button(role: .destructive, action: showDeleteConfirmation) {
@@ -724,6 +727,17 @@ private struct ScaleSettingsView: View {
         return trimmedName.isEmpty ? "该设备" : trimmedName
     }
 
+    private var showsHuaweiHagridCredentials: Bool {
+        guard let scale else { return false }
+        if scale.communicationRuleID == CommunicationRuleCatalog.huaweiHagridID
+            || scale.compatibility == ScaleDiscoveryCompatibility.huaweiHagridAuthorizationRequired.rawValue {
+            return true
+        }
+        return bluetooth.settingsSnapshot.writableCharacteristicUUIDs.contains {
+            HuaweiHagridProtocol.isRequestAuthenticationCharacteristic($0)
+        }
+    }
+
     private func showDeleteConfirmation() {
         KeyboardFocus.dismiss()
         showsProtocolMenu = false
@@ -740,6 +754,7 @@ private struct ScaleSettingsView: View {
 
     private func deleteScale() {
         confirmDelete = false
+        try? HuaweiHagridCredentialStore().delete(for: scaleID)
         store.removeScale(scaleID)
         if !store.isSimulationEnabled {
             bluetooth.updatePairedScales(store.pairedScales, communicationRules: store.communicationRules)

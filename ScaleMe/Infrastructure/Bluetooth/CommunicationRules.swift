@@ -144,6 +144,7 @@ enum CommunicationRuleError: LocalizedError, Equatable {
 enum CommunicationRuleCatalog {
     static let bluetoothSIGWeightID = "protocol.builtin.sig-weight"
     static let bluetoothSIGBodyID = "protocol.builtin.sig-body"
+    static let huaweiHagridID = "protocol.builtin.huawei-hagrid"
     static let xiaomiLegacyID = "protocol.builtin.xiaomi-legacy"
     static let icomonAFUID = "protocol.builtin.icomon-afu"
     static let qnAABBID = "protocol.builtin.qn-aabb"
@@ -177,6 +178,22 @@ enum CommunicationRuleCatalog {
             decoder: nil,
             builtInParser: "bluetoothSIGBodyComposition",
             verification: .standardSpecification
+        ),
+        CommunicationRule(
+            id: huaweiHagridID,
+            name: "华为 Hagrid/WSP",
+            version: 1,
+            summary: "华为 Scale 2/3 私有连接协议；支持配置认证材料，完整认证与测量仍在适配。",
+            origin: .builtIn,
+            match: .init(
+                transport: .characteristicNotification,
+                serviceUUID: HuaweiHagridProtocol.userDataServiceUUID,
+                characteristicUUID: HuaweiHagridProtocol.requestAuthenticationCharacteristicUUID,
+                minimumLength: 5
+            ),
+            decoder: nil,
+            builtInParser: "huaweiHagridWSP",
+            verification: .unverified
         ),
         CommunicationRule(
             id: xiaomiLegacyID,

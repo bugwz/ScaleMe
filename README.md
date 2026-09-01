@@ -59,6 +59,7 @@ Tools/                   # 按用途分组的开发工具
 - Bluetooth SIG Body Composition Service `0x181B` / Body Composition Measurement `0x2A9C`
 - 小米体重秤、体脂秤旧款常见 `0x181B` 广播数据（重量、稳定状态、阻抗）
 - ICOMON `AFU-WL-TZ-A1` / `FG2313UWB-D` 的 `FFB0` / `FFB2` 私有协议（已用同一真机多轮采集验证实时、稳定、最终重量及双阻抗原始通道；改动后仍待真机回归验证）
+- 华为 Scale 3 Hagrid/WSP 内置通信协议选择、设备识别、无密钥认证探针，以及设备管理中的 CAK/C1/C2 本机 Keychain 安全配置；完整认证和测量仍在适配，当前明确标记为“认证待配置”，不宣称已支持
 - QN 血统非连接式 AABB 厂商广播（Company ID `0xFFFF`，重量与稳定状态；已通过数据样本验证，尚未在本项目真机验证）
 - AAA002 / AAA007 / AAA013 厂商广播（XOR 解码、5 位校验、重量与稳定状态；已通过数据样本验证，尚未在本项目真机验证）
 - Sinocare、Scaleup、OKOK、Etekcity Fit 8S、Eufy C20 与 Yunmai X 非连接式厂商广播（已实现独立解析器并通过数据样本验证，尚未在本项目真机验证）
