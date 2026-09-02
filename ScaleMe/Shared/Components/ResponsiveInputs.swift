@@ -22,7 +22,6 @@ struct ResponsiveTextField: UIViewRepresentable {
     var smartDashesType: UITextSmartDashesType = .default
     var smartQuotesType: UITextSmartQuotesType = .default
     var smartInsertDeleteType: UITextSmartInsertDeleteType = .default
-    var isSecureTextEntry = false
     var synchronizesFocusFromBinding = true
     var showsDoneAccessory = false
 
@@ -40,27 +39,23 @@ struct ResponsiveTextField: UIViewRepresentable {
         )
         textField.borderStyle = .none
         textField.backgroundColor = .clear
-        textField.clearsOnBeginEditing = false
         textField.adjustsFontForContentSizeCategory = true
         textField.textColor = UIColor(AppColor.ink)
         textField.tintColor = UIColor(AppColor.mint)
         textField.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         textField.setContentHuggingPriority(.defaultLow, for: .horizontal)
         context.coordinator.textField = textField
-        context.coordinator.installSecureEntryButton(on: textField)
         configure(textField, coordinator: context.coordinator)
         return textField
     }
 
     func updateUIView(_ textField: UITextField, context: Context) {
         context.coordinator.parent = self
-        // Keep the SwiftUI binding authoritative before changing secure-entry
-        // state. UIKit may redraw (and, on some iOS versions, temporarily clear)
-        // a secure field when that flag changes.
+        configure(textField, coordinator: context.coordinator)
+
         if textField.text != text {
             textField.text = text
         }
-        configure(textField, coordinator: context.coordinator)
 
         if synchronizesFocusFromBinding {
             if isFocused, !textField.isFirstResponder {
@@ -96,18 +91,6 @@ struct ResponsiveTextField: UIViewRepresentable {
         if textField.smartInsertDeleteType != smartInsertDeleteType {
             textField.smartInsertDeleteType = smartInsertDeleteType
         }
-        if !isSecureTextEntry {
-            coordinator.isSecureTextRevealed = false
-        }
-        let shouldHideText = isSecureTextEntry && !coordinator.isSecureTextRevealed
-        if textField.isSecureTextEntry != shouldHideText {
-            coordinator.setSecureTextEntry(shouldHideText, on: textField)
-        }
-        coordinator.configureSecureEntryButton(
-            isEnabled: isSecureTextEntry,
-            revealLabel: appLanguage.text("显示密码"),
-            concealLabel: appLanguage.text("隐藏密码")
-        )
 
         let desiredFont = AppInputFont.scaled(textStyle, weight: fontWeight)
         if textField.font != desiredFont { textField.font = desiredFont }
@@ -128,93 +111,16 @@ struct ResponsiveTextField: UIViewRepresentable {
     @MainActor
     final class Coordinator: NSObject, UITextFieldDelegate {
         var parent: ResponsiveTextField
-        var isSecureTextRevealed = false
         weak var textField: UITextField?
-        var secureEntryButton: UIButton?
         init(parent: ResponsiveTextField) {
             self.parent = parent
         }
 
-        func installSecureEntryButton(on textField: UITextField) {
-            let button = UIButton(type: .system)
-            button.frame = CGRect(x: 0, y: 0, width: 36, height: 44)
-            button.tintColor = UIColor(AppColor.secondary)
-            button.addTarget(self, action: #selector(toggleSecureEntryVisibility), for: .touchUpInside)
-            secureEntryButton = button
-        }
-
-        func configureSecureEntryButton(
-            isEnabled: Bool,
-            revealLabel: String,
-            concealLabel: String
-        ) {
-            guard let textField, let secureEntryButton else { return }
-            guard isEnabled else {
-                textField.rightView = nil
-                textField.rightViewMode = .never
-                return
-            }
-
-            // The symbol communicates the current state; the accessibility
-            // label below communicates the action performed by the button.
-            let symbolName = isSecureTextRevealed ? "eye" : "eye.slash"
-            let configuration = UIImage.SymbolConfiguration(pointSize: 13, weight: .regular)
-            secureEntryButton.setImage(
-                UIImage(systemName: symbolName, withConfiguration: configuration),
-                for: .normal
-            )
-            secureEntryButton.accessibilityLabel = isSecureTextRevealed ? concealLabel : revealLabel
-            textField.rightView = secureEntryButton
-            textField.rightViewMode = .always
-        }
-
-        @objc func toggleSecureEntryVisibility() {
-            guard parent.isSecureTextEntry, let textField else { return }
-            synchronizeText(from: textField)
-            isSecureTextRevealed.toggle()
-            setSecureTextEntry(!isSecureTextRevealed, on: textField)
-            configureSecureEntryButton(
-                isEnabled: true,
-                revealLabel: parent.appLanguage.text("显示密码"),
-                concealLabel: parent.appLanguage.text("隐藏密码")
-            )
-        }
-
-        func setSecureTextEntry(_ shouldHideText: Bool, on textField: UITextField) {
-            guard textField.isSecureTextEntry != shouldHideText else { return }
-            let currentText = textField.text ?? ""
-            let selectionOffsets = textField.selectedTextRange.map { range in
-                (
-                    textField.offset(from: textField.beginningOfDocument, to: range.start),
-                    textField.offset(from: textField.beginningOfDocument, to: range.end)
-                )
-            }
-
-            textField.isSecureTextEntry = shouldHideText
-            // Reassigning the value works around UIKit dropping the rendered
-            // secure text while the field remains first responder.
-            textField.text = currentText
-
-            if let selectionOffsets,
-               let start = textField.position(
-                   from: textField.beginningOfDocument,
-                   offset: selectionOffsets.0
-               ),
-               let end = textField.position(
-                   from: textField.beginningOfDocument,
-                   offset: selectionOffsets.1
-               ) {
-                textField.selectedTextRange = textField.textRange(from: start, to: end)
-            }
-        }
-
         @objc func textDidChange(_ sender: UITextField) {
-            synchronizeText(from: sender)
-        }
-
-        private func synchronizeText(from textField: UITextField) {
-            let currentText = textField.text ?? ""
-            if parent.text != currentText { parent.text = currentText }
+            let updatedText = sender.text ?? ""
+            if parent.text != updatedText {
+                parent.text = updatedText
+            }
         }
 
         func textFieldShouldBeginEditing(_ textField: UITextField) -> Bool {
@@ -225,44 +131,19 @@ struct ResponsiveTextField: UIViewRepresentable {
             if !parent.isFocused { parent.isFocused = true }
         }
 
-        func textFieldShouldEndEditing(_ textField: UITextField) -> Bool {
-            // Flush pending secure/marked text before changing focus. Otherwise
-            // a SwiftUI refresh can write the previous binding value back into
-            // the UIKit field during the responder transition.
-            synchronizeText(from: textField)
-            return true
-        }
-
         func textFieldDidEndEditing(_ textField: UITextField) {
-            // `textFieldShouldEndEditing` already committed the final value.
-            // Do not read the UIKit field again here: secure text fields may
-            // transiently report an empty value while resigning first responder.
-            restoreBoundText(in: textField)
             if parent.isFocused { parent.isFocused = false }
-            Task { @MainActor [weak self, weak textField] in
-                guard let self, let textField else { return }
-                // UIKit can finish its secure-field redraw after the delegate
-                // callback, so restore once more on the next main-actor turn.
-                self.restoreBoundText(in: textField)
-            }
         }
 
         func textFieldShouldReturn(_ textField: UITextField) -> Bool {
-            synchronizeText(from: textField)
             textField.resignFirstResponder()
             if parent.isFocused { parent.isFocused = false }
             return true
         }
 
         @objc func dismissKeyboard() {
-            if let textField { synchronizeText(from: textField) }
             textField?.resignFirstResponder()
             if parent.isFocused { parent.isFocused = false }
-        }
-
-        private func restoreBoundText(in textField: UITextField) {
-            let committedText = parent.text
-            if textField.text != committedText { textField.text = committedText }
         }
     }
 }

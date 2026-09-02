@@ -125,7 +125,6 @@ private struct HuaweiHagridCredentialField: View {
                 smartDashesType: .no,
                 smartQuotesType: .no,
                 smartInsertDeleteType: .no,
-                isSecureTextEntry: true,
                 synchronizesFocusFromBinding: false,
                 showsDoneAccessory: true
             )
@@ -141,7 +140,6 @@ private struct HuaweiHagridCredentialField: View {
                     .allowsHitTesting(false)
             )
             .accessibilityLabel(title)
-            .privacySensitive()
         }
     }
 
