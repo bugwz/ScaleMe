@@ -8,6 +8,7 @@ private enum TrendFilterIcon {
 struct HistoryView: View {
     @EnvironmentObject private var store: MeasurementStore
     @Binding var expandedTrend: ExpandedTrendPresentation?
+    let scrollToTopRequest: Int
     @State private var selectedMetrics: Set<TrendMetric> = [.weight, .bmi, .bodyFat]
     @State private var range = TrendTimeRange.week
     @State private var customStartDate = Calendar.current.date(byAdding: .day, value: -6, to: Date.now) ?? .now
@@ -77,7 +78,7 @@ struct HistoryView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
+            RootPageScrollView(scrollToTopRequest: scrollToTopRequest) {
                 VStack(spacing: 18) {
                     MainPageTitle(text: store.appLanguage.text(.trends))
                     filters

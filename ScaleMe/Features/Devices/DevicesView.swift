@@ -98,6 +98,7 @@ struct DevicesView: View {
     @State private var scrollViewportHeight: CGFloat = 0
     @State private var dragState: ScaleDragState?
     @State private var dragActivationFeedback = 0
+    let scrollToTopRequest: Int
 
     private static let coordinateSpaceName = "deviceManagement"
 
@@ -122,7 +123,7 @@ struct DevicesView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
+            RootPageScrollView(scrollToTopRequest: scrollToTopRequest) {
                 VStack(alignment: .leading, spacing: 24) {
                     MainPageTitle(text: store.appLanguage.text(.devices))
                     addDeviceCard

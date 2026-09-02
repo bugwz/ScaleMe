@@ -24,6 +24,7 @@ struct MeasureView: View {
     @State private var showProfileDropdown = false
     @State private var showScaleDropdown = false
     @State private var selectedScaleID: UUID?
+    let scrollToTopRequest: Int
 
     private var liveMeasurement: BodyMeasurement? {
         if store.isSimulationEnabled { return store.latest }
@@ -73,7 +74,7 @@ struct MeasureView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
+            RootPageScrollView(scrollToTopRequest: scrollToTopRequest) {
                 VStack(spacing: 20) {
                     VStack(alignment: .leading, spacing: 6) {
                         MainPageTitle(text: store.appLanguage.text(.measure))

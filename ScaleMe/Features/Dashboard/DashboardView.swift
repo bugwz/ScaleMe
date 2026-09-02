@@ -4,6 +4,7 @@ import UIKit
 
 struct DashboardView: View {
     @EnvironmentObject private var store: MeasurementStore
+    let scrollToTopRequest: Int
     let onMeasure: (UUID) -> Void
     let onShowTrends: () -> Void
 
@@ -30,7 +31,7 @@ struct DashboardView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
+            RootPageScrollView(scrollToTopRequest: scrollToTopRequest) {
                 VStack(spacing: 18) {
                     brandTitle
                         .padding(.horizontal, 18)

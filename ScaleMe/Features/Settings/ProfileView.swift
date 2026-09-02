@@ -2,10 +2,11 @@ import SwiftUI
 
 struct ProfileView: View {
     @EnvironmentObject private var store: MeasurementStore
+    let scrollToTopRequest: Int
 
     var body: some View {
         NavigationStack {
-            ScrollView {
+            RootPageScrollView(scrollToTopRequest: scrollToTopRequest) {
                 VStack(alignment: .leading, spacing: 24) {
                     MainPageTitle(text: store.appLanguage.text(.settings))
                     memberSection

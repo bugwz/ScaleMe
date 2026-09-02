@@ -6,6 +6,7 @@ struct RootView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var selection = RootTab.home
     @State private var navigationStore = RootNavigationControllerStore()
+    @State private var scrollToTopRequests: [RootTab: Int] = [:]
     @State private var expandedTrend: ExpandedTrendPresentation?
     @State private var isOrientationTransitioning = false
     @State private var orientationTask: Task<Void, Never>?
@@ -43,6 +44,7 @@ struct RootView: View {
     private var rootTabs: some View {
         TabView(selection: $selection) {
             DashboardView(
+                scrollToTopRequest: scrollToTopRequests[.home, default: 0],
                 onMeasure: { profileID in
                     store.selectDisplayProfile(profileID)
                     selection = .measure
@@ -53,22 +55,25 @@ struct RootView: View {
             .tabItem { Label(RootTab.home.title(in: store.appLanguage), systemImage: RootTab.home.systemImage) }
             .tag(RootTab.home)
 
-            MeasureView()
+            MeasureView(scrollToTopRequest: scrollToTopRequests[.measure, default: 0])
             .onRootNavigationControllerResolved { navigationStore.register($0, for: .measure) }
             .tabItem { Label(RootTab.measure.title(in: store.appLanguage), systemImage: RootTab.measure.systemImage) }
             .tag(RootTab.measure)
 
-            HistoryView(expandedTrend: expandedTrendBinding)
+            HistoryView(
+                expandedTrend: expandedTrendBinding,
+                scrollToTopRequest: scrollToTopRequests[.trends, default: 0]
+            )
             .onRootNavigationControllerResolved { navigationStore.register($0, for: .trends) }
             .tabItem { Label(RootTab.trends.title(in: store.appLanguage), systemImage: RootTab.trends.systemImage) }
             .tag(RootTab.trends)
 
-            DevicesView()
+            DevicesView(scrollToTopRequest: scrollToTopRequests[.devices, default: 0])
             .onRootNavigationControllerResolved { navigationStore.register($0, for: .devices) }
             .tabItem { Label(RootTab.devices.title(in: store.appLanguage), image: "ScaleDeviceTabIcon") }
             .tag(RootTab.devices)
 
-            ProfileView()
+            ProfileView(scrollToTopRequest: scrollToTopRequests[.settings, default: 0])
             .onRootNavigationControllerResolved { navigationStore.register($0, for: .settings) }
             .tabItem { Label(RootTab.settings.title(in: store.appLanguage), systemImage: RootTab.settings.systemImage) }
             .tag(RootTab.settings)
@@ -148,6 +153,7 @@ struct RootView: View {
 
     private func resetTabToRoot(_ tab: RootTab) {
         navigationStore.popToRoot(for: tab)
+        scrollToTopRequests[tab, default: 0] += 1
     }
 
     private func openDeepLink(_ url: URL) {
