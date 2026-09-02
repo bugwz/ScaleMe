@@ -74,8 +74,51 @@ private struct ScannerDevice: Identifiable, Hashable {
     }
 }
 
+private struct ScaleDragState {
+    let scale: PairedScale
+    var location: CGPoint
+    var hitTestLocation: CGPoint
+    var grabOffset: CGSize
+    let rowSize: CGSize
+    let horizontalCenter: CGFloat
+    var pendingRelocationTargetID: UUID?
+    var hasResolvedDragTouch = false
+    var hasStartedMoving = false
+    var isLifted = false
+    var isSettling = false
+}
+
 struct DevicesView: View {
     @EnvironmentObject private var store: MeasurementStore
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Namespace private var scaleOrderAnimation
+    @StateObject private var autoScroller = VerticalDragAutoScroller()
+    @State private var scaleOrder: [UUID] = []
+    @State private var scaleFrames: [UUID: CGRect] = [:]
+    @State private var scrollViewportHeight: CGFloat = 0
+    @State private var dragState: ScaleDragState?
+    @State private var dragActivationFeedback = 0
+
+    private static let coordinateSpaceName = "deviceManagement"
+
+    private var draggingScaleID: UUID? {
+        dragState?.scale.id
+    }
+
+    private var orderedScales: [PairedScale] {
+        let scales = store.displayPairedScales
+        guard scaleOrder.count == scales.count,
+              Set(scaleOrder) == Set(scales.map(\.id)) else { return scales }
+        let scalesByID = Dictionary(
+            scales.map { ($0.id, $0) },
+            uniquingKeysWith: { current, _ in current }
+        )
+        return scaleOrder.compactMap { scalesByID[$0] }
+    }
+
+    private var canReorder: Bool {
+        orderedScales.count > 1
+    }
 
     var body: some View {
         NavigationStack {
@@ -87,10 +130,48 @@ struct DevicesView: View {
                 }
                 .padding(.horizontal, 18)
                 .padding(.bottom, 28)
+                .background(VerticalDragScrollViewResolver(autoScroller: autoScroller))
             }
+            .scrollDisabled(draggingScaleID != nil)
+            .coordinateSpace(name: Self.coordinateSpaceName)
+            .background(
+                GeometryReader { geo in
+                    Color.clear.preference(
+                        key: ScaleScrollViewportHeightPreferenceKey.self,
+                        value: geo.size.height
+                    )
+                }
+            )
+            .onPreferenceChange(ScaleRowFramePreferenceKey.self) { frames in
+                scaleFrames = frames
+                if var state = dragState,
+                   frames[state.scale.id]?.contains(state.hitTestLocation) == true,
+                   state.pendingRelocationTargetID != nil {
+                    state.pendingRelocationTargetID = nil
+                    dragState = state
+                }
+                if let state = dragState {
+                    relocate(state.scale.id, to: state.hitTestLocation, using: frames)
+                }
+            }
+            .onPreferenceChange(ScaleScrollViewportHeightPreferenceKey.self) { scrollViewportHeight = $0 }
+            .overlay(alignment: .topLeading) {
+                dragPreview
+            }
+            .sensoryFeedback(.impact(weight: .medium), trigger: dragActivationFeedback)
             .mainPageTopInset()
             .pageBackground()
             .toolbar(.hidden, for: .navigationBar)
+            .onAppear {
+                synchronizeScaleOrder()
+            }
+            .onChange(of: store.displayPairedScales.map(\.id)) { _, _ in
+                guard draggingScaleID == nil else { return }
+                synchronizeScaleOrder()
+            }
+            .onDisappear {
+                autoScroller.stop()
+            }
         }
     }
 
@@ -139,26 +220,19 @@ struct DevicesView: View {
                     .foregroundStyle(AppColor.ink)
                 Spacer()
                 StatusPill(
-                    text: store.appLanguage.format("%lld 台", store.displayPairedScales.count),
+                    text: store.appLanguage.format("%lld 台", orderedScales.count),
                     color: AppColor.sky
                 )
             }
 
-            if store.displayPairedScales.isEmpty {
+            if orderedScales.isEmpty {
                 emptyDevicesCard
             } else {
-                VStack(spacing: 0) {
-                    ForEach(Array(store.displayPairedScales.enumerated()), id: \.element.id) { index, scale in
+                VStack(spacing: 10) {
+                    ForEach(orderedScales) { scale in
                         singleDeviceRow(for: scale)
-                        if index < store.displayPairedScales.count - 1 {
-                            SettingsSeparator().padding(.leading, 68)
-                        }
                     }
                 }
-                .padding(.horizontal, 14)
-                .background(AppColor.surface.opacity(0.94))
-                .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
-                .overlay(RoundedRectangle(cornerRadius: 24, style: .continuous).stroke(AppColor.mint.opacity(0.08)))
             }
         }
     }
@@ -185,41 +259,270 @@ struct DevicesView: View {
         .overlay(RoundedRectangle(cornerRadius: 24, style: .continuous).stroke(AppColor.mint.opacity(0.08)))
     }
 
+    @ViewBuilder
     private func singleDeviceRow(for scale: PairedScale) -> some View {
+        let isDragging = draggingScaleID == scale.id
+        let isLiftedInPlace = isDragging
+            && dragState?.hasStartedMoving == false
+            && dragState?.isLifted == true
+            && dragState?.isSettling == false
+
+        let row = NavigationLink {
+            ScaleSettingsView(scaleID: scale.id)
+        } label: {
+            deviceRowVisual(scale)
+        }
+        .buttonStyle(.plain)
+        .disabled(draggingScaleID != nil)
+        .overlay(
+            RoundedRectangle(cornerRadius: 19, style: .continuous)
+                .stroke(
+                    AppColor.mint.opacity(isLiftedInPlace ? 0.9 : 0),
+                    lineWidth: 2.5
+                )
+        )
+        .background(
+            GeometryReader { geo in
+                Color.clear.preference(
+                    key: ScaleRowFramePreferenceKey.self,
+                    value: [scale.id: geo.frame(in: .named(Self.coordinateSpaceName))]
+                )
+            }
+        )
+        .scaleEffect(reduceMotion || !isLiftedInPlace ? 1 : 1.06)
+        .shadow(
+            color: AppColor.mint.opacity(isLiftedInPlace ? 0.32 : 0),
+            radius: isLiftedInPlace ? 18 : 0,
+            y: isLiftedInPlace ? 10 : 0
+        )
+        .opacity(isDragging && dragState?.hasStartedMoving == true ? 0 : 1)
+        .matchedGeometryEffect(id: scale.id, in: scaleOrderAnimation)
+        .transition(.identity)
+        .contentShape(RoundedRectangle(cornerRadius: 19, style: .continuous))
+
+        if canReorder {
+            row
+                .simultaneousGesture(reorderGesture(for: scale.id), including: .all)
+                .accessibilityHint("长按后上下拖动可调整顺序")
+                .accessibilityAction(named: "上移") {
+                    moveScale(scale.id, by: -1)
+                }
+                .accessibilityAction(named: "下移") {
+                    moveScale(scale.id, by: 1)
+                }
+        } else {
+            row
+        }
+    }
+
+    private func deviceRowVisual(_ scale: PairedScale) -> some View {
         let isUnverified = ScaleDiscoveryCompatibility(rawValue: scale.compatibility)?.isVerified != true
         let accentColor = isUnverified ? AppColor.apricot : AppColor.mint
 
-        return NavigationLink {
-            ScaleSettingsView(scaleID: scale.id)
-        } label: {
-            HStack(spacing: 14) {
-                ScaleAvatarIconView(size: 40, iconSize: 19, accent: accentColor)
+        return HStack(spacing: 14) {
+            ScaleAvatarIconView(size: 40, iconSize: 19, accent: accentColor)
 
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(scale.name)
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(AppColor.ink)
-                    Text(scale.modelName)
-                        .font(.caption)
-                        .foregroundStyle(AppColor.secondary)
-                        .lineLimit(1)
-                }
-
-                Spacer(minLength: 8)
-
-                StatusPill(
-                    text: isUnverified ? "待验证" : "已关联",
-                    color: accentColor
-                )
-
-                Image(systemName: "chevron.right")
-                    .font(.caption.bold())
-                    .foregroundStyle(AppColor.secondary.opacity(0.7))
+            VStack(alignment: .leading, spacing: 3) {
+                Text(scale.name)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(AppColor.ink)
+                Text(scale.modelName)
+                    .font(.caption)
+                    .foregroundStyle(AppColor.secondary)
+                    .lineLimit(1)
             }
-            .padding(.vertical, 12)
-            .contentShape(Rectangle())
+
+            Spacer(minLength: 8)
+
+            StatusPill(
+                text: isUnverified ? "待验证" : "已关联",
+                color: accentColor
+            )
+
+            Image(systemName: "chevron.right")
+                .font(.caption.bold())
+                .foregroundStyle(AppColor.secondary.opacity(0.7))
         }
-        .buttonStyle(.plain)
+        .padding(14)
+        .background(AppColor.surface.opacity(0.94))
+        .clipShape(RoundedRectangle(cornerRadius: 19, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 19, style: .continuous)
+                .stroke(AppColor.mint.opacity(0.07))
+        )
+        .contentShape(RoundedRectangle(cornerRadius: 19, style: .continuous))
+    }
+
+    @ViewBuilder
+    private var dragPreview: some View {
+        if let state = dragState, state.hasStartedMoving {
+            deviceRowVisual(state.scale)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 19, style: .continuous)
+                        .stroke(AppColor.mint.opacity(state.isLifted ? 0.9 : 0.35), lineWidth: 2.5)
+                )
+                .frame(width: state.rowSize.width, height: state.rowSize.height)
+                .scaleEffect(reduceMotion || state.isSettling || !state.isLifted ? 1 : 1.06)
+                .shadow(
+                    color: AppColor.mint.opacity(state.isLifted && !state.isSettling ? 0.32 : 0),
+                    radius: state.isLifted && !state.isSettling ? 18 : 0,
+                    y: state.isLifted && !state.isSettling ? 10 : 0
+                )
+                .position(
+                    x: state.horizontalCenter,
+                    y: state.location.y - state.grabOffset.height + state.rowSize.height / 2
+                )
+                .allowsHitTesting(false)
+                .zIndex(10)
+        }
+    }
+
+    private func reorderGesture(for scaleID: UUID) -> some Gesture {
+        LongPressGesture(minimumDuration: 0.55, maximumDistance: 8)
+            .sequenced(
+                before: DragGesture(
+                    minimumDistance: 0,
+                    coordinateSpace: .named(Self.coordinateSpaceName)
+                )
+            )
+            .onChanged { value in
+                guard canReorder,
+                      case .second(true, let drag) = value else { return }
+                activateDragging(scaleID)
+                if let drag {
+                    updateDragging(scaleID, with: drag)
+                }
+            }
+            .onEnded { _ in
+                if draggingScaleID == scaleID {
+                    finishDragging()
+                }
+            }
+    }
+
+    private func activateDragging(_ scaleID: UUID) {
+        guard dragState == nil,
+              let scale = orderedScales.first(where: { $0.id == scaleID }),
+              let frame = scaleFrames[scaleID] else { return }
+        dragState = ScaleDragState(
+            scale: scale,
+            location: CGPoint(x: frame.midX, y: frame.midY),
+            hitTestLocation: CGPoint(x: frame.midX, y: frame.midY),
+            grabOffset: CGSize(width: frame.width / 2, height: frame.height / 2),
+            rowSize: frame.size,
+            horizontalCenter: frame.midX
+        )
+        dragActivationFeedback += 1
+        DispatchQueue.main.async {
+            guard var state = dragState, state.scale.id == scaleID else { return }
+            state.isLifted = true
+            withAnimation(.spring(response: 0.2, dampingFraction: 0.78)) {
+                dragState = state
+            }
+        }
+    }
+
+    private func updateDragging(_ scaleID: UUID, with drag: DragGesture.Value) {
+        guard var state = dragState, state.scale.id == scaleID else { return }
+        if !state.hasResolvedDragTouch, let frame = scaleFrames[scaleID] {
+            state.grabOffset = CGSize(
+                width: drag.location.x - frame.minX,
+                height: drag.location.y - frame.minY
+            )
+            state.hasResolvedDragTouch = true
+        }
+        state.location = drag.location
+        state.hitTestLocation = drag.location
+        if !state.hasStartedMoving,
+           hypot(drag.translation.width, drag.translation.height) > 0.5 {
+            state.hasStartedMoving = true
+        }
+        dragState = state
+        relocate(scaleID, to: state.hitTestLocation, using: scaleFrames)
+        autoScroller.update(fingerY: drag.location.y, viewportHeight: scrollViewportHeight)
+    }
+
+    private func relocate(_ scaleID: UUID, to location: CGPoint, using frames: [UUID: CGRect]) {
+        if frames[scaleID]?.contains(location) == true { return }
+        guard let targetID = orderedScales.first(where: {
+            $0.id != scaleID && frames[$0.id]?.contains(location) == true
+        })?.id, targetID != dragState?.pendingRelocationTargetID else { return }
+        guard var state = dragState, state.scale.id == scaleID else { return }
+        state.pendingRelocationTargetID = targetID
+        dragState = state
+        moveScaleLocally(scaleID, onto: targetID)
+    }
+
+    private func moveScale(_ scaleID: UUID, by offset: Int) {
+        let scales = orderedScales
+        guard let sourceIndex = scales.firstIndex(where: { $0.id == scaleID }) else { return }
+        let targetIndex = sourceIndex + offset
+        guard scales.indices.contains(targetIndex) else { return }
+        moveScaleLocally(scaleID, onto: scales[targetIndex].id)
+        commitScaleOrder()
+    }
+
+    private func moveScaleLocally(_ scaleID: UUID, onto targetScaleID: UUID) {
+        var newOrder = orderedScales.map(\.id)
+        guard scaleID != targetScaleID,
+              let targetIndex = newOrder.firstIndex(of: targetScaleID) else { return }
+        newOrder.removeAll { $0 == scaleID }
+        newOrder.insert(scaleID, at: min(targetIndex, newOrder.endIndex))
+        guard newOrder != scaleOrder else { return }
+        withAnimation(reduceMotion ? .easeOut(duration: 0.12) : .snappy(duration: 0.22)) {
+            scaleOrder = newOrder
+        }
+    }
+
+    private func synchronizeScaleOrder() {
+        let currentOrder = store.displayPairedScales.map(\.id)
+        guard scaleOrder != currentOrder else { return }
+        scaleOrder = currentOrder
+    }
+
+    private func commitScaleOrder() {
+        store.setDisplayScaleOrder(orderedScales.map(\.id))
+    }
+
+    private func finishDragging() {
+        autoScroller.stop()
+        commitScaleOrder()
+        guard !reduceMotion,
+              var state = dragState,
+              let destination = scaleFrames[state.scale.id] else {
+            resetDragState()
+            return
+        }
+        state.isSettling = true
+        state.location = CGPoint(
+            x: destination.minX + state.grabOffset.width,
+            y: destination.minY + state.grabOffset.height
+        )
+        withAnimation(.snappy(duration: 0.18), completionCriteria: .logicallyComplete) {
+            dragState = state
+        } completion: {
+            resetDragState()
+        }
+    }
+
+    private func resetDragState() {
+        dragState = nil
+    }
+}
+
+private struct ScaleRowFramePreferenceKey: PreferenceKey {
+    static var defaultValue: [UUID: CGRect] = [:]
+
+    static func reduce(value: inout [UUID: CGRect], nextValue: () -> [UUID: CGRect]) {
+        value.merge(nextValue(), uniquingKeysWith: { _, new in new })
+    }
+}
+
+private struct ScaleScrollViewportHeightPreferenceKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = nextValue()
     }
 }
 

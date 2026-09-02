@@ -373,6 +373,25 @@ final class MeasurementStore: ObservableObject {
         pairedScales.append(scale)
     }
 
+    func setDisplayScaleOrder(_ orderedScaleIDs: [UUID]) {
+        let currentScales = displayPairedScales
+        guard orderedScaleIDs.count == currentScales.count,
+              Set(orderedScaleIDs).count == orderedScaleIDs.count,
+              Set(orderedScaleIDs) == Set(currentScales.map(\.id)) else { return }
+        let scalesByID = Dictionary(
+            currentScales.map { ($0.id, $0) },
+            uniquingKeysWith: { current, _ in current }
+        )
+        let reorderedScales = orderedScaleIDs.compactMap { scalesByID[$0] }
+        guard reorderedScales != currentScales else { return }
+
+        if isSimulationEnabled {
+            simulationData.pairedScales = reorderedScales
+        } else {
+            pairedScales = reorderedScales
+        }
+    }
+
     func renameScale(_ id: UUID, name: String) {
         let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
