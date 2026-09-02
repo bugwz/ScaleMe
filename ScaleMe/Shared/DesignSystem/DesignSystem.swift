@@ -43,20 +43,20 @@ enum AppColor {
     }
 
     // Distinct, calm series colors keep adjacent body-metric charts easy to scan.
-    static let trendWeight = mint
-    static let trendBMI = sky
-    static let trendBodyFat = apricot
-    static let trendFatMass = Color(red: 0.91, green: 0.47, blue: 0.43)
-    static let trendMuscleMass = Color(red: 0.32, green: 0.66, blue: 0.41)
-    static let trendMusclePercent = Color(red: 0.12, green: 0.62, blue: 0.63)
-    static let trendWaterPercent = Color(red: 0.25, green: 0.56, blue: 0.82)
-    static let trendWaterMass = Color(red: 0.31, green: 0.70, blue: 0.78)
-    static let trendProteinPercent = Color(red: 0.67, green: 0.70, blue: 0.29)
-    static let trendProteinMass = Color(red: 0.47, green: 0.64, blue: 0.22)
-    static let trendBoneMass = violet
-    static let trendBonePercent = Color(red: 0.67, green: 0.52, blue: 0.79)
-    static let trendVisceralFat = rose
-    static let trendBasalMetabolism = Color(red: 0.86, green: 0.50, blue: 0.24)
+    static let trendWeight = TrendMetricPalette.weight
+    static let trendBMI = TrendMetricPalette.bmi
+    static let trendBodyFat = TrendMetricPalette.bodyFat
+    static let trendFatMass = TrendMetricPalette.fatMass
+    static let trendMuscleMass = TrendMetricPalette.muscleMass
+    static let trendMusclePercent = TrendMetricPalette.musclePercent
+    static let trendWaterPercent = TrendMetricPalette.waterPercent
+    static let trendWaterMass = TrendMetricPalette.waterMass
+    static let trendProteinPercent = TrendMetricPalette.proteinPercent
+    static let trendProteinMass = TrendMetricPalette.proteinMass
+    static let trendBoneMass = TrendMetricPalette.boneMass
+    static let trendBonePercent = TrendMetricPalette.bonePercent
+    static let trendVisceralFat = TrendMetricPalette.visceralFat
+    static let trendBasalMetabolism = TrendMetricPalette.basalMetabolism
 
     static func memberTheme(for avatar: MemberAvatar) -> MemberVisualTheme {
         switch avatar {

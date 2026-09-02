@@ -237,7 +237,9 @@ private struct TrendWidgetView: View {
     }
 
     private func content(_ series: WidgetTrendSeries) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
+        let metricColor = TrendMetricPalette.color(forMetricID: series.metadata.metricID)
+
+        return VStack(alignment: .leading, spacing: 6) {
             HStack(alignment: .firstTextBaseline, spacing: 8) {
                 Label(series.metadata.title, systemImage: series.metadata.systemImage)
                     .font(.headline)
@@ -246,18 +248,22 @@ private struct TrendWidgetView: View {
                 Spacer(minLength: 4)
                 if let latest = series.latestPoint {
                     HStack(alignment: .firstTextBaseline, spacing: 3) {
-                        Text(latest.value.formatted(.number.precision(.fractionLength(1))))
+                        Text(latest.value.formatted(.number.precision(.fractionLength(2))))
                             .font(.title3.bold())
                             .monospacedDigit()
                         if !series.metadata.unit.isEmpty {
                             Text(series.metadata.unit).font(.caption.weight(.semibold))
                         }
                     }
-                    .foregroundStyle(WidgetPalette.mint)
+                    .foregroundStyle(metricColor)
                 }
             }
 
-            if series.points.isEmpty { noMeasurements } else { trendChart(series.points) }
+            if series.points.isEmpty {
+                noMeasurements
+            } else {
+                trendChart(series.points, color: metricColor)
+            }
 
             HStack(spacing: 4) {
                 Text("\(series.profileName) · \(series.deviceName)").lineLimit(1)
@@ -279,7 +285,7 @@ private struct TrendWidgetView: View {
         .accessibilityElement(children: .combine)
     }
 
-    private func trendChart(_ points: [WidgetTrendPoint]) -> some View {
+    private func trendChart(_ points: [WidgetTrendPoint], color: Color) -> some View {
         Chart(points, id: \.id) { point in
             AreaMark(
                 x: .value("日期", point.date),
@@ -288,19 +294,19 @@ private struct TrendWidgetView: View {
             )
             .foregroundStyle(
                 LinearGradient(
-                    colors: [WidgetPalette.mint.opacity(0.25), WidgetPalette.mint.opacity(0.02)],
+                    colors: [color.opacity(0.25), color.opacity(0.02)],
                     startPoint: .top,
                     endPoint: .bottom
                 )
             )
 
             LineMark(x: .value("日期", point.date), y: .value("数值", point.value))
-                .foregroundStyle(WidgetPalette.mint)
+                .foregroundStyle(color)
                 .lineStyle(StrokeStyle(lineWidth: 2.5, lineCap: .round, lineJoin: .round))
                 .interpolationMethod(entry.displayStyle.rawValue.hasPrefix("actual") ? .linear : .catmullRom)
 
             PointMark(x: .value("日期", point.date), y: .value("数值", point.value))
-                .foregroundStyle(WidgetPalette.mint)
+                .foregroundStyle(color)
                 .symbolSize(points.count == 1 ? 34 : 12)
         }
         .chartXAxis(.hidden)
@@ -356,7 +362,6 @@ private enum WidgetPalette {
     static let ink = Color(red: 18 / 255, green: 51 / 255, blue: 46 / 255)
     static let secondary = Color(red: 92 / 255, green: 120 / 255, blue: 115 / 255)
     static let canvas = Color(red: 246 / 255, green: 252 / 255, blue: 250 / 255)
-    static let mint = Color(red: 20 / 255, green: 173 / 255, blue: 140 / 255)
 }
 
 private extension WidgetProfileEntity {
