@@ -105,7 +105,7 @@ struct TrendChartCard: View {
                             metric: metric,
                             points: points,
                             allPoints: allPoints,
-                            measurementDates: allMetricMeasurements.map(\.date),
+                            measurementDates: allMetricMeasurements.map(\.date).sorted(),
                             measurementCount: filteredMeasurements.count,
                             chartMode: chartMode,
                             aggregation: aggregation
@@ -158,9 +158,13 @@ struct ExpandedTrendChartView: View {
 
     private var visibleMeasurementCount: Int {
         guard let visibleDateRange else { return context.measurementCount }
-        return context.measurementDates.count {
-            visibleDateRange.contains($0)
+        let lowerIndex = context.measurementDates.firstPartitionIndex {
+            $0 >= visibleDateRange.lowerBound
         }
+        let upperIndex = context.measurementDates.firstPartitionIndex {
+            $0 > visibleDateRange.upperBound
+        }
+        return upperIndex - lowerIndex
     }
 
     private var visibleRangeTitle: String {
@@ -869,6 +873,22 @@ private struct TrendAxisMarkValue: Identifiable {
     var id: Double { x }
 }
 
+private extension RandomAccessCollection {
+    func firstPartitionIndex(where predicate: (Element) -> Bool) -> Index {
+        var lower = startIndex
+        var upper = endIndex
+        while lower != upper {
+            let middle = index(lower, offsetBy: distance(from: lower, to: upper) / 2)
+            if predicate(self[middle]) {
+                upper = middle
+            } else {
+                lower = index(after: middle)
+            }
+        }
+        return lower
+    }
+}
+
 private struct TrendChartPlot: View {
     @Environment(\.appLanguage) private var language
     let metric: TrendMetric
@@ -951,9 +971,13 @@ private struct TrendChartPlot: View {
 
     private var chartPoints: [TrendPoint] {
         guard isExpanded, let allPoints else { return points }
-        let visiblePoints = allPoints.filter {
-            xDomain.contains($0.date.timeIntervalSinceReferenceDate)
+        let lowerIndex = allPoints.firstPartitionIndex {
+            $0.date.timeIntervalSinceReferenceDate >= xDomain.lowerBound
         }
+        let upperIndex = allPoints.firstPartitionIndex {
+            $0.date.timeIntervalSinceReferenceDate > xDomain.upperBound
+        }
+        let visiblePoints = Array(allPoints[lowerIndex ..< upperIndex])
         guard chartAggregation != .measurement else { return visiblePoints }
 
         let grouped = Dictionary(grouping: visiblePoints) {
@@ -1019,7 +1043,7 @@ private struct TrendChartPlot: View {
         zoomedXDomain ?? (isExpanded ? initialXDomain : fullXDomain)
     }
 
-    private var selectedPoint: PlottedTrendPoint? {
+    private func selectedPoint(in plottedPoints: [PlottedTrendPoint]) -> PlottedTrendPoint? {
         guard let selectedDate else { return nil }
         return plottedPoints.min {
             abs($0.source.date.timeIntervalSince(selectedDate))
@@ -1039,9 +1063,15 @@ private struct TrendChartPlot: View {
         }
     }
 
-    private var yDomain: ClosedRange<Double> {
-        let values = chartPoints.map { metric.displayValue($0.value, unit: unit) }
-        guard let minimum = values.min(), let maximum = values.max() else { return 0 ... 1 }
+    private func yDomain(for points: [TrendPoint]) -> ClosedRange<Double> {
+        guard let first = points.first else { return 0 ... 1 }
+        var minimum = metric.displayValue(first.value, unit: unit)
+        var maximum = minimum
+        for point in points.dropFirst() {
+            let value = metric.displayValue(point.value, unit: unit)
+            minimum = min(minimum, value)
+            maximum = max(maximum, value)
+        }
         if minimum == maximum {
             let padding = max(abs(minimum) * 0.05, 1)
             return (minimum - padding) ... (maximum + padding)
@@ -1074,9 +1104,24 @@ private struct TrendChartPlot: View {
     }
 
     private func chart(availableWidth: CGFloat) -> some View {
-        let labelPoints = visibleLabelPoints(availableWidth: availableWidth)
+        let sourcePoints = chartPoints
+        let allPlottedPoints = plottedPoints(from: sourcePoints)
+        let plottedPoints = downsampledPlottedPoints(
+            allPlottedPoints,
+            maximumCount: isExpanded ? max(160, Int(availableWidth * 0.75)) : .max
+        )
+        let xDomain = self.xDomain
+        let yDomain = yDomain(for: sourcePoints)
+        let selectedPoint = selectedPoint(in: plottedPoints)
+        let labelPoints = visibleLabelPoints(
+            in: plottedPoints,
+            xDomain: xDomain,
+            availableWidth: availableWidth
+        )
         let labelPointIDs = Set(labelPoints.map(\.id))
+        let showsEveryPointSymbol = plottedPoints.count <= max(120, Int(availableWidth / 3))
         let axisMarks = visibleAxisMarks(availableWidth: availableWidth, labelPoints: labelPoints)
+        let selectedXBinding = selectedXBinding(for: plottedPoints)
 
         return Chart(plottedPoints) { point in
             AreaMark(
@@ -1101,18 +1146,20 @@ private struct TrendChartPlot: View {
             .foregroundStyle(tint)
             .lineStyle(.init(lineWidth: isExpanded ? 3 : 2.5, lineCap: .round, lineJoin: .round))
 
-            PointMark(
-                x: .value("横轴位置", point.x),
-                y: .value(metric.title, metric.displayValue(point.source.value, unit: unit))
-            )
-            .foregroundStyle(tint)
-            .symbolSize(selectedPoint?.id == point.id ? 72 : 24)
-            .annotation(position: .top, spacing: 3, overflowResolution: .init(x: .fit, y: .fit)) {
-                if labelPointIDs.contains(point.id), selectedPoint?.id != point.id {
-                    Text(formattedNumericValue(point.source.value))
-                        .font(.caption2.weight(.medium))
-                        .foregroundStyle(AppColor.secondary)
-                        .monospacedDigit()
+            if showsEveryPointSymbol || labelPointIDs.contains(point.id) || selectedPoint?.id == point.id {
+                PointMark(
+                    x: .value("横轴位置", point.x),
+                    y: .value(metric.title, metric.displayValue(point.source.value, unit: unit))
+                )
+                .foregroundStyle(tint)
+                .symbolSize(selectedPoint?.id == point.id ? 72 : 24)
+                .annotation(position: .top, spacing: 3, overflowResolution: .init(x: .fit, y: .fit)) {
+                    if labelPointIDs.contains(point.id), selectedPoint?.id != point.id {
+                        Text(formattedNumericValue(point.source.value))
+                            .font(.caption2.weight(.medium))
+                            .foregroundStyle(AppColor.secondary)
+                            .monospacedDigit()
+                    }
                 }
             }
 
@@ -1203,8 +1250,15 @@ private struct TrendChartPlot: View {
             updateZoom(from: startDomain, magnification: magnification, anchor: anchor)
         case .ended:
             guard let startDomain = magnificationStartDomain else { return }
-            updateZoom(from: startDomain, magnification: magnification, anchor: anchor)
+            let finalDomain = updateZoom(
+                from: startDomain,
+                magnification: magnification,
+                anchor: anchor
+            )
             magnificationStartDomain = nil
+            if let finalDomain {
+                onVisibleDateRangeChange?(dateRange(for: finalDomain))
+            }
         case .cancelled, .failed:
             magnificationStartDomain = nil
         default:
@@ -1212,13 +1266,14 @@ private struct TrendChartPlot: View {
         }
     }
 
+    @discardableResult
     private func updateZoom(
         from startDomain: ClosedRange<Double>,
         magnification: Double,
         anchor: Double
-    ) {
+    ) -> ClosedRange<Double>? {
         let fullSpan = fullXDomain.upperBound - fullXDomain.lowerBound
-        guard fullSpan > 0 else { return }
+        guard fullSpan > 0 else { return nil }
 
         let startSpan = startDomain.upperBound - startDomain.lowerBound
         let minimumSpan = minimumZoomSpan(fullSpan: fullSpan)
@@ -1239,8 +1294,10 @@ private struct TrendChartPlot: View {
 
         let domain = lower ... upper
         zoomedXDomain = domain
-        selectedDate = nil
-        onVisibleDateRangeChange?(dateRange(for: domain))
+        if selectedDate != nil {
+            selectedDate = nil
+        }
+        return domain
     }
 
     private func minimumZoomSpan(fullSpan: Double) -> Double {
@@ -1280,9 +1337,9 @@ private struct TrendChartPlot: View {
         )
     }
 
-    private var selectedXBinding: Binding<Double?> {
+    private func selectedXBinding(for plottedPoints: [PlottedTrendPoint]) -> Binding<Double?> {
         Binding(
-            get: { selectedPoint?.x },
+            get: { selectedPoint(in: plottedPoints)?.x },
             set: { x in
                 guard let x else {
                     selectedDate = nil
@@ -1293,7 +1350,63 @@ private struct TrendChartPlot: View {
         )
     }
 
-    private func visibleLabelPoints(availableWidth: CGFloat) -> [PlottedTrendPoint] {
+    private func plottedPoints(from chartPoints: [TrendPoint]) -> [PlottedTrendPoint] {
+        if usesDateXValues {
+            return chartPoints.map {
+                PlottedTrendPoint(source: $0, x: $0.date.timeIntervalSinceReferenceDate)
+            }
+        }
+        if chartAggregation == .measurement {
+            return chartPoints.enumerated().map {
+                PlottedTrendPoint(source: $0.element, x: Double($0.offset))
+            }
+        }
+        return chartPoints.map {
+            PlottedTrendPoint(source: $0, x: Double(periodOffset(from: periodOriginDate, to: $0.date)))
+        }
+    }
+
+    private func downsampledPlottedPoints(
+        _ points: [PlottedTrendPoint],
+        maximumCount: Int
+    ) -> [PlottedTrendPoint] {
+        guard maximumCount >= 4, points.count > maximumCount else { return points }
+
+        let interior = points.dropFirst().dropLast()
+        let bucketCount = max(1, (maximumCount - 2) / 2)
+        let bucketSize = max(1, Int(ceil(Double(interior.count) / Double(bucketCount))))
+        var sampled = [PlottedTrendPoint]()
+        sampled.reserveCapacity(maximumCount)
+        sampled.append(points[0])
+
+        var bucketStart = interior.startIndex
+        while bucketStart < interior.endIndex {
+            let bucketEnd = min(bucketStart + bucketSize, interior.endIndex)
+            let bucket = interior[bucketStart ..< bucketEnd]
+            guard let minimum = bucket.min(by: { $0.source.value < $1.source.value }),
+                  let maximum = bucket.max(by: { $0.source.value < $1.source.value }) else {
+                bucketStart = bucketEnd
+                continue
+            }
+            if minimum.x <= maximum.x {
+                sampled.append(minimum)
+                if maximum.id != minimum.id { sampled.append(maximum) }
+            } else {
+                sampled.append(maximum)
+                if maximum.id != minimum.id { sampled.append(minimum) }
+            }
+            bucketStart = bucketEnd
+        }
+
+        sampled.append(points[points.count - 1])
+        return sampled
+    }
+
+    private func visibleLabelPoints(
+        in plottedPoints: [PlottedTrendPoint],
+        xDomain: ClosedRange<Double>,
+        availableWidth: CGFloat
+    ) -> [PlottedTrendPoint] {
         let usableWidth = max(availableWidth - 54, 1)
         let minimumSpacing: CGFloat = isExpanded ? 64 : 60
         let span = max(xDomain.upperBound - xDomain.lowerBound, 1)
