@@ -905,7 +905,6 @@ private struct ScaleSettingsView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 deviceSummaryCard
-                connectionPanel
                 namePanel
                 informationPanel
                 hardwarePanel
@@ -1095,14 +1094,42 @@ private struct ScaleSettingsView: View {
                 .font(.caption.weight(.medium))
                 .foregroundStyle(AppColor.secondary)
                 .lineLimit(1)
+            }
 
-                Spacer(minLength: 8)
+            SettingsSeparator()
 
+            HStack(spacing: 10) {
+                Text("连接状态")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(AppColor.secondary)
                 StatusPill(
                     text: bluetooth.settingsState.title(in: store.appLanguage),
                     color: settingsStatusColor
                 )
-                .fixedSize(horizontal: true, vertical: false)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+                .layoutPriority(1)
+                Spacer(minLength: 8)
+                Button {
+                    if let scale { bluetooth.reconnectSettings(for: scale) }
+                } label: {
+                    Group {
+                        if bluetooth.settingsState.isBusy {
+                            ProgressView()
+                                .tint(AppColor.mint)
+                        } else {
+                            Image(systemName: "arrow.clockwise")
+                                .font(.caption.weight(.bold))
+                                .foregroundStyle(AppColor.mint)
+                        }
+                    }
+                    .frame(width: 32, height: 32)
+                    .background(AppColor.paleMint, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .disabled(bluetooth.settingsState.isBusy || scale == nil)
+                .accessibilityLabel(store.appLanguage.text("重新连接检测"))
             }
         }
         .padding(16)
@@ -1112,37 +1139,6 @@ private struct ScaleSettingsView: View {
             RoundedRectangle(cornerRadius: 24, style: .continuous)
                 .stroke(AppColor.mint.opacity(0.08))
         )
-    }
-
-    private var connectionPanel: some View {
-        SettingsPanel(title: "连接状态", icon: "dot.radiowaves.left.and.right") {
-            HStack(spacing: 14) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(bluetooth.settingsState.title(in: store.appLanguage))
-                        .font(.body.weight(.bold))
-                        .foregroundStyle(AppColor.ink)
-                    Text("请踩亮或唤醒体重秤，并保持手机处于蓝牙接收范围内。")
-                        .font(.caption).foregroundStyle(AppColor.secondary).lineSpacing(2)
-                }
-                Spacer()
-                if bluetooth.settingsState.isBusy {
-                    ProgressView().tint(AppColor.mint)
-                }
-            }
-
-            Button {
-                if let scale { bluetooth.inspectSettings(for: scale) }
-            } label: {
-                Label("重新连接检测", systemImage: "arrow.clockwise")
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(AppColor.mint)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 10)
-                    .background(AppColor.paleMint, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-            }
-            .buttonStyle(.plain)
-            .disabled(bluetooth.settingsState.isBusy)
-        }
     }
 
     private var namePanel: some View {
@@ -1352,23 +1348,14 @@ private struct ScaleSettingsView: View {
                     protocolMenu(for: scale)
 
                     if let selected = store.communicationRule(for: scale) {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Label {
-                                AppLocalizedText(selected.origin.title)
-                            } icon: {
-                                Image(systemName: selected.origin == .builtIn ? "checkmark.shield.fill" : "person.2.wave.2")
-                            }
-                                .font(.caption.weight(.semibold))
-                                .foregroundStyle(selected.origin == .builtIn ? AppColor.mint : AppColor.apricot)
-                            Text(selected.origin == .builtIn
-                                ? store.appLanguage.text(selected.summary)
-                                : selected.summary)
-                                .font(.caption2)
-                                .foregroundStyle(AppColor.secondary)
-                                .fixedSize(horizontal: false, vertical: true)
-                        }
-                        .padding(10)
-                        .background(AppColor.paleMint.opacity(0.5), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                        Text(selected.origin == .builtIn
+                            ? store.appLanguage.text(selected.summary)
+                            : selected.summary)
+                            .font(.caption2)
+                            .foregroundStyle(AppColor.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .padding(10)
+                            .background(AppColor.paleMint.opacity(0.5), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
                     } else {
                         Text("自动识别模式优先遵循 Bluetooth SIG 标准服务及已知小米通信规范。")
                             .font(.caption2)
@@ -1413,9 +1400,13 @@ private struct ScaleSettingsView: View {
                     AppLocalizedText(selectedRule?.name ?? "自动识别")
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(AppColor.ink)
-                    AppLocalizedText(selectedRule?.origin.title ?? "推荐")
-                        .font(.caption2)
-                        .foregroundStyle(AppColor.secondary)
+                    if let selectedRule {
+                        CommunicationRuleTags(rule: selectedRule)
+                    } else {
+                        AppLocalizedText("推荐")
+                            .font(.caption2)
+                            .foregroundStyle(AppColor.secondary)
+                    }
                 }
 
                 Spacer()
@@ -1454,10 +1445,10 @@ private struct ScaleSettingsView: View {
 
                 SettingsSeparator().padding(.vertical, 3)
 
-                ForEach(store.communicationRules) { rule in
+                ForEach(CommunicationRuleCatalog.rulesForSelection(custom: store.customCommunicationRules)) { rule in
                     protocolDropdownRow(
                         title: rule.name,
-                        detail: rule.effectiveImplementation.title,
+                        rule: rule,
                         isSelected: scale.communicationRuleID == rule.id,
                         isEnabled: rule.canMeasure
                     ) {
@@ -1474,7 +1465,8 @@ private struct ScaleSettingsView: View {
 
     private func protocolDropdownRow(
         title: String,
-        detail: String,
+        detail: String? = nil,
+        rule: CommunicationRule? = nil,
         isSelected: Bool,
         isEnabled: Bool = true,
         action: @escaping () -> Void
@@ -1488,9 +1480,13 @@ private struct ScaleSettingsView: View {
                     AppLocalizedText(title)
                         .font(.subheadline.weight(isSelected ? .semibold : .medium))
                         .foregroundStyle(AppColor.ink)
-                    AppLocalizedText(detail)
-                        .font(.caption2)
-                        .foregroundStyle(AppColor.secondary)
+                    if let rule {
+                        CommunicationRuleTags(rule: rule)
+                    } else if let detail {
+                        AppLocalizedText(detail)
+                            .font(.caption2)
+                            .foregroundStyle(AppColor.secondary)
+                    }
                 }
                 Spacer()
             }
@@ -1576,7 +1572,7 @@ private struct ScaleSettingsView: View {
                     .foregroundStyle(AppColor.secondary)
                 Spacer()
                 Button(action: beginDiagnosticExport) {
-                    Label("导出诊断报告", systemImage: "square.and.arrow.up")
+                    Label("导出", systemImage: "square.and.arrow.up")
                         .font(.caption.weight(.semibold))
                         .foregroundStyle(AppColor.mint)
                 }
@@ -1653,14 +1649,6 @@ private struct ScaleSettingsView: View {
 
     private var diagnosticReportFilename: String {
         "ScaleMe-DataCapture-\(Int(Date.now.timeIntervalSince1970))"
-    }
-
-    private var settingsStatusIcon: String {
-        switch bluetooth.settingsState {
-        case .ready: "checkmark.circle.fill"
-        case .failed: "exclamationmark.triangle.fill"
-        default: "dot.radiowaves.left.and.right"
-        }
     }
 
     private var settingsStatusColor: Color {

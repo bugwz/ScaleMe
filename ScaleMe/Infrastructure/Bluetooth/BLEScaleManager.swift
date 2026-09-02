@@ -161,6 +161,7 @@ final class BLEScaleManager: NSObject, ObservableObject {
     private var activeScaleID: UUID?
     private var activeScaleName: String?
     private var settingsScaleID: UUID?
+    private var pendingSettingsReconnect: PairedScale?
     private var settingsConfigurationCharacteristic: CBCharacteristic?
     private var settingsCurrentTimeCharacteristic: CBCharacteristic?
     private var settingsHistoryCharacteristic: CBCharacteristic?
@@ -332,6 +333,7 @@ final class BLEScaleManager: NSObject, ObservableObject {
     }
 
     func inspectSettings(for scale: PairedScale) {
+        pendingSettingsReconnect = nil
         if let connected, connected.identifier == scale.id {
             resetSettingsInspection(for: scale)
             settingsState = .discovering
@@ -353,6 +355,28 @@ final class BLEScaleManager: NSObject, ObservableObject {
             beginScanning(clearDevices: false)
             settingsState = .locating
         }
+    }
+
+    func reconnectSettings(for scale: PairedScale) {
+        pendingSettingsReconnect = nil
+        connectionTimeoutTask?.cancel()
+
+        guard central.state == .poweredOn else {
+            resetSettingsInspection(for: scale)
+            settingsState = .failed(bluetoothStateText(central.state))
+            return
+        }
+
+        guard let connected, connected.identifier == scale.id else {
+            inspectSettings(for: scale)
+            return
+        }
+
+        resetSettingsInspection(for: scale)
+        pendingSettingsReconnect = scale
+        settingsState = .connecting
+        armSettingsTimeout(for: scale.id)
+        central.cancelPeripheralConnection(connected)
     }
 
     private func resetSettingsInspection(for scale: PairedScale) {
@@ -388,6 +412,7 @@ final class BLEScaleManager: NSObject, ObservableObject {
     }
 
     func endSettingsInspection() {
+        pendingSettingsReconnect = nil
         connectionTimeoutTask?.cancel()
         settingsReadbackTask?.cancel()
         settingsReadbackTask = nil
@@ -1412,9 +1437,28 @@ extension BLEScaleManager: CBCentralManagerDelegate {
         Task { @MainActor in
             connectionTimeoutTask?.cancel()
             guard connected?.identifier == peripheral.identifier else { return }
+            let reconnectScale = pendingSettingsReconnect?.id == peripheral.identifier
+                ? pendingSettingsReconnect
+                : nil
+            pendingSettingsReconnect = nil
             connected = nil
             activeScaleID = nil
             activeScaleName = nil
+            if let reconnectScale {
+                appendDiagnosticEvent(
+                    kind: .service,
+                    source: "CONNECTION",
+                    summary: "正在重新连接设备"
+                )
+                armSettingsTimeout(for: reconnectScale.id)
+                if let retrieved = central.retrievePeripherals(withIdentifiers: [reconnectScale.id]).first {
+                    connectForSettings(retrieved, name: reconnectScale.name)
+                } else {
+                    beginScanning(clearDevices: false)
+                    settingsState = .locating
+                }
+                return
+            }
             if settingsScaleID == peripheral.identifier {
                 appendDiagnosticEvent(
                     kind: error == nil ? .service : .error,

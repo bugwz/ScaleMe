@@ -516,16 +516,66 @@
     },
     "上游项目" : {
       "localizations" : {
-        "de" : { "stringUnit" : { "state" : "translated", "value" : "Ursprungsprojekt" } },
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Upstream project" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Proyecto de origen" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Projet en amont" } },
-        "ja" : { "stringUnit" : { "state" : "translated", "value" : "アップストリームプロジェクト" } },
-        "ko" : { "stringUnit" : { "state" : "translated", "value" : "업스트림 프로젝트" } },
-        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Projeto de origem" } },
-        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Исходный проект" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "上游项目" } },
-        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "上游專案" } }
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ursprungsprojekt"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Upstream project"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Proyecto de origen"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Projet en amont"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アップストリームプロジェクト"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "업스트림 프로젝트"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Projeto de origem"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Исходный проект"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "上游项目"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "上游專案"
+          }
+        }
       }
     },
     "上移" : {
@@ -4063,69 +4113,8 @@
         }
       }
     },
-    "导出诊断报告" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Export diagnostic report"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Export diagnostic report"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Export diagnostic report"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Export diagnostic report"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Export diagnostic report"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Export diagnostic report"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Export diagnostic report"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Export diagnostic report"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "导出诊断报告"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "导出诊断报告"
-          }
-        }
-      }
+    "导出" : {
+
     },
     "尚无外部规则" : {
       "extractionState" : "stale",
@@ -9202,6 +9191,7 @@
       }
     },
     "请踩亮或唤醒体重秤，并保持手机处于蓝牙接收范围内。" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -9777,6 +9767,9 @@
         }
       }
     },
+    "连接状态" : {
+
+    },
     "适用于已有实测帧夹具的 AFU-WL-TZ-A1 / FG2313UWB-D。" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -10163,6 +10156,7 @@
       }
     },
     "重新连接检测" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {

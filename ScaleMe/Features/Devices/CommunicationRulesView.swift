@@ -94,21 +94,7 @@ private struct BuiltInProtocolsView: View {
     @State private var isSearchFocused = false
 
     private var sortedRules: [CommunicationRule] {
-        CommunicationRuleCatalog.builtIn.sorted { lhs, rhs in
-            let lhsIsFullyUsable = lhs.effectiveImplementation == .executable
-            let rhsIsFullyUsable = rhs.effectiveImplementation == .executable
-            if lhsIsFullyUsable != rhsIsFullyUsable {
-                return lhsIsFullyUsable
-            }
-
-            let lhsName = lhs.name
-            let rhsName = rhs.name
-            let nameOrder = lhsName.localizedCaseInsensitiveCompare(rhsName)
-            if nameOrder != .orderedSame {
-                return nameOrder == .orderedAscending
-            }
-            return lhs.id.localizedCaseInsensitiveCompare(rhs.id) == .orderedAscending
-        }
+        CommunicationRuleCatalog.builtInForDisplay
     }
 
     private var filteredRules: [CommunicationRule] {
@@ -219,14 +205,22 @@ private struct ProtocolRuleRow: View {
                 .foregroundStyle(AppColor.ink)
                 .lineLimit(1)
                 .truncationMode(.tail)
-            HStack(spacing: 6) {
-                protocolTag(transportTitle(rule.match.transport), color: transportColor(rule.match.transport))
-                protocolTag(rule.effectiveImplementation.title, color: implementationColor(rule.effectiveImplementation))
-                protocolTag(rule.effectiveVerification.title, color: verificationColor(rule.effectiveVerification))
-                Spacer(minLength: 0)
-            }
-            .fixedSize(horizontal: false, vertical: true)
+            CommunicationRuleTags(rule: rule)
         }
+    }
+}
+
+struct CommunicationRuleTags: View {
+    let rule: CommunicationRule
+
+    var body: some View {
+        HStack(spacing: 6) {
+            protocolTag(transportTitle(rule.match.transport), color: transportColor(rule.match.transport))
+            protocolTag(rule.effectiveImplementation.title, color: implementationColor(rule.effectiveImplementation))
+            protocolTag(rule.effectiveVerification.title, color: verificationColor(rule.effectiveVerification))
+            Spacer(minLength: 0)
+        }
+        .fixedSize(horizontal: false, vertical: true)
     }
 
     private func protocolTag(_ title: String, color: Color) -> some View {

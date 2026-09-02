@@ -475,8 +475,34 @@ enum CommunicationRuleCatalog {
 
     static let builtIn: [CommunicationRule] = implemented + UpstreamScaleAdapterCatalog.skeletonRules
 
+    static var builtInForDisplay: [CommunicationRule] {
+        builtIn.sorted(by: displayOrder)
+    }
+
+    static func rulesForSelection(custom: [CommunicationRule]) -> [CommunicationRule] {
+        let builtInIDs = Set(builtIn.map(\.id))
+        let external = custom
+            .filter { !builtInIDs.contains($0.id) }
+            .sorted(by: displayOrder)
+        return external + builtInForDisplay
+    }
+
     static func rules(custom: [CommunicationRule]) -> [CommunicationRule] {
         builtIn + custom.filter { rule in !builtIn.contains(where: { $0.id == rule.id }) }
+    }
+
+    private static func displayOrder(_ lhs: CommunicationRule, _ rhs: CommunicationRule) -> Bool {
+        let lhsIsFullyUsable = lhs.effectiveImplementation == .executable
+        let rhsIsFullyUsable = rhs.effectiveImplementation == .executable
+        if lhsIsFullyUsable != rhsIsFullyUsable {
+            return lhsIsFullyUsable
+        }
+
+        let nameOrder = lhs.name.localizedCaseInsensitiveCompare(rhs.name)
+        if nameOrder != .orderedSame {
+            return nameOrder == .orderedAscending
+        }
+        return lhs.id.localizedCaseInsensitiveCompare(rhs.id) == .orderedAscending
     }
 }
 

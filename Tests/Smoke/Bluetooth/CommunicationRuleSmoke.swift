@@ -182,6 +182,24 @@ struct CommunicationRuleSmoke {
         expect(builtInIDs.count == CommunicationRuleCatalog.builtIn.count, "built-in protocol IDs should be unique")
         let builtInNames = Set(CommunicationRuleCatalog.builtIn.map { $0.name.lowercased() })
         expect(builtInNames.count == CommunicationRuleCatalog.builtIn.count, "built-in protocol names should be unique")
+        let displayedBuiltIn = CommunicationRuleCatalog.builtInForDisplay
+        expect(
+            displayedBuiltIn.prefix { $0.effectiveImplementation == .executable }.count
+                == CommunicationRuleCatalog.builtIn.filter { $0.effectiveImplementation == .executable }.count,
+            "displayed built-in protocols should place executable rules first"
+        )
+        guard var customRule = displayedBuiltIn.first else {
+            preconditionFailure("built-in protocol catalog should not be empty")
+        }
+        customRule.id = "protocol.custom.selection-order"
+        customRule.name = "External Selection Rule"
+        customRule.origin = .custom
+        let selectionRules = CommunicationRuleCatalog.rulesForSelection(custom: [customRule])
+        expect(selectionRules.first?.id == customRule.id, "external protocols should precede built-in selection options")
+        expect(
+            Array(selectionRules.dropFirst().map(\.id)) == displayedBuiltIn.map(\.id),
+            "built-in selection options should use the same order as the built-in protocol list"
+        )
         expect(
             upstreamRecords.allSatisfy { record in
                 let ruleID = UpstreamScaleAdapterCatalog.builtInRuleID(for: record)
