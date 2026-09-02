@@ -110,7 +110,7 @@ final class BLEScaleManager: NSObject, ObservableObject {
         case xiaomiAdvertisement
         case standardWeight
         case standardBodyComposition
-        case icomonAFU
+        case wolaiAFU
     }
     enum State: Equatable {
         case idle, unavailable(String), scanning, connecting(String), connected(String), measuring, stabilizing, completed
@@ -177,7 +177,7 @@ final class BLEScaleManager: NSObject, ObservableObject {
     private var deviceDiagnosticCaptureStartedAt: Date?
     private var scanRequested = false
     private var discoverySequence = 0
-    private var didCompleteIcomonFinal = false
+    private var didCompleteWolaiFinal = false
     private var huaweiHagridDeviceIDs = Set<UUID>()
     private var didSendHuaweiHagridProbe = false
     private var didReceiveHuaweiHagridChallenge = false
@@ -191,8 +191,8 @@ final class BLEScaleManager: NSObject, ObservableObject {
     private static let bodyService = CBUUID(string: "181B")
     private static let weightMeasurement = CBUUID(string: "2A9D")
     private static let bodyMeasurement = CBUUID(string: "2A9C")
-    private static let icomonService = CBUUID(string: IcomonAFUScaleAdapter.serviceUUID)
-    private static let icomonMeasurement = CBUUID(string: IcomonAFUScaleAdapter.measurementCharacteristicUUID)
+    private static let wolaiService = CBUUID(string: WolaiAFUScaleAdapter.serviceUUID)
+    private static let wolaiMeasurement = CBUUID(string: WolaiAFUScaleAdapter.measurementCharacteristicUUID)
     private static let serialNumber = CBUUID(string: "2A25")
     private static let hardwareRevision = CBUUID(string: "2A27")
     private static let softwareRevision = CBUUID(string: "2A28")
@@ -233,7 +233,7 @@ final class BLEScaleManager: NSObject, ObservableObject {
         measurementSession.reset()
         isWaitingForNextLoad = false
         minimumWeightAfterCompletionKG = nil
-        didCompleteIcomonFinal = false
+        didCompleteWolaiFinal = false
         if let connected, !isMonitoredScale(connected.identifier) {
             connectionTimeoutTask?.cancel()
             central.cancelPeripheralConnection(connected)
@@ -268,7 +268,9 @@ final class BLEScaleManager: NSObject, ObservableObject {
     }
 
     private func selectedRule(for deviceID: UUID) -> CommunicationRule? {
-        pairedScaleRuleIDs[deviceID].flatMap { communicationRulesByID[$0] }
+        guard let rule = pairedScaleRuleIDs[deviceID].flatMap({ communicationRulesByID[$0] }),
+              rule.canMeasure else { return nil }
+        return rule
     }
 
     private func isMonitoredScale(_ deviceID: UUID) -> Bool {
@@ -980,8 +982,8 @@ final class BLEScaleManager: NSObject, ObservableObject {
                     measurement.bodyFatPercent.map { String(format: "%.1f", $0) } ?? "-",
                     measurement.impedanceOhm.map { String(format: "%.0f", $0) } ?? "-"
                 )
-            case .icomonAFU:
-                let packet = try IcomonAFUScaleParser.parse(payload, now: receivedAt)
+            case .wolaiAFU:
+                let packet = try WolaiAFUScaleParser.parse(payload, now: receivedAt)
                 summary = String(
                     format: "phase=%@ weight=%.5fkg impedance=%@ secondaryImpedance=%@",
                     packet.phase.rawValue,
@@ -1056,9 +1058,31 @@ final class BLEScaleManager: NSObject, ObservableObject {
         }
         let serviceData = data[CBAdvertisementDataServiceDataKey] as? [CBUUID: Data] ?? [:]
         for (uuid, payload) in serviceData.sorted(by: { $0.key.uuidString < $1.key.uuidString }) {
-            let summary = uuid == Self.bodyService
-                ? diagnosticSummary(payload, kind: .xiaomiAdvertisement, receivedAt: receivedAt)
-                : "服务数据"
+            let serviceMatch = ScaleServiceDataProtocolCatalog.parse(
+                name: name,
+                serviceUUID: uuid.uuidString,
+                payload: payload,
+                manufacturerData: data[CBAdvertisementDataManufacturerDataKey] as? Data,
+                now: receivedAt
+            )
+            let summary: String
+            if let serviceMatch {
+                switch serviceMatch.packet {
+                case .measurement(let measurement):
+                    summary = String(
+                        format: "%@ weight=%.3fkg stable=%@",
+                        serviceMatch.family.rawValue,
+                        measurement.weightKG,
+                        measurement.isStable ? "1" : "0"
+                    )
+                case .weightRemoved:
+                    summary = "\(serviceMatch.family.rawValue) weightRemoved=1"
+                }
+            } else if uuid == Self.bodyService {
+                summary = diagnosticSummary(payload, kind: .xiaomiAdvertisement, receivedAt: receivedAt)
+            } else {
+                summary = "服务数据"
+            }
             appendDiagnosticEvent(
                 kind: .advertisement,
                 source: "ADV-\(uuid.uuidString.uppercased())",
@@ -1117,7 +1141,8 @@ final class BLEScaleManager: NSObject, ObservableObject {
         name: String,
         advertisement: [String: Any],
         hasVerifiedXiaomiPayload: Bool,
-        verifiedBroadcastProtocol: ScaleBroadcastProtocolFamily?
+        verifiedBroadcastProtocol: ScaleBroadcastProtocolFamily?,
+        verifiedServiceDataProtocol: ScaleServiceDataProtocolFamily?
     ) -> ScaleDiscoveryAdvertisement {
         let advertisedServices = [
             CBAdvertisementDataServiceUUIDsKey,
@@ -1130,7 +1155,7 @@ final class BLEScaleManager: NSObject, ObservableObject {
             advertisedServiceUUIDs: Set(advertisedServices.map(\.uuidString)),
             serviceDataUUIDs: Set(serviceData.keys.map(\.uuidString)),
             hasVerifiedXiaomiPayload: hasVerifiedXiaomiPayload,
-            hasVerifiedIcomonAFUIdentity: IcomonAFUScaleAdapter.matchesIdentity(
+            hasVerifiedWolaiAFUIdentity: WolaiAFUScaleAdapter.matchesIdentity(
                 name: name,
                 advertisedServiceUUIDs: Set(advertisedServices.map(\.uuidString))
             ),
@@ -1138,7 +1163,8 @@ final class BLEScaleManager: NSObject, ObservableObject {
                 name: name,
                 serviceDataUUIDs: Set(serviceData.keys.map(\.uuidString))
             ),
-            verifiedBroadcastProtocol: verifiedBroadcastProtocol
+            verifiedBroadcastProtocol: verifiedBroadcastProtocol,
+            verifiedServiceDataProtocol: verifiedServiceDataProtocol
         )
     }
 
@@ -1223,6 +1249,15 @@ extension BLEScaleManager: CBCentralManagerDelegate {
                 )
             }
             let serviceData = advertisementData[CBAdvertisementDataServiceDataKey] as? [CBUUID: Data]
+            let serviceDataMatch = serviceData?.compactMap { uuid, payload in
+                ScaleServiceDataProtocolCatalog.parse(
+                    name: name,
+                    serviceUUID: uuid.uuidString,
+                    payload: payload,
+                    manufacturerData: manufacturerData,
+                    now: receivedAt
+                )
+            }.first
             let xiaomiPayload = serviceData?[Self.bodyService]
             let hasVerifiedXiaomiPayload = xiaomiPayload.flatMap {
                 try? XiaomiScaleParser.parsePacket($0, now: receivedAt)
@@ -1244,6 +1279,22 @@ extension BLEScaleManager: CBCentralManagerDelegate {
                         deviceID: peripheral.identifier,
                         deviceName: pairedScaleNames[peripheral.identifier] ?? peripheral.name
                     )
+                } else if let serviceDataMatch,
+                          allowsBuiltInParser(
+                              serviceDataMatch.family.builtInParserID,
+                              for: peripheral.identifier
+                          ) {
+                    switch serviceDataMatch.packet {
+                    case .measurement(let measurement):
+                        consume(
+                            measurement,
+                            reliability: .protocolStable,
+                            deviceID: peripheral.identifier,
+                            deviceName: pairedScaleNames[peripheral.identifier] ?? peripheral.name
+                        )
+                    case .weightRemoved:
+                        weightWasRemoved()
+                    }
                 } else if let custom = selectedRule(for: peripheral.identifier), custom.isDeclarative,
                    custom.match.transport == .advertisementServiceData,
                    let payload = serviceData?.first(where: {
@@ -1278,7 +1329,8 @@ extension BLEScaleManager: CBCentralManagerDelegate {
                 name: pairedScaleModelNames[peripheral.identifier] ?? name,
                 advertisement: advertisementData,
                 hasVerifiedXiaomiPayload: hasVerifiedXiaomiPayload,
-                verifiedBroadcastProtocol: broadcastMatch?.family
+                verifiedBroadcastProtocol: broadcastMatch?.family,
+                verifiedServiceDataProtocol: serviceDataMatch?.family
             )
             let compatibility = ScaleDiscoveryClassifier.compatibility(for: discovery)
             let item = DiscoveredScale(
@@ -1302,6 +1354,7 @@ extension BLEScaleManager: CBCentralManagerDelegate {
                (item.isVerifiedCompatible
                     || selectedRule(for: peripheral.identifier)?.match.transport == .characteristicNotification),
                broadcastMatch == nil,
+               serviceDataMatch == nil,
                (!hasVerifiedXiaomiPayload
                     || selectedRule(for: peripheral.identifier)?.match.transport == .characteristicNotification) {
                 connect(item)
@@ -1330,7 +1383,7 @@ extension BLEScaleManager: CBCentralManagerDelegate {
                 if selected?.isDeclarative == true {
                     peripheral.discoverServices(nil)
                 } else {
-                    peripheral.discoverServices([Self.weightService, Self.bodyService, Self.icomonService])
+                    peripheral.discoverServices([Self.weightService, Self.bodyService, Self.wolaiService])
                 }
             }
         }
@@ -1448,7 +1501,7 @@ extension BLEScaleManager: CBPeripheralDelegate {
                     : isDiagnosticTarget
                 if characteristic.uuid == Self.weightMeasurement
                     || characteristic.uuid == Self.bodyMeasurement
-                    || characteristic.uuid == Self.icomonMeasurement
+                    || characteristic.uuid == Self.wolaiMeasurement
                     || customRule(
                         for: peripheral.identifier,
                         transport: .characteristicNotification,
@@ -1590,25 +1643,25 @@ extension BLEScaleManager: CBPeripheralDelegate {
                 return
             }
 
-            if characteristic.uuid == Self.icomonMeasurement,
-               allowsBuiltInParser("icomonAFU", for: peripheral.identifier),
-               let packet = try? IcomonAFUScaleParser.parse(data) {
+            if characteristic.uuid == Self.wolaiMeasurement,
+               allowsBuiltInParser("wolaiAFU", for: peripheral.identifier),
+               let packet = try? WolaiAFUScaleParser.parse(data) {
                 guard case .measuring = scanPurpose else { return }
                 switch packet.phase {
                 case .live:
-                    if didCompleteIcomonFinal {
+                    if didCompleteWolaiFinal {
                         measurementSession.reset()
-                        didCompleteIcomonFinal = false
+                        didCompleteWolaiFinal = false
                     }
                     liveWeightKG = packet.measurement.weightKG
                     state = .measuring
                 case .stable:
-                    guard !didCompleteIcomonFinal else { return }
+                    guard !didCompleteWolaiFinal else { return }
                     liveWeightKG = packet.measurement.weightKG
                     state = .stabilizing
                 case .final:
-                    guard !didCompleteIcomonFinal else { return }
-                    didCompleteIcomonFinal = true
+                    guard !didCompleteWolaiFinal else { return }
+                    didCompleteWolaiFinal = true
                     consume(packet.measurement, reliability: .protocolFinal)
                 }
             } else if characteristic.uuid == Self.weightMeasurement,
@@ -1870,8 +1923,8 @@ extension BLEScaleManager: CBPeripheralDelegate {
         if characteristic.uuid == Self.bodyMeasurement {
             return diagnosticSummary(data, kind: .standardBodyComposition, receivedAt: .now)
         }
-        if characteristic.uuid == Self.icomonMeasurement {
-            return diagnosticSummary(data, kind: .icomonAFU, receivedAt: .now)
+        if characteristic.uuid == Self.wolaiMeasurement {
+            return diagnosticSummary(data, kind: .wolaiAFU, receivedAt: .now)
         }
         if characteristic.uuid == Self.xiaomiConfiguration {
             if let unit = XiaomiScaleConfigurationProtocol.parseUnit(from: data) {

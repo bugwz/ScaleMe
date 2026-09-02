@@ -1457,8 +1457,9 @@ private struct ScaleSettingsView: View {
                 ForEach(store.communicationRules) { rule in
                     protocolDropdownRow(
                         title: rule.name,
-                        detail: rule.origin.title,
-                        isSelected: scale.communicationRuleID == rule.id
+                        detail: rule.effectiveImplementation.title,
+                        isSelected: scale.communicationRuleID == rule.id,
+                        isEnabled: rule.canMeasure
                     ) {
                         selectCommunicationRule(rule.id)
                     }
@@ -1475,6 +1476,7 @@ private struct ScaleSettingsView: View {
         title: String,
         detail: String,
         isSelected: Bool,
+        isEnabled: Bool = true,
         action: @escaping () -> Void
     ) -> some View {
         Button(action: action) {
@@ -1501,6 +1503,8 @@ private struct ScaleSettingsView: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .disabled(!isEnabled)
+        .opacity(isEnabled ? 1 : 0.55)
         .accessibilityValue(store.appLanguage.text(isSelected ? "已选择" : "未选择"))
     }
 

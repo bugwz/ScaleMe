@@ -521,67 +521,67 @@
         }
       }
     },
-    "ICOMON AFU 实机样本" : {
+    "Wolai AFU 实机样本" : {
       "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ICOMON AFU hardware sample"
+            "value" : "Wolai AFU hardware sample"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ICOMON AFU hardware sample"
+            "value" : "Wolai AFU hardware sample"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ICOMON AFU hardware sample"
+            "value" : "Wolai AFU hardware sample"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ICOMON AFU hardware sample"
+            "value" : "Wolai AFU hardware sample"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ICOMON AFU hardware sample"
+            "value" : "Wolai AFU hardware sample"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ICOMON AFU hardware sample"
+            "value" : "Wolai AFU hardware sample"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ICOMON AFU hardware sample"
+            "value" : "Wolai AFU hardware sample"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ICOMON AFU hardware sample"
+            "value" : "Wolai AFU hardware sample"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ICOMON AFU 实机样本"
+            "value" : "Wolai AFU 实机样本"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ICOMON AFU 实机样本"
+            "value" : "Wolai AFU 实机样本"
           }
         }
       }
@@ -12286,6 +12286,96 @@
         }
       }
     },
+    "Silvergear 108 数据样本验证" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Silvergear 108 fixture validated" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Silvergear 108 fixture validated" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Silvergear 108 fixture validated" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Silvergear 108 fixture validated" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "Silvergear 108 fixture validated" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "Silvergear 108 fixture validated" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Silvergear 108 fixture validated" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Silvergear 108 fixture validated" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "Silvergear 108 数据样本验证" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "Silvergear 108 資料樣本驗證" } }
+      }
+    },
+    "Silvergear Smart Scale 108" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Silvergear Smart Scale 108" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Silvergear Smart Scale 108" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Silvergear Smart Scale 108" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Silvergear Smart Scale 108" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "Silvergear Smart Scale 108" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "Silvergear Smart Scale 108" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Silvergear Smart Scale 108" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Silvergear Smart Scale 108" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "Silvergear Smart Scale 108" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "Silvergear Smart Scale 108" } }
+      }
+    },
+    "解析 Company ID A0AC 的 12 字节广播、5 位校验、混淆后的克数与锁定状态。身体数据帧语义尚未确认，因此只读取体重。" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Decodes the 12-byte Company ID A0AC advertisement, its 5-bit checksum, obfuscated grams, and locked state. Body-frame semantics are unconfirmed, so only weight is read." } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Decodes the 12-byte Company ID A0AC advertisement, its 5-bit checksum, obfuscated grams, and locked state. Body-frame semantics are unconfirmed, so only weight is read." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Decodes the 12-byte Company ID A0AC advertisement, its 5-bit checksum, obfuscated grams, and locked state. Body-frame semantics are unconfirmed, so only weight is read." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Decodes the 12-byte Company ID A0AC advertisement, its 5-bit checksum, obfuscated grams, and locked state. Body-frame semantics are unconfirmed, so only weight is read." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "Decodes the 12-byte Company ID A0AC advertisement, its 5-bit checksum, obfuscated grams, and locked state. Body-frame semantics are unconfirmed, so only weight is read." } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "Decodes the 12-byte Company ID A0AC advertisement, its 5-bit checksum, obfuscated grams, and locked state. Body-frame semantics are unconfirmed, so only weight is read." } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Decodes the 12-byte Company ID A0AC advertisement, its 5-bit checksum, obfuscated grams, and locked state. Body-frame semantics are unconfirmed, so only weight is read." } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Decodes the 12-byte Company ID A0AC advertisement, its 5-bit checksum, obfuscated grams, and locked state. Body-frame semantics are unconfirmed, so only weight is read." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "解析 Company ID A0AC 的 12 字节广播、5 位校验、混淆后的克数与锁定状态。身体数据帧语义尚未确认，因此只读取体重。" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "解析 Company ID A0AC 的 12 位元組廣播、5 位校驗、混淆後的克數與鎖定狀態。身體資料幀語義尚未確認，因此只讀取體重。" } }
+      }
+    },
+    "小米 0x181D 广播格式" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Xiaomi 0x181D advertisement" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Xiaomi 0x181D advertisement" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Xiaomi 0x181D advertisement" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Xiaomi 0x181D advertisement" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "Xiaomi 0x181D advertisement" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "Xiaomi 0x181D advertisement" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Xiaomi 0x181D advertisement" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Xiaomi 0x181D advertisement" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "小米 0x181D 广播格式" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "小米 0x181D 廣播格式" } }
+      }
+    },
+    "小米 XMTZC04HM 广播" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Xiaomi XMTZC04HM advertisement" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Xiaomi XMTZC04HM advertisement" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Xiaomi XMTZC04HM advertisement" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Xiaomi XMTZC04HM advertisement" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "Xiaomi XMTZC04HM advertisement" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "Xiaomi XMTZC04HM advertisement" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Xiaomi XMTZC04HM advertisement" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Xiaomi XMTZC04HM advertisement" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "小米 XMTZC04HM 广播" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "小米 XMTZC04HM 廣播" } }
+      }
+    },
+    "解析 MI SCALE2 的 10 字节 181D 广播、单位、锁定状态、离秤状态与时间。仅体重，已通过上游抓包样本验证，待本项目真机验证。" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Decodes the 10-byte MI SCALE2 181D advertisement, unit, locked/removed state, and time. Weight only; validated with upstream captures and awaiting in-project hardware validation." } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Decodes the 10-byte MI SCALE2 181D advertisement, unit, locked/removed state, and time. Weight only; validated with upstream captures and awaiting in-project hardware validation." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Decodes the 10-byte MI SCALE2 181D advertisement, unit, locked/removed state, and time. Weight only; validated with upstream captures and awaiting in-project hardware validation." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Decodes the 10-byte MI SCALE2 181D advertisement, unit, locked/removed state, and time. Weight only; validated with upstream captures and awaiting in-project hardware validation." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "Decodes the 10-byte MI SCALE2 181D advertisement, unit, locked/removed state, and time. Weight only; validated with upstream captures and awaiting in-project hardware validation." } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "Decodes the 10-byte MI SCALE2 181D advertisement, unit, locked/removed state, and time. Weight only; validated with upstream captures and awaiting in-project hardware validation." } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Decodes the 10-byte MI SCALE2 181D advertisement, unit, locked/removed state, and time. Weight only; validated with upstream captures and awaiting in-project hardware validation." } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Decodes the 10-byte MI SCALE2 181D advertisement, unit, locked/removed state, and time. Weight only; validated with upstream captures and awaiting in-project hardware validation." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "解析 MI SCALE2 的 10 字节 181D 广播、单位、锁定状态、离秤状态与时间。仅体重，已通过上游抓包样本验证，待本项目真机验证。" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "解析 MI SCALE2 的 10 位元組 181D 廣播、單位、鎖定狀態、離秤狀態與時間。僅體重，已通過上游抓包樣本驗證，待本專案真機驗證。" } }
+      }
+    },
     "验证状态" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -12350,7 +12440,1632 @@
           }
         }
       }
-    }
+    },
+      "可执行": {
+        "extractionState": "manual",
+        "localizations": {
+          "de": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Executable"
+            }
+          },
+          "en": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Executable"
+            }
+          },
+          "es": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Executable"
+            }
+          },
+          "fr": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Executable"
+            }
+          },
+          "ja": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Executable"
+            }
+          },
+          "ko": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Executable"
+            }
+          },
+          "pt": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Executable"
+            }
+          },
+          "ru": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Executable"
+            }
+          },
+          "zh-Hans": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "可执行"
+            }
+          },
+          "zh-Hant": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "可執行"
+            }
+          }
+        }
+      },
+      "实验性": {
+        "extractionState": "manual",
+        "localizations": {
+          "de": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Experimental"
+            }
+          },
+          "en": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Experimental"
+            }
+          },
+          "es": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Experimental"
+            }
+          },
+          "fr": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Experimental"
+            }
+          },
+          "ja": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Experimental"
+            }
+          },
+          "ko": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Experimental"
+            }
+          },
+          "pt": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Experimental"
+            }
+          },
+          "ru": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Experimental"
+            }
+          },
+          "zh-Hans": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "实验性"
+            }
+          },
+          "zh-Hant": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "實驗性"
+            }
+          }
+        }
+      },
+      "协议骨架": {
+        "extractionState": "manual",
+        "localizations": {
+          "de": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Protocol skeleton"
+            }
+          },
+          "en": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Protocol skeleton"
+            }
+          },
+          "es": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Protocol skeleton"
+            }
+          },
+          "fr": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Protocol skeleton"
+            }
+          },
+          "ja": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Protocol skeleton"
+            }
+          },
+          "ko": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Protocol skeleton"
+            }
+          },
+          "pt": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Protocol skeleton"
+            }
+          },
+          "ru": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Protocol skeleton"
+            }
+          },
+          "zh-Hans": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "协议骨架"
+            }
+          },
+          "zh-Hant": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "協議骨架"
+            }
+          }
+        }
+      },
+      "平台不支持": {
+        "extractionState": "manual",
+        "localizations": {
+          "de": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Unsupported platform"
+            }
+          },
+          "en": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Unsupported platform"
+            }
+          },
+          "es": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Unsupported platform"
+            }
+          },
+          "fr": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Unsupported platform"
+            }
+          },
+          "ja": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Unsupported platform"
+            }
+          },
+          "ko": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Unsupported platform"
+            }
+          },
+          "pt": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Unsupported platform"
+            }
+          },
+          "ru": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Unsupported platform"
+            }
+          },
+          "zh-Hans": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "平台不支持"
+            }
+          },
+          "zh-Hant": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "平台不支援"
+            }
+          }
+        }
+      },
+      "实现状态": {
+        "extractionState": "manual",
+        "localizations": {
+          "de": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Implementation status"
+            }
+          },
+          "en": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Implementation status"
+            }
+          },
+          "es": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Implementation status"
+            }
+          },
+          "fr": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Implementation status"
+            }
+          },
+          "ja": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Implementation status"
+            }
+          },
+          "ko": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Implementation status"
+            }
+          },
+          "pt": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Implementation status"
+            }
+          },
+          "ru": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Implementation status"
+            }
+          },
+          "zh-Hans": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "实现状态"
+            }
+          },
+          "zh-Hant": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "實作狀態"
+            }
+          }
+        }
+      },
+      "支持型号": {
+        "extractionState": "manual",
+        "localizations": {
+          "de": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Supported models"
+            }
+          },
+          "en": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Supported models"
+            }
+          },
+          "es": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Supported models"
+            }
+          },
+          "fr": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Supported models"
+            }
+          },
+          "ja": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Supported models"
+            }
+          },
+          "ko": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Supported models"
+            }
+          },
+          "pt": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Supported models"
+            }
+          },
+          "ru": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Supported models"
+            }
+          },
+          "zh-Hans": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "支持型号"
+            }
+          },
+          "zh-Hant": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "支援型號"
+            }
+          }
+        }
+      },
+      "运行要求": {
+        "extractionState": "manual",
+        "localizations": {
+          "de": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Runtime requirements"
+            }
+          },
+          "en": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Runtime requirements"
+            }
+          },
+          "es": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Runtime requirements"
+            }
+          },
+          "fr": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Runtime requirements"
+            }
+          },
+          "ja": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Runtime requirements"
+            }
+          },
+          "ko": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Runtime requirements"
+            }
+          },
+          "pt": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Runtime requirements"
+            }
+          },
+          "ru": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Runtime requirements"
+            }
+          },
+          "zh-Hans": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "运行要求"
+            }
+          },
+          "zh-Hant": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "執行要求"
+            }
+          }
+        }
+      },
+      "需要成员资料": {
+        "extractionState": "manual",
+        "localizations": {
+          "de": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires member profile"
+            }
+          },
+          "en": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires member profile"
+            }
+          },
+          "es": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires member profile"
+            }
+          },
+          "fr": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires member profile"
+            }
+          },
+          "ja": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires member profile"
+            }
+          },
+          "ko": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires member profile"
+            }
+          },
+          "pt": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires member profile"
+            }
+          },
+          "ru": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires member profile"
+            }
+          },
+          "zh-Hans": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "需要成员资料"
+            }
+          },
+          "zh-Hant": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "需要成員資料"
+            }
+          }
+        }
+      },
+      "需要时间同步": {
+        "extractionState": "manual",
+        "localizations": {
+          "de": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires time sync"
+            }
+          },
+          "en": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires time sync"
+            }
+          },
+          "es": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires time sync"
+            }
+          },
+          "fr": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires time sync"
+            }
+          },
+          "ja": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires time sync"
+            }
+          },
+          "ko": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires time sync"
+            }
+          },
+          "pt": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires time sync"
+            }
+          },
+          "ru": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires time sync"
+            }
+          },
+          "zh-Hans": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "需要时间同步"
+            }
+          },
+          "zh-Hant": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "需要時間同步"
+            }
+          }
+        }
+      },
+      "需要系统配对": {
+        "extractionState": "manual",
+        "localizations": {
+          "de": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires system pairing"
+            }
+          },
+          "en": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires system pairing"
+            }
+          },
+          "es": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires system pairing"
+            }
+          },
+          "fr": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires system pairing"
+            }
+          },
+          "ja": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires system pairing"
+            }
+          },
+          "ko": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires system pairing"
+            }
+          },
+          "pt": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires system pairing"
+            }
+          },
+          "ru": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires system pairing"
+            }
+          },
+          "zh-Hans": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "需要系统配对"
+            }
+          },
+          "zh-Hant": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "需要系統配對"
+            }
+          }
+        }
+      },
+      "需要用户同意码": {
+        "extractionState": "manual",
+        "localizations": {
+          "de": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires user consent code"
+            }
+          },
+          "en": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires user consent code"
+            }
+          },
+          "es": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires user consent code"
+            }
+          },
+          "fr": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires user consent code"
+            }
+          },
+          "ja": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires user consent code"
+            }
+          },
+          "ko": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires user consent code"
+            }
+          },
+          "pt": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires user consent code"
+            }
+          },
+          "ru": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires user consent code"
+            }
+          },
+          "zh-Hans": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "需要用户同意码"
+            }
+          },
+          "zh-Hant": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "需要使用者同意碼"
+            }
+          }
+        }
+      },
+      "需要设备绑定密钥": {
+        "extractionState": "manual",
+        "localizations": {
+          "de": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires device bind key"
+            }
+          },
+          "en": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires device bind key"
+            }
+          },
+          "es": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires device bind key"
+            }
+          },
+          "fr": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires device bind key"
+            }
+          },
+          "ja": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires device bind key"
+            }
+          },
+          "ko": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires device bind key"
+            }
+          },
+          "pt": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires device bind key"
+            }
+          },
+          "ru": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires device bind key"
+            }
+          },
+          "zh-Hans": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "需要设备绑定密钥"
+            }
+          },
+          "zh-Hant": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "需要裝置綁定金鑰"
+            }
+          }
+        }
+      },
+      "需要加密会话": {
+        "extractionState": "manual",
+        "localizations": {
+          "de": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires encrypted session"
+            }
+          },
+          "en": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires encrypted session"
+            }
+          },
+          "es": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires encrypted session"
+            }
+          },
+          "fr": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires encrypted session"
+            }
+          },
+          "ja": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires encrypted session"
+            }
+          },
+          "ko": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires encrypted session"
+            }
+          },
+          "pt": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires encrypted session"
+            }
+          },
+          "ru": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires encrypted session"
+            }
+          },
+          "zh-Hans": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "需要加密会话"
+            }
+          },
+          "zh-Hant": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "需要加密工作階段"
+            }
+          }
+        }
+      },
+      "需要厂商应用预注册": {
+        "extractionState": "manual",
+        "localizations": {
+          "de": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires vendor app registration"
+            }
+          },
+          "en": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires vendor app registration"
+            }
+          },
+          "es": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires vendor app registration"
+            }
+          },
+          "fr": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires vendor app registration"
+            }
+          },
+          "ja": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires vendor app registration"
+            }
+          },
+          "ko": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires vendor app registration"
+            }
+          },
+          "pt": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires vendor app registration"
+            }
+          },
+          "ru": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires vendor app registration"
+            }
+          },
+          "zh-Hans": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "需要厂商应用预注册"
+            }
+          },
+          "zh-Hant": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "需要廠商 App 預先註冊"
+            }
+          }
+        }
+      },
+      "需要多帧状态机": {
+        "extractionState": "manual",
+        "localizations": {
+          "de": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires multi-frame state machine"
+            }
+          },
+          "en": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires multi-frame state machine"
+            }
+          },
+          "es": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires multi-frame state machine"
+            }
+          },
+          "fr": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires multi-frame state machine"
+            }
+          },
+          "ja": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires multi-frame state machine"
+            }
+          },
+          "ko": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires multi-frame state machine"
+            }
+          },
+          "pt": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires multi-frame state machine"
+            }
+          },
+          "ru": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires multi-frame state machine"
+            }
+          },
+          "zh-Hans": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "需要多帧状态机"
+            }
+          },
+          "zh-Hant": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "需要多幀狀態機"
+            }
+          }
+        }
+      },
+      "需要历史记录状态机": {
+        "extractionState": "manual",
+        "localizations": {
+          "de": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires history state machine"
+            }
+          },
+          "en": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires history state machine"
+            }
+          },
+          "es": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires history state machine"
+            }
+          },
+          "fr": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires history state machine"
+            }
+          },
+          "ja": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires history state machine"
+            }
+          },
+          "ko": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires history state machine"
+            }
+          },
+          "pt": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires history state machine"
+            }
+          },
+          "ru": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires history state machine"
+            }
+          },
+          "zh-Hans": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "需要历史记录状态机"
+            }
+          },
+          "zh-Hant": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "需要歷史記錄狀態機"
+            }
+          }
+        }
+      },
+      "需要持续保活": {
+        "extractionState": "manual",
+        "localizations": {
+          "de": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires keep-alive"
+            }
+          },
+          "en": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires keep-alive"
+            }
+          },
+          "es": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires keep-alive"
+            }
+          },
+          "fr": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires keep-alive"
+            }
+          },
+          "ja": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires keep-alive"
+            }
+          },
+          "ko": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires keep-alive"
+            }
+          },
+          "pt": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires keep-alive"
+            }
+          },
+          "ru": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires keep-alive"
+            }
+          },
+          "zh-Hans": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "需要持续保活"
+            }
+          },
+          "zh-Hant": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "需要持續保活"
+            }
+          }
+        }
+      },
+      "需要经典蓝牙": {
+        "extractionState": "manual",
+        "localizations": {
+          "de": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires Classic Bluetooth"
+            }
+          },
+          "en": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires Classic Bluetooth"
+            }
+          },
+          "es": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires Classic Bluetooth"
+            }
+          },
+          "fr": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires Classic Bluetooth"
+            }
+          },
+          "ja": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires Classic Bluetooth"
+            }
+          },
+          "ko": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires Classic Bluetooth"
+            }
+          },
+          "pt": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires Classic Bluetooth"
+            }
+          },
+          "ru": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Requires Classic Bluetooth"
+            }
+          },
+          "zh-Hans": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "需要经典蓝牙"
+            }
+          },
+          "zh-Hant": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "需要傳統藍牙"
+            }
+          }
+        }
+      },
+      "经典蓝牙串口": {
+        "extractionState": "manual",
+        "localizations": {
+          "de": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Classic Bluetooth serial"
+            }
+          },
+          "en": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Classic Bluetooth serial"
+            }
+          },
+          "es": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Classic Bluetooth serial"
+            }
+          },
+          "fr": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Classic Bluetooth serial"
+            }
+          },
+          "ja": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Classic Bluetooth serial"
+            }
+          },
+          "ko": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Classic Bluetooth serial"
+            }
+          },
+          "pt": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Classic Bluetooth serial"
+            }
+          },
+          "ru": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Classic Bluetooth serial"
+            }
+          },
+          "zh-Hans": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "经典蓝牙串口"
+            }
+          },
+          "zh-Hant": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "傳統藍牙序列埠"
+            }
+          }
+        }
+      },
+      "内置目录同时包含可执行协议和已登记的上游协议骨架；请以“实现状态”与“验证状态”标签为准。": {
+        "extractionState": "manual",
+        "localizations": {
+          "de": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "The built-in catalog includes executable protocols and registered upstream skeletons. Check the implementation and verification labels."
+            }
+          },
+          "en": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "The built-in catalog includes executable protocols and registered upstream skeletons. Check the implementation and verification labels."
+            }
+          },
+          "es": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "The built-in catalog includes executable protocols and registered upstream skeletons. Check the implementation and verification labels."
+            }
+          },
+          "fr": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "The built-in catalog includes executable protocols and registered upstream skeletons. Check the implementation and verification labels."
+            }
+          },
+          "ja": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "The built-in catalog includes executable protocols and registered upstream skeletons. Check the implementation and verification labels."
+            }
+          },
+          "ko": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "The built-in catalog includes executable protocols and registered upstream skeletons. Check the implementation and verification labels."
+            }
+          },
+          "pt": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "The built-in catalog includes executable protocols and registered upstream skeletons. Check the implementation and verification labels."
+            }
+          },
+          "ru": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "The built-in catalog includes executable protocols and registered upstream skeletons. Check the implementation and verification labels."
+            }
+          },
+          "zh-Hans": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "内置目录同时包含可执行协议和已登记的上游协议骨架；请以“实现状态”与“验证状态”标签为准。"
+            }
+          },
+          "zh-Hant": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "內置目錄同時包含可執行協議和已登記的上游協議骨架；請以「實作狀態」與「驗證狀態」標籤為準。"
+            }
+          }
+        }
+      },
+      "该项已纳入内置协议目录，但运行时解析或会话状态机尚未完整移植，暂不可用于测量。": {
+        "extractionState": "manual",
+        "localizations": {
+          "de": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "This entry is registered, but its runtime parser or session state machine is incomplete and cannot yet be used for measurement."
+            }
+          },
+          "en": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "This entry is registered, but its runtime parser or session state machine is incomplete and cannot yet be used for measurement."
+            }
+          },
+          "es": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "This entry is registered, but its runtime parser or session state machine is incomplete and cannot yet be used for measurement."
+            }
+          },
+          "fr": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "This entry is registered, but its runtime parser or session state machine is incomplete and cannot yet be used for measurement."
+            }
+          },
+          "ja": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "This entry is registered, but its runtime parser or session state machine is incomplete and cannot yet be used for measurement."
+            }
+          },
+          "ko": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "This entry is registered, but its runtime parser or session state machine is incomplete and cannot yet be used for measurement."
+            }
+          },
+          "pt": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "This entry is registered, but its runtime parser or session state machine is incomplete and cannot yet be used for measurement."
+            }
+          },
+          "ru": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "This entry is registered, but its runtime parser or session state machine is incomplete and cannot yet be used for measurement."
+            }
+          },
+          "zh-Hans": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "该项已纳入内置协议目录，但运行时解析或会话状态机尚未完整移植，暂不可用于测量。"
+            }
+          },
+          "zh-Hant": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "該項已納入內置協議目錄，但執行期解析或工作階段狀態機尚未完整移植，暫不可用於測量。"
+            }
+          }
+        }
+    },
+      "备用匹配": {
+        "extractionState": "manual",
+        "localizations": {
+          "de": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Alternate matches"
+            }
+          },
+          "en": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Alternate matches"
+            }
+          },
+          "es": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Alternate matches"
+            }
+          },
+          "fr": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Alternate matches"
+            }
+          },
+          "ja": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Alternate matches"
+            }
+          },
+          "ko": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Alternate matches"
+            }
+          },
+          "pt": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Alternate matches"
+            }
+          },
+          "ru": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Alternate matches"
+            }
+          },
+          "zh-Hans": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "备用匹配"
+            }
+          },
+          "zh-Hant": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "備用匹配"
+            }
+          }
+        }
+      },
+      "订阅特征": {
+        "extractionState": "manual",
+        "localizations": {
+          "de": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Notify characteristics"
+            }
+          },
+          "en": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Notify characteristics"
+            }
+          },
+          "es": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Notify characteristics"
+            }
+          },
+          "fr": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Notify characteristics"
+            }
+          },
+          "ja": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Notify characteristics"
+            }
+          },
+          "ko": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Notify characteristics"
+            }
+          },
+          "pt": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Notify characteristics"
+            }
+          },
+          "ru": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Notify characteristics"
+            }
+          },
+          "zh-Hans": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "订阅特征"
+            }
+          },
+          "zh-Hant": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "訂閱特徵"
+            }
+          }
+        }
+      },
+      "写入特征": {
+        "extractionState": "manual",
+        "localizations": {
+          "de": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Write characteristics"
+            }
+          },
+          "en": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Write characteristics"
+            }
+          },
+          "es": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Write characteristics"
+            }
+          },
+          "fr": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Write characteristics"
+            }
+          },
+          "ja": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Write characteristics"
+            }
+          },
+          "ko": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Write characteristics"
+            }
+          },
+          "pt": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Write characteristics"
+            }
+          },
+          "ru": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Write characteristics"
+            }
+          },
+          "zh-Hans": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "写入特征"
+            }
+          },
+          "zh-Hant": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "寫入特徵"
+            }
+          }
+        }
+    },
+      "厂商广播数据": {
+        "extractionState": "manual",
+        "localizations": {
+          "de": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Hersteller-Werbedaten"
+            }
+          },
+          "en": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Manufacturer advertising data"
+            }
+          },
+          "es": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Datos publicitarios del fabricante"
+            }
+          },
+          "fr": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Données publicitaires du fabricant"
+            }
+          },
+          "ja": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "メーカー広告データ"
+            }
+          },
+          "ko": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "제조사 광고 데이터"
+            }
+          },
+          "pt": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Dados de publicidade do fabricante"
+            }
+          },
+          "ru": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Рекламные данные производителя"
+            }
+          },
+          "zh-Hans": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "厂商广播数据"
+            }
+          },
+          "zh-Hant": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "廠商廣播資料"
+            }
+          }
+        }
+      }
   },
   "version" : "1.0"
 }

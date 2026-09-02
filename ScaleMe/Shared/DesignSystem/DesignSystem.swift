@@ -339,6 +339,7 @@ private final class NavigationControllerResolver: UIViewController {
 struct SettingsPanel<Content: View>: View {
     let title: String
     let icon: String
+    let headerValue: String?
     let headerActionTitle: String?
     let headerAction: (() -> Void)?
     @ViewBuilder let content: Content
@@ -346,12 +347,14 @@ struct SettingsPanel<Content: View>: View {
     init(
         title: String,
         icon: String,
+        headerValue: String? = nil,
         headerActionTitle: String? = nil,
         headerAction: (() -> Void)? = nil,
         @ViewBuilder content: () -> Content
     ) {
         self.title = title
         self.icon = icon
+        self.headerValue = headerValue
         self.headerActionTitle = headerActionTitle
         self.headerAction = headerAction
         self.content = content()
@@ -369,6 +372,14 @@ struct SettingsPanel<Content: View>: View {
                     .font(.headline)
                     .foregroundStyle(AppColor.ink)
                 Spacer()
+                if let headerValue {
+                    Text(headerValue)
+                        .font(.caption.weight(.semibold).monospacedDigit())
+                        .foregroundStyle(AppColor.secondary)
+                        .padding(.horizontal, 9)
+                        .padding(.vertical, 5)
+                        .background(AppColor.canvas, in: Capsule())
+                }
                 if let headerActionTitle, let headerAction {
                     Button(action: headerAction) {
                         Label {

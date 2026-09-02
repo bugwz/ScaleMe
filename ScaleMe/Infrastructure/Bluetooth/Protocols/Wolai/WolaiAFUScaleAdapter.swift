@@ -1,6 +1,6 @@
 import Foundation
 
-enum IcomonAFUScaleAdapter {
+enum WolaiAFUScaleAdapter {
     static let serviceUUID = "FFB0"
     static let measurementCharacteristicUUID = "FFB2"
 

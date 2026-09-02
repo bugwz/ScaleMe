@@ -151,8 +151,53 @@ struct CommunicationRuleSmoke {
             "manufacturer broadcast built-ins should be labeled as sample validated"
         )
         expect(
+            CommunicationRuleCatalog.builtIn.contains {
+                $0.id == CommunicationRuleCatalog.xiaomiMiScale2ID
+                    && $0.builtInParser
+                        == ScaleServiceDataProtocolFamily.xiaomiMiScale2.builtInParserID
+                    && $0.match.transport == .advertisementServiceData
+                    && $0.match.serviceUUID == "181D"
+                    && $0.match.minimumLength == 10
+                    && $0.match.maximumLength == 10
+                    && $0.effectiveVerification == .fixtureValidated
+            },
+            "Xiaomi 181D service-data parser should be selectable in the built-in catalog"
+        )
+        expect(
             CommunicationRuleCatalog.builtIn.allSatisfy { $0.id.hasPrefix("protocol.builtin.") },
             "built-in rules should use the built-in protocol namespace"
+        )
+        let upstreamRecords = UpstreamScaleAdapterCatalog.records
+        expect(upstreamRecords.count == 96, "all 33 ble-scale-sync and 63 openScale registrations should be inventoried")
+        expect(
+            upstreamRecords.filter { $0.source == .bleScaleSync }.count == 33,
+            "ble-scale-sync registry should contain 33 adapters at the pinned revision"
+        )
+        expect(
+            upstreamRecords.filter { $0.source == .openScale }.count == 63,
+            "openScale ScaleFactory should contain 63 handler instances at the pinned revision"
+        )
+        expect(Set(upstreamRecords.map(\.id)).count == upstreamRecords.count, "upstream adapter IDs should be unique")
+        let builtInIDs = Set(CommunicationRuleCatalog.builtIn.map(\.id))
+        expect(builtInIDs.count == CommunicationRuleCatalog.builtIn.count, "built-in protocol IDs should be unique")
+        expect(
+            upstreamRecords.allSatisfy { record in
+                let ruleID = record.mappedRuleID ?? "protocol.builtin.upstream.\(record.id)"
+                return builtInIDs.contains(ruleID)
+            },
+            "every upstream adapter should map to an executable rule or a visible protocol skeleton"
+        )
+        expect(
+            UpstreamScaleAdapterCatalog.skeletonRules.allSatisfy {
+                !$0.canMeasure && $0.effectiveVerification == .unverified
+            },
+            "incomplete upstream adapters should be explicitly unverified and unavailable for measurement"
+        )
+        expect(
+            UpstreamScaleAdapterCatalog.skeletonRules.contains {
+                $0.name.contains("iHealth HS3") && $0.effectiveImplementation == .unsupportedPlatform
+            },
+            "Classic Bluetooth SPP adapters should be labeled as unsupported on the CoreBluetooth runtime"
         )
 
         let invalidID = json.replacingOccurrences(of: "protocol.custom.demo-scale", with: "demo-scale")

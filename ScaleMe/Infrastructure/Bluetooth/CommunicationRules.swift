@@ -30,10 +30,61 @@ enum ProtocolVerificationLevel: String, Codable {
     }
 }
 
+enum ProtocolImplementationLevel: String, Codable, CaseIterable {
+    case executable
+    case experimental
+    case protocolSkeleton
+    case unsupportedPlatform
+
+    var title: String {
+        switch self {
+        case .executable: "可执行"
+        case .experimental: "实验性"
+        case .protocolSkeleton: "协议骨架"
+        case .unsupportedPlatform: "平台不支持"
+        }
+    }
+
+    var canMeasure: Bool {
+        self == .executable || self == .experimental
+    }
+}
+
+enum ProtocolRuntimeRequirement: String, Codable, CaseIterable, Hashable {
+    case userProfile
+    case timeSynchronization
+    case bonding
+    case consentCode
+    case bindKey
+    case encryption
+    case vendorRegistration
+    case multiFrameSession
+    case historyStateMachine
+    case keepAlive
+    case classicBluetooth
+
+    var title: String {
+        switch self {
+        case .userProfile: "需要成员资料"
+        case .timeSynchronization: "需要时间同步"
+        case .bonding: "需要系统配对"
+        case .consentCode: "需要用户同意码"
+        case .bindKey: "需要设备绑定密钥"
+        case .encryption: "需要加密会话"
+        case .vendorRegistration: "需要厂商应用预注册"
+        case .multiFrameSession: "需要多帧状态机"
+        case .historyStateMachine: "需要历史记录状态机"
+        case .keepAlive: "需要持续保活"
+        case .classicBluetooth: "需要经典蓝牙"
+        }
+    }
+}
+
 enum CommunicationTransport: String, Codable {
     case advertisementServiceData
     case advertisementManufacturerData
     case characteristicNotification
+    case classicSPP
 }
 
 enum CommunicationByteOrder: String, Codable {
@@ -107,9 +158,20 @@ struct CommunicationRule: Codable, Identifiable, Equatable, Hashable {
     var builtInParser: String?
     var verification: ProtocolVerificationLevel? = nil
     var operations: CommunicationRuleOperations? = nil
+    var implementation: ProtocolImplementationLevel? = nil
+    var supportedModels: [String]? = nil
+    var requirements: [ProtocolRuntimeRequirement]? = nil
+    var alternateMatches: [CommunicationRuleMatch]? = nil
+    var notifyTargets: [CommunicationGATTTarget]? = nil
+    var writeTargets: [CommunicationGATTTarget]? = nil
 
     var isDeclarative: Bool { decoder != nil }
     var effectiveVerification: ProtocolVerificationLevel { verification ?? .unverified }
+    var effectiveImplementation: ProtocolImplementationLevel {
+        implementation ?? ((decoder != nil || builtInParser != nil) ? .executable : .protocolSkeleton)
+    }
+    var canMeasure: Bool { effectiveImplementation.canMeasure }
+    var allMatches: [CommunicationRuleMatch] { [match] + (alternateMatches ?? []) }
     var capabilities: Set<CommunicationOperationCapability> {
         var result = Set<CommunicationOperationCapability>()
         if operations?.historyRead != nil { result.insert(.historyRead) }
@@ -146,7 +208,7 @@ enum CommunicationRuleCatalog {
     static let bluetoothSIGBodyID = "protocol.builtin.sig-body"
     static let huaweiHagridID = "protocol.builtin.huawei-hagrid"
     static let xiaomiLegacyID = "protocol.builtin.xiaomi-legacy"
-    static let icomonAFUID = "protocol.builtin.icomon-afu"
+    static let wolaiAFUID = "protocol.builtin.wolai-afu"
     static let qnAABBID = "protocol.builtin.qn-aabb"
     static let aaaSeriesID = "protocol.builtin.aaa-series"
     static let sinocareID = "protocol.builtin.sinocare"
@@ -155,8 +217,10 @@ enum CommunicationRuleCatalog {
     static let etekcityFit8SID = "protocol.builtin.fit8s"
     static let eufyC20ID = "protocol.builtin.eufy-c20"
     static let yunmaiXID = "protocol.builtin.yunmai-x"
+    static let xiaomiMiScale2ID = "protocol.builtin.xiaomi-mi-scale2"
+    static let silvergear108ID = "protocol.builtin.silvergear-108"
 
-    static let builtIn: [CommunicationRule] = [
+    private static let implemented: [CommunicationRule] = [
         CommunicationRule(
             id: bluetoothSIGWeightID,
             name: "标准体重",
@@ -193,7 +257,10 @@ enum CommunicationRuleCatalog {
             ),
             decoder: nil,
             builtInParser: "huaweiHagridWSP",
-            verification: .unverified
+            verification: .unverified,
+            implementation: .protocolSkeleton,
+            supportedModels: ["Huawei Scale 2", "Huawei Scale 3"],
+            requirements: [.bindKey, .encryption, .multiFrameSession]
         ),
         CommunicationRule(
             id: xiaomiLegacyID,
@@ -260,14 +327,14 @@ enum CommunicationRuleCatalog {
             )
         ),
         CommunicationRule(
-            id: icomonAFUID,
-            name: "ICOMON AFU",
+            id: wolaiAFUID,
+            name: "Wolai AFU",
             version: 1,
             summary: "适用于已有实机数据样本的 AFU-WL-TZ-A1 / FG2313UWB-D。",
             origin: .builtIn,
-            match: .init(transport: .characteristicNotification, serviceUUID: IcomonAFUScaleAdapter.serviceUUID, characteristicUUID: IcomonAFUScaleAdapter.measurementCharacteristicUUID, minimumLength: 20, maximumLength: 20),
+            match: .init(transport: .characteristicNotification, serviceUUID: WolaiAFUScaleAdapter.serviceUUID, characteristicUUID: WolaiAFUScaleAdapter.measurementCharacteristicUUID, minimumLength: 20, maximumLength: 20),
             decoder: nil,
-            builtInParser: "icomonAFU",
+            builtInParser: "wolaiAFU",
             verification: .hardwareSample
         ),
         CommunicationRule(
@@ -357,8 +424,48 @@ enum CommunicationRuleCatalog {
             decoder: nil,
             builtInParser: "yunmaiXBroadcast",
             verification: .fixtureValidated
+        ),
+        CommunicationRule(
+            id: xiaomiMiScale2ID,
+            name: "小米 XMTZC04HM 广播",
+            version: 1,
+            summary: "解析 MI SCALE2 的 10 字节 181D 广播、单位、锁定状态、离秤状态与时间。仅体重，已通过上游抓包样本验证，待本项目真机验证。",
+            author: "ble-scale-sync contributors",
+            origin: .builtIn,
+            sourceURL: URL(string: "https://github.com/KristianP26/ble-scale-sync/blob/e5060b4e43e2d08ecace7e327145c777872ea93f/src/scales/xiaomi-mi-scale-legacy.ts"),
+            match: .init(
+                transport: .advertisementServiceData,
+                serviceUUID: "181D",
+                characteristicUUID: nil,
+                minimumLength: 10,
+                maximumLength: 10
+            ),
+            decoder: nil,
+            builtInParser: "xiaomiMiScale2Advertisement",
+            verification: .fixtureValidated
+        ),
+        CommunicationRule(
+            id: silvergear108ID,
+            name: "Silvergear Smart Scale 108",
+            version: 1,
+            summary: "解析 Company ID A0AC 的 12 字节广播、5 位校验、混淆后的克数与锁定状态。身体数据帧语义尚未确认，因此只读取体重。",
+            author: "ble-scale-sync contributors",
+            origin: .builtIn,
+            sourceURL: URL(string: "https://github.com/KristianP26/ble-scale-sync/blob/e5060b4e43e2d08ecace7e327145c777872ea93f/src/scales/silvergear-108.ts"),
+            match: .init(
+                transport: .advertisementManufacturerData,
+                serviceUUID: "A0AC + FFB0",
+                characteristicUUID: nil,
+                minimumLength: 14,
+                maximumLength: 14
+            ),
+            decoder: nil,
+            builtInParser: "silvergear108Broadcast",
+            verification: .fixtureValidated
         )
     ]
+
+    static let builtIn: [CommunicationRule] = implemented + UpstreamScaleAdapterCatalog.skeletonRules
 
     static func rules(custom: [CommunicationRule]) -> [CommunicationRule] {
         builtIn + custom.filter { rule in !builtIn.contains(where: { $0.id == rule.id }) }
@@ -391,6 +498,9 @@ enum CommunicationRuleCodec {
             normalized.verification = .unverified
             normalized.match.serviceUUID = normalizeUUID(rule.match.serviceUUID)
             normalized.match.characteristicUUID = rule.match.characteristicUUID.map(normalizeUUID)
+            normalized.alternateMatches = rule.alternateMatches?.map(normalize)
+            normalized.notifyTargets = rule.notifyTargets?.map(normalize)
+            normalized.writeTargets = rule.writeTargets?.map(normalize)
             normalized.operations = rule.operations.map(normalize)
             try validate(normalized)
             guard ids.insert(normalized.id).inserted else {
@@ -414,6 +524,19 @@ enum CommunicationRuleCodec {
         }
         guard !rule.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             throw CommunicationRuleError.invalidDocument("规则名称不能为空")
+        }
+        guard (rule.alternateMatches?.count ?? 0) <= 16,
+              (rule.notifyTargets?.count ?? 0) <= 32,
+              (rule.writeTargets?.count ?? 0) <= 32,
+              (rule.supportedModels?.count ?? 0) <= 64 else {
+            throw CommunicationRuleError.invalidDocument("协议元数据数量超过限制")
+        }
+        for alternate in rule.alternateMatches ?? [] {
+            guard !alternate.serviceUUID.isEmpty,
+                  (1...4_096).contains(alternate.minimumLength),
+                  alternate.maximumLength.map({ $0 >= alternate.minimumLength && $0 <= 4_096 }) ?? true else {
+                throw CommunicationRuleError.invalidDocument("备用匹配范围无效")
+            }
         }
         guard rule.version > 0 else { throw CommunicationRuleError.invalidDocument("规则版本必须大于 0") }
         guard rule.builtInParser == nil, rule.decoder != nil || rule.operations != nil else {
@@ -513,6 +636,13 @@ enum CommunicationRuleCodec {
             serviceUUID: normalizeUUID(target.serviceUUID),
             characteristicUUID: normalizeUUID(target.characteristicUUID)
         )
+    }
+
+    private static func normalize(_ match: CommunicationRuleMatch) -> CommunicationRuleMatch {
+        var result = match
+        result.serviceUUID = normalizeUUID(match.serviceUUID)
+        result.characteristicUUID = match.characteristicUUID.map(normalizeUUID)
+        return result
     }
 
     static func hexBytes(_ value: String) throws -> [UInt8] {

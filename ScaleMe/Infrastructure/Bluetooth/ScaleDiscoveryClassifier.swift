@@ -3,7 +3,7 @@ import Foundation
 enum ScaleDiscoveryCompatibility: String, Equatable {
     case bluetoothSIG = "Bluetooth SIG 标准"
     case xiaomiAdvertisement = "0x181B 广播格式"
-    case icomonAFU = "ICOMON AFU 实机样本"
+    case wolaiAFU = "Wolai AFU 实机样本"
     case qnAABBBroadcast = "QN/AABB 数据样本验证"
     case aaaSeriesBroadcast = "AAA 系列数据样本验证"
     case sinocareBroadcast = "Sinocare 数据样本验证"
@@ -12,6 +12,8 @@ enum ScaleDiscoveryCompatibility: String, Equatable {
     case etekcityFit8SBroadcast = "Etekcity Fit 8S 数据样本验证"
     case eufyC20Broadcast = "Eufy C20 数据样本验证"
     case yunmaiXBroadcast = "Yunmai X 数据样本验证"
+    case silvergear108Broadcast = "Silvergear 108 数据样本验证"
+    case xiaomiMiScale2Advertisement = "小米 0x181D 广播格式"
     case huaweiHagridAuthorizationRequired = "华为 Hagrid 认证待配置"
     case unverified = "协议待验证"
 
@@ -25,15 +27,16 @@ struct ScaleDiscoveryAdvertisement {
     var advertisedServiceUUIDs: Set<String>
     var serviceDataUUIDs: Set<String>
     var hasVerifiedXiaomiPayload: Bool
-    var hasVerifiedIcomonAFUIdentity = false
+    var hasVerifiedWolaiAFUIdentity = false
     var hasHuaweiHagridIdentity = false
     var verifiedBroadcastProtocol: ScaleBroadcastProtocolFamily?
+    var verifiedServiceDataProtocol: ScaleServiceDataProtocolFamily? = nil
 }
 
 enum ScaleDiscoveryClassifier {
     static func compatibility(for advertisement: ScaleDiscoveryAdvertisement) -> ScaleDiscoveryCompatibility {
-        if advertisement.hasVerifiedIcomonAFUIdentity {
-            return .icomonAFU
+        if advertisement.hasVerifiedWolaiAFUIdentity {
+            return .wolaiAFU
         }
         if advertisement.hasHuaweiHagridIdentity {
             return .huaweiHagridAuthorizationRequired
@@ -47,6 +50,11 @@ enum ScaleDiscoveryClassifier {
         case .etekcityFit8S: return .etekcityFit8SBroadcast
         case .eufyC20: return .eufyC20Broadcast
         case .yunmaiX: return .yunmaiXBroadcast
+        case .silvergear108: return .silvergear108Broadcast
+        case nil: break
+        }
+        switch advertisement.verifiedServiceDataProtocol {
+        case .xiaomiMiScale2: return .xiaomiMiScale2Advertisement
         case nil: break
         }
         if advertisement.hasVerifiedXiaomiPayload {

@@ -5,18 +5,20 @@ private func advertisement(
     advertised: Set<String> = [],
     serviceData: Set<String> = [],
     verifiedXiaomi: Bool = false,
-    verifiedIcomonAFU: Bool = false,
+    verifiedWolaiAFU: Bool = false,
     huaweiHagrid: Bool = false,
-    verifiedBroadcastProtocol: ScaleBroadcastProtocolFamily? = nil
+    verifiedBroadcastProtocol: ScaleBroadcastProtocolFamily? = nil,
+    verifiedServiceDataProtocol: ScaleServiceDataProtocolFamily? = nil
 ) -> ScaleDiscoveryAdvertisement {
     ScaleDiscoveryAdvertisement(
         name: name,
         advertisedServiceUUIDs: advertised,
         serviceDataUUIDs: serviceData,
         hasVerifiedXiaomiPayload: verifiedXiaomi,
-        hasVerifiedIcomonAFUIdentity: verifiedIcomonAFU,
+        hasVerifiedWolaiAFUIdentity: verifiedWolaiAFU,
         hasHuaweiHagridIdentity: huaweiHagrid,
-        verifiedBroadcastProtocol: verifiedBroadcastProtocol
+        verifiedBroadcastProtocol: verifiedBroadcastProtocol,
+        verifiedServiceDataProtocol: verifiedServiceDataProtocol
     )
 }
 
@@ -37,20 +39,20 @@ struct DiscoveryClassifierSmoke {
         let ambiguousBodyData = advertisement(serviceData: ["181B"])
         precondition(ScaleDiscoveryClassifier.compatibility(for: ambiguousBodyData) == .unverified)
 
-        let icomonAFU = advertisement(
+        let wolaiAFU = advertisement(
             name: "AFU-WL-TZ-A1",
             advertised: ["0000FFB0-0000-1000-8000-00805F9B34FB"],
-            verifiedIcomonAFU: true
+            verifiedWolaiAFU: true
         )
-        precondition(ScaleDiscoveryClassifier.compatibility(for: icomonAFU) == .icomonAFU)
-        precondition(IcomonAFUScaleAdapter.matchesIdentity(
-            name: icomonAFU.name,
-            advertisedServiceUUIDs: icomonAFU.advertisedServiceUUIDs
+        precondition(ScaleDiscoveryClassifier.compatibility(for: wolaiAFU) == .wolaiAFU)
+        precondition(WolaiAFUScaleAdapter.matchesIdentity(
+            name: wolaiAFU.name,
+            advertisedServiceUUIDs: wolaiAFU.advertisedServiceUUIDs
         ))
 
         let genericFFB0 = advertisement(name: "Private Scale", advertised: ["FFB0"])
         precondition(ScaleDiscoveryClassifier.compatibility(for: genericFFB0) == .unverified)
-        precondition(!IcomonAFUScaleAdapter.matchesIdentity(
+        precondition(!WolaiAFUScaleAdapter.matchesIdentity(
             name: genericFFB0.name,
             advertisedServiceUUIDs: genericFFB0.advertisedServiceUUIDs
         ))
@@ -91,7 +93,8 @@ struct DiscoveryClassifierSmoke {
             (.okok, .okokBroadcast),
             (.etekcityFit8S, .etekcityFit8SBroadcast),
             (.eufyC20, .eufyC20Broadcast),
-            (.yunmaiX, .yunmaiXBroadcast)
+            (.yunmaiX, .yunmaiXBroadcast),
+            (.silvergear108, .silvergear108Broadcast)
         ]
         for (family, expectedCompatibility) in communityFamilies {
             precondition(
@@ -100,6 +103,16 @@ struct DiscoveryClassifierSmoke {
                 ) == expectedCompatibility
             )
         }
+
+        let xiaomiMiScale2 = advertisement(
+            name: "MI SCALE2",
+            serviceData: ["181D"],
+            verifiedServiceDataProtocol: .xiaomiMiScale2
+        )
+        precondition(
+            ScaleDiscoveryClassifier.compatibility(for: xiaomiMiScale2)
+                == .xiaomiMiScale2Advertisement
+        )
 
         let likelyPrivateScale = advertisement(name: "My Weight Device")
         let privateCompatibility = ScaleDiscoveryClassifier.compatibility(for: likelyPrivateScale)

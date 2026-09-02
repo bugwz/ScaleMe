@@ -9,6 +9,7 @@ enum ScaleBroadcastProtocolFamily: String, Equatable {
     case etekcityFit8S = "Etekcity Fit 8S 广播协议"
     case eufyC20 = "Eufy C20 广播协议"
     case yunmaiX = "Yunmai X 广播协议"
+    case silvergear108 = "Silvergear 108 广播协议"
 
     var builtInParserID: String {
         switch self {
@@ -20,6 +21,7 @@ enum ScaleBroadcastProtocolFamily: String, Equatable {
         case .etekcityFit8S: "etekcityFit8SBroadcast"
         case .eufyC20: "eufyC20Broadcast"
         case .yunmaiX: "yunmaiXBroadcast"
+        case .silvergear108: "silvergear108Broadcast"
         }
     }
 
@@ -31,7 +33,8 @@ enum ScaleBroadcastProtocolFamily: String, Equatable {
         .okok,
         .etekcityFit8S,
         .eufyC20,
-        .yunmaiX
+        .yunmaiX,
+        .silvergear108
     ].map(\.builtInParserID)
 }
 
@@ -98,6 +101,13 @@ enum ScaleBroadcastProtocolCatalog {
             now: now
         ) {
             return ScaleBroadcastProtocolMatch(family: .yunmaiX, measurement: measurement)
+        }
+        if let measurement = try? Silvergear108ScaleParser.parse(
+            packet,
+            advertisedServiceUUIDs: advertisedServiceUUIDs,
+            now: now
+        ) {
+            return ScaleBroadcastProtocolMatch(family: .silvergear108, measurement: measurement)
         }
         if let measurement = try? OKOKScaleParser.parse(packet, advertisedName: name, now: now) {
             return ScaleBroadcastProtocolMatch(family: .okok, measurement: measurement)

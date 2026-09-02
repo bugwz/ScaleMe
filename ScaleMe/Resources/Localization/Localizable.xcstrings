@@ -2,6 +2,7 @@
   "sourceLanguage" : "zh-Hans",
   "strings" : {
     "“内置”表示解析器已实现；具体设备是否可用仍以实机、固件和已捕获数据验证为准。" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {

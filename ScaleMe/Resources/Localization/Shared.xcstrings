@@ -586,67 +586,67 @@
         }
       }
     },
-    "ICOMON AFU 体脂秤" : {
+    "Wolai AFU 体脂秤" : {
       "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ICOMON AFU body composition scale"
+            "value" : "Wolai AFU body composition scale"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ICOMON AFU body composition scale"
+            "value" : "Wolai AFU body composition scale"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ICOMON AFU body composition scale"
+            "value" : "Wolai AFU body composition scale"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ICOMON AFU body composition scale"
+            "value" : "Wolai AFU body composition scale"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ICOMON AFU body composition scale"
+            "value" : "Wolai AFU body composition scale"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ICOMON AFU body composition scale"
+            "value" : "Wolai AFU body composition scale"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ICOMON AFU body composition scale"
+            "value" : "Wolai AFU body composition scale"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ICOMON AFU body composition scale"
+            "value" : "Wolai AFU body composition scale"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ICOMON AFU 体脂秤"
+            "value" : "Wolai AFU 体脂秤"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ICOMON AFU 体脂秤"
+            "value" : "Wolai AFU 体脂秤"
           }
         }
       }

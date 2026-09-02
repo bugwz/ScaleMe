@@ -1,6 +1,6 @@
 import Foundation
 
-struct IcomonAFUScaleParser {
+struct WolaiAFUScaleParser {
     enum Phase: String {
         case live
         case stable
@@ -84,7 +84,7 @@ struct IcomonAFUScaleParser {
             weightKG: weightKG,
             impedanceOhm: impedanceOhm,
             secondaryImpedanceOhm: secondaryImpedanceOhm,
-            source: .icomonAFU,
+            source: .wolaiAFU,
             isStable: isStable
         )
     }

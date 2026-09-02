@@ -7,7 +7,8 @@ ScaleMe/Infrastructure/Bluetooth/Protocols/BluetoothSIG/StandardBodyCompositionP
 ScaleMe/Infrastructure/Bluetooth/Protocols/Xiaomi/XiaomiScaleParser.swift
 ScaleMe/Infrastructure/Bluetooth/Protocols/Xiaomi/XiaomiScaleConfiguration.swift
 ScaleMe/Infrastructure/Bluetooth/Protocols/Xiaomi/XiaomiScaleHistoryProtocol.swift
-ScaleMe/Infrastructure/Bluetooth/Protocols/ICOMON/IcomonAFUScaleParser.swift
+ScaleMe/Infrastructure/Bluetooth/Protocols/Xiaomi/XiaomiMiScale2BroadcastParser.swift
+ScaleMe/Infrastructure/Bluetooth/Protocols/Wolai/WolaiAFUScaleParser.swift
 ScaleMe/Infrastructure/Bluetooth/Protocols/ScaleBroadcastProtocolCatalog.swift
 ScaleMe/Infrastructure/Bluetooth/Protocols/QNAABB/QNAABBScaleParser.swift
 ScaleMe/Infrastructure/Bluetooth/Protocols/AAASeries/AAASeriesScaleParser.swift
@@ -17,7 +18,10 @@ ScaleMe/Infrastructure/Bluetooth/Protocols/OKOK/OKOKScaleParser.swift
 ScaleMe/Infrastructure/Bluetooth/Protocols/EtekcityFit8S/EtekcityFit8SScaleParser.swift
 ScaleMe/Infrastructure/Bluetooth/Protocols/EufyC20/EufyC20ScaleParser.swift
 ScaleMe/Infrastructure/Bluetooth/Protocols/YunmaiX/YunmaiXScaleParser.swift
-ScaleMe/Infrastructure/Bluetooth/Protocols/ICOMON/IcomonAFUScaleAdapter.swift
+ScaleMe/Infrastructure/Bluetooth/Protocols/Silvergear/Silvergear108ScaleParser.swift
+ScaleMe/Infrastructure/Bluetooth/Protocols/ScaleServiceDataProtocolCatalog.swift
+ScaleMe/Infrastructure/Bluetooth/Protocols/Wolai/WolaiAFUScaleAdapter.swift
 ScaleMe/Infrastructure/Bluetooth/Protocols/Huawei/HuaweiHagridProtocol.swift
 ScaleMe/Infrastructure/Bluetooth/CommunicationRules.swift
 ScaleMe/Infrastructure/Bluetooth/ProtocolOperations.swift
+ScaleMe/Infrastructure/Bluetooth/UpstreamScaleAdapterCatalog.swift

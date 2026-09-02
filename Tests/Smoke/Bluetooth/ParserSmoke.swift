@@ -139,19 +139,19 @@ enum ParserSmoke {
             // Expected.
         }
 
-        let icomonLive = try IcomonAFUScaleParser.parse(hexData(
+        let wolaiLive = try WolaiAFUScaleParser.parse(hexData(
             "AC2900684E20020005400064000000000029D51F"
         ))
-        precondition(icomonLive.phase == .live)
-        precondition(abs(icomonLive.measurement.weightKG - 20.0) < 0.000_01)
-        precondition(!icomonLive.measurement.isStable)
+        precondition(wolaiLive.phase == .live)
+        precondition(abs(wolaiLive.measurement.weightKG - 20.0) < 0.000_01)
+        precondition(!wolaiLive.measurement.isStable)
 
-        let icomonStable = try IcomonAFUScaleParser.parse(hexData(
+        let wolaiStable = try WolaiAFUScaleParser.parse(hexData(
             "AC298068EA60020005400064000000000029D51B"
         ))
-        precondition(icomonStable.phase == .stable)
-        precondition(abs(icomonStable.measurement.weightKG - 60.0) < 0.000_01)
-        precondition(icomonStable.measurement.isStable)
+        precondition(wolaiStable.phase == .stable)
+        precondition(abs(wolaiStable.measurement.weightKG - 60.0) < 0.000_01)
+        precondition(wolaiStable.measurement.isStable)
 
         let finalFixtures = [
             ("AC29020001F40258018068EA600000000029D603", 500.0, 600.0),
@@ -159,16 +159,16 @@ enum ParserSmoke {
             ("AC2902000208026C018068EA600000000029D60C", 520.0, 620.0)
         ]
         for (fixture, primaryImpedance, secondaryImpedance) in finalFixtures {
-            let packet = try IcomonAFUScaleParser.parse(hexData(fixture))
+            let packet = try WolaiAFUScaleParser.parse(hexData(fixture))
             precondition(packet.phase == .final)
             precondition(abs(packet.measurement.weightKG - 60.0) < 0.000_01)
             precondition(packet.measurement.impedanceOhm == primaryImpedance)
             precondition(packet.measurement.secondaryImpedanceOhm == secondaryImpedance)
-            precondition(packet.measurement.source == .icomonAFU)
+            precondition(packet.measurement.source == .wolaiAFU)
             precondition(packet.measurement.isStable)
         }
 
-        let latestCapture = try IcomonAFUScaleParser.parse(hexData(
+        let latestCapture = try WolaiAFUScaleParser.parse(hexData(
             "AC2902000226028A018068FDE80000000029D603"
         ))
         precondition(abs(latestCapture.measurement.weightKG - 65.0) < 0.000_01)
@@ -194,15 +194,15 @@ enum ParserSmoke {
         do {
             var invalidChecksum = hexData(finalFixtures[0].0)
             invalidChecksum[invalidChecksum.index(before: invalidChecksum.endIndex)] ^= 0x01
-            _ = try IcomonAFUScaleParser.parse(invalidChecksum)
-            preconditionFailure("ICOMON 校验错误必须被拒绝")
+            _ = try WolaiAFUScaleParser.parse(invalidChecksum)
+            preconditionFailure("Wolai 校验错误必须被拒绝")
         } catch ScalePayloadError.unsupported {
             // Expected.
         }
 
         do {
-            _ = try IcomonAFUScaleParser.parse(hexData("AC29020001F40258018068EA600000000029D6"))
-            preconditionFailure("截断的 ICOMON 帧必须被拒绝")
+            _ = try WolaiAFUScaleParser.parse(hexData("AC29020001F40258018068EA600000000029D6"))
+            preconditionFailure("截断的 Wolai 帧必须被拒绝")
         } catch ScalePayloadError.tooShort {
             // Expected.
         }
@@ -305,6 +305,79 @@ enum ParserSmoke {
         precondition(abs(yunmaiX.weightKG - 72.35) < 0.001)
         precondition(yunmaiX.impedanceOhm == 500)
         precondition(yunmaiX.isStable)
+
+        let xiaomiMiScale2Payload = hexData("23B036E4070102030405")
+        guard case .measurement(let xiaomiMiScale2) = try XiaomiMiScale2BroadcastParser.parsePacket(
+            xiaomiMiScale2Payload
+        ) else {
+            preconditionFailure("小米 XMTZC04HM 广播解析失败")
+        }
+        precondition(abs(xiaomiMiScale2.weightKG - 63.502_931_8) < 0.000_001)
+        precondition(xiaomiMiScale2.isStable)
+        guard case .measurement(let xiaomiMiScale2KG) = try XiaomiMiScale2BroadcastParser.parsePacket(
+            hexData("22E02EE4070102030405")
+        ),
+        case .measurement(let xiaomiMiScale2Jin) = try XiaomiMiScale2BroadcastParser.parsePacket(
+            hexData("32B036E4070102030405")
+        ),
+        case .weightRemoved = try XiaomiMiScale2BroadcastParser.parsePacket(
+            hexData("A3B036E4070102030405")
+        ) else {
+            preconditionFailure("小米 XMTZC04HM 单位或离秤状态解析失败")
+        }
+        precondition(abs(xiaomiMiScale2KG.weightKG - 60.0) < 0.001)
+        precondition(abs(xiaomiMiScale2Jin.weightKG - 70.0) < 0.001)
+        let xiaomiMiScale2Match = ScaleServiceDataProtocolCatalog.parse(
+            name: "MI SCALE2",
+            serviceUUID: "181D",
+            payload: xiaomiMiScale2Payload,
+            manufacturerData: nil
+        )
+        precondition(xiaomiMiScale2Match?.family == .xiaomiMiScale2)
+        precondition(ScaleServiceDataProtocolCatalog.parse(
+            name: "Generic Scale",
+            serviceUUID: "181D",
+            payload: xiaomiMiScale2Payload,
+            manufacturerData: Data([0x34, 0x12])
+        ) == nil)
+
+        let silvergearPayload = hexData("030000000002202C4AC00DA3")
+        let silvergear = try Silvergear108ScaleParser.parse(.init(
+            companyID: 0xA0AC,
+            payload: silvergearPayload
+        ))
+        precondition(abs(silvergear.weightKG - 60.0) < 0.001)
+        precondition(silvergear.isStable)
+        let silvergearCatalogMatch = ScaleBroadcastProtocolCatalog.parse(
+            name: "108",
+            manufacturerData: Data([0xAC, 0xA0]) + silvergearPayload,
+            advertisedServiceUUIDs: ["FFB0"]
+        )
+        precondition(silvergearCatalogMatch?.family == .silvergear108)
+        let silvergearSettling = try Silvergear108ScaleParser.parse(.init(
+            companyID: 0xA0AC,
+            payload: hexData("030000000002A02C4AC00DA3")
+        ))
+        precondition(abs(silvergearSettling.weightKG - 60.0) < 0.001)
+        precondition(!silvergearSettling.isStable)
+        do {
+            _ = try Silvergear108ScaleParser.parse(.init(
+                companyID: 0xA0AC,
+                payload: hexData("030000000002202C4AC00D02")
+            ))
+            preconditionFailure("Silvergear 校验错误必须被拒绝")
+        } catch ScalePayloadError.unsupported {
+            // Expected.
+        }
+        do {
+            _ = try Silvergear108ScaleParser.parse(.init(
+                companyID: 0xA0AC,
+                payload: hexData("030000000002A201020306AE")
+            ))
+            preconditionFailure("Silvergear 未确认的身体数据帧不得被解析为测量值")
+        } catch ScalePayloadError.unsupported {
+            // Expected.
+        }
 
         let appleManufacturerData = Data([0xFF, 0xFF]) + qnPayload
         let catalogMatch = ScaleBroadcastProtocolCatalog.parse(

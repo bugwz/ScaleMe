@@ -21,6 +21,12 @@ struct CommunicationRulesView: View {
                             .font(.subheadline.weight(.semibold))
                             .foregroundStyle(AppColor.ink)
                         Spacer()
+                        Text(String(CommunicationRuleCatalog.builtIn.count))
+                            .font(.caption.weight(.semibold).monospacedDigit())
+                            .foregroundStyle(AppColor.secondary)
+                            .padding(.horizontal, 9)
+                            .padding(.vertical, 5)
+                            .background(AppColor.canvas, in: Capsule())
                         Image(systemName: "chevron.right")
                             .font(.caption.bold())
                             .foregroundStyle(AppColor.secondary.opacity(0.7))
@@ -131,7 +137,11 @@ private struct BuiltInProtocolsView: View {
                 .background(AppColor.surface.opacity(0.94), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
                 .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).stroke(AppColor.mint.opacity(0.10)))
 
-                SettingsPanel(title: "内置协议", icon: "checkmark.seal.fill") {
+                SettingsPanel(
+                    title: "内置协议",
+                    icon: "checkmark.seal.fill",
+                    headerValue: String(CommunicationRuleCatalog.builtIn.count)
+                ) {
                     if filteredRules.isEmpty {
                         Label("未找到匹配的内置协议", systemImage: "magnifyingglass")
                             .font(.subheadline)
@@ -143,7 +153,7 @@ private struct BuiltInProtocolsView: View {
                             if rule.id != filteredRules.last?.id { SettingsSeparator() }
                         }
                     }
-                    Text("“内置”表示解析器已实现；具体设备是否可用仍以实机、固件和已捕获数据验证为准。")
+                    Text(language.text("内置目录同时包含可执行协议和已登记的上游协议骨架；请以“实现状态”与“验证状态”标签为准。"))
                         .font(.caption)
                         .foregroundStyle(AppColor.secondary)
                         .lineSpacing(3)
@@ -192,12 +202,14 @@ private struct ProtocolRuleRow: View {
                 .fixedSize(horizontal: false, vertical: true)
             HStack(spacing: 6) {
                 protocolTag(rule.origin.title, color: rule.origin == .builtIn ? AppColor.mint : AppColor.apricot)
+                protocolTag(transportTitle(rule.match.transport), color: transportColor(rule.match.transport))
+                Spacer(minLength: 0)
+            }
+            HStack(spacing: 6) {
+                protocolTag(rule.effectiveImplementation.title, color: implementationColor(rule.effectiveImplementation))
                 protocolTag(rule.effectiveVerification.title, color: verificationColor(rule.effectiveVerification))
                 Spacer(minLength: 0)
             }
-            Text(language.format("v%lld · %@", Int64(rule.version), language.text(transportTitle(rule.match.transport))))
-                .font(.caption)
-                .foregroundStyle(AppColor.secondary)
         }
     }
 
@@ -217,6 +229,24 @@ private struct ProtocolRuleRow: View {
         case .standardSpecification, .hardwareSample: AppColor.mint
         case .fixtureValidated: AppColor.sky
         case .unverified: AppColor.apricot
+        }
+    }
+
+    private func implementationColor(_ level: ProtocolImplementationLevel) -> Color {
+        switch level {
+        case .executable: AppColor.mint
+        case .experimental: AppColor.sky
+        case .protocolSkeleton: AppColor.apricot
+        case .unsupportedPlatform: AppColor.rose
+        }
+    }
+
+    private func transportColor(_ transport: CommunicationTransport) -> Color {
+        switch transport {
+        case .characteristicNotification: AppColor.mint
+        case .advertisementServiceData: AppColor.sky
+        case .advertisementManufacturerData: AppColor.violet
+        case .classicSPP: AppColor.rose
         }
     }
 }
@@ -379,6 +409,11 @@ private struct CommunicationRuleDetailView: View {
                         title: "验证状态",
                         value: language.text(rule.effectiveVerification.title)
                     )
+                    Divider()
+                    SettingsValueRow(
+                        title: "实现状态",
+                        value: language.text(rule.effectiveImplementation.title)
+                    )
                     if let author = rule.author {
                         Divider()
                         SettingsValueRow(title: "作者", value: author)
@@ -407,6 +442,33 @@ private struct CommunicationRuleDetailView: View {
                     }
                 }
 
+                if let alternates = rule.alternateMatches, !alternates.isEmpty {
+                    SettingsPanel(title: "备用匹配", icon: "point.3.connected.trianglepath.dotted") {
+                        ForEach(Array(alternates.enumerated()), id: \.offset) { index, match in
+                            if index > 0 { Divider() }
+                            VStack(alignment: .leading, spacing: 3) {
+                                Text(match.serviceUUID)
+                                    .font(.subheadline.weight(.semibold).monospaced())
+                                    .foregroundStyle(AppColor.ink)
+                                Text([
+                                    language.text(transportTitle(match.transport)),
+                                    match.characteristicUUID
+                                ].compactMap { $0 }.joined(separator: " · "))
+                                    .font(.caption)
+                                    .foregroundStyle(AppColor.secondary)
+                            }
+                        }
+                    }
+                }
+
+                if let notifyTargets = rule.notifyTargets, !notifyTargets.isEmpty {
+                    targetPanel(title: "订阅特征", icon: "bell.badge.waveform", targets: notifyTargets)
+                }
+
+                if let writeTargets = rule.writeTargets, !writeTargets.isEmpty {
+                    targetPanel(title: "写入特征", icon: "square.and.pencil", targets: writeTargets)
+                }
+
                 SettingsPanel(title: "说明", icon: "info.circle.fill") {
                     Text(rule.origin == .builtIn ? language.text(rule.summary) : rule.summary)
                         .font(.subheadline)
@@ -416,6 +478,34 @@ private struct CommunicationRuleDetailView: View {
                         Label("该规则未经观我硬件验证，结果仅供协议调试和趋势参考。", systemImage: "exclamationmark.shield")
                             .font(.caption)
                             .foregroundStyle(AppColor.apricot)
+                    }
+                    if !rule.canMeasure {
+                        Label {
+                            Text(language.text("该项已纳入内置协议目录，但运行时解析或会话状态机尚未完整移植，暂不可用于测量。"))
+                        } icon: {
+                            Image(systemName: "hammer.fill")
+                        }
+                            .font(.caption)
+                            .foregroundStyle(AppColor.apricot)
+                    }
+                }
+
+                if let models = rule.supportedModels, !models.isEmpty {
+                    SettingsPanel(title: "支持型号", icon: "scalemass.fill") {
+                        Text(models.joined(separator: " · "))
+                            .font(.subheadline)
+                            .foregroundStyle(AppColor.ink)
+                    }
+                }
+
+                if let requirements = rule.requirements, !requirements.isEmpty {
+                    SettingsPanel(title: "运行要求", icon: "wrench.and.screwdriver.fill") {
+                        ForEach(Array(requirements.enumerated()), id: \.offset) { index, requirement in
+                            if index > 0 { Divider() }
+                            Label(language.text(requirement.title), systemImage: "checklist")
+                                .font(.subheadline)
+                                .foregroundStyle(AppColor.ink)
+                        }
                     }
                 }
 
@@ -448,6 +538,26 @@ private struct CommunicationRuleDetailView: View {
             language.format("%lld…%lld 字节", Int64(match.minimumLength), Int64($0))
         } ?? language.format("至少 %lld 字节", Int64(match.minimumLength))
     }
+
+    private func targetPanel(
+        title: String,
+        icon: String,
+        targets: [CommunicationGATTTarget]
+    ) -> some View {
+        SettingsPanel(title: title, icon: icon) {
+            ForEach(Array(targets.enumerated()), id: \.offset) { index, target in
+                if index > 0 { Divider() }
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(target.characteristicUUID)
+                        .font(.subheadline.weight(.semibold).monospaced())
+                        .foregroundStyle(AppColor.ink)
+                    Text(target.serviceUUID)
+                        .font(.caption.monospaced())
+                        .foregroundStyle(AppColor.secondary)
+                }
+            }
+        }
+    }
 }
 
 
@@ -456,5 +566,6 @@ private func transportTitle(_ transport: CommunicationTransport) -> String {
     case .advertisementServiceData: "服务广播数据"
     case .advertisementManufacturerData: "厂商广播数据"
     case .characteristicNotification: "GATT 特征通知"
+    case .classicSPP: "经典蓝牙串口"
     }
 }
