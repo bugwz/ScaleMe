@@ -87,6 +87,7 @@ struct ScaleMeApp: App {
                 }
             }
             .task {
+                store.prepareSimulationDataIfNeeded()
                 bluetooth.updatePairedScales(store.pairedScales, communicationRules: store.communicationRules)
                 cloudSync.attach(to: store)
                 appleHealth.refreshAuthorizationState()

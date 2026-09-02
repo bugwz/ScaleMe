@@ -20,6 +20,7 @@ final class MeasurementStore: ObservableObject {
     @Published private(set) var dashboardVisibleMetrics: Set<DashboardMetricKind> { didSet { persistConfigurationIfNeeded() } }
     @Published private(set) var storageError: String?
     @Published private(set) var latestHealthShareCandidate: BodyMeasurement?
+    @Published private(set) var isSimulationDataLoading = false
 
     private let persistenceWriter: LocalPersistenceWriter?
     private var archiveUpdatedAt: Date
@@ -27,6 +28,11 @@ final class MeasurementStore: ObservableObject {
     private var configurationRevision = 0
     private var archiveRevision = 0
     @Published private var simulationData: SimulationDataSnapshot
+    private let simulationLaunchDay: Date
+    private let simulationCalendar: Calendar
+    private var simulationDataLoadTask: Task<Void, Never>?
+    private var simulationDataLoadGeneration = 0
+    private var isSimulationHistoryLoaded = false
     private var simulationSelectedProfileID: UUID
     @Published private var simulationAppleHealthProfileID: UUID?
     @Published private var simulationAppleHealthDeviceIDs: Set<UUID>
@@ -57,9 +63,18 @@ final class MeasurementStore: ObservableObject {
         }
 
         let resolvedLanguage = loadedConfiguration.languageSelection.resolvedLanguage
-        let simulationData = SimulationDataSnapshot.make(language: resolvedLanguage)
+        let simulationReferenceDate = Date.now
+        let simulationCalendar = Calendar.current
+        let simulationLaunchDay = simulationCalendar.startOfDay(for: simulationReferenceDate)
+        let simulationData = SimulationDataSnapshot.makeMetadata(
+            language: resolvedLanguage,
+            launchDay: simulationLaunchDay,
+            calendar: simulationCalendar
+        )
         persistenceWriter = loadedRepository.map(LocalPersistenceWriter.init(repository:))
         self.simulationData = simulationData
+        self.simulationLaunchDay = simulationLaunchDay
+        self.simulationCalendar = simulationCalendar
         simulationSelectedProfileID = simulationData.selectedProfileID
         simulationAppleHealthProfileID = nil
         simulationAppleHealthDeviceIDs = []
@@ -539,8 +554,46 @@ final class MeasurementStore: ObservableObject {
         guard !isApplyingExternalState else { return }
         if isSimulationEnabled {
             simulationSelectedProfileID = simulationData.selectedProfileID
+            prepareSimulationDataIfNeeded()
         }
         persistConfiguration()
+    }
+
+    func prepareSimulationDataIfNeeded() {
+        guard isSimulationEnabled,
+              !isSimulationHistoryLoaded,
+              simulationDataLoadTask == nil else { return }
+
+        let metadata = simulationData
+        let launchDay = simulationLaunchDay
+        let calendar = simulationCalendar
+        if simulationData.measurements.isEmpty {
+            simulationData.measurements = metadata.generatedMeasurements(
+                dayOffsets: 0...6,
+                launchDay: launchDay,
+                calendar: calendar
+            )
+        }
+        simulationDataLoadGeneration += 1
+        let loadGeneration = simulationDataLoadGeneration
+        isSimulationDataLoading = true
+        simulationDataLoadTask = Task {
+            let result = await Task.detached(priority: .userInitiated) {
+                metadata.generatedMeasurements(
+                    dayOffsets: 7...364,
+                    launchDay: launchDay,
+                    calendar: calendar
+                )
+            }.value
+
+            guard loadGeneration == simulationDataLoadGeneration else { return }
+
+            let pendingMeasurements = simulationData.measurements
+            simulationData.measurements = (result + pendingMeasurements).sorted { $0.date > $1.date }
+            isSimulationHistoryLoaded = true
+            isSimulationDataLoading = false
+            simulationDataLoadTask = nil
+        }
     }
 
     func refreshSystemLanguage() {
@@ -557,13 +610,23 @@ final class MeasurementStore: ObservableObject {
         let resolvedLanguage = languageSelection.resolvedLanguage
         guard appLanguage != resolvedLanguage else { return }
         appLanguage = resolvedLanguage
-        simulationData = SimulationDataSnapshot.make(language: appLanguage)
+        simulationDataLoadGeneration += 1
+        simulationDataLoadTask?.cancel()
+        simulationDataLoadTask = nil
+        isSimulationDataLoading = false
+        isSimulationHistoryLoaded = false
+        simulationData = SimulationDataSnapshot.makeMetadata(
+            language: appLanguage,
+            launchDay: simulationLaunchDay,
+            calendar: simulationCalendar
+        )
         simulationSelectedProfileID = simulationData.selectedProfileID
         simulationAppleHealthDeviceIDs.formIntersection(Set(simulationData.pairedScales.map(\.id)))
         if let simulationAppleHealthProfileID,
            !simulationData.profiles.contains(where: { $0.id == simulationAppleHealthProfileID }) {
             self.simulationAppleHealthProfileID = nil
         }
+        prepareSimulationDataIfNeeded()
     }
 
     private func addSimulationMeasurement(_ measurement: BodyMeasurement) {

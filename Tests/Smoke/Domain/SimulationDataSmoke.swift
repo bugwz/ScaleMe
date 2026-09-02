@@ -2,18 +2,18 @@ import Foundation
 
 @main
 enum SimulationDataSmoke {
-    static func main() {
+    static func main() throws {
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = TimeZone(secondsFromGMT: 8 * 60 * 60) ?? .current
         let referenceDate = calendar.date(from: DateComponents(
             year: 2026, month: 8, day: 30, hour: 15
         )) ?? .now
-        let first = SimulationDataSnapshot.make(
+        let first = progressiveSnapshot(
             language: .simplifiedChinese,
             referenceDate: referenceDate,
             calendar: calendar
         )
-        let second = SimulationDataSnapshot.make(
+        let second = progressiveSnapshot(
             language: .simplifiedChinese,
             referenceDate: referenceDate,
             calendar: calendar
@@ -29,7 +29,71 @@ enum SimulationDataSmoke {
         precondition(first.selectedProfileID == first.profiles.first?.id, "默认应选中爸爸")
         precondition(first.pairedScales.count == 2, "simulation should include multiple scales")
         precondition(first.measurements == second.measurements, "simulation must be deterministic for a reference date")
-        precondition(first.measurements.count > 1_300, "simulation should provide dense year-long history")
+        precondition(first.measurements.count == 4_096,
+                     "simulation should provide exactly 4,096 records")
+        let generated = SimulationDataSnapshot.make(
+            language: .simplifiedChinese,
+            referenceDate: referenceDate,
+            calendar: calendar
+        )
+        precondition(first.measurements == generated.measurements,
+                     "progressive simulation generation must match a complete generation")
+
+        let launchDay = calendar.startOfDay(for: referenceDate)
+        let metadata = SimulationDataSnapshot.makeMetadata(
+            language: .simplifiedChinese,
+            launchDay: launchDay,
+            calendar: calendar
+        )
+        let recentMeasurements = metadata.generatedMeasurements(
+            dayOffsets: 0...6,
+            launchDay: launchDay,
+            calendar: calendar
+        )
+        let historicalMeasurements = metadata.generatedMeasurements(
+            dayOffsets: 7...364,
+            launchDay: launchDay,
+            calendar: calendar
+        )
+        precondition(Set(recentMeasurements.map(\.id)).isDisjoint(with: historicalMeasurements.map(\.id)),
+                     "recent and historical simulation chunks must not overlap")
+        precondition(Set(recentMeasurements.compactMap(\.profileID)) == Set(metadata.profiles.map(\.id)),
+                     "the fast recent chunk must include every simulated member")
+
+        let sameDayMorning = calendar.date(from: DateComponents(
+            year: 2026, month: 8, day: 30, hour: 1
+        )) ?? .now
+        let sameDayEvening = calendar.date(from: DateComponents(
+            year: 2026, month: 8, day: 30, hour: 23
+        )) ?? .now
+        let morningSnapshot = progressiveSnapshot(
+            language: .simplifiedChinese,
+            referenceDate: sameDayMorning,
+            calendar: calendar
+        )
+        let eveningSnapshot = progressiveSnapshot(
+            language: .simplifiedChinese,
+            referenceDate: sameDayEvening,
+            calendar: calendar
+        )
+        precondition(
+            morningSnapshot.measurements == eveningSnapshot.measurements,
+            "simulation timestamps must remain stable throughout the same calendar day"
+        )
+
+        let nextReferenceDate = calendar.date(byAdding: .day, value: 1, to: referenceDate) ?? referenceDate
+        let nextDaySnapshot = progressiveSnapshot(
+            language: .simplifiedChinese,
+            referenceDate: nextReferenceDate,
+            calendar: calendar
+        )
+        precondition(first.measurements.count == nextDaySnapshot.measurements.count,
+                     "daily rolling must preserve the simulated data shape")
+        precondition(zip(first.measurements, nextDaySnapshot.measurements).allSatisfy { current, next in
+            current.id == next.id
+                && current.weightKG == next.weightKG
+                && next.date.timeIntervalSince(current.date) == 86_400
+        }, "the same simulated values should roll forward exactly one day")
 
         let father = first.profiles.first(where: { $0.avatar == .father })
         let children = first.profiles.filter {
@@ -75,6 +139,15 @@ enum SimulationDataSmoke {
         for profile in first.profiles {
             let measurements = first.measurements.filter { $0.profileID == profile.id }
             precondition(!measurements.isEmpty, "每位模拟成员都必须有测量记录：\(profile.name)")
+            let measuredDays = Set(measurements.map { calendar.startOfDay(for: $0.date) })
+            precondition(measuredDays.count == 365, "每位模拟成员过去 365 天必须每天都有记录：\(profile.name)")
+            for dayOffset in 0...6 {
+                let expectedDay = calendar.date(byAdding: .day, value: -dayOffset, to: calendar.startOfDay(for: referenceDate))
+                precondition(
+                    expectedDay.map(measuredDays.contains) == true,
+                    "每位模拟成员最近七天必须每天都有记录：\(profile.name)"
+                )
+            }
             for measurement in measurements {
                 for metric in DashboardMetricKind.allCases {
                     precondition(
@@ -92,7 +165,8 @@ enum SimulationDataSmoke {
         })
         precondition(minutes.count > 80, "measurement times should not repeat a fixed schedule")
         precondition(minutes.allSatisfy {
-            ((6 * 60 + 18)...(8 * 60 + 30)).contains($0)
+            $0 == 0
+                || ((6 * 60 + 18)...(8 * 60 + 30)).contains($0)
                 || ((19 * 60 + 5)...(22 * 60 + 20)).contains($0)
         },
                      "measurements should cluster in realistic morning and evening windows")
@@ -103,7 +177,7 @@ enum SimulationDataSmoke {
         precondition(Set(intervals).count > 50, "measurement intervals should vary")
 
         for language in AppLanguage.allCases {
-            let localized = SimulationDataSnapshot.make(
+            let localized = progressiveSnapshot(
                 language: language,
                 referenceDate: referenceDate,
                 calendar: calendar
@@ -120,7 +194,7 @@ enum SimulationDataSmoke {
                          "simulated device names must fit device and history cards")
         }
 
-        let japanese = SimulationDataSnapshot.make(
+        let japanese = progressiveSnapshot(
             language: .japanese,
             referenceDate: referenceDate,
             calendar: calendar
@@ -136,5 +210,30 @@ enum SimulationDataSmoke {
         }, "measurement device names should switch with simulated device cards")
 
         print("Simulation data smoke tests passed (\(first.measurements.count) records)")
+    }
+
+    private static func progressiveSnapshot(
+        language: AppLanguage,
+        referenceDate: Date,
+        calendar: Calendar
+    ) -> SimulationDataSnapshot {
+        let launchDay = calendar.startOfDay(for: referenceDate)
+        var snapshot = SimulationDataSnapshot.makeMetadata(
+            language: language,
+            launchDay: launchDay,
+            calendar: calendar
+        )
+        let recentMeasurements = snapshot.generatedMeasurements(
+            dayOffsets: 0...6,
+            launchDay: launchDay,
+            calendar: calendar
+        )
+        let historicalMeasurements = snapshot.generatedMeasurements(
+            dayOffsets: 7...364,
+            launchDay: launchDay,
+            calendar: calendar
+        )
+        snapshot.measurements = (recentMeasurements + historicalMeasurements).sorted { $0.date > $1.date }
+        return snapshot
     }
 }
