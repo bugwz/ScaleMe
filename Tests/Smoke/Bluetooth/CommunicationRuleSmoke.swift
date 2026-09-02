@@ -180,18 +180,52 @@ struct CommunicationRuleSmoke {
         expect(Set(upstreamRecords.map(\.id)).count == upstreamRecords.count, "upstream adapter IDs should be unique")
         let builtInIDs = Set(CommunicationRuleCatalog.builtIn.map(\.id))
         expect(builtInIDs.count == CommunicationRuleCatalog.builtIn.count, "built-in protocol IDs should be unique")
+        let builtInNames = Set(CommunicationRuleCatalog.builtIn.map { $0.name.lowercased() })
+        expect(builtInNames.count == CommunicationRuleCatalog.builtIn.count, "built-in protocol names should be unique")
         expect(
             upstreamRecords.allSatisfy { record in
-                let ruleID = record.mappedRuleID ?? "protocol.builtin.upstream.\(record.id)"
+                let ruleID = UpstreamScaleAdapterCatalog.builtInRuleID(for: record)
                 return builtInIDs.contains(ruleID)
             },
             "every upstream adapter should map to an executable rule or a visible protocol skeleton"
+        )
+        let groupedSkeletonRecords = Dictionary(
+            grouping: upstreamRecords.filter { $0.mappedRuleID == nil },
+            by: { UpstreamScaleAdapterCatalog.builtInRuleID(for: $0) }
+        )
+        expect(
+            groupedSkeletonRecords.values.allSatisfy { records in
+                guard let first = records.first else { return false }
+                return records.allSatisfy {
+                    $0.transport == first.transport
+                        && $0.serviceUUIDs == first.serviceUUIDs
+                        && $0.notifyCharacteristicUUIDs == first.notifyCharacteristicUUIDs
+                        && $0.writeCharacteristicUUIDs == first.writeCharacteristicUUIDs
+                        && $0.requirements == first.requirements
+                }
+            },
+            "merged upstream records should describe the same transport, GATT topology, and session requirements"
+        )
+        expect(
+            CommunicationRuleCatalog.builtIn.allSatisfy { rule in
+                let slug = rule.id.dropFirst("protocol.builtin.".count)
+                return slug.count <= 16
+                    && !slug.contains(".")
+                    && !slug.hasPrefix("ble-")
+                    && !slug.hasPrefix("open-")
+            },
+            "built-in protocol ID slugs should be compact and source-neutral"
         )
         expect(
             UpstreamScaleAdapterCatalog.skeletonRules.allSatisfy {
                 !$0.canMeasure && $0.effectiveVerification == .unverified
             },
             "incomplete upstream adapters should be explicitly unverified and unavailable for measurement"
+        )
+        expect(
+            UpstreamScaleAdapterCatalog.skeletonRules.flatMap { $0.sourceLinks ?? [] }.count
+                == upstreamRecords.filter { $0.mappedRuleID == nil }.count,
+            "merged protocol skeletons should retain every upstream source link"
         )
         expect(
             UpstreamScaleAdapterCatalog.skeletonRules.contains {

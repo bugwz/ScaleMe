@@ -93,12 +93,30 @@ private struct BuiltInProtocolsView: View {
     @State private var searchText = ""
     @State private var isSearchFocused = false
 
+    private var sortedRules: [CommunicationRule] {
+        CommunicationRuleCatalog.builtIn.sorted { lhs, rhs in
+            let lhsIsFullyUsable = lhs.effectiveImplementation == .executable
+            let rhsIsFullyUsable = rhs.effectiveImplementation == .executable
+            if lhsIsFullyUsable != rhsIsFullyUsable {
+                return lhsIsFullyUsable
+            }
+
+            let lhsName = lhs.name
+            let rhsName = rhs.name
+            let nameOrder = lhsName.localizedCaseInsensitiveCompare(rhsName)
+            if nameOrder != .orderedSame {
+                return nameOrder == .orderedAscending
+            }
+            return lhs.id.localizedCaseInsensitiveCompare(rhs.id) == .orderedAscending
+        }
+    }
+
     private var filteredRules: [CommunicationRule] {
         let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !query.isEmpty else { return CommunicationRuleCatalog.builtIn }
-        return CommunicationRuleCatalog.builtIn.filter { rule in
+        guard !query.isEmpty else { return sortedRules }
+        return sortedRules.filter { rule in
             [
-                language.text(rule.name),
+                rule.name,
                 language.text(rule.summary),
                 language.text(transportTitle(rule.match.transport)),
                 rule.id
@@ -196,20 +214,18 @@ private struct ProtocolRuleRow: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text(rule.origin == .builtIn ? language.text(rule.name) : rule.name)
+            Text(rule.name)
                 .font(.subheadline.weight(.semibold))
                 .foregroundStyle(AppColor.ink)
-                .fixedSize(horizontal: false, vertical: true)
+                .lineLimit(1)
+                .truncationMode(.tail)
             HStack(spacing: 6) {
-                protocolTag(rule.origin.title, color: rule.origin == .builtIn ? AppColor.mint : AppColor.apricot)
                 protocolTag(transportTitle(rule.match.transport), color: transportColor(rule.match.transport))
-                Spacer(minLength: 0)
-            }
-            HStack(spacing: 6) {
                 protocolTag(rule.effectiveImplementation.title, color: implementationColor(rule.effectiveImplementation))
                 protocolTag(rule.effectiveVerification.title, color: verificationColor(rule.effectiveVerification))
                 Spacer(minLength: 0)
             }
+            .fixedSize(horizontal: false, vertical: true)
         }
     }
 
@@ -418,7 +434,27 @@ private struct CommunicationRuleDetailView: View {
                         Divider()
                         SettingsValueRow(title: "作者", value: author)
                     }
-                    if let sourceURL = rule.sourceURL {
+                    if let sourceLinks = rule.sourceLinks, !sourceLinks.isEmpty {
+                        ForEach(sourceLinks) { source in
+                            Divider()
+                            Link(destination: source.url) {
+                                HStack(spacing: 10) {
+                                    Text("上游项目")
+                                        .foregroundStyle(AppColor.ink)
+                                    Spacer()
+                                    Text(source.project)
+                                        .foregroundStyle(AppColor.secondary)
+                                    Image(systemName: "arrow.up.right.square")
+                                        .foregroundStyle(AppColor.mint)
+                                }
+                                .font(.subheadline)
+                            }
+                        }
+                    } else if let sourceURL = rule.sourceURL {
+                        if let upstreamProject = upstreamProjectName(sourceURL) {
+                            Divider()
+                            SettingsValueRow(title: "上游项目", value: upstreamProject)
+                        }
                         Divider()
                         Link(destination: sourceURL) {
                             Label("打开来源地址", systemImage: "arrow.up.right.square")
@@ -531,6 +567,17 @@ private struct CommunicationRuleDetailView: View {
         .navigationTitle("协议详情")
         .navigationBarTitleDisplayMode(.inline)
         .localizedNavigationBackButton()
+    }
+
+    private func upstreamProjectName(_ sourceURL: URL) -> String? {
+        let path = sourceURL.path.lowercased()
+        if path.contains("/kristianp26/ble-scale-sync/") {
+            return "ble-scale-sync"
+        }
+        if path.contains("/oliexdev/openscale/") {
+            return "openScale"
+        }
+        return nil
     }
 
     private func lengthDescription(_ match: CommunicationRuleMatch) -> String {

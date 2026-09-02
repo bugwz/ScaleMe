@@ -514,6 +514,20 @@
         }
       }
     },
+    "上游项目" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Ursprungsprojekt" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Upstream project" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Proyecto de origen" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Projet en amont" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "アップストリームプロジェクト" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "업스트림 프로젝트" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Projeto de origem" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Исходный проект" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "上游项目" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "上游專案" } }
+      }
+    },
     "上移" : {
       "localizations" : {
         "de" : {

@@ -145,6 +145,13 @@ struct CommunicationRuleDecoder: Codable, Equatable, Hashable {
     var date: CommunicationDateDecoder? = nil
 }
 
+struct CommunicationRuleSourceLink: Codable, Identifiable, Equatable, Hashable {
+    var project: String
+    var url: URL
+
+    var id: String { url.absoluteString }
+}
+
 struct CommunicationRule: Codable, Identifiable, Equatable, Hashable {
     var id: String
     var name: String
@@ -153,6 +160,7 @@ struct CommunicationRule: Codable, Identifiable, Equatable, Hashable {
     var author: String?
     var origin: CommunicationRuleOrigin
     var sourceURL: URL?
+    var sourceLinks: [CommunicationRuleSourceLink]? = nil
     var match: CommunicationRuleMatch
     var decoder: CommunicationRuleDecoder?
     var builtInParser: String?
@@ -217,13 +225,13 @@ enum CommunicationRuleCatalog {
     static let etekcityFit8SID = "protocol.builtin.fit8s"
     static let eufyC20ID = "protocol.builtin.eufy-c20"
     static let yunmaiXID = "protocol.builtin.yunmai-x"
-    static let xiaomiMiScale2ID = "protocol.builtin.xiaomi-mi-scale2"
+    static let xiaomiMiScale2ID = "protocol.builtin.xiaomi-181d"
     static let silvergear108ID = "protocol.builtin.silvergear-108"
 
     private static let implemented: [CommunicationRule] = [
         CommunicationRule(
             id: bluetoothSIGWeightID,
-            name: "标准体重",
+            name: "SIG Weight",
             version: 1,
             summary: "Bluetooth SIG 标准体重服务（181D / 2A9D）。",
             origin: .builtIn,
@@ -234,7 +242,7 @@ enum CommunicationRuleCatalog {
         ),
         CommunicationRule(
             id: bluetoothSIGBodyID,
-            name: "标准体成分",
+            name: "SIG Body Composition",
             version: 1,
             summary: "Bluetooth SIG 标准体成分服务（181B / 2A9C）。",
             origin: .builtIn,
@@ -245,7 +253,7 @@ enum CommunicationRuleCatalog {
         ),
         CommunicationRule(
             id: huaweiHagridID,
-            name: "华为 Hagrid/WSP",
+            name: "Huawei Hagrid/WSP",
             version: 1,
             summary: "华为 Scale 2/3 私有连接协议；支持配置认证材料，完整认证与测量仍在适配。",
             origin: .builtIn,
@@ -264,7 +272,7 @@ enum CommunicationRuleCatalog {
         ),
         CommunicationRule(
             id: xiaomiLegacyID,
-            name: "小米广播",
+            name: "Xiaomi 181B",
             version: 1,
             summary: "解析 0x181B 服务广播中的体重、稳定状态、时间与阻抗。",
             origin: .builtIn,
@@ -339,7 +347,7 @@ enum CommunicationRuleCatalog {
         ),
         CommunicationRule(
             id: qnAABBID,
-            name: "QN/AABB 广播秤",
+            name: "QN/AABB",
             version: 1,
             summary: "解析 Company ID FFFF 厂商广播中的 AABB 体重与稳定状态。已通过数据样本验证，待真机验证。",
             origin: .builtIn,
@@ -350,7 +358,7 @@ enum CommunicationRuleCatalog {
         ),
         CommunicationRule(
             id: aaaSeriesID,
-            name: "AAA002 / AAA007 / AAA013",
+            name: "AAA Series",
             version: 1,
             summary: "解析 AAA 系列厂商广播的 XOR 数据、5 位校验、克数与稳定状态。已通过数据样本验证，待真机验证。",
             origin: .builtIn,
@@ -361,7 +369,7 @@ enum CommunicationRuleCatalog {
         ),
         CommunicationRule(
             id: sinocareID,
-            name: "Sinocare 广播秤",
+            name: "Sinocare",
             version: 1,
             summary: "解析 Company ID FF64 的 XOR 校验和广播体重。已通过数据样本验证，待真机验证。",
             origin: .builtIn,
@@ -372,7 +380,7 @@ enum CommunicationRuleCatalog {
         ),
         CommunicationRule(
             id: scaleupID,
-            name: "Scaleup 广播秤",
+            name: "Scaleup",
             version: 1,
             summary: "解析 D0/E0 状态、0.01 kg 体重与稳定状态。已通过数据样本验证，待真机验证。",
             origin: .builtIn,
@@ -383,7 +391,7 @@ enum CommunicationRuleCatalog {
         ),
         CommunicationRule(
             id: okokID,
-            name: "OKOK 广播秤",
+            name: "OKOK",
             version: 1,
             summary: "解析 OKOK V20、V11、VF0 与 C0 广播变体。已通过数据样本验证，待真机验证。",
             origin: .builtIn,
@@ -405,7 +413,7 @@ enum CommunicationRuleCatalog {
         ),
         CommunicationRule(
             id: eufyC20ID,
-            name: "Eufy C20 / T9130",
+            name: "Eufy C20",
             version: 1,
             summary: "解析 Company ID BC64 的体重与阻抗字段。已通过数据样本验证，待真机验证。",
             origin: .builtIn,
@@ -416,7 +424,7 @@ enum CommunicationRuleCatalog {
         ),
         CommunicationRule(
             id: yunmaiXID,
-            name: "Yunmai X / YMBS-M268",
+            name: "Yunmai X",
             version: 1,
             summary: "解析 1320 服务、0B7417 签名、XOR 校验、体重与阻抗。已通过数据样本验证，待真机验证。",
             origin: .builtIn,
@@ -427,7 +435,7 @@ enum CommunicationRuleCatalog {
         ),
         CommunicationRule(
             id: xiaomiMiScale2ID,
-            name: "小米 XMTZC04HM 广播",
+            name: "Xiaomi XMTZC04HM",
             version: 1,
             summary: "解析 MI SCALE2 的 10 字节 181D 广播、单位、锁定状态、离秤状态与时间。仅体重，已通过上游抓包样本验证，待本项目真机验证。",
             author: "ble-scale-sync contributors",
@@ -446,7 +454,7 @@ enum CommunicationRuleCatalog {
         ),
         CommunicationRule(
             id: silvergear108ID,
-            name: "Silvergear Smart Scale 108",
+            name: "Silvergear 108",
             version: 1,
             summary: "解析 Company ID A0AC 的 12 字节广播、5 位校验、混淆后的克数与锁定状态。身体数据帧语义尚未确认，因此只读取体重。",
             author: "ble-scale-sync contributors",
