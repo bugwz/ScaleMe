@@ -16,6 +16,51 @@ enum WeightUnit: String, Codable, CaseIterable, Identifiable {
     }
 }
 
+enum WidgetTrendTimeRange: String, Codable, CaseIterable, Identifiable {
+    case week
+    case month
+    case quarter
+    case halfYear
+    case year
+    case all
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .week: "近 7 天"
+        case .month: "近 30 天"
+        case .quarter: "近 3 个月"
+        case .halfYear: "近 6 个月"
+        case .year: "近 1 年"
+        case .all: "全部时间"
+        }
+    }
+}
+
+enum WidgetTrendDisplayStyle: String, Codable, CaseIterable, Identifiable {
+    case periodFocused
+    case periodFullRange
+    case actualFocused
+    case actualFullRange
+
+    var id: String { rawValue }
+
+    var chartMode: TrendChartMode {
+        switch self {
+        case .periodFocused, .periodFullRange: .period
+        case .actualFocused, .actualFullRange: .actual
+        }
+    }
+
+    var displayScope: TrendDisplayScope {
+        switch self {
+        case .periodFocused, .actualFocused: .availableData
+        case .periodFullRange, .actualFullRange: .selectedRange
+        }
+    }
+}
+
 enum MeasurementSource: String, Codable {
     case xiaomi = "小米体重秤"
     case wolaiAFU = "Wolai AFU 体脂秤"
@@ -251,6 +296,9 @@ struct AppConfiguration: Codable, Equatable {
     var customCommunicationRules: [CommunicationRule]
     var dashboardMetricOrder: [DashboardMetricKind]
     var dashboardVisibleMetrics: Set<DashboardMetricKind>
+    var widgetProfileID: UUID?
+    var widgetTimeRange: WidgetTrendTimeRange
+    var widgetDisplayStyle: WidgetTrendDisplayStyle
 
     init(
         profiles: [UserProfile],
@@ -265,7 +313,10 @@ struct AppConfiguration: Codable, Equatable {
         appleHealthDeviceIDs: Set<UUID> = [],
         customCommunicationRules: [CommunicationRule],
         dashboardMetricOrder: [DashboardMetricKind] = DashboardMetricKind.allCases,
-        dashboardVisibleMetrics: Set<DashboardMetricKind> = DashboardMetricKind.defaultVisible
+        dashboardVisibleMetrics: Set<DashboardMetricKind> = DashboardMetricKind.defaultVisible,
+        widgetProfileID: UUID? = nil,
+        widgetTimeRange: WidgetTrendTimeRange = .month,
+        widgetDisplayStyle: WidgetTrendDisplayStyle = .periodFocused
     ) {
         self.profiles = profiles
         self.selectedProfileID = selectedProfileID
@@ -280,6 +331,9 @@ struct AppConfiguration: Codable, Equatable {
         self.customCommunicationRules = customCommunicationRules
         self.dashboardMetricOrder = dashboardMetricOrder
         self.dashboardVisibleMetrics = dashboardVisibleMetrics
+        self.widgetProfileID = widgetProfileID
+        self.widgetTimeRange = widgetTimeRange
+        self.widgetDisplayStyle = widgetDisplayStyle
     }
 
     private enum CodingKeys: String, CodingKey {
@@ -296,6 +350,9 @@ struct AppConfiguration: Codable, Equatable {
         case customCommunicationRules
         case dashboardMetricOrder
         case dashboardVisibleMetrics
+        case widgetProfileID
+        case widgetTimeRange
+        case widgetDisplayStyle
     }
 
     init(from decoder: Decoder) throws {
@@ -313,6 +370,9 @@ struct AppConfiguration: Codable, Equatable {
         customCommunicationRules = try container.decode([CommunicationRule].self, forKey: .customCommunicationRules)
         dashboardMetricOrder = try container.decodeIfPresent([DashboardMetricKind].self, forKey: .dashboardMetricOrder) ?? DashboardMetricKind.allCases
         dashboardVisibleMetrics = try container.decodeIfPresent(Set<DashboardMetricKind>.self, forKey: .dashboardVisibleMetrics) ?? DashboardMetricKind.defaultVisible
+        widgetProfileID = try container.decodeIfPresent(UUID.self, forKey: .widgetProfileID)
+        widgetTimeRange = try container.decodeIfPresent(WidgetTrendTimeRange.self, forKey: .widgetTimeRange) ?? .month
+        widgetDisplayStyle = try container.decodeIfPresent(WidgetTrendDisplayStyle.self, forKey: .widgetDisplayStyle) ?? .periodFocused
     }
 
     static var standard: AppConfiguration {

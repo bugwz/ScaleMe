@@ -37,6 +37,7 @@
 - BLE 设备发现、标准 GATT 测量与多个隔离的厂商协议解析路径
 - 本地 AES-GCM 加密记录，以及配置和测量数据的独立导入、导出与 iCloud 同步
 - 可选的 Apple 健康体重、体脂率写入
+- 可独立配置类别、时间范围、来源设备、用户和显示方式的中尺寸桌面趋势小组件，支持重复放置；点击仅进入应用趋势菜单，不改变应用内图表设置
 - 10 种界面语言和用于完整体验演示的家庭模拟数据
 - 面向真实设备适配的诊断采集、声明式通信规则和确定性协议测试
 
@@ -73,6 +74,8 @@ ScaleMe/
 ├── Features/         # 概览、测量、趋势、设备和设置
 ├── Shared/           # 设计系统与共享组件
 └── Resources/        # Assets、String Catalog 与配置资源
+ScaleMeWidget/        # iOS 17+ 桌面趋势小组件
+ScaleMeWidgetShared/  # 主应用与小组件共享的加密快照数据契约
 ```
 
 完整的分层、状态流转、蓝牙管线、存储边界与扩展方式见 [架构与实现](Docs/Architecture.md)。
@@ -82,6 +85,8 @@ ScaleMe/
 1. 使用 Xcode 26 或更新版本打开 `ScaleMe.xcodeproj`。
 2. 在模拟器中运行，并从“设置 → 数据管理”开启模拟数据以体验完整界面。
 3. 如需扫描和测量真实设备，请选择开发团队并安装到 iPhone，在首次使用时授予蓝牙权限。
+
+桌面小组件使用 App Group 与共享 Keychain 读取经 AES-GCM 加密的精简趋势快照。首次运行时，签名团队需要为主应用和 `ScaleMeWidget` 扩展启用对应的 App Groups 与 Keychain Sharing 能力。
 
 蓝牙测量、HealthKit 授权、iCloud 容器和具体体重秤协议最终都需要签名真机验证。详细环境说明、测试命令与真机检查项见 [开发与验证](Docs/Development.md)。
 

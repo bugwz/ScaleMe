@@ -18,6 +18,9 @@ final class MeasurementStore: ObservableObject {
     @Published private(set) var customCommunicationRules: [CommunicationRule] { didSet { persistConfigurationIfNeeded() } }
     @Published private(set) var dashboardMetricOrder: [DashboardMetricKind] { didSet { persistConfigurationIfNeeded() } }
     @Published private(set) var dashboardVisibleMetrics: Set<DashboardMetricKind> { didSet { persistConfigurationIfNeeded() } }
+    @Published var widgetProfileID: UUID? { didSet { persistConfigurationIfNeeded() } }
+    @Published var widgetTimeRange: WidgetTrendTimeRange { didSet { persistConfigurationIfNeeded() } }
+    @Published var widgetDisplayStyle: WidgetTrendDisplayStyle { didSet { persistConfigurationIfNeeded() } }
     @Published private(set) var storageError: String?
     @Published private(set) var latestHealthShareCandidate: BodyMeasurement?
     @Published private(set) var isSimulationDataLoading = false
@@ -94,6 +97,9 @@ final class MeasurementStore: ObservableObject {
         customCommunicationRules = loadedConfiguration.customCommunicationRules
         dashboardMetricOrder = MeasurementStore.sanitizedMetricOrder(loadedConfiguration.dashboardMetricOrder)
         dashboardVisibleMetrics = loadedConfiguration.dashboardVisibleMetrics
+        widgetProfileID = loadedConfiguration.widgetProfileID
+        widgetTimeRange = loadedConfiguration.widgetTimeRange
+        widgetDisplayStyle = loadedConfiguration.widgetDisplayStyle
         measurements = loadedArchive.measurements.sorted { $0.date > $1.date }
         deletedMeasurementIDs = loadedArchive.deletedMeasurementIDs
         archiveUpdatedAt = loadedArchive.updatedAt
@@ -115,7 +121,10 @@ final class MeasurementStore: ObservableObject {
             appleHealthDeviceIDs: appleHealthDeviceIDs,
             customCommunicationRules: customCommunicationRules,
             dashboardMetricOrder: dashboardMetricOrder,
-            dashboardVisibleMetrics: dashboardVisibleMetrics
+            dashboardVisibleMetrics: dashboardVisibleMetrics,
+            widgetProfileID: widgetProfileID,
+            widgetTimeRange: widgetTimeRange,
+            widgetDisplayStyle: widgetDisplayStyle
         )
     }
 
@@ -143,6 +152,14 @@ final class MeasurementStore: ObservableObject {
 
     var displaySelectedProfile: UserProfile {
         displayProfiles.first(where: { $0.id == displaySelectedProfileID }) ?? displayProfiles[0]
+    }
+
+    var widgetDisplayProfile: UserProfile {
+        guard let widgetProfileID,
+              let profile = displayProfiles.first(where: { $0.id == widgetProfileID }) else {
+            return displaySelectedProfile
+        }
+        return profile
     }
 
     var displayAppleHealthProfileID: UUID? {
@@ -526,6 +543,9 @@ final class MeasurementStore: ObservableObject {
         customCommunicationRules = configuration.customCommunicationRules
         dashboardMetricOrder = MeasurementStore.sanitizedMetricOrder(configuration.dashboardMetricOrder)
         dashboardVisibleMetrics = configuration.dashboardVisibleMetrics
+        widgetProfileID = configuration.widgetProfileID
+        widgetTimeRange = configuration.widgetTimeRange
+        widgetDisplayStyle = configuration.widgetDisplayStyle
         isApplyingExternalState = false
         persistConfiguration()
     }

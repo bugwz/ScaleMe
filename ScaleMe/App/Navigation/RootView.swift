@@ -85,6 +85,7 @@ struct RootView: View {
         }
         .ignoresSafeArea(.keyboard, edges: .bottom)
         .tint(AppColor.mint)
+        .onOpenURL(perform: openDeepLink)
     }
 
     private var expandedTrendTransition: AnyTransition {
@@ -147,6 +148,20 @@ struct RootView: View {
 
     private func resetTabToRoot(_ tab: RootTab) {
         navigationStore.popToRoot(for: tab)
+    }
+
+    private func openDeepLink(_ url: URL) {
+        guard url.scheme?.lowercased() == "scaleme",
+              url.host?.lowercased() == "trends" else {
+            return
+        }
+        orientationTask?.cancel()
+        if expandedTrend != nil {
+            AppOrientation.request(.portrait)
+            isOrientationTransitioning = false
+        }
+        expandedTrend = nil
+        selection = .trends
     }
 }
 

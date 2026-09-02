@@ -6,20 +6,89 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		B2000000000000000000000A /* ScaleMeWidget.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = B20000000000000000000001 /* ScaleMeWidget.appex */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		B2000000000000000000000C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A1000000000000000000000A /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = B20000000000000000000005;
+			remoteInfo = ScaleMeWidget;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		B20000000000000000000009 /* Embed App Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				B2000000000000000000000A /* ScaleMeWidget.appex in Embed App Extensions */,
+			);
+			name = "Embed App Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		A10000000000000000000001 /* ScaleMe.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ScaleMe.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B20000000000000000000001 /* ScaleMeWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ScaleMeWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		B20000000000000000000010 /* Exceptions for "ScaleMe" folder in "ScaleMe" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Resources/Configuration/Info.plist,
+			);
+			target = A10000000000000000000006 /* ScaleMe */;
+		};
+		B20000000000000000000011 /* Exceptions for "ScaleMeWidget" folder in "ScaleMeWidget" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = B20000000000000000000005 /* ScaleMeWidget */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		A10000000000000000000002 /* ScaleMe */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				B20000000000000000000010 /* Exceptions for "ScaleMe" folder in "ScaleMe" target */,
+			);
 			path = ScaleMe;
+			sourceTree = "<group>";
+		};
+		B20000000000000000000003 /* ScaleMeWidget */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				B20000000000000000000011 /* Exceptions for "ScaleMeWidget" folder in "ScaleMeWidget" target */,
+			);
+			path = ScaleMeWidget;
+			sourceTree = "<group>";
+		};
+		B20000000000000000000004 /* ScaleMeWidgetShared */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = ScaleMeWidgetShared;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		A10000000000000000000003 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B20000000000000000000007 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -33,6 +102,8 @@
 			isa = PBXGroup;
 			children = (
 				A10000000000000000000002 /* ScaleMe */,
+				B20000000000000000000003 /* ScaleMeWidget */,
+				B20000000000000000000004 /* ScaleMeWidgetShared */,
 				A10000000000000000000005 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -41,6 +112,7 @@
 			isa = PBXGroup;
 			children = (
 				A10000000000000000000001 /* ScaleMe.app */,
+				B20000000000000000000001 /* ScaleMeWidget.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -55,13 +127,16 @@
 				A10000000000000000000008 /* Sources */,
 				A10000000000000000000003 /* Frameworks */,
 				A10000000000000000000009 /* Resources */,
+				B20000000000000000000009 /* Embed App Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				B2000000000000000000000B /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				A10000000000000000000002 /* ScaleMe */,
+				B20000000000000000000004 /* ScaleMeWidgetShared */,
 			);
 			name = ScaleMe;
 			packageProductDependencies = (
@@ -69,6 +144,29 @@
 			productName = ScaleMe;
 			productReference = A10000000000000000000001 /* ScaleMe.app */;
 			productType = "com.apple.product-type.application";
+		};
+		B20000000000000000000005 /* ScaleMeWidget */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B2000000000000000000000D /* Build configuration list for PBXNativeTarget "ScaleMeWidget" */;
+			buildPhases = (
+				B20000000000000000000006 /* Sources */,
+				B20000000000000000000007 /* Frameworks */,
+				B20000000000000000000008 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				B20000000000000000000003 /* ScaleMeWidget */,
+				B20000000000000000000004 /* ScaleMeWidgetShared */,
+			);
+			name = ScaleMeWidget;
+			packageProductDependencies = (
+			);
+			productName = ScaleMeWidget;
+			productReference = B20000000000000000000001 /* ScaleMeWidget.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -81,6 +179,9 @@
 				LastUpgradeCheck = 2620;
 				TargetAttributes = {
 					A10000000000000000000006 = {
+						CreatedOnToolsVersion = 26.2;
+					};
+					B20000000000000000000005 = {
 						CreatedOnToolsVersion = 26.2;
 					};
 				};
@@ -109,12 +210,20 @@
 			projectRoot = "";
 			targets = (
 				A10000000000000000000006 /* ScaleMe */,
+				B20000000000000000000005 /* ScaleMeWidget */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		A10000000000000000000009 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B20000000000000000000008 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -131,7 +240,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		B20000000000000000000006 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		B2000000000000000000000B /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = B20000000000000000000005 /* ScaleMeWidget */;
+			targetProxy = B2000000000000000000000C /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		A1000000000000000000000C /* Debug */ = {
@@ -248,6 +372,7 @@
 				DEVELOPMENT_TEAM = 9Z7J4MT2AP;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = ScaleMe/Resources/Configuration/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "观我";
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "观我需要蓝牙来发现并读取您主动使用的体重体脂秤。";
 				INFOPLIST_KEY_NSBluetoothPeripheralUsageDescription = "观我需要蓝牙连接体重体脂秤。";
@@ -281,6 +406,7 @@
 				DEVELOPMENT_TEAM = 9Z7J4MT2AP;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = ScaleMe/Resources/Configuration/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "观我";
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "观我需要蓝牙来发现并读取您主动使用的体重体脂秤。";
 				INFOPLIST_KEY_NSBluetoothPeripheralUsageDescription = "观我需要蓝牙连接体重体脂秤。";
@@ -296,6 +422,62 @@
 				MARKETING_VERSION = 0.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.scaleme.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_STRICT_CONCURRENCY = minimal;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		B2000000000000000000000E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = ScaleMeWidget/ScaleMeWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 9Z7J4MT2AP;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = ScaleMeWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "观我趋势";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.scaleme.app.widget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_STRICT_CONCURRENCY = minimal;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		B2000000000000000000000F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = ScaleMeWidget/ScaleMeWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 9Z7J4MT2AP;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = ScaleMeWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "观我趋势";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.scaleme.app.widget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_STRICT_CONCURRENCY = minimal;
 				SWIFT_VERSION = 5.0;
@@ -320,6 +502,15 @@
 			buildConfigurations = (
 				A1000000000000000000000C /* Debug */,
 				A1000000000000000000000D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		B2000000000000000000000D /* Build configuration list for PBXNativeTarget "ScaleMeWidget" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B2000000000000000000000E /* Debug */,
+				B2000000000000000000000F /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

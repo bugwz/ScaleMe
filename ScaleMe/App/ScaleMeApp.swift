@@ -68,9 +68,17 @@ struct ScaleMeApp: App {
             .onChange(of: store.configuration) {
                 bluetooth.updatePairedScales(store.pairedScales, communicationRules: store.communicationRules)
                 cloudSync.configurationDidChange()
+                exportWidgetSnapshot()
             }
             .onChange(of: store.archive) {
                 cloudSync.measurementsDidChange()
+                exportWidgetSnapshot()
+            }
+            .onChange(of: store.displayMeasurements) {
+                exportWidgetSnapshot()
+            }
+            .onChange(of: store.displaySelectedProfileID) {
+                exportWidgetSnapshot()
             }
             .onReceive(store.$latestHealthShareCandidate.compactMap { $0 }) { measurement in
                 guard !store.isSimulationEnabled,
@@ -91,6 +99,7 @@ struct ScaleMeApp: App {
                 bluetooth.updatePairedScales(store.pairedScales, communicationRules: store.communicationRules)
                 cloudSync.attach(to: store)
                 appleHealth.refreshAuthorizationState()
+                exportWidgetSnapshot()
                 guard isShowingLaunchScreen else { return }
                 try? await Task.sleep(for: .seconds(2.75))
                 withAnimation(.easeInOut(duration: 0.55)) {
@@ -99,6 +108,13 @@ struct ScaleMeApp: App {
                 try? await Task.sleep(for: .seconds(0.55))
                 isShowingLaunchScreen = false
             }
+        }
+    }
+
+    private func exportWidgetSnapshot() {
+        let snapshot = store.makeWidgetTrendSnapshot()
+        Task {
+            await WidgetTrendSnapshotExporter.shared.export(snapshot)
         }
     }
 }
