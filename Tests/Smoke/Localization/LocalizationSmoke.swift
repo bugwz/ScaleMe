@@ -91,14 +91,27 @@ struct LocalizationSmoke {
             "返回", "正在连接", "正在读取设备能力", "设备能力已更新"
         ]
             + MemberAvatar.allCases.flatMap { [$0.title, $0.ageHint] }
-        let catalogPath = "ScaleMe/Resources/Localization/Localizable.xcstrings"
-        let catalogData = try Data(contentsOf: URL(fileURLWithPath: catalogPath))
-        guard
-            let catalog = try JSONSerialization.jsonObject(with: catalogData) as? [String: Any],
-            catalog["sourceLanguage"] as? String == AppLanguage.simplifiedChinese.rawValue,
-            let strings = catalog["strings"] as? [String: Any]
-        else {
-            preconditionFailure("Localizable.xcstrings must be a valid zh-Hans source catalog")
+        let catalogDirectory = URL(fileURLWithPath: "ScaleMe/Resources/Localization", isDirectory: true)
+        var strings: [String: Any] = [:]
+        var tableByKey: [String: LocalizationTable] = [:]
+        for table in LocalizationTable.allCases {
+            let catalogURL = catalogDirectory.appendingPathComponent(table.catalogFileName)
+            let catalogData = try Data(contentsOf: catalogURL)
+            guard
+                let catalog = try JSONSerialization.jsonObject(with: catalogData) as? [String: Any],
+                catalog["sourceLanguage"] as? String == AppLanguage.simplifiedChinese.rawValue,
+                let tableStrings = catalog["strings"] as? [String: Any],
+                !tableStrings.isEmpty
+            else {
+                preconditionFailure("\(table.catalogFileName) must be a nonempty zh-Hans source catalog")
+            }
+            for (key, entry) in tableStrings {
+                precondition(
+                    strings.updateValue(entry, forKey: key) == nil,
+                    "localization key appears in multiple catalogs: \(key)"
+                )
+                tableByKey[key] = table
+            }
         }
 
         for key in requiredLocalizedKeys + AppText.allCases.map(\.rawValue) {
@@ -106,7 +119,7 @@ struct LocalizationSmoke {
                 let entry = strings[key] as? [String: Any],
                 let localizations = entry["localizations"] as? [String: Any]
             else {
-                preconditionFailure("localization catalog is missing: \(key)")
+                preconditionFailure("localization catalogs are missing: \(key)")
             }
             for language in AppLanguage.allCases {
                 guard
@@ -186,6 +199,11 @@ struct LocalizationSmoke {
             }
             let runtimeKeys = requiredLocalizedKeys.map { ($0, $0) }
                 + AppText.allCases.map { ($0.rawValue, $0.defaultValue) }
+            let coveredTables = Set(runtimeKeys.compactMap { tableByKey[$0.0] })
+            precondition(
+                coveredTables == Set(LocalizationTable.allCases),
+                "runtime localization fixtures must cover every string table"
+            )
             for language in AppLanguage.allCases {
                 for (key, defaultValue) in runtimeKeys {
                     guard
@@ -197,14 +215,27 @@ struct LocalizationSmoke {
                     else {
                         preconditionFailure("missing expected translation for \(language.rawValue): \(key)")
                     }
-                    let actual = language.localized(
+                    guard let table = tableByKey[key] else {
+                        preconditionFailure("missing localization table for key: \(key)")
+                    }
+                    let tableActual = language.localized(
+                        key,
+                        defaultValue: defaultValue,
+                        table: table,
+                        in: appBundle
+                    )
+                    precondition(
+                        tableActual == expected,
+                        "runtime table lookup mismatch for \(language.rawValue): \(key)"
+                    )
+                    let aggregateActual = language.localized(
                         key,
                         defaultValue: defaultValue,
                         in: appBundle
                     )
                     precondition(
-                        actual == expected,
-                        "runtime lookup mismatch for \(language.rawValue): \(key)"
+                        aggregateActual == expected,
+                        "runtime aggregate lookup mismatch for \(language.rawValue): \(key)"
                     )
                 }
             }

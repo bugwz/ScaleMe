@@ -49,7 +49,7 @@ Design/Logo/             # 品牌源文件与文档预览
 Tools/                   # 按用途分组的开发工具
 ```
 
-简体中文是源语言。10 种界面语言统一维护在 `ScaleMe/Resources/Localization/Localizable.xcstrings`，系统 App 名称维护在同目录的 `InfoPlist.xcstrings`；不再使用散落的 `.lproj/Localizable.strings` 或按语言展开的 Swift 文案分支。
+简体中文是源语言。10 种界面语言按字符串表统一维护在 `ScaleMe/Resources/Localization/`：`Localizable.xcstrings` 保存 SwiftUI 默认表文本，`Shared`、`Dashboard`、`Measurement`、`Trends`、`Devices` 和 `Settings` catalog 按职责保存动态及功能文案，系统 App 名称单独维护在 `InfoPlist.xcstrings`。每个 catalog 均包含全部支持语言，不使用散落的 `.lproj/Localizable.strings`、按语言拆分的 catalog 或 Swift 文案分支。
 
 目录与本地化方案参考 Apple 的 [Managing files and folders in your Xcode project](https://developer.apple.com/documentation/xcode/managing-files-and-folders-in-your-xcode-project/) 和 [Localizing and varying text with a string catalog](https://developer.apple.com/documentation/xcode/localizing-and-varying-text-with-a-string-catalog)。Apple 负责定义工程资源与本地化机制；上述分层则按观我自身的职责边界设计。
 

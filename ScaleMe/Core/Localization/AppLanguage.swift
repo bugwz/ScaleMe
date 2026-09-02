@@ -1,5 +1,21 @@
 import Foundation
 
+// SwiftUI literals stay in Localizable. Dynamic and semantic keys may live in
+// the role-based tables and are resolved through the aggregate lookup below.
+enum LocalizationTable: String, CaseIterable {
+    case localizable = "Localizable"
+    case shared = "Shared"
+    case dashboard = "Dashboard"
+    case measurement = "Measurement"
+    case trends = "Trends"
+    case devices = "Devices"
+    case settings = "Settings"
+
+    var catalogFileName: String {
+        "\(rawValue).xcstrings"
+    }
+}
+
 enum AppLanguage: String, CaseIterable, Codable, Identifiable {
     case simplifiedChinese = "zh-Hans"
     case traditionalChinese = "zh-Hant"
@@ -72,14 +88,32 @@ enum AppLanguage: String, CaseIterable, Codable, Identifiable {
         return key
     }
 
-    func localized(_ key: String, defaultValue: String, in bundle: Bundle = .main) -> String {
+    func localized(
+        _ key: String,
+        defaultValue: String,
+        table: LocalizationTable? = nil,
+        in bundle: Bundle = .main
+    ) -> String {
         guard
             let localizationPath = bundle.path(forResource: rawValue, ofType: "lproj"),
             let localizationBundle = Bundle(path: localizationPath)
         else {
             return defaultValue
         }
-        return localizationBundle.localizedString(forKey: key, value: defaultValue, table: nil)
+
+        let missing = "__scaleme_missing_localization__"
+        let tables = table.map { [$0] } ?? LocalizationTable.allCases
+        for candidate in tables {
+            let resolved = localizationBundle.localizedString(
+                forKey: key,
+                value: missing,
+                table: candidate.rawValue
+            )
+            if resolved != missing {
+                return resolved
+            }
+        }
+        return defaultValue
     }
 
     func format(_ key: String, _ arguments: CVarArg..., in bundle: Bundle = .main) -> String {
