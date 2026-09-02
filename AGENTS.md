@@ -7,7 +7,7 @@ This is the canonical development guide for every coding agent working in this r
 - Chinese product name: **观我**.
 - English product name and Xcode project name: **ScaleMe**.
 - Product purpose: a privacy-conscious native iOS app for Bluetooth weight and body-composition scales, personal records, and long-term trend analysis.
-- Product wording: “从细微变化里，看见身体长期的方向。”
+- Product wording: “观察身体变化，看见自己的健康轨迹。”
 - Do not imply medical diagnosis, treatment, or clinical accuracy. Consumer bioelectrical-impedance results are estimates for trend reference only.
 
 ## Current development phase: rapid iteration

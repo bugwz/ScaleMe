@@ -186,7 +186,7 @@ enum AppText: String, CaseIterable {
     var defaultValue: String {
         switch self {
         case .productName: "观我"
-        case .tagline: "从细微变化里，看见身体长期的方向"
+        case .tagline: "观察身体变化，看见自己的健康轨迹"
         case .home: "首页"
         case .measure: "测量"
         case .trends: "趋势"

@@ -1,5 +1,7 @@
 # ScaleMe 体重秤协议支持矩阵
 
+> 返回 [文档导航](README.md) · 查看 [架构与实现](Architecture.md) · 查看 [开发与验证](Development.md)
+
 本页调研基线为 2026-09-02：
 
 - `ble-scale-sync` commit [`e5060b4`](https://github.com/KristianP26/ble-scale-sync/tree/e5060b4e43e2d08ecace7e327145c777872ea93f)。其说明页仍写“32”，但该 commit 的实际 `adapters` 数组已有 33 个实例；这里以代码注册表为准并记录该差异。

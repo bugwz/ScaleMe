@@ -462,61 +462,61 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Erkenne die langfristige Richtung in kleinen Veränderungen"
+            "value" : "Beobachte die Veränderungen deines Körpers und erkenne deinen persönlichen Gesundheitsverlauf"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "See the long-term direction in every subtle change"
+            "value" : "Observe changes in your body and see your personal health journey"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Descubre la dirección a largo plazo en cada pequeño cambio"
+            "value" : "Observa los cambios de tu cuerpo y descubre tu propio recorrido de salud"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Percevez la tendance à long terme dans chaque variation"
+            "value" : "Observez les changements de votre corps et suivez votre parcours de santé"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "小さな変化から、身体の長期的な方向を見つける"
+            "value" : "身体の変化を観察し、自分の健康の軌跡を見つめる"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "작은 변화에서 몸의 장기적인 방향을 발견하세요"
+            "value" : "몸의 변화를 관찰하고 나만의 건강 여정을 확인하세요"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Veja a direção a longo prazo em cada pequena mudança"
+            "value" : "Observe as mudanças do seu corpo e acompanhe sua jornada de saúde"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Замечайте долгосрочное направление в каждом небольшом изменении"
+            "value" : "Наблюдайте за изменениями тела и следите за своим путем к здоровью"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "从细微变化里，看见身体长期的方向"
+            "value" : "观察身体变化，看见自己的健康轨迹"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "從細微變化裡，看見身體長期的方向"
+            "value" : "觀察身體變化，看見自己的健康軌跡"
           }
         }
       }
