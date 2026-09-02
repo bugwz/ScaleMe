@@ -273,7 +273,7 @@ struct MeasureView: View {
 
             AppLocalizedText(store.isSimulationEnabled
                 ? "当前显示最近一条模拟测量，关闭模拟数据后恢复真实设备监听"
-                : "轻踩唤醒体重秤后站稳，观我会自动接收读数")
+                : "轻踩唤醒体重秤后站稳，本应用会自动接收读数")
                 .font(.subheadline).foregroundStyle(AppColor.secondary)
                 .multilineTextAlignment(.center)
 

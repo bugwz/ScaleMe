@@ -1301,67 +1301,67 @@
         }
       }
     },
-    "轻踩唤醒体重秤后站稳，观我会自动接收读数" : {
+    "轻踩唤醒体重秤后站稳，本应用会自动接收读数" : {
       "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wake the scale, then stand still while ScaleMe receives the reading"
+            "value" : "Wecke die Waage auf und bleibe ruhig stehen. Die App empfängt den Messwert automatisch."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wake the scale, then stand still while ScaleMe receives the reading"
+            "value" : "Wake the scale, then stand still. The app will receive the reading automatically."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wake the scale, then stand still while ScaleMe receives the reading"
+            "value" : "Activa la báscula y quédate quieto. La app recibirá la lectura automáticamente."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wake the scale, then stand still while ScaleMe receives the reading"
+            "value" : "Réveillez la balance et restez immobile. L’app recevra automatiquement la mesure."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wake the scale, then stand still while ScaleMe receives the reading"
+            "value" : "体重計を起動して静止してください。アプリが測定値を自動で受信します。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wake the scale, then stand still while ScaleMe receives the reading"
+            "value" : "체중계를 깨운 후 가만히 서 계세요. 앱이 측정값을 자동으로 받습니다."
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wake the scale, then stand still while ScaleMe receives the reading"
+            "value" : "Ative a balança e fique imóvel. A app receberá a leitura automaticamente."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wake the scale, then stand still while ScaleMe receives the reading"
+            "value" : "Разбудите весы и стойте неподвижно. Приложение автоматически получит показание."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "轻踩唤醒体重秤后站稳，观我会自动接收读数"
+            "value" : "轻踩唤醒体重秤后站稳，本应用会自动接收读数"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "轻踩唤醒体重秤后站稳，观我会自动接收读数"
+            "value" : "轻踩唤醒体重秤后站稳，本應用會自動接收讀數"
           }
         }
       }

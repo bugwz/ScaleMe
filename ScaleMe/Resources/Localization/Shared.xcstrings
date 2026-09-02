@@ -1355,13 +1355,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "选择观我的界面外观；跟随系统会随设备设置自动切换。"
+            "value" : "选择应用的界面外观；跟随系统会随设备设置自动切换。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "選擇見微的介面外觀；跟隨系統會隨裝置設定自動切換。"
+            "value" : "選擇應用的介面外觀；跟隨系統會隨裝置設定自動切換。"
           }
         }
       }

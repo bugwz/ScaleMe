@@ -200,7 +200,7 @@ enum AppText: String, CaseIterable {
         case .languageHint: "更改后立即应用到界面，无需重新启动。"
         case .followSystem: "跟随系统"
         case .appearance: "外观"
-        case .appearanceHint: "选择观我的界面外观；跟随系统会随设备设置自动切换。"
+        case .appearanceHint: "选择应用的界面外观；跟随系统会随设备设置自动切换。"
         case .lightAppearance: "浅色"
         case .darkAppearance: "深色"
         case .selected: "已选择"

@@ -12,6 +12,9 @@ struct RootView: View {
 
     var body: some View {
         ZStack {
+            AppPageBackground(avatar: store.displaySelectedProfile.avatar)
+                .ignoresSafeArea()
+
             rootTabs
                 .opacity(expandedTrend == nil ? 1 : 0)
                 .allowsHitTesting(expandedTrend == nil)
@@ -71,10 +74,6 @@ struct RootView: View {
             .tag(RootTab.settings)
         }
         .toolbar(.hidden, for: .tabBar)
-        .background(
-            AppPageBackground(avatar: store.displaySelectedProfile.avatar)
-                .ignoresSafeArea()
-        )
         .safeAreaInset(edge: .bottom, spacing: 0) {
             if expandedTrend == nil {
                 AppBottomNavigation(

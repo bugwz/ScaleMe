@@ -8,14 +8,14 @@ struct AboutView: View {
             VStack(alignment: .leading, spacing: 18) {
                 brandHeader
 
-                SettingsPanel(title: "关于观我", icon: "sparkles") {
-                    Text("观我是一款注重隐私的原生 iOS 体重与身体趋势应用，帮助你连接蓝牙体脂秤、管理个人记录，并从长期变化中理解身体的方向。")
+                SettingsPanel(title: "关于应用", icon: "sparkles") {
+                    Text("本应用是一款注重隐私的原生 iOS 体重与身体趋势应用，帮助你连接蓝牙体脂秤、管理个人记录，并从长期变化中理解身体的方向。")
                         .font(.subheadline)
                         .foregroundStyle(AppColor.secondary)
                         .lineSpacing(4)
                 }
 
-                SettingsPanel(title: "我们的原则", icon: "leaf.fill") {
+                SettingsPanel(title: "设计原则", icon: "leaf.fill") {
                     aboutRow(
                         icon: "lock.shield.fill",
                         title: "本地优先",

@@ -505,7 +505,7 @@ private struct CommunicationRuleDetailView: View {
                         .foregroundStyle(AppColor.ink)
                         .lineSpacing(3)
                     if rule.origin != .builtIn {
-                        Label("该规则未经观我硬件验证，结果仅供协议调试和趋势参考。", systemImage: "exclamationmark.shield")
+                        Label("该规则尚未通过硬件验证，结果仅供协议调试和趋势参考。", systemImage: "exclamationmark.shield")
                             .font(.caption)
                             .foregroundStyle(AppColor.apricot)
                     }

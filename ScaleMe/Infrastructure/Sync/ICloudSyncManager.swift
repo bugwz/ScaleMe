@@ -191,7 +191,7 @@ private enum ICloudSyncError: LocalizedError {
 
     var errorDescription: String? {
         switch self {
-        case .unavailable: "无法访问观我的 iCloud 目录"
+        case .unavailable: "无法访问本应用的 iCloud 目录"
         case .missingConfiguration: "iCloud 中还没有配置文件"
         case .missingArchive: "没有可同步的数据文件"
         case .downloadTimedOut: "等待 iCloud 文件下载超时，请稍后重试"

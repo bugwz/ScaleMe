@@ -195,8 +195,6 @@ struct ExpandedTrendChartView: View {
         .padding(.vertical, 14)
         .opacity(isContentVisible ? 1 : 0)
         .scaleEffect(isContentVisible || reduceMotion ? 1 : 0.99)
-        .pageBackground()
-        .background(AppColor.canvas.ignoresSafeArea())
         .compositingGroup()
     }
 }

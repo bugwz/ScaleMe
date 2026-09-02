@@ -1041,67 +1041,67 @@
         }
       }
     },
-    "关于观我" : {
+    "关于应用" : {
       "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "About ScaleMe"
+            "value" : "Über die App"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "About ScaleMe"
+            "value" : "About the app"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "About ScaleMe"
+            "value" : "Acerca de la app"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "About ScaleMe"
+            "value" : "À propos de l’app"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "About ScaleMe"
+            "value" : "アプリについて"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "About ScaleMe"
+            "value" : "앱 정보"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "About ScaleMe"
+            "value" : "Sobre a app"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "About ScaleMe"
+            "value" : "О приложении"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "关于观我"
+            "value" : "关于应用"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "关于观我"
+            "value" : "關於應用"
           }
         }
       }
@@ -2991,7 +2991,7 @@
         }
       }
     },
-    "开启时会请求 Apple 健康写入权限；关闭后观我不会继续写入新数据。" : {
+    "开启时会请求 Apple 健康写入权限；关闭后本应用不会继续写入新数据。" : {
       "extractionState" : "manual",
       "localizations" : {
         "de" : {
@@ -3045,13 +3045,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "开启时会请求 Apple 健康写入权限；关闭后观我不会继续写入新数据。"
+            "value" : "开启时会请求 Apple 健康写入权限；关闭后本应用不会继续写入新数据。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "開啟時會要求 Apple 健康寫入權限；關閉後觀我不會繼續寫入新資料。"
+            "value" : "開啟時會要求 Apple 健康寫入權限；關閉後本應用不會繼續寫入新資料。"
           }
         }
       }
@@ -3316,67 +3316,67 @@
         }
       }
     },
-    "我们的原则" : {
+    "设计原则" : {
       "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Our principles"
+            "value" : "Designprinzipien"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Our principles"
+            "value" : "Design principles"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Our principles"
+            "value" : "Principios de diseño"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Our principles"
+            "value" : "Principes de conception"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Our principles"
+            "value" : "設計原則"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Our principles"
+            "value" : "디자인 원칙"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Our principles"
+            "value" : "Princípios de design"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Our principles"
+            "value" : "Принципы дизайна"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "我们的原则"
+            "value" : "设计原则"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "我们的原则"
+            "value" : "設計原則"
           }
         }
       }
@@ -3901,7 +3901,7 @@
         }
       }
     },
-    "无法访问观我的 iCloud 目录" : {
+    "无法访问本应用的 iCloud 目录" : {
       "extractionState" : "manual",
       "localizations" : {
         "de" : {
@@ -3955,13 +3955,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "无法访问观我的 iCloud 目录"
+            "value" : "无法访问本应用的 iCloud 目录"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "无法访问观我的 iCloud 目录"
+            "value" : "無法存取本應用的 iCloud 目錄"
           }
         }
       }
@@ -5461,7 +5461,7 @@
         }
       }
     },
-    "观我可以写入您允许的健康数据类型。" : {
+    "本应用可以写入您允许的健康数据类型。" : {
       "extractionState" : "manual",
       "localizations" : {
         "de" : {
@@ -5515,13 +5515,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "观我可以写入您允许的健康数据类型。"
+            "value" : "本应用可以写入您允许的健康数据类型。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "觀我可以寫入您允許的健康資料類型。"
+            "value" : "本應用可以寫入您允許的健康資料類型。"
           }
         }
       }
@@ -5721,7 +5721,7 @@
         }
       }
     },
-    "请在系统的健康权限设置中允许观我写入。" : {
+    "请在系统的健康权限设置中允许本应用写入。" : {
       "extractionState" : "manual",
       "localizations" : {
         "de" : {
@@ -5775,13 +5775,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "请在系统的健康权限设置中允许观我写入。"
+            "value" : "请在系统的健康权限设置中允许本应用写入。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "請在系統的健康權限設定中允許觀我寫入。"
+            "value" : "請在系統的健康權限設定中允許本應用寫入。"
           }
         }
       }

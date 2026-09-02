@@ -157,13 +157,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "观我仅在您同意后，将体重和明确记录的体脂率写入 Apple 健康。"
+            "value" : "本应用仅在您同意后，将体重和明确记录的体脂率写入 Apple 健康。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "觀我僅在您同意後，將體重和明確記錄的體脂率寫入 Apple 健康。"
+            "value" : "本應用僅在您同意後，將體重和明確記錄的體脂率寫入 Apple 健康。"
           }
         }
       }

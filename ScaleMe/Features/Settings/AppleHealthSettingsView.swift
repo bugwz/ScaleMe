@@ -34,7 +34,7 @@ struct AppleHealthSettingsView: View {
 
                     SettingsSwitch(
                         title: "同步到 Apple 健康",
-                        detail: "开启时会请求 Apple 健康写入权限；关闭后观我不会继续写入新数据。",
+                        detail: "开启时会请求 Apple 健康写入权限；关闭后本应用不会继续写入新数据。",
                         isOn: sharingBinding
                     )
                     .disabled(appleHealth.isRequestingAuthorization || appleHealth.authorizationState == .unavailable)
@@ -71,13 +71,21 @@ struct AppleHealthSettingsView: View {
                                 appearance: .compact,
                                 onToggle: toggleDeviceDropdown
                             )
+                            .disabled(store.displayPairedScales.isEmpty)
+                            .opacity(store.displayPairedScales.isEmpty ? 0.55 : 1)
 
-                            if isDeviceDropdownExpanded {
-                                deviceOptions
-                                    .transition(.opacity.combined(with: .move(edge: .top)))
-                            }
+                            AppLocalizedText("仅勾选你确认数据可靠的设备。未选择的设备、无法关联设备的数据和手动记录不会写入 Apple 健康。")
+                                .font(.caption)
+                                .foregroundStyle(AppColor.secondary)
+                                .lineSpacing(3)
+                                .fixedSize(horizontal: false, vertical: true)
 
-                            if store.displayAppleHealthDeviceIDs.isEmpty {
+                            if store.displayPairedScales.isEmpty {
+                                Label("请先在设备页关联体重秤，再选择允许同步的来源。", systemImage: "scalemass")
+                                    .font(.caption)
+                                    .foregroundStyle(AppColor.secondary)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            } else if store.displayAppleHealthDeviceIDs.isEmpty {
                                 Label("开启同步后仍需至少选择一台设备，新的测量才会写入 Apple 健康。", systemImage: "exclamationmark.circle.fill")
                                     .font(.caption)
                                     .foregroundStyle(AppColor.rose)
@@ -94,7 +102,7 @@ struct AppleHealthSettingsView: View {
                 }
 
                 Label(
-                    "观我不会读取 Apple 健康数据。开启后仅共享所选成员的新测量，不补传历史记录；估算的身体成分不会写入。",
+                    "本应用不会读取 Apple 健康数据。开启后仅共享所选成员的新测量，不补传历史记录；估算的身体成分不会写入。",
                     systemImage: "hand.raised.fill"
                 )
                 .font(.caption)
@@ -114,7 +122,7 @@ struct AppleHealthSettingsView: View {
         .navigationTitle(store.appLanguage.text(.dataSharing))
         .navigationBarTitleDisplayMode(.inline)
         .localizedNavigationBackButton()
-        .accessibilityHidden(isProfileDropdownExpanded)
+        .accessibilityHidden(isProfileDropdownExpanded || isDeviceDropdownExpanded)
         .overlayPreferenceValue(AppDropdownAnchorPreferenceKey.self) { anchor in
             GeometryReader { proxy in
                 if let anchor, isProfileDropdownExpanded {
@@ -122,7 +130,7 @@ struct AppleHealthSettingsView: View {
                         anchorFrame: proxy[anchor],
                         availableSize: proxy.size,
                         options: profileOptions,
-                        selection: selectedProfileOption,
+                        isSelected: { $0 == selectedProfileOption },
                         title: { $0.name },
                         appearance: .compact,
                         onSelect: { option in
@@ -130,6 +138,22 @@ struct AppleHealthSettingsView: View {
                             dismissProfileDropdown()
                         },
                         onDismiss: dismissProfileDropdown
+                    )
+                } else if let anchor, isDeviceDropdownExpanded {
+                    AppDropdownMenuLayer(
+                        anchorFrame: proxy[anchor],
+                        availableSize: proxy.size,
+                        options: store.displayPairedScales,
+                        isSelected: { store.displayAppleHealthDeviceIDs.contains($0.id) },
+                        title: { $0.name },
+                        detail: { $0.modelName },
+                        appearance: .compact,
+                        onSelect: { scale in
+                            withAnimation(.easeInOut(duration: 0.16)) {
+                                store.toggleDisplayAppleHealthDevice(scale.id)
+                            }
+                        },
+                        onDismiss: dismissDeviceDropdown
                     )
                 }
             }
@@ -175,91 +199,11 @@ struct AppleHealthSettingsView: View {
         )
     }
 
-    @ViewBuilder
-    private var deviceOptions: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            AppLocalizedText("仅勾选你确认数据可靠的设备。未选择的设备、无法关联设备的数据和手动记录不会写入 Apple 健康。")
-                .font(.caption)
-                .foregroundStyle(AppColor.secondary)
-                .lineSpacing(3)
-                .padding(.vertical, 10)
-
-            if store.displayPairedScales.isEmpty {
-                SettingsSeparator()
-                Label {
-                    VStack(alignment: .leading, spacing: 3) {
-                        AppLocalizedText("暂无可选设备")
-                            .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(AppColor.ink)
-                        AppLocalizedText("请先在设备页关联体重秤，再选择允许同步的来源。")
-                            .font(.caption)
-                            .foregroundStyle(AppColor.secondary)
-                    }
-                } icon: {
-                    Image(systemName: "scalemass")
-                        .foregroundStyle(AppColor.sky)
-                }
-                .padding(.vertical, 10)
-            } else {
-                ForEach(store.displayPairedScales) { scale in
-                    SettingsSeparator()
-                    sharingDeviceRow(scale)
-                        .padding(.vertical, 10)
-                        .accessibilityLabel(scale.name)
-                        .accessibilityValue(
-                            store.appLanguage.text(
-                                store.displayAppleHealthDeviceIDs.contains(scale.id) ? "已选择" : "未选择"
-                            )
-                        )
-                }
-            }
-        }
-        .padding(.horizontal, 12)
-        .background(AppColor.canvas, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .stroke(AppColor.mint.opacity(0.16))
-        )
-    }
-
     private var deviceSelectionTitle: String {
         let count = store.displayAppleHealthDeviceIDs.count
         return count == 0
             ? store.appLanguage.text("请选择设备")
             : store.appLanguage.format("已选择 %lld 台设备", count)
-    }
-
-    private func sharingDeviceRow(_ scale: PairedScale) -> some View {
-        let isSelected = store.displayAppleHealthDeviceIDs.contains(scale.id)
-        return Button {
-            store.toggleDisplayAppleHealthDevice(scale.id)
-        } label: {
-            HStack(spacing: 12) {
-                Image(systemName: "scalemass.fill")
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(isSelected ? AppColor.mint : AppColor.secondary)
-                    .frame(width: 36, height: 36)
-                    .background(
-                        isSelected ? AppColor.paleMint : AppColor.canvas,
-                        in: RoundedRectangle(cornerRadius: 11, style: .continuous)
-                    )
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(scale.name)
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(AppColor.ink)
-                    Text(scale.modelName)
-                        .font(.caption)
-                        .foregroundStyle(AppColor.secondary)
-                        .lineLimit(1)
-                }
-                Spacer(minLength: 8)
-                Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
-                    .font(.title3)
-                    .foregroundStyle(isSelected ? AppColor.mint : AppColor.secondary.opacity(0.35))
-            }
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
     }
 
     private var authorizationStatusRow: some View {
@@ -336,8 +280,8 @@ struct AppleHealthSettingsView: View {
         switch appleHealth.authorizationState {
         case .unavailable: "当前设备不支持健康数据。"
         case .notDetermined: "开启同步后，由系统显示权限确认。"
-        case .authorized: "观我可以写入您允许的健康数据类型。"
-        case .denied: "请在系统的健康权限设置中允许观我写入。"
+        case .authorized: "本应用可以写入您允许的健康数据类型。"
+        case .denied: "请在系统的健康权限设置中允许本应用写入。"
         case let .failed(message): message
         }
     }
@@ -373,8 +317,15 @@ struct AppleHealthSettingsView: View {
 
     private func toggleDeviceDropdown() {
         isProfileDropdownExpanded = false
+        guard !store.displayPairedScales.isEmpty else { return }
         withAnimation(.easeInOut(duration: 0.18)) {
             isDeviceDropdownExpanded.toggle()
+        }
+    }
+
+    private func dismissDeviceDropdown() {
+        withAnimation(.easeInOut(duration: 0.16)) {
+            isDeviceDropdownExpanded = false
         }
     }
 }

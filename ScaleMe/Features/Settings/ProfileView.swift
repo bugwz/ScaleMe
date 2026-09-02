@@ -890,7 +890,7 @@ private struct MemberEditorView: View {
                                     anchorFrame: proxy[anchor],
                                     availableSize: proxy.size,
                                     options: relations,
-                                    selection: draft.relation,
+                                    isSelected: { $0 == draft.relation },
                                     title: { $0 },
                                     appearance: .compact,
                                     onSelect: { relation in
@@ -904,7 +904,7 @@ private struct MemberEditorView: View {
                                     anchorFrame: proxy[anchor],
                                     availableSize: proxy.size,
                                     options: UserProfile.BiologicalSex.allCases,
-                                    selection: draft.biologicalSex,
+                                    isSelected: { $0 == draft.biologicalSex },
                                     title: { $0.rawValue },
                                     appearance: .compact,
                                     onSelect: { biologicalSex in

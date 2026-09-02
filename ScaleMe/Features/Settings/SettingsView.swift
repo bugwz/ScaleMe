@@ -26,7 +26,7 @@ struct DisplaySettingsView: View {
                         anchorFrame: proxy[anchor],
                         availableSize: proxy.size,
                         options: WeightUnit.allCases,
-                        selection: store.unit,
+                        isSelected: { $0 == store.unit },
                         title: { $0.settingsTitle },
                         appearance: .compact,
                         onSelect: { unit in

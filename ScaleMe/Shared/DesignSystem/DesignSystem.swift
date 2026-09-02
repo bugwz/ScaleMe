@@ -585,14 +585,16 @@ struct AppDropdownMenuLayer<Option: Hashable>: View {
     let anchorFrame: CGRect
     let availableSize: CGSize
     let options: [Option]
-    let selection: Option
+    let isSelected: (Option) -> Bool
     let title: (Option) -> String
+    var detail: ((Option) -> String?)? = nil
     var appearance: AppDropdownAppearance = .tinted
     let onSelect: (Option) -> Void
     let onDismiss: () -> Void
 
     var body: some View {
-        let desiredHeight = CGFloat(options.count) * 48 + 8
+        let rowHeight: CGFloat = detail == nil ? 48 : 58
+        let desiredHeight = CGFloat(options.count) * rowHeight + 8
         let menuHeight = min(desiredHeight, max(80, availableSize.height - 24))
         let opensBelow = availableSize.height - anchorFrame.maxY >= menuHeight + 10
         let menuY = opensBelow
@@ -613,31 +615,44 @@ struct AppDropdownMenuLayer<Option: Hashable>: View {
             ScrollView {
                 LazyVStack(spacing: 4) {
                     ForEach(options, id: \.self) { option in
-                        let isSelected = option == selection
+                        let optionIsSelected = isSelected(option)
 
                         Button {
                             onSelect(option)
                         } label: {
                             HStack(spacing: 10) {
-                                Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                                Image(systemName: optionIsSelected ? "checkmark.circle.fill" : "circle")
                                     .font(appearance == .compact ? .subheadline : .body)
                                     .foregroundStyle(
-                                        isSelected
+                                        optionIsSelected
                                             ? AppColor.mint
                                             : AppColor.secondary.opacity(0.30)
                                     )
 
-                                AppLocalizedText(title(option))
-                                    .font(.subheadline.weight(isSelected ? .semibold : .medium))
-                                    .foregroundStyle(appearance == .compact && !isSelected ? AppColor.secondary : AppColor.ink)
+                                VStack(alignment: .leading, spacing: 2) {
+                                    AppLocalizedText(title(option))
+                                        .font(.subheadline.weight(optionIsSelected ? .semibold : .medium))
+                                        .foregroundStyle(
+                                            appearance == .compact && !optionIsSelected
+                                                ? AppColor.secondary
+                                                : AppColor.ink
+                                        )
+
+                                    if let optionDetail = detail?(option) {
+                                        AppLocalizedText(optionDetail)
+                                            .font(.caption)
+                                            .foregroundStyle(AppColor.secondary)
+                                            .lineLimit(1)
+                                    }
+                                }
 
                                 Spacer(minLength: 8)
                             }
                             .padding(.horizontal, appearance == .compact ? 10 : 14)
                             .frame(maxWidth: .infinity)
-                            .frame(height: appearance == .compact ? 48 : 44)
+                            .frame(height: detail == nil ? (appearance == .compact ? 48 : 44) : rowHeight)
                             .background {
-                                if isSelected {
+                                if optionIsSelected {
                                     RoundedRectangle(cornerRadius: appearance == .compact ? 10 : 12, style: .continuous)
                                         .fill(
                                             appearance == .compact
@@ -667,7 +682,7 @@ struct AppDropdownMenuLayer<Option: Hashable>: View {
                             )
                         }
                         .buttonStyle(.plain)
-                        .accessibilityAddTraits(isSelected ? .isSelected : [])
+                        .accessibilityAddTraits(optionIsSelected ? .isSelected : [])
                     }
                 }
                 .padding(6)
