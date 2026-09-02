@@ -170,6 +170,9 @@ swiftc -module-cache-path /tmp/scaleme-swift-module-cache \
 ```
 
 - Bluetooth discovery and measurement require a physical iPhone and real scale; simulator success is not hardware validation.
+- At the end of every task turn that modifies code, after the relevant automated checks and before handing the result back, trigger a development run/debug session on the physical iPhone currently connected to and selected in Xcode. Building for a simulator or performing only a no-sign compile does not replace this device run.
+- Use the project's existing development signing and Xcode device selection for the physical-device run. Do not change signing settings or select a different device merely to make the run succeed.
+- If the selected physical iPhone is unavailable, locked, untrusted, disconnected, or otherwise cannot install or launch the app, complete all other safe verification and report the exact device-run blocker and any relevant command or Xcode error. Never claim physical-device verification when the app did not launch on that device.
 - Add deterministic tests for parser and calculation changes.
 - Run `git diff --check` before handoff.
 - Do not treat host CoreSimulator service failures as source-code failures; still perform an iPhoneOS compile check when possible.

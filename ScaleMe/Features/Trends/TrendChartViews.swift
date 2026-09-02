@@ -1,9 +1,12 @@
 import Charts
 import SwiftUI
+import UIKit
 
 struct ExpandedTrendContext: Identifiable {
     let metric: TrendMetric
     let points: [TrendPoint]
+    let allPoints: [TrendPoint]
+    let measurementDates: [Date]
     let measurementCount: Int
     let chartMode: TrendChartMode
     let aggregation: TrendAggregation
@@ -52,6 +55,19 @@ struct TrendChartCard: View {
             dateInterval: dateInterval,
             mode: chartMode
         )
+        let allMetricMeasurements = TrendAnalysis.measurements(
+            from: measurements,
+            metric: metric,
+            profile: profile,
+            range: .all
+        )
+        let allPoints = TrendAnalysis.points(
+            from: allMetricMeasurements,
+            metric: metric,
+            profile: profile,
+            range: .all,
+            mode: .actual
+        )
         let aggregation = chartMode == .actual
             ? TrendAggregation.measurement
             : TrendAnalysis.aggregation(for: range, measurements: filteredMeasurements, dateInterval: dateInterval)
@@ -88,6 +104,8 @@ struct TrendChartCard: View {
                         onExpand(ExpandedTrendContext(
                             metric: metric,
                             points: points,
+                            allPoints: allPoints,
+                            measurementDates: allMetricMeasurements.map(\.date),
                             measurementCount: filteredMeasurements.count,
                             chartMode: chartMode,
                             aggregation: aggregation
@@ -132,10 +150,27 @@ struct ExpandedTrendChartView: View {
     let onClose: () -> Void
 
     @State private var selectedDate: Date?
+    @State private var visibleDateRange: ClosedRange<Date>?
     @State private var isContentVisible = true
     @State private var isClosing = false
 
     private var context: ExpandedTrendContext { presentation.context }
+
+    private var visibleMeasurementCount: Int {
+        guard let visibleDateRange else { return context.measurementCount }
+        return context.measurementDates.count {
+            visibleDateRange.contains($0)
+        }
+    }
+
+    private var visibleRangeTitle: String {
+        guard let visibleDateRange else { return language.text(presentation.rangeTitle) }
+        let span = visibleDateRange.upperBound.timeIntervalSince(visibleDateRange.lowerBound)
+        let style = span <= 2 * 86_400
+            ? Date.FormatStyle.dateTime.month(.twoDigits).day(.twoDigits).hour(.twoDigits(amPM: .omitted)).minute(.twoDigits)
+            : Date.FormatStyle.dateTime.year().month(.twoDigits).day(.twoDigits)
+        return "\(visibleDateRange.lowerBound.formatted(style.locale(language.locale)))–\(visibleDateRange.upperBound.formatted(style.locale(language.locale)))"
+    }
 
     var body: some View {
         VStack(spacing: 12) {
@@ -147,8 +182,8 @@ struct ExpandedTrendChartView: View {
                     Text(
                         language.format(
                             "%@ · %lld 次测量",
-                            language.text(presentation.rangeTitle),
-                            context.measurementCount
+                            visibleRangeTitle,
+                            visibleMeasurementCount
                         )
                     )
                         .font(.caption)
@@ -187,7 +222,9 @@ struct ExpandedTrendChartView: View {
                 chartMode: context.chartMode,
                 aggregation: context.aggregation,
                 selectedDate: $selectedDate,
-                isExpanded: true
+                isExpanded: true,
+                allPoints: context.allPoints,
+                onVisibleDateRangeChange: { visibleDateRange = $0 }
             )
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
@@ -844,8 +881,17 @@ private struct TrendChartPlot: View {
     let aggregation: TrendAggregation
     @Binding var selectedDate: Date?
     let isExpanded: Bool
+    var allPoints: [TrendPoint]? = nil
+    var onVisibleDateRangeChange: ((ClosedRange<Date>?) -> Void)? = nil
+
+    @State private var zoomedXDomain: ClosedRange<Double>?
+    @State private var magnificationStartDomain: ClosedRange<Double>?
 
     private let calendar = Calendar.current
+
+    private var usesDateXValues: Bool {
+        isExpanded || chartMode == .actual
+    }
 
     private var selectedDateDomain: ClosedRange<Date>? {
         guard let first = points.first?.date, let last = points.last?.date else { return nil }
@@ -861,8 +907,20 @@ private struct TrendChartPlot: View {
     }
 
     private var axisSpanDays: Double {
+        if let zoomedXDomain {
+            let visibleRange = dateRange(for: zoomedXDomain)
+            return visibleRange.upperBound.timeIntervalSince(visibleRange.lowerBound) / 86_400
+        }
         guard let selectedDateDomain else { return 0 }
         return selectedDateDomain.upperBound.timeIntervalSince(selectedDateDomain.lowerBound) / 86_400
+    }
+
+    private var chartAggregation: TrendAggregation {
+        guard isExpanded, chartMode == .period else { return aggregation }
+        let spanDays = axisSpanDays
+        if spanDays <= 45 { return .day }
+        if spanDays <= 200 { return .week }
+        return .month
     }
 
     private var periodOriginDate: Date {
@@ -876,22 +934,57 @@ private struct TrendChartPlot: View {
     }
 
     private var plottedPoints: [PlottedTrendPoint] {
-        if chartMode == .actual {
-            return points.map {
+        if usesDateXValues {
+            return chartPoints.map {
                 PlottedTrendPoint(source: $0, x: $0.date.timeIntervalSinceReferenceDate)
             }
         }
-        if aggregation == .measurement {
-            return points.enumerated().map {
+        if chartAggregation == .measurement {
+            return chartPoints.enumerated().map {
                 PlottedTrendPoint(source: $0.element, x: Double($0.offset))
             }
         }
-        return points.map {
+        return chartPoints.map {
             PlottedTrendPoint(source: $0, x: Double(periodOffset(from: periodOriginDate, to: $0.date)))
         }
     }
 
-    private var xDomain: ClosedRange<Double> {
+    private var chartPoints: [TrendPoint] {
+        guard isExpanded, let allPoints else { return points }
+        let visiblePoints = allPoints.filter {
+            xDomain.contains($0.date.timeIntervalSinceReferenceDate)
+        }
+        guard chartAggregation != .measurement else { return visiblePoints }
+
+        let grouped = Dictionary(grouping: visiblePoints) {
+            alignedDate($0.date)
+        }
+        return grouped.map { date, samples in
+            let measurementCount = samples.map(\.measurementCount).reduce(0, +)
+            let weightedValue = samples.reduce(0) {
+                $0 + $1.value * Double($1.measurementCount)
+            }
+            let visibleStartDate = Date(timeIntervalSinceReferenceDate: xDomain.lowerBound)
+            let plottedDate = max(date, visibleStartDate)
+            return TrendPoint(
+                id: plottedDate,
+                date: plottedDate,
+                value: weightedValue / Double(measurementCount),
+                measurementCount: measurementCount
+            )
+        }
+        .sorted { $0.date < $1.date }
+    }
+
+    private var fullXDomain: ClosedRange<Double> {
+        if isExpanded, let allPoints, let first = allPoints.first?.date, let last = allPoints.last?.date {
+            let available = normalizedDomain(
+                first.timeIntervalSinceReferenceDate,
+                last.timeIntervalSinceReferenceDate
+            )
+            let initial = initialXDomain
+            return min(available.lowerBound, initial.lowerBound) ... max(available.upperBound, initial.upperBound)
+        }
         guard let first = plottedPoints.first?.x, let last = plottedPoints.last?.x else { return 0 ... 1 }
         if chartMode == .actual, let selectedDateDomain {
             let lower = selectedDateDomain.lowerBound.timeIntervalSinceReferenceDate
@@ -906,6 +999,24 @@ private struct TrendChartPlot: View {
             return normalizedDomain(0, max(end, last))
         }
         return normalizedDomain(first, last)
+    }
+
+    private var initialXDomain: ClosedRange<Double> {
+        if isExpanded, let selectedDateDomain {
+            return normalizedDomain(
+                selectedDateDomain.lowerBound.timeIntervalSinceReferenceDate,
+                selectedDateDomain.upperBound.timeIntervalSinceReferenceDate
+            )
+        }
+        guard let first = points.first?.date, let last = points.last?.date else { return 0 ... 1 }
+        return normalizedDomain(
+            first.timeIntervalSinceReferenceDate,
+            last.timeIntervalSinceReferenceDate
+        )
+    }
+
+    private var xDomain: ClosedRange<Double> {
+        zoomedXDomain ?? (isExpanded ? initialXDomain : fullXDomain)
     }
 
     private var selectedPoint: PlottedTrendPoint? {
@@ -929,7 +1040,7 @@ private struct TrendChartPlot: View {
     }
 
     private var yDomain: ClosedRange<Double> {
-        let values = points.map { metric.displayValue($0.value, unit: unit) }
+        let values = chartPoints.map { metric.displayValue($0.value, unit: unit) }
         guard let minimum = values.min(), let maximum = values.max() else { return 0 ... 1 }
         if minimum == maximum {
             let padding = max(abs(minimum) * 0.05, 1)
@@ -1070,6 +1181,103 @@ private struct TrendChartPlot: View {
                 )
             }
         }
+        .background {
+            if isExpanded {
+                TrendPinchGestureBridge { state, magnification, anchor in
+                    handlePinch(state: state, magnification: magnification, anchor: anchor)
+                }
+            }
+        }
+    }
+
+    private func handlePinch(
+        state: UIGestureRecognizer.State,
+        magnification: Double,
+        anchor: Double
+    ) {
+        switch state {
+        case .began:
+            magnificationStartDomain = xDomain
+        case .changed:
+            guard let startDomain = magnificationStartDomain else { return }
+            updateZoom(from: startDomain, magnification: magnification, anchor: anchor)
+        case .ended:
+            guard let startDomain = magnificationStartDomain else { return }
+            updateZoom(from: startDomain, magnification: magnification, anchor: anchor)
+            magnificationStartDomain = nil
+        case .cancelled, .failed:
+            magnificationStartDomain = nil
+        default:
+            break
+        }
+    }
+
+    private func updateZoom(
+        from startDomain: ClosedRange<Double>,
+        magnification: Double,
+        anchor: Double
+    ) {
+        let fullSpan = fullXDomain.upperBound - fullXDomain.lowerBound
+        guard fullSpan > 0 else { return }
+
+        let startSpan = startDomain.upperBound - startDomain.lowerBound
+        let minimumSpan = minimumZoomSpan(fullSpan: fullSpan)
+        let targetSpan = min(fullSpan, max(minimumSpan, startSpan / max(magnification, 0.01)))
+        let clampedAnchor = min(max(anchor, 0), 1)
+        let anchorX = startDomain.lowerBound + startSpan * clampedAnchor
+        var lower = anchorX - targetSpan * clampedAnchor
+        var upper = lower + targetSpan
+
+        if lower < fullXDomain.lowerBound {
+            lower = fullXDomain.lowerBound
+            upper = lower + targetSpan
+        }
+        if upper > fullXDomain.upperBound {
+            upper = fullXDomain.upperBound
+            lower = upper - targetSpan
+        }
+
+        let domain = lower ... upper
+        zoomedXDomain = domain
+        selectedDate = nil
+        onVisibleDateRangeChange?(dateRange(for: domain))
+    }
+
+    private func minimumZoomSpan(fullSpan: Double) -> Double {
+        if chartMode == .period {
+            return min(fullSpan, max(86_400, fullSpan / 1_000))
+        }
+        return min(fullSpan, max(3_600, fullSpan / 1_000))
+    }
+
+    private func dateRange(for domain: ClosedRange<Double>) -> ClosedRange<Date> {
+        let lower = date(forX: domain.lowerBound)
+        let upper = date(forX: domain.upperBound)
+        return min(lower, upper) ... max(lower, upper)
+    }
+
+    private func date(forX x: Double) -> Date {
+        if usesDateXValues {
+            return Date(timeIntervalSinceReferenceDate: x)
+        }
+
+        if aggregation == .measurement {
+            let boundedX = min(max(x, 0), Double(max(plottedPoints.count - 1, 0)))
+            let lowerIndex = Int(boundedX.rounded(.down))
+            let upperIndex = min(lowerIndex + 1, plottedPoints.count - 1)
+            let lowerDate = plottedPoints[lowerIndex].source.date
+            let upperDate = plottedPoints[upperIndex].source.date
+            let progress = boundedX - Double(lowerIndex)
+            return lowerDate.addingTimeInterval(upperDate.timeIntervalSince(lowerDate) * progress)
+        }
+
+        let lowerOffset = Int(x.rounded(.down))
+        let upperOffset = lowerOffset + 1
+        let lowerDate = periodDate(from: periodOriginDate, offset: lowerOffset)
+        let upperDate = periodDate(from: periodOriginDate, offset: upperOffset)
+        return lowerDate.addingTimeInterval(
+            upperDate.timeIntervalSince(lowerDate) * (x - Double(lowerOffset))
+        )
     }
 
     private var selectedXBinding: Binding<Double?> {
@@ -1092,7 +1300,7 @@ private struct TrendChartPlot: View {
         var selected: [PlottedTrendPoint] = []
         var lastPixel: CGFloat?
 
-        for point in plottedPoints.reversed() {
+        for point in plottedPoints.filter({ xDomain.contains($0.x) }).reversed() {
             let progress = (point.x - xDomain.lowerBound) / span
             let pixel = CGFloat(progress) * usableWidth
             if lastPixel.map({ $0 - pixel >= minimumSpacing }) ?? true {
@@ -1107,18 +1315,31 @@ private struct TrendChartPlot: View {
         availableWidth: CGFloat,
         labelPoints: [PlottedTrendPoint]
     ) -> [TrendAxisMarkValue] {
-        if chartMode == .actual || aggregation == .measurement {
+        if usesDateXValues {
+            guard labelPoints.isEmpty else {
+                return labelPoints.map { TrendAxisMarkValue(x: $0.x, date: $0.source.date) }
+            }
+            return [
+                TrendAxisMarkValue(x: xDomain.lowerBound, date: date(forX: xDomain.lowerBound)),
+                TrendAxisMarkValue(x: xDomain.upperBound, date: date(forX: xDomain.upperBound))
+            ]
+        }
+        if chartAggregation == .measurement {
             return labelPoints.map { TrendAxisMarkValue(x: $0.x, date: $0.source.date) }
         }
 
         let maximumCount = max(2, Int(max(availableWidth - 54, 1) / 60))
-        let lastOffset = max(0, Int(xDomain.upperBound.rounded(.down)))
-        guard lastOffset > 0 else {
-            return [TrendAxisMarkValue(x: 0, date: periodOriginDate)]
+        let firstOffset = Int(xDomain.lowerBound.rounded(.up))
+        let lastOffset = Int(xDomain.upperBound.rounded(.down))
+        guard lastOffset > firstOffset else {
+            let offset = Int(((xDomain.lowerBound + xDomain.upperBound) / 2).rounded())
+            return [TrendAxisMarkValue(x: Double(offset), date: periodDate(from: periodOriginDate, offset: offset))]
         }
-        let count = min(maximumCount, lastOffset + 1)
+        let count = min(maximumCount, lastOffset - firstOffset + 1)
         let offsets = (0 ..< count).map { position in
-            Int((Double(position) * Double(lastOffset) / Double(count - 1)).rounded())
+            firstOffset + Int(
+                (Double(position) * Double(lastOffset - firstOffset) / Double(count - 1)).rounded()
+            )
         }
         return offsets.map { offset in
             TrendAxisMarkValue(x: Double(offset), date: periodDate(from: periodOriginDate, offset: offset))
@@ -1165,7 +1386,7 @@ private struct TrendChartPlot: View {
     }
 
     private func alignedDate(_ date: Date) -> Date {
-        switch aggregation {
+        switch chartAggregation {
         case .measurement: date
         case .day: calendar.startOfDay(for: date)
         case .week: calendar.dateInterval(of: .weekOfYear, for: date)?.start ?? date
@@ -1174,7 +1395,7 @@ private struct TrendChartPlot: View {
     }
 
     private func periodOffset(from start: Date, to end: Date) -> Int {
-        switch aggregation {
+        switch chartAggregation {
         case .measurement:
             return 0
         case .day:
@@ -1188,7 +1409,7 @@ private struct TrendChartPlot: View {
     }
 
     private func periodDate(from start: Date, offset: Int) -> Date {
-        switch aggregation {
+        switch chartAggregation {
         case .measurement: start
         case .day: calendar.date(byAdding: .day, value: offset, to: start) ?? start
         case .week: calendar.date(byAdding: .weekOfYear, value: offset, to: start) ?? start
@@ -1215,6 +1436,101 @@ private struct TrendChartPlot: View {
 
     private func formattedNumericValue(_ value: Double) -> String {
         metric.displayValue(value, unit: unit).formatted(2)
+    }
+}
+
+private struct TrendPinchGestureBridge: UIViewRepresentable {
+    let onPinch: (UIGestureRecognizer.State, Double, Double) -> Void
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(onPinch: onPinch)
+    }
+
+    func makeUIView(context: Context) -> UIView {
+        let view = WindowTrackingView(frame: .zero)
+        view.isUserInteractionEnabled = false
+        view.onWindowChange = { [weak view, weak coordinator = context.coordinator] window in
+            coordinator?.install(on: window, tracking: view)
+        }
+        return view
+    }
+
+    func updateUIView(_ uiView: UIView, context: Context) {
+        context.coordinator.onPinch = onPinch
+        context.coordinator.install(on: uiView.window, tracking: uiView)
+    }
+
+    static func dismantleUIView(_ uiView: UIView, coordinator: Coordinator) {
+        (uiView as? WindowTrackingView)?.onWindowChange = nil
+        coordinator.uninstall()
+    }
+
+    final class WindowTrackingView: UIView {
+        var onWindowChange: ((UIWindow?) -> Void)?
+
+        override func didMoveToWindow() {
+            super.didMoveToWindow()
+            onWindowChange?(window)
+        }
+    }
+
+    final class Coordinator: NSObject, UIGestureRecognizerDelegate {
+        var onPinch: (UIGestureRecognizer.State, Double, Double) -> Void
+
+        private weak var window: UIWindow?
+        private weak var trackedView: UIView?
+        private lazy var recognizer: UIPinchGestureRecognizer = {
+            let recognizer = UIPinchGestureRecognizer(target: self, action: #selector(handlePinch(_:)))
+            recognizer.cancelsTouchesInView = false
+            recognizer.delegate = self
+            return recognizer
+        }()
+
+        init(onPinch: @escaping (UIGestureRecognizer.State, Double, Double) -> Void) {
+            self.onPinch = onPinch
+        }
+
+        func install(on window: UIWindow?, tracking trackedView: UIView?) {
+            guard let window else {
+                uninstall()
+                return
+            }
+            guard self.window !== window else {
+                self.trackedView = trackedView
+                return
+            }
+            uninstall()
+            self.window = window
+            self.trackedView = trackedView
+            window.addGestureRecognizer(recognizer)
+        }
+
+        func uninstall() {
+            window?.removeGestureRecognizer(recognizer)
+            window = nil
+            trackedView = nil
+        }
+
+        @objc private func handlePinch(_ recognizer: UIPinchGestureRecognizer) {
+            guard let trackedView else { return }
+            let width = max(trackedView.bounds.width, 1)
+            let anchor = min(max(recognizer.location(in: trackedView).x / width, 0), 1)
+            onPinch(recognizer.state, Double(recognizer.scale), Double(anchor))
+        }
+
+        func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+            guard let trackedView else { return false }
+            return (0 ..< gestureRecognizer.numberOfTouches).allSatisfy { index in
+                trackedView.bounds.contains(gestureRecognizer.location(ofTouch: index, in: trackedView))
+            }
+        }
+
+        func gestureRecognizer(
+            _ gestureRecognizer: UIGestureRecognizer,
+            shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer
+        ) -> Bool {
+            true
+        }
     }
 }
 
