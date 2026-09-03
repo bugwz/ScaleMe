@@ -112,6 +112,7 @@ final class BLEScaleManager: NSObject, ObservableObject {
         case standardWeight
         case standardBodyComposition
         case wolaiAFU
+        case senssunIF2121
     }
     private enum HuaweiHagridHandshakeState {
         case idle
@@ -189,6 +190,8 @@ final class BLEScaleManager: NSObject, ObservableObject {
     private var scanRequested = false
     private var discoverySequence = 0
     private var didCompleteWolaiFinal = false
+    private var senssunIF2121ResultAccumulator = SenssunIF2121ScaleParser.FrameAccumulator()
+    private var senssunIF2121StableWeightKG: Double?
     private var huaweiHagridDeviceIDs = Set<UUID>()
     private var didSendHuaweiHagridProbe = false
     private var didReceiveHuaweiHagridChallenge = false
@@ -214,6 +217,9 @@ final class BLEScaleManager: NSObject, ObservableObject {
     private static let huaweiCurrentTimeService = CBUUID(string: HuaweiHagridProtocol.currentTimeServiceUUID)
     private static let wolaiService = CBUUID(string: WolaiAFUScaleAdapter.serviceUUID)
     private static let wolaiMeasurement = CBUUID(string: WolaiAFUScaleAdapter.measurementCharacteristicUUID)
+    private static let senssunIF2121Service = CBUUID(string: SenssunIF2121ScaleProtocol.serviceUUID)
+    private static let senssunIF2121Live = CBUUID(string: SenssunIF2121ScaleProtocol.liveCharacteristicUUID)
+    private static let senssunIF2121Result = CBUUID(string: SenssunIF2121ScaleProtocol.resultCharacteristicUUID)
     private static let serialNumber = CBUUID(string: "2A25")
     private static let hardwareRevision = CBUUID(string: "2A27")
     private static let softwareRevision = CBUUID(string: "2A28")
@@ -259,6 +265,7 @@ final class BLEScaleManager: NSObject, ObservableObject {
         isWaitingForNextLoad = false
         minimumWeightAfterCompletionKG = nil
         didCompleteWolaiFinal = false
+        resetSenssunIF2121Session()
         huaweiHagridMeasurementProfile = profile
         resetHuaweiHagridSession()
         if let connected, !isMonitoredScale(connected.identifier) {
@@ -300,6 +307,10 @@ final class BLEScaleManager: NSObject, ObservableObject {
 
     private func isHuaweiHagridSelected(for deviceID: UUID) -> Bool {
         selectedRule(for: deviceID)?.id == CommunicationRuleCatalog.huaweiHagridID
+    }
+
+    private func isSenssunIF2121Selected(for deviceID: UUID) -> Bool {
+        selectedRule(for: deviceID)?.id == CommunicationRuleCatalog.senssunIF2121ID
     }
 
     private func isMonitoredScale(_ deviceID: UUID) -> Bool {
@@ -926,6 +937,7 @@ final class BLEScaleManager: NSObject, ObservableObject {
     func disconnect() {
         connectionTimeoutTask?.cancel()
         if let connected { central.cancelPeripheralConnection(connected) }
+        resetSenssunIF2121Session()
         connected = nil
         activeScaleID = nil
         activeScaleName = nil
@@ -991,6 +1003,69 @@ final class BLEScaleManager: NSObject, ObservableObject {
         }
     }
 
+    private func resetSenssunIF2121Session() {
+        senssunIF2121ResultAccumulator.reset()
+        senssunIF2121StableWeightKG = nil
+    }
+
+    private func consumeSenssunIF2121(_ packet: SenssunIF2121ScaleParser.Packet) {
+        switch packet {
+        case .weightRemoved:
+            senssunIF2121StableWeightKG = nil
+            weightWasRemoved()
+        case .progress:
+            if senssunIF2121StableWeightKG != nil { state = .stabilizing }
+        case .measurement(let phase, let measurement):
+            switch phase {
+            case .final:
+                guard let stableWeightKG = senssunIF2121StableWeightKG,
+                      abs(stableWeightKG - measurement.weightKG) <= 0.15 else { return }
+                senssunIF2121StableWeightKG = nil
+                consume(measurement, reliability: .protocolFinal)
+            case .stable:
+                guard prepareForSenssunIF2121LiveWeight(measurement.weightKG) else { return }
+                senssunIF2121StableWeightKG = measurement.weightKG
+                liveWeightKG = measurement.weightKG
+                state = .stabilizing
+            case .live:
+                guard prepareForSenssunIF2121LiveWeight(measurement.weightKG) else { return }
+                senssunIF2121StableWeightKG = nil
+                liveWeightKG = measurement.weightKG
+                state = .measuring
+            case .bodyCompositionProgress:
+                break
+            }
+        }
+    }
+
+    private func prepareForSenssunIF2121LiveWeight(_ weightKG: Double) -> Bool {
+        if let completed = latestMeasurement, case .completed = state {
+            if isWaitingForNextLoad {
+                let minimum = min(minimumWeightAfterCompletionKG ?? weightKG, weightKG)
+                minimumWeightAfterCompletionKG = minimum
+                guard weightKG >= minimum + 2 else { return false }
+                isWaitingForNextLoad = false
+                minimumWeightAfterCompletionKG = nil
+                measurementSession.reset()
+            } else if weightKG <= completed.weightKG - 2 {
+                weightWasRemoved()
+                return false
+            } else {
+                // Ignore the final weight replay observed while the user steps
+                // off; the following sub-2 kg frame opens the next session.
+                return false
+            }
+        } else if isWaitingForNextLoad {
+            let minimum = min(minimumWeightAfterCompletionKG ?? weightKG, weightKG)
+            minimumWeightAfterCompletionKG = minimum
+            guard weightKG >= minimum + 2 else { return false }
+            isWaitingForNextLoad = false
+            minimumWeightAfterCompletionKG = nil
+            measurementSession.reset()
+        }
+        return true
+    }
+
     private func diagnosticSummary(
         _ payload: Data,
         kind: DiagnosticPayloadKind,
@@ -1044,6 +1119,19 @@ final class BLEScaleManager: NSObject, ObservableObject {
                     packet.measurement.impedanceOhm.map { String(format: "%.0f", $0) } ?? "-",
                     packet.measurement.secondaryImpedanceOhm.map { String(format: "%.0f", $0) } ?? "-"
                 )
+            case .senssunIF2121:
+                switch try SenssunIF2121ScaleParser.parse(payload, now: receivedAt) {
+                case .measurement(let phase, let measurement):
+                    summary = String(
+                        format: "phase=%@ weight=%.2fkg",
+                        String(describing: phase),
+                        measurement.weightKG
+                    )
+                case .weightRemoved:
+                    summary = "weightRemoved=1"
+                case .progress(let phase):
+                    summary = "phase=\(String(describing: phase))"
+                }
             }
         } catch {
             summary = "rejected=\(error.localizedDescription)"
@@ -1427,6 +1515,9 @@ extension BLEScaleManager: CBCentralManagerDelegate {
                 huaweiHagridNotificationAccumulators.removeAll()
             }
             state = .connected(peripheral.name ?? "体重秤")
+            if isSenssunIF2121Selected(for: peripheral.identifier) {
+                resetSenssunIF2121Session()
+            }
             if settingsScaleID == peripheral.identifier {
                 settingsState = .discovering
                 armSettingsTimeout(for: peripheral.identifier)
@@ -1447,7 +1538,10 @@ extension BLEScaleManager: CBCentralManagerDelegate {
                         Self.bodyService,
                         Self.weightService
                     ])
-                } else if selected?.isDeclarative == true {
+                } else if isSenssunIF2121Selected(for: peripheral.identifier) {
+                    peripheral.discoverServices([Self.senssunIF2121Service])
+                } else if selected?.isDeclarative == true
+                    || selected?.notifyTargets?.isEmpty == false {
                     peripheral.discoverServices(nil)
                 } else {
                     peripheral.discoverServices([Self.weightService, Self.bodyService, Self.wolaiService])
@@ -1488,6 +1582,9 @@ extension BLEScaleManager: CBCentralManagerDelegate {
             activeScaleName = nil
             if isHuaweiHagridSelected(for: peripheral.identifier) {
                 resetHuaweiHagridSession()
+            }
+            if isSenssunIF2121Selected(for: peripheral.identifier) {
+                resetSenssunIF2121Session()
             }
             if let reconnectScale {
                 appendDiagnosticEvent(
@@ -1579,6 +1676,12 @@ extension BLEScaleManager: CBPeripheralDelegate {
                 huaweiHagridDeviceIDs.insert(peripheral.identifier)
             }
             for characteristic in service.characteristics ?? [] {
+                let characteristicTarget = CommunicationGATTTarget(
+                    serviceUUID: CommunicationRuleCodec.normalizeUUID(service.uuid.uuidString),
+                    characteristicUUID: CommunicationRuleCodec.normalizeUUID(characteristic.uuid.uuidString)
+                )
+                let isSelectedNotificationTarget = selectedRule(for: peripheral.identifier)?
+                    .notifyTargets?.contains(characteristicTarget) == true
                 let isHuaweiMeasurementTarget = settingsScaleID == nil
                     && isHuaweiHagridSelected(for: peripheral.identifier)
                     && HuaweiHagridProtocol.isSessionCharacteristic(characteristic.uuid.uuidString)
@@ -1601,6 +1704,7 @@ extension BLEScaleManager: CBPeripheralDelegate {
                 if characteristic.uuid == Self.weightMeasurement
                     || characteristic.uuid == Self.bodyMeasurement
                     || characteristic.uuid == Self.wolaiMeasurement
+                    || isSelectedNotificationTarget
                     || customRule(
                         for: peripheral.identifier,
                         transport: .characteristicNotification,
@@ -1737,6 +1841,24 @@ extension BLEScaleManager: CBPeripheralDelegate {
                     from: characteristic,
                     on: peripheral
                 )
+                return
+            }
+
+            if settingsScaleID != peripheral.identifier,
+               isSenssunIF2121Selected(for: peripheral.identifier) {
+                guard case .measuring = scanPurpose else { return }
+                if characteristic.uuid == Self.senssunIF2121Live,
+                   let packet = try? SenssunIF2121ScaleParser.parse(data) {
+                    consumeSenssunIF2121(packet)
+                } else if characteristic.uuid == Self.senssunIF2121Result {
+                    do {
+                        if let packet = try senssunIF2121ResultAccumulator.ingest(data) {
+                            consumeSenssunIF2121(packet)
+                        }
+                    } catch {
+                        senssunIF2121ResultAccumulator.reset()
+                    }
+                }
                 return
             }
 
@@ -2043,6 +2165,18 @@ extension BLEScaleManager: CBPeripheralDelegate {
         }
         if characteristic.uuid == Self.wolaiMeasurement {
             return diagnosticSummary(data, kind: .wolaiAFU, receivedAt: .now)
+        }
+        if characteristic.uuid == Self.senssunIF2121Live,
+           let deviceID = characteristic.service?.peripheral?.identifier,
+           isSenssunIF2121Selected(for: deviceID) {
+            return diagnosticSummary(data, kind: .senssunIF2121, receivedAt: .now)
+        }
+        if characteristic.uuid == Self.senssunIF2121Result,
+           let deviceID = characteristic.service?.peripheral?.identifier,
+           isSenssunIF2121Selected(for: deviceID) {
+            return data.starts(with: [0x33, 0xCC])
+                ? "Senssun IF2121 最终结果首分片（\(data.count)/40 字节）"
+                : "Senssun IF2121 最终结果续分片（\(data.count) 字节）"
         }
         if characteristic.uuid == Self.xiaomiConfiguration {
             if let unit = XiaomiScaleConfigurationProtocol.parseUnit(from: data) {

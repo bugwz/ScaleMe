@@ -213,6 +213,7 @@ enum CommunicationRuleCatalog {
     static let bluetoothSIGWeightID = "protocol.builtin.sig-weight"
     static let bluetoothSIGBodyID = "protocol.builtin.sig-body"
     static let huaweiHagridID = "protocol.builtin.huawei-hagrid"
+    static let senssunIF2121ID = "protocol.builtin.senssun-if2121"
     static let xiaomiLegacyID = "protocol.builtin.xiaomi-legacy"
     static let wolaiAFUID = "protocol.builtin.wolai-afu"
     static let qnAABBID = "protocol.builtin.qn-aabb"
@@ -285,6 +286,38 @@ enum CommunicationRuleCatalog {
                 .init(serviceUUID: HuaweiHagridProtocol.currentTimeServiceUUID, characteristicUUID: HuaweiHagridProtocol.measurementStatusPollCharacteristicUUID),
                 .init(serviceUUID: "181B", characteristicUUID: HuaweiHagridProtocol.realtimeWeightCharacteristicUUID),
                 .init(serviceUUID: "181B", characteristicUUID: HuaweiHagridProtocol.historyWeightCharacteristicUUID)
+            ]
+        ),
+        CommunicationRule(
+            id: senssunIF2121ID,
+            name: "Senssun IF2121",
+            version: 1,
+            summary: "解析香山 IF2121A 的 33CC 实时重量、稳定状态、检测阶段及 40 字节分片最终结果；未确认的身体成分字段不会入库。",
+            author: "ScaleMe device capture",
+            origin: .builtIn,
+            match: .init(
+                transport: .characteristicNotification,
+                serviceUUID: SenssunIF2121ScaleProtocol.serviceUUID,
+                characteristicUUID: SenssunIF2121ScaleProtocol.liveCharacteristicUUID,
+                minimumLength: 10,
+                maximumLength: 17,
+                prefixHex: "33CC"
+            ),
+            decoder: nil,
+            builtInParser: SenssunIF2121ScaleProtocol.builtInParserID,
+            verification: .fixtureValidated,
+            implementation: .experimental,
+            supportedModels: ["IF2121A"],
+            requirements: [.multiFrameSession],
+            notifyTargets: [
+                .init(
+                    serviceUUID: SenssunIF2121ScaleProtocol.serviceUUID,
+                    characteristicUUID: SenssunIF2121ScaleProtocol.liveCharacteristicUUID
+                ),
+                .init(
+                    serviceUUID: SenssunIF2121ScaleProtocol.serviceUUID,
+                    characteristicUUID: SenssunIF2121ScaleProtocol.resultCharacteristicUUID
+                )
             ]
         ),
         CommunicationRule(

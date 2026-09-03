@@ -64,6 +64,7 @@ enum WidgetTrendDisplayStyle: String, Codable, CaseIterable, Identifiable {
 enum MeasurementSource: String, Codable {
     case xiaomi = "小米体重秤"
     case wolaiAFU = "Wolai AFU 体脂秤"
+    case senssunIF2121 = "香山 IF2121 体脂秤"
     case huaweiHagrid = "华为 Hagrid/WSP 体脂秤"
     case bluetoothSIG = "标准蓝牙体重秤"
     case communityProtocol = "社区协议体重秤"

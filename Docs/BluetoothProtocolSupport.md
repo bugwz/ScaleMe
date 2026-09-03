@@ -2,7 +2,7 @@
 
 > 返回 [文档导航](README.md) · 查看 [架构与实现](Architecture.md) · 查看 [开发与验证](Development.md)
 
-本页调研基线为 2026-09-02：
+本页调研基线为 2026-09-03：
 
 - `ble-scale-sync` commit [`e5060b4`](https://github.com/KristianP26/ble-scale-sync/tree/e5060b4e43e2d08ecace7e327145c777872ea93f)。其说明页仍写“32”，但该 commit 的实际 `adapters` 数组已有 33 个实例；这里以代码注册表为准并记录该差异。
 - `openScale` commit [`6613db5`](https://github.com/oliexdev/openScale/tree/6613db5838e4674a19652441073f82b3ee3d7009)，其 `ScaleFactory.createHandlers()` 实际注册 63 个 handler 实例，覆盖广播、GATT 与 Classic SPP。
@@ -16,6 +16,7 @@
 - `BluetoothSIG/`：Bluetooth SIG 标准特征。
 - `Xiaomi/`：小米旧款广播及已确认的设备配置命令。
 - `Wolai/`：Wolai AFU 私有 GATT 帧与设备适配器。
+- `Senssun/`：香山 IF2121 系列的 `33 CC` 实时、阶段及分片最终结果帧。
 - `Huawei/`：华为 Hagrid/WSP 设备识别、分帧校验、认证、会话加密与测量载荷解析。
 - `QNAABB/`、`AAASeries/`、`Sinocare/` 等：每个私有协议族直接占用一个同级目录。
 - `ScaleBroadcastProtocolCatalog.swift`：非连接式厂商广播的统一分发入口。
@@ -33,6 +34,7 @@
 | Bluetooth SIG BCS `181B/2A9C` | 标准 GATT | 体脂及标准可选身体成分字段 | 已实现，数据样本验证通过 |
 | Xiaomi legacy `181B` + `2A2F` | Service Data 广播 + 私有 GATT | 体重、阻抗、稳定/离秤、时间戳；手动读取最近未确认历史并在导入后回执 | 已实现，数据样本验证通过；具体型号与固件仍需真机矩阵 |
 | Wolai AFU `FFB0/FFB2` | 私有 GATT | 实时、锁定、最终体重及双阻抗原始通道 | 已用 `AFU-WL-TZ-A1 / FG2313UWB-D` 真机采集分析；改动后待回归 |
+| Senssun IF2121A `FFF0/FFF1/FFF3` | 私有 GATT | `33 CC` 校验、实时/稳定体重、体成分检测阶段、动态测量序号、40 字节最终结果分片重组；未确认字段不作为阻抗或心率入库 | 四次同机测量抓包 fixture 验证通过；实现后待 iPhone 真机回归 |
 | QN AABB | Manufacturer Data | 体重、稳定状态 | 数据样本验证通过，待真机 |
 | AAA002 / AAA007 / AAA013 | Manufacturer Data | XOR 解码、校验、体重、稳定状态 | 数据样本验证通过，待真机 |
 | Sinocare | Manufacturer Data | 校验、体重；由测量会话判断收敛 | 数据样本验证通过，待真机 |
@@ -87,6 +89,7 @@ CoreBluetooth 提供的 Manufacturer Data 为 2 字节小端 Company ID `AC A0`�
 | QN / Renpho 多方言 | ES-CS20M、ES-32MD、Elis 1、FITINDEX、Sencor、QN-Scale | `FFF0/FFF1/FFF2`、`FFE0/FFE1/FFE3`、`AE00/AE01/AE02` 或 `1A10/2A10/2A11`；`55 AA`/扩展帧、配置写入与多阶段完成 | AABB 非连接广播已接入；连接方言待会话适配器 |
 | Renpho ES-26BB / R-MSC04 | ES-26BB-B、MorphoScan Nova | `1A10`；`2A10` 通知、`2A11` 写，MSC04 另有 `2A12` 最终指示；`55 AA` 帧 | 协议骨架已登记；需启动命令与跨帧状态 |
 | FFF0 / FFF1 / FFF2 | Senssun、Digoo、Inlife、Picooc、Vitafit VT701、Etekcity ESF551 | 同一 UUID 上存在完全不同帧：Senssun `A5/B0/C0/D0`，Picooc opcode+length，Vitafit `5A/A5 ... 26 ... checksum AA` 等 | 不按 UUID 猜协议；待各自初始化和 fixture |
+| Senssun IF2121 `33 CC` | IF2121A | `FFF0`；`FFF1` 实时与阶段通知、`FFF3` 分片最终指示；同时携带 kg/lb 镜像重量，末字节为累加校验 | 已作为独立实验性协议接入；两次测量 fixture 验证通过，未确认的身体成分字段不解码 |
 | FFF0 / FFF4 / FFF1(或 FFF3) | 1byone/Eufy C1/P1、Excelvan CF369、Hesley、Koogeek S1、Cult、Hume Dara 2 | 常见 `CF` 测量帧，但端序、字段和完成条件不同；多需时间/用户资料写入 | 各适配器骨架已登记；Eufy C20 的独立广播格式已可执行 |
 | Eufy P2 / P2 Pro | T9148/T9149 | `FFF0`，`FFF1` 写、`FFF4` AES 认证、`FFF2` 数据 | 协议骨架已登记；等待独立密钥会话，不把未知字段当阻抗 |
 | FFB0 / FFB1 / FFB2 / FFB3 | Active Era、1byone new、Robi S9、Hutbit、MGB、Runstar、Relaxmedic、HealthKeep、FitTrack、Dr Trust | 多为 20 字节 `AC/AB` 或分片帧；需要 profile/time 握手、校验、跨帧缓存，部分 `FFB3` 承载最终值或历史 | Wolai AFU 实机协议独立接入；其余不能因 UUID 相同而复用 |

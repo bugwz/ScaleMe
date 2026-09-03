@@ -10,6 +10,7 @@ ScaleMe/Infrastructure/Bluetooth/Protocols/Xiaomi/XiaomiScaleConfiguration.swift
 ScaleMe/Infrastructure/Bluetooth/Protocols/Xiaomi/XiaomiScaleHistoryProtocol.swift
 ScaleMe/Infrastructure/Bluetooth/Protocols/Xiaomi/XiaomiMiScale2BroadcastParser.swift
 ScaleMe/Infrastructure/Bluetooth/Protocols/Wolai/WolaiAFUScaleParser.swift
+ScaleMe/Infrastructure/Bluetooth/Protocols/Senssun/SenssunIF2121ScaleParser.swift
 ScaleMe/Infrastructure/Bluetooth/Protocols/ScaleBroadcastProtocolCatalog.swift
 ScaleMe/Infrastructure/Bluetooth/Protocols/QNAABB/QNAABBScaleParser.swift
 ScaleMe/Infrastructure/Bluetooth/Protocols/AAASeries/AAASeriesScaleParser.swift

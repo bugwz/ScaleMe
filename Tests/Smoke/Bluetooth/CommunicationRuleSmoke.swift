@@ -129,6 +129,27 @@ struct CommunicationRuleSmoke {
         )
         expect(
             CommunicationRuleCatalog.builtIn.contains {
+                $0.id == CommunicationRuleCatalog.senssunIF2121ID
+                    && $0.builtInParser == SenssunIF2121ScaleProtocol.builtInParserID
+                    && $0.match.serviceUUID == SenssunIF2121ScaleProtocol.serviceUUID
+                    && $0.match.characteristicUUID == SenssunIF2121ScaleProtocol.liveCharacteristicUUID
+                    && $0.notifyTargets == [
+                        CommunicationGATTTarget(
+                            serviceUUID: SenssunIF2121ScaleProtocol.serviceUUID,
+                            characteristicUUID: SenssunIF2121ScaleProtocol.liveCharacteristicUUID
+                        ),
+                        CommunicationGATTTarget(
+                            serviceUUID: SenssunIF2121ScaleProtocol.serviceUUID,
+                            characteristicUUID: SenssunIF2121ScaleProtocol.resultCharacteristicUUID
+                        )
+                    ]
+                    && $0.effectiveVerification == .fixtureValidated
+                    && $0.effectiveImplementation == .experimental
+            },
+            "Senssun IF2121 GATT parser should be selectable with both notification targets"
+        )
+        expect(
+            CommunicationRuleCatalog.builtIn.contains {
                 $0.id == CommunicationRuleCatalog.aaaSeriesID
                     && $0.builtInParser == ScaleBroadcastProtocolFamily.aaaSeries.builtInParserID
             },

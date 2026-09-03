@@ -182,6 +182,75 @@ enum ParserSmoke {
             // Expected.
         }
 
+        guard case .measurement(.live, let senssunLive) = try SenssunIF2121ScaleParser.parse(hexData(
+            "33CC110000038000177033AC02010200FF"
+        )) else {
+            preconditionFailure("Senssun IF2121 实时帧解析失败")
+        }
+        precondition(abs(senssunLive.weightKG - 60.0) < 0.000_01)
+        precondition(!senssunLive.isStable)
+        precondition(senssunLive.source == .senssunIF2121)
+
+        guard case .measurement(.stable, let senssunStable) = try SenssunIF2121ScaleParser.parse(hexData(
+            "33CC110000038000196437FA02010280C7"
+        )) else {
+            preconditionFailure("Senssun IF2121 稳定帧解析失败")
+        }
+        precondition(abs(senssunStable.weightKG - 65.0) < 0.000_01)
+        precondition(senssunStable.isStable)
+
+        guard case .weightRemoved = try SenssunIF2121ScaleParser.parse(hexData(
+            "33CC110000038000006400DC02010300DA"
+        )) else {
+            preconditionFailure("Senssun IF2121 离秤帧解析失败")
+        }
+        guard case .progress(.bodyCompositionProgress(0x40)) = try SenssunIF2121ScaleParser.parse(hexData(
+            "33CC0A000003820040CF"
+        )) else {
+            preconditionFailure("Senssun IF2121 体成分阶段帧解析失败")
+        }
+
+        var senssunAccumulator = SenssunIF2121ScaleParser.FrameAccumulator()
+        let senssunFinalPart1 = hexData("33CC280001038101FFFF196437FA020102000000")
+        let senssunFinalPart2 = hexData("00000102030405060708090A0B0C0D0E0F1011F8")
+        let incompleteSenssunFinal = try senssunAccumulator.ingest(senssunFinalPart1)
+        precondition(incompleteSenssunFinal == nil)
+        guard let senssunFinalPacket = try senssunAccumulator.ingest(senssunFinalPart2),
+              case .measurement(.final, let senssunFinal) = senssunFinalPacket else {
+            preconditionFailure("Senssun IF2121 最终结果分片重组失败")
+        }
+        precondition(abs(senssunFinal.weightKG - 65.0) < 0.000_01)
+        precondition(senssunFinal.impedanceOhm == nil)
+        precondition(senssunFinal.bodyFatPercent == nil)
+
+        // Byte 4 is a rolling measurement sequence, not a fixed protocol byte.
+        var secondSenssunAccumulator = SenssunIF2121ScaleParser.FrameAccumulator()
+        _ = try secondSenssunAccumulator.ingest(hexData("33CC280002038101FFFF1B583C48020102000000"))
+        guard let secondSenssunPacket = try secondSenssunAccumulator.ingest(hexData(
+            "00000102030405060708090A0B0C0D0E0F101142"
+        )), case .measurement(.final, let secondSenssunFinal) = secondSenssunPacket else {
+            preconditionFailure("Senssun IF2121 第二组最终结果解析失败")
+        }
+        precondition(abs(secondSenssunFinal.weightKG - 70.0) < 0.000_01)
+        precondition(secondSenssunFinal.impedanceOhm == nil)
+        precondition(secondSenssunFinal.bodyFatPercent == nil)
+
+        do {
+            var invalidSenssun = hexData("33CC110000038000196437FA02010280C7")
+            invalidSenssun[invalidSenssun.index(before: invalidSenssun.endIndex)] ^= 0x01
+            _ = try SenssunIF2121ScaleParser.parse(invalidSenssun)
+            preconditionFailure("Senssun IF2121 校验错误必须被拒绝")
+        } catch ScalePayloadError.unsupported {
+            // Expected.
+        }
+
+        do {
+            _ = try SenssunIF2121ScaleParser.parse(hexData("33CC11000003800019643BE202010280B3"))
+            preconditionFailure("Senssun IF2121 kg/lb 镜像不一致必须被拒绝")
+        } catch ScalePayloadError.unsupported {
+            // Expected.
+        }
+
         let wolaiLive = try WolaiAFUScaleParser.parse(hexData(
             "AC2900684E20020005400064000000000029D51F"
         ))
