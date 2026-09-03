@@ -9231,6 +9231,21 @@
         }
       }
     },
+    "华为 Hagrid/WSP 体脂秤" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Huawei Hagrid/WSP Körperanalysewaage" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Huawei Hagrid/WSP body composition scale" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Báscula de composición corporal Huawei Hagrid/WSP" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Balance d’analyse corporelle Huawei Hagrid/WSP" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "Huawei Hagrid/WSP 体組成計" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "Huawei Hagrid/WSP 체성분 체중계" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Balança de composição corporal Huawei Hagrid/WSP" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Весы-анализатор Huawei Hagrid/WSP" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "华为 Hagrid/WSP 体脂秤" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "華為 Hagrid/WSP 體脂磅" } }
+      }
+    },
     "骨量占比" : {
       "extractionState" : "manual",
       "localizations" : {

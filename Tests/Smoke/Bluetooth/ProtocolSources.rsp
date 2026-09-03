@@ -1,5 +1,6 @@
 ScaleMe/Core/Localization/AppLanguage.swift
 ScaleMe/Domain/Models/Models.swift
+ScaleMe/Domain/Trends/TrendAnalysis.swift
 ScaleMe/Infrastructure/Bluetooth/ScaleDiscoveryClassifier.swift
 ScaleMe/Infrastructure/Bluetooth/Protocols/ScalePayloadError.swift
 ScaleMe/Infrastructure/Bluetooth/Protocols/BluetoothSIG/StandardWeightScaleParser.swift

@@ -370,7 +370,8 @@ struct MeasureView: View {
     private func startMeasurementMonitoring() {
         bluetooth.startMeasurementMonitoring(
             scales: store.pairedScales,
-            selectedScaleID: selectedScaleID
+            selectedScaleID: selectedScaleID,
+            profile: store.displaySelectedProfile
         )
     }
 

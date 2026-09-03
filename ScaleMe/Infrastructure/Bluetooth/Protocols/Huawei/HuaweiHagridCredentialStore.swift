@@ -15,7 +15,15 @@ struct HuaweiHagridCredentialStore {
         guard status == errSecSuccess, let data = result as? Data else {
             throw SecureStorageError.keychain(status)
         }
-        return try HuaweiHagridProtocol.Credentials(encoded: data)
+        do {
+            return try HuaweiHagridProtocol.Credentials(encoded: data)
+        } catch ScalePayloadError.unsupported {
+            // Development builds previously stored CAK/C1/C2 without the address
+            // needed for C3. Discard that incomplete record instead of blocking a
+            // replacement with the current credential shape.
+            try delete(for: scaleID)
+            return nil
+        }
     }
 
     func save(_ credentials: HuaweiHagridProtocol.Credentials, for scaleID: UUID) throws {

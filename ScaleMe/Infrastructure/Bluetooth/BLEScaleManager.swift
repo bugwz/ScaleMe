@@ -1,5 +1,6 @@
 import CoreBluetooth
 import Foundation
+import Security
 
 struct DiscoveredScale: Identifiable, Hashable {
     let id: UUID
@@ -112,6 +113,15 @@ final class BLEScaleManager: NSObject, ObservableObject {
         case standardBodyComposition
         case wolaiAFU
     }
+    private enum HuaweiHagridHandshakeState {
+        case idle
+        case awaitingChallenge
+        case awaitingAuthenticationResponse
+        case awaitingWorkKeyAcknowledgement
+        case awaitingUserInfoAcknowledgement
+        case ready
+        case failed
+    }
     enum State: Equatable {
         case idle, unavailable(String), scanning, connecting(String), connected(String), measuring, stabilizing, completed
 
@@ -187,11 +197,21 @@ final class BLEScaleManager: NSObject, ObservableObject {
     private var huaweiHagridNotificationAccumulators: [String: HuaweiHagridProtocol.NotificationAccumulator] = [:]
     private var settingsHuaweiAuthenticationCharacteristic: CBCharacteristic?
     private var settingsHuaweiRealtimeCharacteristic: CBCharacteristic?
+    private var huaweiHagridHandshakeState: HuaweiHagridHandshakeState = .idle
+    private var huaweiHagridCredentials: HuaweiHagridProtocol.Credentials?
+    private var huaweiHagridRandomA: Data?
+    private var huaweiHagridRandomB: Data?
+    private var huaweiHagridWorkKey: Data?
+    private var huaweiHagridCharacteristics: [String: CBCharacteristic] = [:]
+    private var huaweiHagridMeasurementProfile: UserProfile?
+    private var huaweiHagridStatusPollingTask: Task<Void, Never>?
 
     private static let weightService = CBUUID(string: "181D")
     private static let bodyService = CBUUID(string: "181B")
     private static let weightMeasurement = CBUUID(string: "2A9D")
     private static let bodyMeasurement = CBUUID(string: "2A9C")
+    private static let huaweiUserDataService = CBUUID(string: HuaweiHagridProtocol.userDataServiceUUID)
+    private static let huaweiCurrentTimeService = CBUUID(string: HuaweiHagridProtocol.currentTimeServiceUUID)
     private static let wolaiService = CBUUID(string: WolaiAFUScaleAdapter.serviceUUID)
     private static let wolaiMeasurement = CBUUID(string: WolaiAFUScaleAdapter.measurementCharacteristicUUID)
     private static let serialNumber = CBUUID(string: "2A25")
@@ -219,7 +239,11 @@ final class BLEScaleManager: NSObject, ObservableObject {
         beginScanning(clearDevices: true)
     }
 
-    func startMeasurementMonitoring(scales: [PairedScale], selectedScaleID: UUID? = nil) {
+    func startMeasurementMonitoring(
+        scales: [PairedScale],
+        selectedScaleID: UUID? = nil,
+        profile: UserProfile? = nil
+    ) {
         pairedScaleIDs = Set(scales.map(\.id))
         pairedScaleNames = Dictionary(uniqueKeysWithValues: scales.map { ($0.id, $0.name) })
         pairedScaleModelNames = Dictionary(uniqueKeysWithValues: scales.map { ($0.id, $0.modelName) })
@@ -235,6 +259,8 @@ final class BLEScaleManager: NSObject, ObservableObject {
         isWaitingForNextLoad = false
         minimumWeightAfterCompletionKG = nil
         didCompleteWolaiFinal = false
+        huaweiHagridMeasurementProfile = profile
+        resetHuaweiHagridSession()
         if let connected, !isMonitoredScale(connected.identifier) {
             connectionTimeoutTask?.cancel()
             central.cancelPeripheralConnection(connected)
@@ -270,6 +296,10 @@ final class BLEScaleManager: NSObject, ObservableObject {
 
     private func selectedRule(for deviceID: UUID) -> CommunicationRule? {
         pairedScaleRuleIDs[deviceID].flatMap { communicationRulesByID[$0] }
+    }
+
+    private func isHuaweiHagridSelected(for deviceID: UUID) -> Bool {
+        selectedRule(for: deviceID)?.id == CommunicationRuleCatalog.huaweiHagridID
     }
 
     private func isMonitoredScale(_ deviceID: UUID) -> Bool {
@@ -1403,7 +1433,21 @@ extension BLEScaleManager: CBCentralManagerDelegate {
                 peripheral.discoverServices(nil)
             } else {
                 let selected = selectedRule(for: peripheral.identifier)
-                if selected?.isDeclarative == true {
+                if isHuaweiHagridSelected(for: peripheral.identifier) {
+                    resetHuaweiHagridSession()
+                    huaweiHagridCredentials = try? HuaweiHagridCredentialStore().load(
+                        for: peripheral.identifier
+                    )
+                    huaweiHagridHandshakeState = huaweiHagridCredentials == nil
+                        ? .failed
+                        : .awaitingChallenge
+                    peripheral.discoverServices([
+                        Self.huaweiUserDataService,
+                        Self.huaweiCurrentTimeService,
+                        Self.bodyService,
+                        Self.weightService
+                    ])
+                } else if selected?.isDeclarative == true {
                     peripheral.discoverServices(nil)
                 } else {
                     peripheral.discoverServices([Self.weightService, Self.bodyService, Self.wolaiService])
@@ -1442,6 +1486,9 @@ extension BLEScaleManager: CBCentralManagerDelegate {
             connected = nil
             activeScaleID = nil
             activeScaleName = nil
+            if isHuaweiHagridSelected(for: peripheral.identifier) {
+                resetHuaweiHagridSession()
+            }
             if let reconnectScale {
                 appendDiagnosticEvent(
                     kind: .service,
@@ -1532,6 +1579,16 @@ extension BLEScaleManager: CBPeripheralDelegate {
                 huaweiHagridDeviceIDs.insert(peripheral.identifier)
             }
             for characteristic in service.characteristics ?? [] {
+                let isHuaweiMeasurementTarget = settingsScaleID == nil
+                    && isHuaweiHagridSelected(for: peripheral.identifier)
+                    && HuaweiHagridProtocol.isSessionCharacteristic(characteristic.uuid.uuidString)
+                if isHuaweiMeasurementTarget {
+                    huaweiHagridCharacteristics[characteristic.uuid.uuidString.uppercased()] = characteristic
+                    if characteristic.properties.contains(.notify)
+                        || characteristic.properties.contains(.indicate) {
+                        peripheral.setNotifyValue(true, for: characteristic)
+                    }
+                }
                 let isDiagnosticTarget = settingsScaleID == peripheral.identifier
                     && isDeviceDiagnosticCaptureEnabled
                 let isHuaweiDiagnosticTarget = isDiagnosticTarget
@@ -1673,6 +1730,16 @@ extension BLEScaleManager: CBPeripheralDelegate {
                 }
             }
 
+            if settingsScaleID != peripheral.identifier,
+               isHuaweiHagridSelected(for: peripheral.identifier) {
+                consumeHuaweiHagridNotification(
+                    data,
+                    from: characteristic,
+                    on: peripheral
+                )
+                return
+            }
+
             if let serviceUUID = characteristic.service?.uuid.uuidString,
                let custom = customRule(
                    for: peripheral.identifier,
@@ -1744,6 +1811,15 @@ extension BLEScaleManager: CBPeripheralDelegate {
 
     nonisolated func peripheral(_ peripheral: CBPeripheral, didUpdateNotificationStateFor characteristic: CBCharacteristic, error: Error?) {
         Task { @MainActor in
+            if settingsScaleID != peripheral.identifier,
+               isHuaweiHagridSelected(for: peripheral.identifier) {
+                if error != nil {
+                    huaweiHagridHandshakeState = .failed
+                } else {
+                    startHuaweiHagridAuthenticationIfReady(on: peripheral)
+                }
+                return
+            }
             guard settingsScaleID == peripheral.identifier else { return }
             if let error {
                 captureCharacteristicEvent(
@@ -2035,6 +2111,307 @@ extension BLEScaleManager: CBPeripheralDelegate {
             summary: "华为 Hagrid 未认证实时测量探针（\(reason)）"
         )
         peripheral.writeValue(probe, for: characteristic, type: .withResponse)
+    }
+
+    private func resetHuaweiHagridSession() {
+        huaweiHagridStatusPollingTask?.cancel()
+        huaweiHagridStatusPollingTask = nil
+        huaweiHagridHandshakeState = .idle
+        huaweiHagridCredentials = nil
+        huaweiHagridRandomA = nil
+        huaweiHagridRandomB = nil
+        huaweiHagridWorkKey = nil
+        huaweiHagridCharacteristics.removeAll()
+        huaweiHagridNotificationAccumulators.removeAll()
+        didSendHuaweiHagridProbe = false
+    }
+
+    private func startHuaweiHagridAuthenticationIfReady(on peripheral: CBPeripheral) {
+        guard huaweiHagridHandshakeState == .awaitingChallenge,
+              !didSendHuaweiHagridProbe,
+              huaweiHagridCredentials != nil else { return }
+        let required = [
+            HuaweiHagridProtocol.requestAuthenticationCharacteristicUUID,
+            HuaweiHagridProtocol.authenticationTokenCharacteristicUUID,
+            HuaweiHagridProtocol.sendWorkKeyCharacteristicUUID,
+            HuaweiHagridProtocol.setUserInfoCharacteristicUUID,
+            HuaweiHagridProtocol.realtimeWeightCharacteristicUUID,
+            HuaweiHagridProtocol.measurementStatusPollCharacteristicUUID,
+            HuaweiHagridProtocol.measurementStatusResultCharacteristicUUID
+        ]
+        guard required.allSatisfy({ huaweiHagridCharacteristics[$0]?.isNotifying == true }) else {
+            return
+        }
+        didSendHuaweiHagridProbe = true
+        writeHuaweiHagridPlain(
+            Data(),
+            to: HuaweiHagridProtocol.requestAuthenticationCharacteristicUUID,
+            on: peripheral
+        )
+    }
+
+    private func consumeHuaweiHagridNotification(
+        _ data: Data,
+        from characteristic: CBCharacteristic,
+        on peripheral: CBPeripheral
+    ) {
+        let characteristicUUID = characteristic.uuid.uuidString.uppercased()
+        guard let frame = try? HuaweiHagridProtocol.parseNotificationFrame(data) else { return }
+        var accumulator = huaweiHagridNotificationAccumulators[characteristicUUID] ?? .init()
+        let completed = accumulator.ingest(frame)
+        huaweiHagridNotificationAccumulators[characteristicUUID] = accumulator
+        guard let completed else { return }
+
+        do {
+            switch characteristicUUID {
+            case HuaweiHagridProtocol.requestAuthenticationCharacteristicUUID:
+                try handleHuaweiHagridChallenge(completed, on: peripheral)
+            case HuaweiHagridProtocol.authenticationTokenCharacteristicUUID:
+                try handleHuaweiHagridAuthenticationResponse(completed, on: peripheral)
+            case HuaweiHagridProtocol.sendWorkKeyCharacteristicUUID:
+                try handleHuaweiHagridWorkKeyAcknowledgement(completed, on: peripheral)
+            case HuaweiHagridProtocol.setUserInfoCharacteristicUUID:
+                handleHuaweiHagridUserInfoAcknowledgement(completed, on: peripheral)
+            case HuaweiHagridProtocol.realtimeWeightCharacteristicUUID:
+                try handleHuaweiHagridRealtimeMeasurement(completed)
+            case HuaweiHagridProtocol.measurementStatusResultCharacteristicUUID:
+                handleHuaweiHagridMeasurementStatus(completed, on: peripheral)
+            default:
+                break
+            }
+        } catch {
+            // A malformed or unsupported measurement must not tear down an
+            // already-authenticated session; a later stable packet may follow.
+            guard huaweiHagridHandshakeState != .ready else { return }
+            huaweiHagridHandshakeState = .failed
+            huaweiHagridStatusPollingTask?.cancel()
+            huaweiHagridStatusPollingTask = nil
+            state = .unavailable("华为 Hagrid 协议响应无效")
+        }
+    }
+
+    private func handleHuaweiHagridChallenge(
+        _ notification: HuaweiHagridProtocol.CompletedNotification,
+        on peripheral: CBPeripheral
+    ) throws {
+        guard huaweiHagridHandshakeState == .awaitingChallenge,
+              !notification.isEncrypted,
+              let credentials = huaweiHagridCredentials else {
+            throw ScalePayloadError.unsupported
+        }
+        let randomA = try HuaweiHagridProtocol.parseAuthenticationChallenge(notification.payload)
+        let randomB = try secureRandomData(count: 16)
+        let token = try HuaweiHagridProtocol.makeAuthenticationTokenPayload(
+            challenge: randomA,
+            randomB: randomB,
+            cak: credentials.cak
+        )
+        huaweiHagridRandomA = randomA
+        huaweiHagridRandomB = randomB
+        huaweiHagridHandshakeState = .awaitingAuthenticationResponse
+        writeHuaweiHagridPlain(
+            token,
+            to: HuaweiHagridProtocol.authenticationTokenCharacteristicUUID,
+            on: peripheral
+        )
+    }
+
+    private func handleHuaweiHagridAuthenticationResponse(
+        _ notification: HuaweiHagridProtocol.CompletedNotification,
+        on peripheral: CBPeripheral
+    ) throws {
+        guard huaweiHagridHandshakeState == .awaitingAuthenticationResponse,
+              !notification.isEncrypted,
+              let credentials = huaweiHagridCredentials,
+              let randomA = huaweiHagridRandomA,
+              let randomB = huaweiHagridRandomB else {
+            throw ScalePayloadError.unsupported
+        }
+        let expected = try HuaweiHagridProtocol.expectedAuthenticationResponse(
+            challenge: randomA,
+            randomB: randomB,
+            cak: credentials.cak
+        )
+        guard notification.payload == expected else { throw ScalePayloadError.unsupported }
+
+        let rootKey = HuaweiHagridProtocol.deriveRootKey(credentials: credentials)
+        let workKey = try secureRandomData(count: 16)
+        let iv = try secureRandomData(count: 16)
+        huaweiHagridWorkKey = workKey
+        huaweiHagridHandshakeState = .awaitingWorkKeyAcknowledgement
+        let frames = try HuaweiHagridProtocol.makeEncryptedWriteFrames(
+            payload: workKey,
+            key: rootKey,
+            iv: iv
+        )
+        writeHuaweiHagridFrames(
+            frames,
+            to: HuaweiHagridProtocol.sendWorkKeyCharacteristicUUID,
+            on: peripheral
+        )
+    }
+
+    private func handleHuaweiHagridWorkKeyAcknowledgement(
+        _ notification: HuaweiHagridProtocol.CompletedNotification,
+        on peripheral: CBPeripheral
+    ) throws {
+        guard huaweiHagridHandshakeState == .awaitingWorkKeyAcknowledgement,
+              !notification.isEncrypted,
+              notification.payload.first == 0,
+              let credentials = huaweiHagridCredentials,
+              let workKey = huaweiHagridWorkKey,
+              let profile = huaweiHagridMeasurementProfile else {
+            throw ScalePayloadError.unsupported
+        }
+
+        writeHuaweiHagridPlain(
+            HuaweiHagridProtocol.makeCurrentTimePayload(),
+            to: HuaweiHagridProtocol.currentTimeCharacteristicUUID,
+            on: peripheral
+        )
+        let compactAddress = credentials.bluetoothAddressText.replacingOccurrences(of: ":", with: "")
+        let compactProfileID = profile.id.uuidString.replacingOccurrences(of: "-", with: "")
+        let isScale3 = pairedScaleModelNames[peripheral.identifier]?
+            .localizedCaseInsensitiveContains("Scale 3") == true
+        let gender: UInt8 = if isScale3 {
+            profile.biologicalSex == .male ? 1 : 0
+        } else {
+            profile.biologicalSex == .male ? 0 : 1
+        }
+        let userInfo = HuaweiHagridProtocol.makeUserInfoPayload(
+            huid: "scaleme:\(compactAddress)",
+            uid: "u:\(compactProfileID.prefix(30))",
+            gender: gender,
+            ageYears: UInt8(clamping: profile.age),
+            heightCM: UInt16(clamping: Int(profile.heightCM.rounded())),
+            weightKG: 0
+        )
+        let frames = try HuaweiHagridProtocol.makeEncryptedWriteFrames(
+            payload: userInfo,
+            key: workKey,
+            iv: secureRandomData(count: 16)
+        )
+        huaweiHagridHandshakeState = .awaitingUserInfoAcknowledgement
+        writeHuaweiHagridFrames(
+            frames,
+            to: HuaweiHagridProtocol.setUserInfoCharacteristicUUID,
+            on: peripheral
+        )
+    }
+
+    private func handleHuaweiHagridUserInfoAcknowledgement(
+        _ notification: HuaweiHagridProtocol.CompletedNotification,
+        on peripheral: CBPeripheral
+    ) {
+        guard huaweiHagridHandshakeState == .awaitingUserInfoAcknowledgement,
+              !notification.isEncrypted,
+              notification.payload.first == 0 else {
+            huaweiHagridHandshakeState = .failed
+            return
+        }
+        huaweiHagridHandshakeState = .ready
+        writeHuaweiHagridPlain(
+            Data(),
+            to: HuaweiHagridProtocol.realtimeWeightCharacteristicUUID,
+            on: peripheral
+        )
+        startHuaweiHagridStatusPolling(on: peripheral)
+    }
+
+    private func handleHuaweiHagridRealtimeMeasurement(
+        _ notification: HuaweiHagridProtocol.CompletedNotification
+    ) throws {
+        guard huaweiHagridHandshakeState == .ready,
+              notification.isEncrypted,
+              let workKey = huaweiHagridWorkKey,
+              let profile = huaweiHagridMeasurementProfile else {
+            throw ScalePayloadError.unsupported
+        }
+        let plaintext = try HuaweiHagridProtocol.decryptPayloadWithIV(
+            notification.payload,
+            key: workKey
+        )
+        let parsed = try HuaweiHagridProtocol.parseRealtimeMeasurement(plaintext)
+        let measurement = BodyMeasurement(
+            date: .now,
+            weightKG: parsed.weightKG,
+            impedanceOhm: parsed.representativeLowImpedanceOhm,
+            secondaryImpedanceOhm: parsed.representativeHighImpedanceOhm,
+            bodyFatPercent: parsed.deviceFatPercent,
+            source: .huaweiHagrid,
+            isStable: true,
+            profileID: profile.id
+        )
+        huaweiHagridStatusPollingTask?.cancel()
+        huaweiHagridStatusPollingTask = nil
+        consume(measurement, reliability: .protocolFinal)
+    }
+
+    private func handleHuaweiHagridMeasurementStatus(
+        _ notification: HuaweiHagridProtocol.CompletedNotification,
+        on peripheral: CBPeripheral
+    ) {
+        guard huaweiHagridHandshakeState == .ready,
+              !notification.isEncrypted,
+              let status = notification.payload.first else { return }
+        if status == 0 {
+            writeHuaweiHagridPlain(
+                Data(),
+                to: HuaweiHagridProtocol.realtimeWeightCharacteristicUUID,
+                on: peripheral
+            )
+        } else if status == 1 {
+            state = .measuring
+        }
+    }
+
+    private func startHuaweiHagridStatusPolling(on peripheral: CBPeripheral) {
+        huaweiHagridStatusPollingTask?.cancel()
+        huaweiHagridStatusPollingTask = Task { [weak self, weak peripheral] in
+            for _ in 0..<30 {
+                guard !Task.isCancelled, let self, let peripheral,
+                      self.huaweiHagridHandshakeState == .ready else { return }
+                self.writeHuaweiHagridPlain(
+                    Data(),
+                    to: HuaweiHagridProtocol.measurementStatusPollCharacteristicUUID,
+                    on: peripheral
+                )
+                try? await Task.sleep(for: .seconds(3))
+            }
+        }
+    }
+
+    private func writeHuaweiHagridPlain(
+        _ payload: Data,
+        to characteristicUUID: String,
+        on peripheral: CBPeripheral
+    ) {
+        writeHuaweiHagridFrames(
+            HuaweiHagridProtocol.makePlainWriteFrames(payload: payload),
+            to: characteristicUUID,
+            on: peripheral
+        )
+    }
+
+    private func writeHuaweiHagridFrames(
+        _ frames: [Data],
+        to characteristicUUID: String,
+        on peripheral: CBPeripheral
+    ) {
+        guard let characteristic = huaweiHagridCharacteristics[characteristicUUID] else { return }
+        for frame in frames {
+            peripheral.writeValue(frame, for: characteristic, type: .withResponse)
+        }
+    }
+
+    private func secureRandomData(count: Int) throws -> Data {
+        var data = Data(repeating: 0, count: count)
+        let status = data.withUnsafeMutableBytes { buffer in
+            guard let baseAddress = buffer.baseAddress else { return errSecParam }
+            return SecRandomCopyBytes(kSecRandomDefault, count, baseAddress)
+        }
+        guard status == errSecSuccess else { throw ScalePayloadError.unsupported }
+        return data
     }
 
     private func characteristicPropertiesDescription(_ properties: CBCharacteristicProperties) -> String {

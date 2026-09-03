@@ -322,66 +322,66 @@
         }
       }
     },
-    "CAK、C1 和 C2 各需 32 位十六进制。密钥仅保存到本机 Keychain，不写入配置文件、诊断日志或 iCloud。" : {
+    "需提供秤的蓝牙地址，以及各 32 位十六进制的 CAK、C1 和 C2。认证材料仅保存到本机 Keychain，不写入配置文件、诊断日志或 iCloud。" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "CAK, C1 und C2 benötigen jeweils 32 Hexadezimalzeichen. Die Schlüssel werden nur im lokalen Schlüsselbund gespeichert, nicht in Konfiguration, Diagnoseprotokollen oder iCloud."
+            "value" : "Die Bluetooth-Adresse der Waage sowie CAK, C1 und C2 mit jeweils 32 Hexadezimalzeichen sind erforderlich. Die Anmeldedaten werden nur im lokalen Schlüsselbund gespeichert."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "CAK, C1, and C2 each require 32 hexadecimal characters. Keys are stored only in the local Keychain, not in configuration files, diagnostic logs, or iCloud."
+            "value" : "The scale's Bluetooth address and 32 hexadecimal characters each for CAK, C1, and C2 are required. Credentials are stored only in the local Keychain."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "CAK, C1 y C2 requieren 32 caracteres hexadecimales cada uno. Las claves solo se guardan en el llavero local, no en archivos de configuración, registros de diagnóstico ni iCloud."
+            "value" : "Se requieren la dirección Bluetooth de la báscula y 32 caracteres hexadecimales para CAK, C1 y C2. Las credenciales solo se guardan en el llavero local."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "CAK, C1 et C2 nécessitent chacun 32 caractères hexadécimaux. Les clés sont uniquement stockées dans le trousseau local, jamais dans la configuration, les journaux de diagnostic ou iCloud."
+            "value" : "L’adresse Bluetooth de la balance et 32 caractères hexadécimaux pour CAK, C1 et C2 sont requis. Les identifiants sont stockés uniquement dans le trousseau local."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "CAK、C1、C2 はそれぞれ32桁の16進数です。キーは端末のKeychainにのみ保存され、設定ファイル、診断ログ、iCloudには書き込まれません。"
+            "value" : "体重計のBluetoothアドレスと、CAK・C1・C2それぞれ32桁の16進数が必要です。認証情報は端末のKeychainにのみ保存されます。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "CAK, C1, C2는 각각 32자리 16진수여야 합니다. 키는 로컬 Keychain에만 저장되며 구성 파일, 진단 로그 또는 iCloud에는 기록되지 않습니다."
+            "value" : "체중계의 Bluetooth 주소와 CAK, C1, C2 각각 32자리 16진수가 필요합니다. 인증 정보는 로컬 Keychain에만 저장됩니다."
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "CAK, C1 e C2 exigem 32 caracteres hexadecimais cada. As chaves são guardadas apenas no Keychain local, nunca nos ficheiros de configuração, registos de diagnóstico ou iCloud."
+            "value" : "São necessários o endereço Bluetooth da balança e 32 caracteres hexadecimais para CAK, C1 e C2. As credenciais ficam apenas no Keychain local."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "CAK, C1 и C2 должны содержать по 32 шестнадцатеричных символа. Ключи хранятся только в локальной Связке ключей, а не в конфигурации, диагностических журналах или iCloud."
+            "value" : "Требуются Bluetooth-адрес весов и по 32 шестнадцатеричных символа для CAK, C1 и C2. Данные хранятся только в локальной Связке ключей."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "CAK、C1 和 C2 各需 32 位十六进制。密钥仅保存到本机 Keychain，不写入配置文件、诊断日志或 iCloud。"
+            "value" : "需提供秤的蓝牙地址，以及各 32 位十六进制的 CAK、C1 和 C2。认证材料仅保存到本机 Keychain，不写入配置文件、诊断日志或 iCloud。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "CAK、C1 和 C2 各需 32 位十六進位。密鑰僅儲存到本機 Keychain，不寫入設定檔、診斷記錄或 iCloud。"
+            "value" : "需提供秤的藍牙位址，以及各 32 位十六進位的 CAK、C1 和 C2。認證資料僅儲存於本機 Keychain，不寫入設定檔、診斷記錄或 iCloud。"
           }
         }
       }
@@ -4697,66 +4697,66 @@
         }
       }
     },
-    "当前仅完成认证材料的安全配置；C3 来源、认证令牌和工作密钥交换仍在适配，暂不会把该设备标记为已支持。" : {
+    "iOS 不提供外设的真实蓝牙地址；该地址用于生成 C3。协议解析已通过抓包夹具验证，仍需在真实设备上验证完整测量会话。" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Derzeit ist nur die sichere Speicherung der Anmeldedaten fertig. C3-Quelle, Authentifizierungstoken und Arbeitsschlüsselaustausch werden noch angepasst; das Gerät gilt noch nicht als unterstützt."
+            "value" : "iOS stellt die echte Bluetooth-Adresse des Geräts nicht bereit; sie wird zur Erzeugung von C3 benötigt. Die Protokollanalyse ist mit Aufzeichnungsdaten verifiziert, die vollständige Messsitzung benötigt noch einen Gerätetest."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Only secure credential configuration is complete. The C3 source, authentication token, and work-key exchange are still being adapted, so this device is not yet marked as supported."
+            "value" : "iOS does not expose the peripheral's real Bluetooth address; it is used to generate C3. Protocol parsing is capture-fixture validated, while the complete measurement session still needs real-device validation."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Solo está completa la configuración segura de credenciales. El origen de C3, el token de autenticación y el intercambio de la clave de trabajo siguen en adaptación; el dispositivo aún no se marca como compatible."
+            "value" : "iOS no proporciona la dirección Bluetooth real del periférico; se usa para generar C3. El análisis está validado con una captura, pero la sesión completa aún requiere una prueba real."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Seule la configuration sécurisée des identifiants est terminée. La source C3, le jeton d’authentification et l’échange de clé de travail restent en cours d’adaptation ; l’appareil n’est pas encore indiqué comme pris en charge."
+            "value" : "iOS n’expose pas l’adresse Bluetooth réelle du périphérique ; elle sert à générer C3. L’analyse est validée par une capture, mais la session complète doit encore être testée sur appareil réel."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "現在完了しているのは認証情報の安全な設定のみです。C3の取得元、認証トークン、作業キー交換は対応中のため、この機器はまだ対応済みとは表示されません。"
+            "value" : "iOSでは周辺機器の実際のBluetoothアドレスを取得できません。このアドレスはC3の生成に使います。解析はキャプチャで検証済みですが、完全な測定セッションには実機検証が必要です。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "현재는 인증 정보의 안전한 구성만 완료되었습니다. C3 출처, 인증 토큰 및 작업 키 교환은 아직 적용 중이므로 이 기기는 지원됨으로 표시되지 않습니다."
+            "value" : "iOS는 주변 기기의 실제 Bluetooth 주소를 제공하지 않으며, 이 주소는 C3 생성에 사용됩니다. 프로토콜 분석은 캡처로 검증했지만 전체 측정 세션은 실제 기기 검증이 필요합니다."
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Apenas a configuração segura das credenciais está concluída. A origem C3, o token de autenticação e a troca da chave de trabalho continuam em adaptação, pelo que o dispositivo ainda não é marcado como suportado."
+            "value" : "O iOS não expõe o endereço Bluetooth real do periférico; ele é usado para gerar C3. A análise foi validada com uma captura, mas a sessão completa ainda requer teste num dispositivo real."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Пока завершена только безопасная настройка учётных данных. Источник C3, токен аутентификации и обмен рабочим ключом ещё адаптируются, поэтому устройство пока не отмечается как поддерживаемое."
+            "value" : "iOS не предоставляет реальный Bluetooth-адрес устройства; он нужен для генерации C3. Разбор проверен по записи, но полный сеанс измерения ещё требует проверки на реальном устройстве."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "当前仅完成认证材料的安全配置；C3 来源、认证令牌和工作密钥交换仍在适配，暂不会把该设备标记为已支持。"
+            "value" : "iOS 不提供外设的真实蓝牙地址；该地址用于生成 C3。协议解析已通过抓包夹具验证，仍需在真实设备上验证完整测量会话。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "目前僅完成認證資料的安全設定；C3 來源、認證權杖和工作密鑰交換仍在適配，暫不會將此裝置標記為已支援。"
+            "value" : "iOS 不提供周邊裝置的真實藍牙位址；該位址用於產生 C3。協議解析已通過擷取資料驗證，完整測量工作階段仍需實機驗證。"
           }
         }
       }

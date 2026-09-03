@@ -34,15 +34,18 @@ enum ParserSmoke {
         )
         precondition(huaweiRandom == hexData("A0A1A2A3A4A5A6A7A8A9AAABACADAEAF"))
         let huaweiCredentials = try HuaweiHagridProtocol.Credentials(
+            bluetoothAddress: "02:00:00:00:00:01",
             cakHex: "00112233445566778899AABBCCDDEEFF",
             c1Hex: "FFEEDDCCBBAA99887766554433221100",
             c2Hex: "0123456789ABCDEFFEDCBA9876543210"
         )
-        precondition(huaweiCredentials.encoded.count == 48)
+        precondition(huaweiCredentials.encoded.count == 55)
+        precondition(huaweiCredentials.bluetoothAddressText == "02:00:00:00:00:01")
         let decodedHuaweiCredentials = try HuaweiHagridProtocol.Credentials(encoded: huaweiCredentials.encoded)
         precondition(decodedHuaweiCredentials == huaweiCredentials)
         do {
             _ = try HuaweiHagridProtocol.Credentials(
+                bluetoothAddress: "02:00:00:00:00:01",
                 cakHex: "GG112233445566778899AABBCCDDEEFF",
                 c1Hex: "FFEEDDCCBBAA99887766554433221100",
                 c2Hex: "0123456789ABCDEFFEDCBA9876543210"
@@ -51,6 +54,38 @@ enum ParserSmoke {
         } catch ScalePayloadError.unsupported {
             // Expected.
         }
+
+        // Synthetic Huawei known-answer vectors; no captured device credentials.
+        // C1=10...1F, C2=20...2F, work key=30...3F, IVs=40...4F / 50...5F.
+        // AES-CTR expected ciphertext was generated independently with OpenSSL.
+        let huaweiCryptoCredentials = try HuaweiHagridProtocol.Credentials(
+            bluetoothAddress: "02:00:00:00:00:02",
+            cakHex: "00000000000000000000000000000000",
+            c1Hex: "101112131415161718191A1B1C1D1E1F",
+            c2Hex: "202122232425262728292A2B2C2D2E2F"
+        )
+        let huaweiRootKey = HuaweiHagridProtocol.deriveRootKey(credentials: huaweiCryptoCredentials)
+        precondition(huaweiRootKey == hexData("92F26455D32B0FB1EC56C7BB47878974"))
+        let huaweiEncryptedWorkKey = hexData(
+            "404142434445464748494A4B4C4D4E4F47E6319BDECD7508420B0DFD2F9AE88E"
+        )
+        let huaweiWorkKey = try HuaweiHagridProtocol.decryptPayloadWithIV(
+            huaweiEncryptedWorkKey,
+            key: huaweiRootKey
+        )
+        precondition(huaweiWorkKey == hexData("303132333435363738393A3B3C3D3E3F"))
+        let huaweiEncryptedMeasurement = hexData(
+            "505152535455565758595A5B5C5D5E5F8A5110208D5F2422A8AA93EEBB8165F327ABE7063BEB41ADD3EA"
+        )
+        let huaweiMeasurementPayload = try HuaweiHagridProtocol.decryptPayloadWithIV(
+            huaweiEncryptedMeasurement,
+            key: huaweiWorkKey
+        )
+        let huaweiMeasurement = try HuaweiHagridProtocol.parseRealtimeMeasurement(huaweiMeasurementPayload)
+        precondition(abs(huaweiMeasurement.weightKG - 60.0) < 0.001)
+        precondition(abs(huaweiMeasurement.deviceFatPercent - 20.0) < 0.001)
+        precondition(huaweiMeasurement.heartRateBPM == 60)
+        precondition(abs((huaweiMeasurement.representativeLowImpedanceOhm ?? 0) - 500.0) < 0.001)
         do {
             var invalidHuaweiChallenge = huaweiChallenge
             invalidHuaweiChallenge[invalidHuaweiChallenge.index(before: invalidHuaweiChallenge.endIndex)] ^= 0x01

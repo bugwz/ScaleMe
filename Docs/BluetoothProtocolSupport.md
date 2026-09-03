@@ -16,7 +16,7 @@
 - `BluetoothSIG/`：Bluetooth SIG 标准特征。
 - `Xiaomi/`：小米旧款广播及已确认的设备配置命令。
 - `Wolai/`：Wolai AFU 私有 GATT 帧与设备适配器。
-- `Huawei/`：华为 Hagrid/WSP 设备识别、帧校验与认证探针。
+- `Huawei/`：华为 Hagrid/WSP 设备识别、分帧校验、认证、会话加密与测量载荷解析。
 - `QNAABB/`、`AAASeries/`、`Sinocare/` 等：每个私有协议族直接占用一个同级目录。
 - `ScaleBroadcastProtocolCatalog.swift`：非连接式厂商广播的统一分发入口。
 - `ScalePayloadError.swift`：解析器共享的错误类型。
@@ -43,7 +43,7 @@
 | Yunmai X | Manufacturer Data + `1320` | 校验、阶段、体重、最终阻抗 | 数据样本验证通过，待真机 |
 | Xiaomi XMTZC04HM / `MI SCALE2` | `181D` Service Data 广播 | 体重、kg/lb/斤、稳定/离秤、时间戳 | 上游真实抓包 fixture 验证通过，待本项目真机 |
 | Silvergear Smart Scale 108 | Company ID `A0AC` Manufacturer Data + `FFB0` | 混淆解码、5 位校验、克数、稳定状态；不读取未确认的身体数据字段 | 上游两组 iOS PacketLogger fixture 验证通过，待本项目真机 |
-| Huawei Scale 3 Hagrid/WSP | `FDEE` 广播 + `181C` 私有 GATT | 提供内置协议手动选择；已识别本地实机 GATT 表，支持无密钥认证探针、WSP 帧校验及 CAK/C1/C2 本机 Keychain 配置 | 完整认证与测量未实现，不宣称兼容 |
+| Huawei Scale 2 Pro / 3 / 3 Pro、Honor Scale 2 Hagrid/WSP | `FDEE` 广播 + `181C`、`1805`、`181B` 私有 GATT | 支持手动配置蓝牙地址与 CAK/C1/C2；已实现 WSP 分帧、双向认证、C3/根密钥派生、AES-CTR 工作密钥、用户资料、状态轮询及实时测量解析 | 抓包与确定性 fixture 验证通过；完整 iOS 会话待真机验证 |
 
 “数据样本验证通过”只说明给定字节样本可被确定性解析，不代表任意同品牌设备或固件都已兼容。设备 UI 应继续展示验证级别，不得把数据样本验证等同于真机支持。
 
@@ -97,7 +97,7 @@ CoreBluetooth 提供的 Manufacturer Data 为 2 字节小端 Company ID `AC A0`�
 | Medisana / Trisa / ADE | BS430/440/444、Trisa Body Analyze、ADE BA1600 | `78B2` 或相近私有服务，`8A21/8A24` 测量、`8A81/8A82` 命令/事件 | 协议骨架已登记；需账户/用户与历史状态机 |
 | Salter | SA00656 / SA00432 | `FFCC/FFC1` 轮询；读取 8 个记录槽并处理秤端时钟 | 协议骨架已登记；运行时未完成 |
 | Huawei AH100 / CH100S | 华为早期体脂秤 | `FAA0/FAA1/FAA2`，MAC XOR；CH100S 另有 AES-CTR 与两段 `0E/8E`、`10/90` 帧 | 协议骨架已登记；运行时未完成 |
-| Huawei Hagrid/WSP | Scale 2/3 | `FDEE` 身份、`181C` 私有 WSP，多帧 CRC、CAK/C1/C2 认证与会话密钥 | 诊断与凭据保存已接入；完整认证/测量未完成 |
+| Huawei Hagrid/WSP | Scale 2 Pro / 3 / 3 Pro、Honor Scale 2 | `FDEE` 身份，`181C`/`1805`/`181B` 私有 WSP，多帧 CRC、CAK/C1/C2 认证、AES-CTR 会话密钥与加密测量 | 已作为实验性测量协议接入；数据样本验证通过，待 iPhone 与真实秤验证 |
 | Omron WLC/WLP | HBF-702T 等 | 自定义 `ecbe3980...` 服务、多组 TX/RX 特征、地址块与环形记录 | 协议骨架已登记；运行时未完成 |
 | Weight Gurus / BodyConnect | A3 等 | `8A22/8A24` 测量、`8A81/8A82` 命令/事件；密码、挑战、用户槽、资料与时间 | 协议骨架已登记；运行时未完成 |
 | Classic SPP | iHealth HS3 | 串口字节流；`A0 09 A6 28` 后取 BCD 重量 | 已登记为“平台不支持”；CoreBluetooth 不提供 SPP/RFCOMM |
@@ -116,7 +116,7 @@ openScale 的 63 个注册实例中，除上述重叠家族外还明确包含：
 
 - 需要 GATT 初始化命令、用户资料或多阶段状态机的私有协议。后续必须在对应协议族目录中以独立 adapter 实现，不能塞入广播分发器。
 - Xiaomi S400 / S800 等需要绑定密钥或加密载荷的变体。未安全实现授权与密钥保存前不得宣称支持。
-- Huawei Scale 2/3 Hagrid 变体要求设备对应的 CAK/C1/C2 完成认证，并使用会话工作密钥保护后续数据。本地 Scale 3 样本已确认 `FDEE` 广播、`181C` 认证特征、WSP 多帧重组，以及“16 字节随机挑战 + `00` 状态码”的认证响应形态；尚未取得实时测量载荷，因此仅识别为“认证待配置”。
+- Huawei Hagrid/WSP 变体要求设备对应的蓝牙地址与 CAK/C1/C2 完成认证，并使用工作密钥保护后续数据。Android HCI 样本已确认 `181C` 认证、`1805` 状态轮询、`181B` 实时/历史数据特征及 WSP 多帧形态；固定 fixture 已验证根密钥、AES-CTR 与实时测量字段。由于 CoreBluetooth 不公开真实蓝牙地址，地址必须与密钥一起手动配置；完整 iOS 会话仍需真机验证。
 - 只有设备名称或型号表、没有可复现载荷数据样本的型号。
 - 厨房秤、血压计等非本项目体重/体脂秤范围设备。
 
@@ -155,8 +155,8 @@ openScale 的 63 个注册实例中，除上述重叠家族外还明确包含：
 - [EtekcityFit8SHandler.kt](https://github.com/oliexdev/openScale/blob/master/android_app/app/src/main/java/com/health/openscale/core/bluetooth/scales/EtekcityFit8SHandler.kt)
 - [EufyC20Handler.kt](https://github.com/oliexdev/openScale/blob/master/android_app/app/src/main/java/com/health/openscale/core/bluetooth/scales/EufyC20Handler.kt)
 - [YunmaiXHandler.kt](https://github.com/oliexdev/openScale/blob/master/android_app/app/src/main/java/com/health/openscale/core/bluetooth/scales/YunmaiXHandler.kt)
-- [HuaweiHagridWspHandler.kt](https://github.com/oliexdev/openScale/blob/master/android_app/app/src/main/java/com/health/openscale/core/bluetooth/scales/HuaweiHagridWspHandler.kt)
-- [HuaweiHagridWspLib.kt](https://github.com/oliexdev/openScale/blob/master/android_app/app/src/main/java/com/health/openscale/core/bluetooth/libs/HuaweiHagridWspLib.kt)
+- [HuaweiHagridWspHandler.kt（固定版本）](https://github.com/oliexdev/openScale/blob/6613db5838e4674a19652441073f82b3ee3d7009/android_app/app/src/main/java/com/health/openscale/core/bluetooth/scales/HuaweiHagridWspHandler.kt)
+- [HuaweiHagridWspLib.kt（固定版本）](https://github.com/oliexdev/openScale/blob/6613db5838e4674a19652441073f82b3ee3d7009/android_app/app/src/main/java/com/health/openscale/core/bluetooth/libs/HuaweiHagridWspLib.kt)
 - [Bluetooth SIG Weight Scale Service 1.0.1](https://www.bluetooth.com/wp-content/uploads/Files/Specification/HTML/WSS_v1.0.1/out/en/index-en.html)
 - [Bluetooth SIG Body Composition Service 1.0](https://www.bluetooth.com/specifications/specs/body-composition-service-1-0/)
 - [Xiaomi Bluetooth Mi Scale reverse engineering](https://github.com/oliexdev/openScale/wiki/Xiaomi-Bluetooth-Mi-Scale)

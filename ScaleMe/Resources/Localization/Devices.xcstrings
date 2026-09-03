@@ -2601,67 +2601,67 @@
         }
       }
     },
-    "华为 Scale 2/3 私有连接协议；支持配置认证材料，完整认证与测量仍在适配。" : {
+    "华为 Hagrid/WSP 私有协议；分帧、认证派生、AES-CTR 解密及测量载荷已通过抓包夹具验证，完整 iOS 会话仍待真机验证。" : {
       "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Privates Verbindungsprotokoll für Huawei Scale 2/3; Anmeldedaten können konfiguriert werden, vollständige Authentifizierung und Messung werden noch angepasst."
+            "value" : "Privates Huawei-Hagrid/WSP-Protokoll. Framing, Authentifizierungsableitung, AES-CTR-Entschlüsselung und Messdaten sind mit Aufzeichnungsdaten verifiziert; die vollständige iOS-Sitzung benötigt noch einen Gerätetest."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Proprietary connection protocol for Huawei Scale 2/3. Credentials can be configured; full authentication and measurement are still being adapted."
+            "value" : "Huawei Hagrid/WSP proprietary protocol. Framing, authentication derivation, AES-CTR decryption, and measurement payloads are capture-fixture validated; the complete iOS session still needs real-device validation."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Protocolo de conexión privado para Huawei Scale 2/3. Permite configurar credenciales; la autenticación y medición completas siguen en adaptación."
+            "value" : "Protocolo privado Huawei Hagrid/WSP. El entramado, la derivación de autenticación, el descifrado AES-CTR y las mediciones están validados con una captura; la sesión iOS completa aún requiere una prueba real."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Protocole de connexion propriétaire pour Huawei Scale 2/3. Les identifiants peuvent être configurés ; l’authentification et la mesure complètes restent en cours d’adaptation."
+            "value" : "Protocole propriétaire Huawei Hagrid/WSP. Le découpage, la dérivation d’authentification, le déchiffrement AES-CTR et les mesures sont validés par une capture ; la session iOS complète doit encore être testée sur appareil réel."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Huawei Scale 2/3向けの独自接続プロトコルです。認証情報を設定できますが、完全な認証と測定は対応中です。"
+            "value" : "Huawei Hagrid/WSP独自プロトコルです。フレーム、認証導出、AES-CTR復号、測定データはキャプチャで検証済みですが、完全なiOSセッションには実機検証が必要です。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Huawei Scale 2/3용 비공개 연결 프로토콜입니다. 인증 정보를 구성할 수 있으며 전체 인증 및 측정은 아직 적용 중입니다."
+            "value" : "Huawei Hagrid/WSP 비공개 프로토콜입니다. 프레이밍, 인증 파생, AES-CTR 복호화 및 측정 데이터는 캡처로 검증했지만 전체 iOS 세션은 실제 기기 검증이 필요합니다."
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Protocolo de ligação proprietário para Huawei Scale 2/3. As credenciais podem ser configuradas; a autenticação e medição completas continuam em adaptação."
+            "value" : "Protocolo proprietário Huawei Hagrid/WSP. O enquadramento, a derivação de autenticação, a desencriptação AES-CTR e as medições foram validados com uma captura; a sessão iOS completa ainda requer teste real."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Закрытый протокол подключения Huawei Scale 2/3. Учётные данные можно настроить; полная аутентификация и измерение ещё адаптируются."
+            "value" : "Закрытый протокол Huawei Hagrid/WSP. Кадрирование, вычисление аутентификации, расшифровка AES-CTR и данные измерений проверены по записи; полный сеанс iOS ещё требует проверки на устройстве."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "华为 Scale 2/3 私有连接协议；支持配置认证材料，完整认证与测量仍在适配。"
+            "value" : "华为 Hagrid/WSP 私有协议；分帧、认证派生、AES-CTR 解密及测量载荷已通过抓包夹具验证，完整 iOS 会话仍待真机验证。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "華為 Scale 2/3 私有連線協議；支援設定認證資料，完整認證與測量仍在適配。"
+            "value" : "華為 Hagrid/WSP 私有協議；分幀、認證衍生、AES-CTR 解密及測量載荷已通過擷取資料驗證，完整 iOS 工作階段仍待實機驗證。"
           }
         }
       }
@@ -10074,6 +10074,36 @@
             "value" : "订阅失败"
           }
         }
+      }
+    },
+    "蓝牙地址" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Bluetooth-Adresse" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Bluetooth address" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Dirección Bluetooth" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Adresse Bluetooth" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "Bluetoothアドレス" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "Bluetooth 주소" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Endereço Bluetooth" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Bluetooth-адрес" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "蓝牙地址" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "藍牙位址" } }
+      }
+    },
+    "请填写蓝牙地址，并确保 CAK、C1 和 C2 各为 32 位十六进制" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Bluetooth-Adresse eingeben; CAK, C1 und C2 müssen jeweils 32 Hexadezimalzeichen enthalten" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Enter the Bluetooth address and ensure CAK, C1, and C2 each contain 32 hexadecimal characters" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Introduce la dirección Bluetooth y comprueba que CAK, C1 y C2 tengan 32 caracteres hexadecimales" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Saisissez l’adresse Bluetooth et vérifiez que CAK, C1 et C2 comportent chacun 32 caractères hexadécimaux" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "Bluetoothアドレスを入力し、CAK・C1・C2がそれぞれ32桁の16進数であることを確認してください" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "Bluetooth 주소를 입력하고 CAK, C1, C2가 각각 32자리 16진수인지 확인하세요" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Introduza o endereço Bluetooth e confirme que CAK, C1 e C2 têm 32 caracteres hexadecimais" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Введите Bluetooth-адрес; CAK, C1 и C2 должны содержать по 32 шестнадцатеричных символа" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "请填写蓝牙地址，并确保 CAK、C1 和 C2 各为 32 位十六进制" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "請填寫藍牙位址，並確保 CAK、C1 和 C2 各為 32 位十六進位" } }
       }
     },
     "认证材料保存成功" : {

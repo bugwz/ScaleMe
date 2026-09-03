@@ -79,7 +79,8 @@ struct DiscoveryClassifierSmoke {
         precondition(huaweiRule.match.transport == .characteristicNotification)
         precondition(huaweiRule.match.serviceUUID == HuaweiHagridProtocol.userDataServiceUUID)
         precondition(huaweiRule.match.characteristicUUID == HuaweiHagridProtocol.requestAuthenticationCharacteristicUUID)
-        precondition(huaweiRule.effectiveVerification == .unverified)
+        precondition(huaweiRule.effectiveVerification == .fixtureValidated)
+        precondition(huaweiRule.effectiveImplementation == .experimental)
 
         let qn = advertisement(verifiedBroadcastProtocol: .qnAABB)
         precondition(ScaleDiscoveryClassifier.compatibility(for: qn) == .qnAABBBroadcast)

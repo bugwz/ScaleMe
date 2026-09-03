@@ -252,9 +252,11 @@ enum CommunicationRuleCatalog {
         CommunicationRule(
             id: huaweiHagridID,
             name: "Huawei Hagrid/WSP",
-            version: 1,
-            summary: "华为 Scale 2/3 私有连接协议；支持配置认证材料，完整认证与测量仍在适配。",
+            version: 2,
+            summary: "华为 Hagrid/WSP 私有协议；分帧、认证派生、AES-CTR 解密及测量载荷已通过抓包夹具验证，完整 iOS 会话仍待真机验证。",
+            author: "openScale contributors",
             origin: .builtIn,
+            sourceURL: URL(string: "https://github.com/oliexdev/openScale/blob/6613db5838e4674a19652441073f82b3ee3d7009/android_app/app/src/main/java/com/health/openscale/core/bluetooth/scales/HuaweiHagridWspHandler.kt"),
             match: .init(
                 transport: .characteristicNotification,
                 serviceUUID: HuaweiHagridProtocol.userDataServiceUUID,
@@ -263,10 +265,27 @@ enum CommunicationRuleCatalog {
             ),
             decoder: nil,
             builtInParser: "huaweiHagridWSP",
-            verification: .unverified,
-            implementation: .protocolSkeleton,
-            supportedModels: ["Huawei Scale 2", "Huawei Scale 3"],
-            requirements: [.bindKey, .encryption, .multiFrameSession]
+            verification: .fixtureValidated,
+            implementation: .experimental,
+            supportedModels: ["Huawei Scale 2 Pro", "Huawei Scale 3", "Huawei Scale 3 Pro", "Honor Scale 2"],
+            requirements: [.bindKey, .encryption, .userProfile, .timeSynchronization, .multiFrameSession, .historyStateMachine],
+            notifyTargets: [
+                .init(serviceUUID: HuaweiHagridProtocol.userDataServiceUUID, characteristicUUID: HuaweiHagridProtocol.requestAuthenticationCharacteristicUUID),
+                .init(serviceUUID: HuaweiHagridProtocol.userDataServiceUUID, characteristicUUID: HuaweiHagridProtocol.authenticationTokenCharacteristicUUID),
+                .init(serviceUUID: HuaweiHagridProtocol.userDataServiceUUID, characteristicUUID: HuaweiHagridProtocol.sendWorkKeyCharacteristicUUID),
+                .init(serviceUUID: HuaweiHagridProtocol.currentTimeServiceUUID, characteristicUUID: HuaweiHagridProtocol.measurementStatusResultCharacteristicUUID),
+                .init(serviceUUID: "181B", characteristicUUID: HuaweiHagridProtocol.realtimeWeightCharacteristicUUID),
+                .init(serviceUUID: "181B", characteristicUUID: HuaweiHagridProtocol.historyWeightCharacteristicUUID)
+            ],
+            writeTargets: [
+                .init(serviceUUID: HuaweiHagridProtocol.userDataServiceUUID, characteristicUUID: HuaweiHagridProtocol.requestAuthenticationCharacteristicUUID),
+                .init(serviceUUID: HuaweiHagridProtocol.userDataServiceUUID, characteristicUUID: HuaweiHagridProtocol.authenticationTokenCharacteristicUUID),
+                .init(serviceUUID: HuaweiHagridProtocol.userDataServiceUUID, characteristicUUID: HuaweiHagridProtocol.sendWorkKeyCharacteristicUUID),
+                .init(serviceUUID: HuaweiHagridProtocol.currentTimeServiceUUID, characteristicUUID: HuaweiHagridProtocol.currentTimeCharacteristicUUID),
+                .init(serviceUUID: HuaweiHagridProtocol.currentTimeServiceUUID, characteristicUUID: HuaweiHagridProtocol.measurementStatusPollCharacteristicUUID),
+                .init(serviceUUID: "181B", characteristicUUID: HuaweiHagridProtocol.realtimeWeightCharacteristicUUID),
+                .init(serviceUUID: "181B", characteristicUUID: HuaweiHagridProtocol.historyWeightCharacteristicUUID)
+            ]
         ),
         CommunicationRule(
             id: xiaomiLegacyID,

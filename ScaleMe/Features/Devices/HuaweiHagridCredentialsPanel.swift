@@ -3,6 +3,8 @@ import SwiftUI
 struct HuaweiHagridCredentialsPanel: View {
     let scaleID: UUID
 
+    @Environment(\.appLanguage) private var language
+    @State private var bluetoothAddress = ""
     @State private var cak = ""
     @State private var c1 = ""
     @State private var c2 = ""
@@ -14,14 +16,20 @@ struct HuaweiHagridCredentialsPanel: View {
 
     var body: some View {
         SettingsPanel(title: "华为 Hagrid 认证材料", icon: "key.horizontal.fill") {
-            Text("CAK、C1 和 C2 各需 32 位十六进制。密钥仅保存到本机 Keychain，不写入配置文件、诊断日志或 iCloud。")
+            Text("需提供秤的蓝牙地址，以及各 32 位十六进制的 CAK、C1 和 C2。认证材料仅保存到本机 Keychain，不写入配置文件、诊断日志或 iCloud。")
                 .font(.caption)
                 .foregroundStyle(AppColor.secondary)
                 .lineSpacing(2)
 
-            HuaweiHagridCredentialField(title: "CAK", text: $cak)
-            HuaweiHagridCredentialField(title: "C1", text: $c1)
-            HuaweiHagridCredentialField(title: "C2", text: $c2)
+            HuaweiHagridCredentialField(
+                title: language.text("蓝牙地址"),
+                text: $bluetoothAddress,
+                maximumLength: 17,
+                placeholder: "AA:BB:CC:DD:EE:FF"
+            )
+            HuaweiHagridCredentialField(title: "CAK", text: $cak, maximumLength: 32)
+            HuaweiHagridCredentialField(title: "C1", text: $c1, maximumLength: 32)
+            HuaweiHagridCredentialField(title: "C2", text: $c2, maximumLength: 32)
 
             Button(action: save) {
                 Label("保存", systemImage: "lock.fill")
@@ -50,7 +58,7 @@ struct HuaweiHagridCredentialsPanel: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
 
-            Text("当前仅完成认证材料的安全配置；C3 来源、认证令牌和工作密钥交换仍在适配，暂不会把该设备标记为已支持。")
+            Text("iOS 不提供外设的真实蓝牙地址；该地址用于生成 C3。协议解析已通过抓包夹具验证，仍需在真实设备上验证完整测量会话。")
                 .font(.caption2)
                 .foregroundStyle(AppColor.secondary)
                 .lineSpacing(2)
@@ -60,6 +68,7 @@ struct HuaweiHagridCredentialsPanel: View {
 
     private var canSave: Bool {
         (try? HuaweiHagridProtocol.Credentials(
+            bluetoothAddress: bluetoothAddress,
             cakHex: cak,
             c1Hex: c1,
             c2Hex: c2
@@ -78,20 +87,22 @@ struct HuaweiHagridCredentialsPanel: View {
     private func save() {
         do {
             let credentials = try HuaweiHagridProtocol.Credentials(
+                bluetoothAddress: bluetoothAddress,
                 cakHex: cak,
                 c1Hex: c1,
                 c2Hex: c2
             )
             try credentialStore.save(credentials, for: scaleID)
             KeyboardFocus.dismiss()
+            bluetoothAddress = ""
             cak = ""
             c1 = ""
             c2 = ""
             isConfigured = true
-            message = "认证材料保存成功"
+            message = language.text("认证材料保存成功")
             messageIsError = false
         } catch ScalePayloadError.unsupported {
-            message = "CAK、C1 和 C2 各需 32 位十六进制"
+            message = language.text("请填写蓝牙地址，并确保 CAK、C1 和 C2 各为 32 位十六进制")
             messageIsError = true
         } catch {
             message = error.localizedDescription
@@ -103,6 +114,8 @@ struct HuaweiHagridCredentialsPanel: View {
 private struct HuaweiHagridCredentialField: View {
     let title: String
     @Binding var text: String
+    let maximumLength: Int
+    var placeholder = ""
     @State private var isFocused = false
 
     var body: some View {
@@ -112,7 +125,7 @@ private struct HuaweiHagridCredentialField: View {
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(AppColor.ink)
                 Spacer()
-                Text(verbatim: "\(text.count)/32")
+                Text(verbatim: "\(text.count)/\(maximumLength)")
                     .font(.caption2.monospacedDigit())
                     .foregroundStyle(AppColor.secondary)
             }
@@ -120,7 +133,7 @@ private struct HuaweiHagridCredentialField: View {
             ResponsiveTextField(
                 text: $text,
                 isFocused: $isFocused,
-                placeholder: "",
+                placeholder: placeholder,
                 keyboardType: .asciiCapable,
                 returnKeyType: .done,
                 autocapitalizationType: .allCharacters,
