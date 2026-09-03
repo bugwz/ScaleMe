@@ -16,7 +16,7 @@ let json = #"""
     "version": 1,
     "summary": "smoke fixture",
     "origin": "custom",
-    "verification": "hardwareSample",
+    "verification": "fixtureValidated",
     "match": {
       "transport": "characteristicNotification",
       "serviceUUID": "fff0",

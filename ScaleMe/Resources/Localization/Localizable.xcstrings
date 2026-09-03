@@ -514,70 +514,6 @@
         }
       }
     },
-    "上游项目" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ursprungsprojekt"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Upstream project"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Proyecto de origen"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Projet en amont"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "アップストリームプロジェクト"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "업스트림 프로젝트"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Projeto de origem"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Исходный проект"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "上游项目"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "上游專案"
-          }
-        }
-      }
-    },
     "上移" : {
       "localizations" : {
         "de" : {
@@ -834,6 +770,9 @@
           }
         }
       }
+    },
+    "传输特征" : {
+
     },
     "体脂及相关指标是基于生物电阻抗和个人资料的消费级估算值，仅用于日常趋势参考，不构成医疗诊断。" : {
       "localizations" : {
@@ -1989,6 +1928,9 @@
           }
         }
       }
+    },
+    "写入特征" : {
+
     },
     "出生日期" : {
       "localizations" : {
@@ -3209,6 +3151,9 @@
           }
         }
       }
+    },
+    "备用特征" : {
+
     },
     "外部协议" : {
       "localizations" : {
@@ -4760,70 +4705,6 @@
         }
       }
     },
-    "模拟数据不会写入 Apple 健康，同步设置仅用于演示并会在关闭应用后重置。" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Simulierte Daten werden nicht in Apple Health geschrieben. Die Synchronisierungseinstellungen dienen nur zur Demonstration und werden beim Beenden der App zurückgesetzt."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Simulated data is not written to Apple Health. Sync settings are for demonstration only and reset when the app closes."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Los datos simulados no se escriben en Apple Salud. Los ajustes de sincronización son solo para demostración y se restablecen al cerrar la app."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Les données simulées ne sont pas écrites dans Apple Santé. Les réglages de synchronisation servent uniquement à la démonstration et sont réinitialisés à la fermeture de l’app."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "シミュレーションデータはAppleヘルスケアに書き込まれません。同期設定はデモ専用で、アプリを終了するとリセットされます。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "시뮬레이션 데이터는 Apple 건강에 기록되지 않습니다. 동기화 설정은 데모 전용이며 앱을 종료하면 초기화됩니다."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Os dados simulados não são escritos na Saúde Apple. As definições de sincronização servem apenas para demonstração e são repostas ao fechar a app."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Демонстрационные данные не записываются в Apple Здоровье. Настройки синхронизации служат только для демонстрации и сбрасываются после закрытия приложения."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "模拟数据不会写入 Apple 健康，同步设置仅用于演示并会在关闭应用后重置。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "模擬資料不會寫入 Apple 健康，同步設定僅用於示範，並會在關閉 App 後重設。"
-          }
-        }
-      }
-    },
     "当前仅完成认证材料的安全配置；C3 来源、认证令牌和工作密钥交换仍在适配，暂不会把该设备标记为已支持。" : {
       "localizations" : {
         "de" : {
@@ -5268,70 +5149,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "打开手动测量数据输入表单"
-          }
-        }
-      }
-    },
-    "打开来源地址" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Open source URL"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Open source URL"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Open source URL"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Open source URL"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Open source URL"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Open source URL"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Open source URL"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Open source URL"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "打开来源地址"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "打开来源地址"
           }
         }
       }
@@ -6042,6 +5859,9 @@
         }
       }
     },
+    "服务 UUID" : {
+
+    },
     "未找到匹配的内置协议" : {
       "localizations" : {
         "de" : {
@@ -6166,6 +5986,134 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "本地存储异常"
+          }
+        }
+      }
+    },
+    "本应用不会读取 Apple 健康数据。开启后仅共享所选成员的新测量，不补传历史记录；估算的身体成分不会写入。" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ScaleMe liest keine Daten aus Apple Health. Nach dem Aktivieren werden nur neue Messungen der ausgewählten Person geteilt; frühere Datensätze und geschätzte Körperzusammensetzung werden nicht geschrieben."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ScaleMe does not read Apple Health data. Once enabled, only new measurements for the selected person are shared; history is not backfilled, and estimated body composition is not written."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ScaleMe no lee datos de Apple Salud. Al activarlo, solo se comparten nuevas mediciones del miembro seleccionado; no se envía el historial ni la composición corporal estimada."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ScaleMe ne lit pas les données d’Apple Santé. Une fois activé, seules les nouvelles mesures du membre sélectionné sont partagées ; l’historique et la composition corporelle estimée ne sont pas écrits."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ScaleMeはAppleヘルスケアのデータを読み取りません。有効にすると選択したメンバーの新しい測定値のみを共有し、履歴や推定された身体組成は書き込みません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ScaleMe는 Apple 건강 데이터를 읽지 않습니다. 켜면 선택한 구성원의 새 측정값만 공유하며, 이전 기록이나 추정 신체 구성은 기록하지 않습니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O ScaleMe não lê dados da Saúde Apple. Depois de ativado, apenas são partilhadas novas medições do membro selecionado; o histórico e a composição corporal estimada não são escritos."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ScaleMe не читает данные Apple Здоровье. После включения передаются только новые измерения выбранного профиля; история и расчетный состав тела не записываются."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "本应用不会读取 Apple 健康数据。开启后仅共享所选成员的新测量，不补传历史记录；估算的身体成分不会写入。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "本應用不會讀取 Apple 健康資料。開啟後僅共享所選成員的新測量，不補傳歷史記錄；估算的身體成分不會寫入。"
+          }
+        }
+      }
+    },
+    "本应用是一款注重隐私的原生 iOS 体重与身体趋势应用，帮助你连接蓝牙体脂秤、管理个人记录，并从长期变化中理解身体的方向。" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ScaleMe is a privacy-conscious native iOS app for Bluetooth scales, personal records, and understanding long-term body trends."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ScaleMe is a privacy-conscious native iOS app for Bluetooth scales, personal records, and understanding long-term body trends."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ScaleMe is a privacy-conscious native iOS app for Bluetooth scales, personal records, and understanding long-term body trends."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ScaleMe is a privacy-conscious native iOS app for Bluetooth scales, personal records, and understanding long-term body trends."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ScaleMe is a privacy-conscious native iOS app for Bluetooth scales, personal records, and understanding long-term body trends."
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ScaleMe is a privacy-conscious native iOS app for Bluetooth scales, personal records, and understanding long-term body trends."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ScaleMe is a privacy-conscious native iOS app for Bluetooth scales, personal records, and understanding long-term body trends."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ScaleMe is a privacy-conscious native iOS app for Bluetooth scales, personal records, and understanding long-term body trends."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "本应用是一款注重隐私的原生 iOS 体重与身体趋势应用，帮助你连接蓝牙体脂秤、管理个人记录，并从长期变化中理解身体的方向。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "本應用是一款注重隱私的原生 iOS 體重與身體趨勢應用，幫助你連接藍牙體脂秤、管理個人記錄，並從長期變化中理解身體的方向。"
           }
         }
       }
@@ -6553,6 +6501,70 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "格式版本 1"
+          }
+        }
+      }
+    },
+    "模拟数据不会写入 Apple 健康，同步设置仅用于演示并会在关闭应用后重置。" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Simulierte Daten werden nicht in Apple Health geschrieben. Die Synchronisierungseinstellungen dienen nur zur Demonstration und werden beim Beenden der App zurückgesetzt."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Simulated data is not written to Apple Health. Sync settings are for demonstration only and reset when the app closes."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los datos simulados no se escriben en Apple Salud. Los ajustes de sincronización son solo para demostración y se restablecen al cerrar la app."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les données simulées ne sont pas écrites dans Apple Santé. Les réglages de synchronisation servent uniquement à la démonstration et sont réinitialisés à la fermeture de l’app."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "シミュレーションデータはAppleヘルスケアに書き込まれません。同期設定はデモ専用で、アプリを終了するとリセットされます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "시뮬레이션 데이터는 Apple 건강에 기록되지 않습니다. 동기화 설정은 데모 전용이며 앱을 종료하면 초기화됩니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Os dados simulados não são escritos na Saúde Apple. As definições de sincronização servem apenas para demonstração e são repostas ao fechar a app."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Демонстрационные данные не записываются в Apple Здоровье. Настройки синхронизации служат только для демонстрации и сбрасываются после закрытия приложения."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "模拟数据不会写入 Apple 健康，同步设置仅用于演示并会在关闭应用后重置。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "模擬資料不會寫入 Apple 健康，同步設定僅用於示範，並會在關閉 App 後重設。"
           }
         }
       }
@@ -7452,6 +7464,9 @@
           }
         }
       }
+    },
+    "特征 UUID" : {
+
     },
     "知道了" : {
       "extractionState" : "stale",
@@ -8418,134 +8433,6 @@
         }
       }
     },
-    "本应用不会读取 Apple 健康数据。开启后仅共享所选成员的新测量，不补传历史记录；估算的身体成分不会写入。" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ScaleMe liest keine Daten aus Apple Health. Nach dem Aktivieren werden nur neue Messungen der ausgewählten Person geteilt; frühere Datensätze und geschätzte Körperzusammensetzung werden nicht geschrieben."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ScaleMe does not read Apple Health data. Once enabled, only new measurements for the selected person are shared; history is not backfilled, and estimated body composition is not written."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ScaleMe no lee datos de Apple Salud. Al activarlo, solo se comparten nuevas mediciones del miembro seleccionado; no se envía el historial ni la composición corporal estimada."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ScaleMe ne lit pas les données d’Apple Santé. Une fois activé, seules les nouvelles mesures du membre sélectionné sont partagées ; l’historique et la composition corporelle estimée ne sont pas écrits."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ScaleMeはAppleヘルスケアのデータを読み取りません。有効にすると選択したメンバーの新しい測定値のみを共有し、履歴や推定された身体組成は書き込みません。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ScaleMe는 Apple 건강 데이터를 읽지 않습니다. 켜면 선택한 구성원의 새 측정값만 공유하며, 이전 기록이나 추정 신체 구성은 기록하지 않습니다."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "O ScaleMe não lê dados da Saúde Apple. Depois de ativado, apenas são partilhadas novas medições do membro selecionado; o histórico e a composição corporal estimada não são escritos."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ScaleMe не читает данные Apple Здоровье. После включения передаются только новые измерения выбранного профиля; история и расчетный состав тела не записываются."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "本应用不会读取 Apple 健康数据。开启后仅共享所选成员的新测量，不补传历史记录；估算的身体成分不会写入。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "本應用不會讀取 Apple 健康資料。開啟後僅共享所選成員的新測量，不補傳歷史記錄；估算的身體成分不會寫入。"
-          }
-        }
-      }
-    },
-    "本应用是一款注重隐私的原生 iOS 体重与身体趋势应用，帮助你连接蓝牙体脂秤、管理个人记录，并从长期变化中理解身体的方向。" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ScaleMe is a privacy-conscious native iOS app for Bluetooth scales, personal records, and understanding long-term body trends."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ScaleMe is a privacy-conscious native iOS app for Bluetooth scales, personal records, and understanding long-term body trends."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ScaleMe is a privacy-conscious native iOS app for Bluetooth scales, personal records, and understanding long-term body trends."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ScaleMe is a privacy-conscious native iOS app for Bluetooth scales, personal records, and understanding long-term body trends."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ScaleMe is a privacy-conscious native iOS app for Bluetooth scales, personal records, and understanding long-term body trends."
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ScaleMe is a privacy-conscious native iOS app for Bluetooth scales, personal records, and understanding long-term body trends."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ScaleMe is a privacy-conscious native iOS app for Bluetooth scales, personal records, and understanding long-term body trends."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ScaleMe is a privacy-conscious native iOS app for Bluetooth scales, personal records, and understanding long-term body trends."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "本应用是一款注重隐私的原生 iOS 体重与身体趋势应用，帮助你连接蓝牙体脂秤、管理个人记录，并从长期变化中理解身体的方向。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "本應用是一款注重隱私的原生 iOS 體重與身體趨勢應用，幫助你連接藍牙體脂秤、管理個人記錄，並從長期變化中理解身體的方向。"
-          }
-        }
-      }
-    },
     "规则 ID 需为 3 至 128 位 ASCII 标识符" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -8741,6 +8628,9 @@
         }
       }
     },
+    "订阅特征" : {
+
+    },
     "认证材料已在本机安全保存" : {
       "localizations" : {
         "de" : {
@@ -8933,6 +8823,9 @@
         }
       }
     },
+    "设备操作" : {
+
+    },
     "设备管理" : {
       "localizations" : {
         "de" : {
@@ -8993,6 +8886,71 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "裝置管理"
+          }
+        }
+      }
+    },
+    "该协议资料参考 %@ 项目。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Dokumentation dieses Protokolls basiert auf dem Projekt bzw. den Projekten %@."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The documentation for this protocol references the following project(s): %@."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La documentación de este protocolo se basa en los siguientes proyectos: %@."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La documentation de ce protocole s’appuie sur les projets suivants : %@."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このプロトコルの資料は、次のプロジェクトを参考にしています：%@。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 프로토콜 문서는 다음 프로젝트를 참고했습니다: %@."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A documentação deste protocolo baseia-se nos seguintes projetos: %@."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Документация этого протокола основана на следующих проектах: %@."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "该协议资料参考 %@ 项目。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "該協定資料參考 %@ 專案。"
           }
         }
       }
@@ -9641,6 +9599,9 @@
           }
         }
       }
+    },
+    "运行要求" : {
+
     },
     "返回时间范围列表" : {
       "localizations" : {

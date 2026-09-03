@@ -456,7 +456,7 @@
         }
       }
     },
-    "GATT 特征通知" : {
+    "GATT特征通知" : {
       "extractionState" : "manual",
       "localizations" : {
         "de" : {
@@ -510,78 +510,78 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "GATT 特征通知"
+            "value" : "GATT特征通知"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "GATT 特征通知"
+            "value" : "GATT特徵通知"
           }
         }
       }
     },
-    "Wolai AFU 实机样本" : {
+    "Wolai AFU 数据样本验证" : {
       "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wolai AFU hardware sample"
+            "value" : "Wolai AFU mit Datenmustern geprüft"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wolai AFU hardware sample"
+            "value" : "Wolai AFU sample validated"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wolai AFU hardware sample"
+            "value" : "Wolai AFU validado con muestras"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wolai AFU hardware sample"
+            "value" : "Wolai AFU validé sur échantillons"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wolai AFU hardware sample"
+            "value" : "Wolai AFU データサンプル検証済み"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wolai AFU hardware sample"
+            "value" : "Wolai AFU 데이터 샘플 검증"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wolai AFU hardware sample"
+            "value" : "Wolai AFU validado com amostras"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wolai AFU hardware sample"
+            "value" : "Wolai AFU проверено на образцах"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wolai AFU 实机样本"
+            "value" : "Wolai AFU 数据样本验证"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wolai AFU 实机样本"
+            "value" : "Wolai AFU 資料樣本驗證"
           }
         }
       }
@@ -1041,132 +1041,132 @@
         }
       }
     },
-    "传输匹配" : {
+    "协议特征" : {
       "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Transport matching"
+            "value" : "Protocol features"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Transport matching"
+            "value" : "Protocol features"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Transport matching"
+            "value" : "Protocol features"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Transport matching"
+            "value" : "Protocol features"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Transport matching"
+            "value" : "Protocol features"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Transport matching"
+            "value" : "Protocol features"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Transport matching"
+            "value" : "Protocol features"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Transport matching"
+            "value" : "Protocol features"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "传输匹配"
+            "value" : "协议特征"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "传输匹配"
+            "value" : "協議特徵"
           }
         }
       }
     },
-    "作者" : {
+    "传输特征" : {
       "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Author"
+            "value" : "Transport features"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Author"
+            "value" : "Transport features"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Author"
+            "value" : "Transport features"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Author"
+            "value" : "Transport features"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Author"
+            "value" : "Transport features"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Author"
+            "value" : "Transport features"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Author"
+            "value" : "Transport features"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Author"
+            "value" : "Transport features"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "作者"
+            "value" : "传输特征"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "作者"
+            "value" : "傳輸特徵"
           }
         }
       }
@@ -3767,71 +3767,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "实时捕获 (%lld 条)"
-          }
-        }
-      }
-    },
-    "实机样本" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Hardwaremuster"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Hardware sample"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Muestra de hardware"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Échantillon matériel"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "実機サンプル"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "실제 기기 샘플"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Amostra de hardware"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Образец устройства"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "实机样本"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "實機樣本"
           }
         }
       }
@@ -9751,67 +9686,67 @@
         }
       }
     },
-    "规则" : {
+    "协议信息" : {
       "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Rule"
+            "value" : "Protocol information"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Rule"
+            "value" : "Protocol information"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Rule"
+            "value" : "Protocol information"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Rule"
+            "value" : "Protocol information"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Rule"
+            "value" : "Protocol information"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Rule"
+            "value" : "Protocol information"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Rule"
+            "value" : "Protocol information"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Rule"
+            "value" : "Protocol information"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "规则"
+            "value" : "协议信息"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "规则"
+            "value" : "協議資訊"
           }
         }
       }
@@ -13806,67 +13741,67 @@
           }
         }
     },
-      "备用匹配": {
+      "备用特征": {
         "extractionState": "manual",
         "localizations": {
           "de": {
             "stringUnit": {
               "state": "translated",
-              "value": "Alternate matches"
+              "value": "Alternate features"
             }
           },
           "en": {
             "stringUnit": {
               "state": "translated",
-              "value": "Alternate matches"
+              "value": "Alternate features"
             }
           },
           "es": {
             "stringUnit": {
               "state": "translated",
-              "value": "Alternate matches"
+              "value": "Alternate features"
             }
           },
           "fr": {
             "stringUnit": {
               "state": "translated",
-              "value": "Alternate matches"
+              "value": "Alternate features"
             }
           },
           "ja": {
             "stringUnit": {
               "state": "translated",
-              "value": "Alternate matches"
+              "value": "Alternate features"
             }
           },
           "ko": {
             "stringUnit": {
               "state": "translated",
-              "value": "Alternate matches"
+              "value": "Alternate features"
             }
           },
           "pt": {
             "stringUnit": {
               "state": "translated",
-              "value": "Alternate matches"
+              "value": "Alternate features"
             }
           },
           "ru": {
             "stringUnit": {
               "state": "translated",
-              "value": "Alternate matches"
+              "value": "Alternate features"
             }
           },
           "zh-Hans": {
             "stringUnit": {
               "state": "translated",
-              "value": "备用匹配"
+              "value": "备用特征"
             }
           },
           "zh-Hant": {
             "stringUnit": {
               "state": "translated",
-              "value": "備用匹配"
+              "value": "備用特徵"
             }
           }
         }

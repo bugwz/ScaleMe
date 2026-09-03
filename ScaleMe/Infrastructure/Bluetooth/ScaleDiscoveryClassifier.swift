@@ -3,7 +3,7 @@ import Foundation
 enum ScaleDiscoveryCompatibility: String, Equatable {
     case bluetoothSIG = "Bluetooth SIG 标准"
     case xiaomiAdvertisement = "0x181B 广播格式"
-    case wolaiAFU = "Wolai AFU 实机样本"
+    case wolaiAFU = "Wolai AFU 数据样本验证"
     case qnAABBBroadcast = "QN/AABB 数据样本验证"
     case aaaSeriesBroadcast = "AAA 系列数据样本验证"
     case sinocareBroadcast = "Sinocare 数据样本验证"

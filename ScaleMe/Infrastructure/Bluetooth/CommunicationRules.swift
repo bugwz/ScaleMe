@@ -17,14 +17,12 @@ enum CommunicationRuleOrigin: String, Codable, CaseIterable {
 enum ProtocolVerificationLevel: String, Codable {
     case standardSpecification
     case fixtureValidated
-    case hardwareSample
     case unverified
 
     var title: String {
         switch self {
         case .standardSpecification: "标准规范"
         case .fixtureValidated: "数据样本验证"
-        case .hardwareSample: "实机样本"
         case .unverified: "未经验证"
         }
     }
@@ -338,12 +336,12 @@ enum CommunicationRuleCatalog {
             id: wolaiAFUID,
             name: "Wolai AFU",
             version: 1,
-            summary: "适用于已有实机数据样本的 AFU-WL-TZ-A1 / FG2313UWB-D。",
+            summary: "适用于已有数据样本的 AFU-WL-TZ-A1 / FG2313UWB-D。",
             origin: .builtIn,
             match: .init(transport: .characteristicNotification, serviceUUID: WolaiAFUScaleAdapter.serviceUUID, characteristicUUID: WolaiAFUScaleAdapter.measurementCharacteristicUUID, minimumLength: 20, maximumLength: 20),
             decoder: nil,
             builtInParser: "wolaiAFU",
-            verification: .hardwareSample
+            verification: .fixtureValidated
         ),
         CommunicationRule(
             id: qnAABBID,

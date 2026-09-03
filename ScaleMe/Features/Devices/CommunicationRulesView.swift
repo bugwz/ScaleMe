@@ -236,7 +236,7 @@ struct CommunicationRuleTags: View {
 
     private func verificationColor(_ level: ProtocolVerificationLevel) -> Color {
         switch level {
-        case .standardSpecification, .hardwareSample: AppColor.mint
+        case .standardSpecification: AppColor.mint
         case .fixtureValidated: AppColor.sky
         case .unverified: AppColor.apricot
         }
@@ -406,7 +406,7 @@ private struct CommunicationRuleDetailView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
-                SettingsPanel(title: "规则", icon: "doc.text.fill") {
+                SettingsPanel(title: "协议信息", icon: "doc.text.fill") {
                     SettingsValueRow(title: "名称", value: rule.name)
                     Divider()
                     SettingsValueRow(title: "ID", value: rule.id)
@@ -416,91 +416,78 @@ private struct CommunicationRuleDetailView: View {
                     SettingsValueRow(title: "来源", value: language.text(rule.origin.title))
                     Divider()
                     SettingsValueRow(
-                        title: "验证状态",
-                        value: language.text(rule.effectiveVerification.title)
-                    )
-                    Divider()
-                    SettingsValueRow(
                         title: "实现状态",
                         value: language.text(rule.effectiveImplementation.title)
                     )
-                    if let author = rule.author {
+                    Divider()
+                    SettingsValueRow(
+                        title: "验证状态",
+                        value: language.text(rule.effectiveVerification.title)
+                    )
+                    if let models = rule.supportedModels, !models.isEmpty {
                         Divider()
-                        SettingsValueRow(title: "作者", value: author)
+                        SettingsValueRow(title: "支持型号", value: models.joined(separator: " · "))
                     }
-                    if let sourceLinks = rule.sourceLinks, !sourceLinks.isEmpty {
-                        ForEach(sourceLinks) { source in
-                            Divider()
-                            Link(destination: source.url) {
-                                HStack(spacing: 10) {
-                                    Text("上游项目")
-                                        .foregroundStyle(AppColor.ink)
-                                    Spacer()
-                                    Text(source.project)
-                                        .foregroundStyle(AppColor.secondary)
-                                    Image(systemName: "arrow.up.right.square")
-                                        .foregroundStyle(AppColor.mint)
-                                }
-                                .font(.subheadline)
+                }
+
+                SettingsPanel(title: "协议特征", icon: "antenna.radiowaves.left.and.right") {
+                    featureSection(
+                        title: "传输特征",
+                        showsSeparator: false
+                    ) {
+                        matchRows(rule.match)
+                    }
+
+                    if let alternates = rule.alternateMatches, !alternates.isEmpty {
+                        featureSection(title: "备用特征") {
+                            ForEach(Array(alternates.enumerated()), id: \.offset) { index, match in
+                                if index > 0 { SettingsSeparator() }
+                                matchRows(match)
                             }
                         }
-                    } else if let sourceURL = rule.sourceURL {
-                        if let upstreamProject = upstreamProjectName(sourceURL) {
-                            Divider()
-                            SettingsValueRow(title: "上游项目", value: upstreamProject)
-                        }
-                        Divider()
-                        Link(destination: sourceURL) {
-                            Label("打开来源地址", systemImage: "arrow.up.right.square")
+                    }
+
+                    if let notifyTargets = rule.notifyTargets, !notifyTargets.isEmpty {
+                        featureSection(title: "订阅特征") {
+                            targetRows(notifyTargets)
                         }
                     }
-                }
 
-                SettingsPanel(title: "传输匹配", icon: "antenna.radiowaves.left.and.right") {
-                    SettingsValueRow(title: "方式", value: language.text(transportTitle(rule.match.transport)))
-                    Divider()
-                    SettingsValueRow(title: "服务 UUID", value: rule.match.serviceUUID)
-                    if let characteristic = rule.match.characteristicUUID {
-                        Divider()
-                        SettingsValueRow(title: "特征 UUID", value: characteristic)
+                    if let writeTargets = rule.writeTargets, !writeTargets.isEmpty {
+                        featureSection(title: "写入特征") {
+                            targetRows(writeTargets)
+                        }
                     }
-                    Divider()
-                    SettingsValueRow(title: "长度", value: lengthDescription(rule.match))
-                    if let prefix = rule.match.prefixHex {
-                        Divider()
-                        SettingsValueRow(title: "帧前缀", value: prefix)
-                    }
-                }
 
-                if let alternates = rule.alternateMatches, !alternates.isEmpty {
-                    SettingsPanel(title: "备用匹配", icon: "point.3.connected.trianglepath.dotted") {
-                        ForEach(Array(alternates.enumerated()), id: \.offset) { index, match in
-                            if index > 0 { Divider() }
-                            VStack(alignment: .leading, spacing: 3) {
-                                Text(match.serviceUUID)
-                                    .font(.subheadline.weight(.semibold).monospaced())
+                    if let requirements = rule.requirements, !requirements.isEmpty {
+                        featureSection(title: "运行要求") {
+                            ForEach(Array(requirements.enumerated()), id: \.offset) { index, requirement in
+                                if index > 0 { SettingsSeparator() }
+                                Text(language.text(requirement.title))
+                                    .font(.subheadline)
                                     .foregroundStyle(AppColor.ink)
-                                Text([
-                                    language.text(transportTitle(match.transport)),
-                                    match.characteristicUUID
-                                ].compactMap { $0 }.joined(separator: " · "))
-                                    .font(.caption)
-                                    .foregroundStyle(AppColor.secondary)
                             }
                         }
                     }
-                }
 
-                if let notifyTargets = rule.notifyTargets, !notifyTargets.isEmpty {
-                    targetPanel(title: "订阅特征", icon: "bell.badge.waveform", targets: notifyTargets)
-                }
-
-                if let writeTargets = rule.writeTargets, !writeTargets.isEmpty {
-                    targetPanel(title: "写入特征", icon: "square.and.pencil", targets: writeTargets)
+                    if !rule.capabilities.isEmpty {
+                        featureSection(title: "设备操作") {
+                            if rule.capabilities.contains(.historyRead) {
+                                SettingsValueRow(title: "历史记录", value: "支持读取")
+                            }
+                            if rule.capabilities.contains(.historyClear) {
+                                if rule.capabilities.contains(.historyRead) { SettingsSeparator() }
+                                SettingsValueRow(title: "清除设备历史", value: "破坏性操作")
+                            }
+                            Text("操作受超时、响应字节数和最大记录数限制；清除命令不会自动运行。")
+                                .font(.caption2)
+                                .foregroundStyle(AppColor.secondary)
+                        }
+                    }
                 }
 
                 SettingsPanel(title: "说明", icon: "info.circle.fill") {
-                    Text(rule.origin == .builtIn ? language.text(rule.summary) : rule.summary)
+                    Text(explanationText)
                         .font(.subheadline)
                         .foregroundStyle(AppColor.ink)
                         .lineSpacing(3)
@@ -519,40 +506,6 @@ private struct CommunicationRuleDetailView: View {
                             .foregroundStyle(AppColor.apricot)
                     }
                 }
-
-                if let models = rule.supportedModels, !models.isEmpty {
-                    SettingsPanel(title: "支持型号", icon: "scalemass.fill") {
-                        Text(models.joined(separator: " · "))
-                            .font(.subheadline)
-                            .foregroundStyle(AppColor.ink)
-                    }
-                }
-
-                if let requirements = rule.requirements, !requirements.isEmpty {
-                    SettingsPanel(title: "运行要求", icon: "wrench.and.screwdriver.fill") {
-                        ForEach(Array(requirements.enumerated()), id: \.offset) { index, requirement in
-                            if index > 0 { Divider() }
-                            Label(language.text(requirement.title), systemImage: "checklist")
-                                .font(.subheadline)
-                                .foregroundStyle(AppColor.ink)
-                        }
-                    }
-                }
-
-                if !rule.capabilities.isEmpty {
-                    SettingsPanel(title: "设备操作", icon: "arrow.left.arrow.right") {
-                        if rule.capabilities.contains(.historyRead) {
-                            SettingsValueRow(title: "历史记录", value: "支持读取")
-                        }
-                        if rule.capabilities.contains(.historyClear) {
-                            if rule.capabilities.contains(.historyRead) { Divider() }
-                            SettingsValueRow(title: "清除设备历史", value: "破坏性操作")
-                        }
-                        Text("操作受超时、响应字节数和最大记录数限制；清除命令不会自动运行。")
-                            .font(.caption2)
-                            .foregroundStyle(AppColor.secondary)
-                    }
-                }
             }
             .padding(.horizontal, 18)
             .padding(.bottom, 28)
@@ -563,41 +516,102 @@ private struct CommunicationRuleDetailView: View {
         .localizedNavigationBackButton()
     }
 
-    private func upstreamProjectName(_ sourceURL: URL) -> String? {
-        let path = sourceURL.path.lowercased()
-        if path.contains("/kristianp26/ble-scale-sync/") {
-            return "ble-scale-sync"
-        }
-        if path.contains("/oliexdev/openscale/") {
-            return "openScale"
-        }
-        return nil
-    }
-
     private func lengthDescription(_ match: CommunicationRuleMatch) -> String {
         match.maximumLength.map {
             language.format("%lld…%lld 字节", Int64(match.minimumLength), Int64($0))
         } ?? language.format("至少 %lld 字节", Int64(match.minimumLength))
     }
 
-    private func targetPanel(
-        title: String,
-        icon: String,
-        targets: [CommunicationGATTTarget]
+    private var repositoryNames: [String]? {
+        if let sourceLinks = rule.sourceLinks, !sourceLinks.isEmpty {
+            return Array(Set(sourceLinks.map(\.project))).sorted()
+        }
+        guard
+            let sourceURL = rule.sourceURL,
+            sourceURL.host?.lowercased() == "github.com",
+            sourceURL.pathComponents.count > 2
+        else {
+            return nil
+        }
+        return [sourceURL.pathComponents[2]]
+    }
+
+    private var explanationText: String {
+        let summary = rule.origin == .builtIn ? language.text(rule.summary) : rule.summary
+        guard let repositoryNames, !repositoryNames.isEmpty else { return summary }
+        let reference = language.format(
+            "该协议资料参考 %@ 项目。",
+            repositoryNames.joined(separator: ", ")
+        )
+        return "\(summary) \(reference)"
+    }
+
+    private func featureSection<Content: View>(
+        title: LocalizedStringKey,
+        showsSeparator: Bool = true,
+        @ViewBuilder content: () -> Content
     ) -> some View {
-        SettingsPanel(title: title, icon: icon) {
-            ForEach(Array(targets.enumerated()), id: \.offset) { index, target in
-                if index > 0 { Divider() }
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(target.characteristicUUID)
-                        .font(.subheadline.weight(.semibold).monospaced())
-                        .foregroundStyle(AppColor.ink)
-                    Text(target.serviceUUID)
-                        .font(.caption.monospaced())
-                        .foregroundStyle(AppColor.secondary)
-                }
+        VStack(alignment: .leading, spacing: 12) {
+            if showsSeparator {
+                SettingsSeparator()
+                    .padding(.vertical, 2)
+            }
+
+            Text(title)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(AppColor.ink)
+
+            VStack(alignment: .leading, spacing: 10) {
+                content()
             }
         }
+    }
+
+    private func matchRows(_ match: CommunicationRuleMatch) -> some View {
+        Group {
+            SettingsValueRow(title: "方式", value: language.text(transportTitle(match.transport)))
+            SettingsSeparator()
+            uuidRow(title: "服务 UUID", value: match.serviceUUID)
+            if let characteristic = match.characteristicUUID {
+                SettingsSeparator()
+                uuidRow(title: "特征 UUID", value: characteristic)
+            }
+            SettingsSeparator()
+            SettingsValueRow(title: "长度", value: lengthDescription(match))
+            if let prefix = match.prefixHex {
+                SettingsSeparator()
+                SettingsValueRow(title: "帧前缀", value: prefix)
+            }
+        }
+    }
+
+    private func targetRows(_ targets: [CommunicationGATTTarget]) -> some View {
+        ForEach(Array(targets.enumerated()), id: \.offset) { index, target in
+            if index > 0 { SettingsSeparator() }
+            VStack(alignment: .leading, spacing: 10) {
+                uuidRow(title: "特征 UUID", value: target.characteristicUUID)
+                SettingsSeparator()
+                uuidRow(title: "服务 UUID", value: target.serviceUUID)
+            }
+        }
+    }
+
+    private func uuidRow(title: LocalizedStringKey, value: String) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: 12) {
+            Text(title)
+                .font(.subheadline)
+                .foregroundStyle(AppColor.secondary)
+                .fixedSize(horizontal: true, vertical: false)
+            Spacer(minLength: 0)
+            Text(value)
+                .font(.subheadline.monospaced())
+                .foregroundStyle(AppColor.ink)
+                .lineLimit(1)
+                .minimumScaleFactor(0.56)
+                .frame(maxWidth: .infinity, alignment: .trailing)
+                .textSelection(.enabled)
+        }
+        .frame(maxWidth: .infinity)
     }
 }
 
@@ -606,7 +620,7 @@ private func transportTitle(_ transport: CommunicationTransport) -> String {
     switch transport {
     case .advertisementServiceData: "服务广播数据"
     case .advertisementManufacturerData: "厂商广播数据"
-    case .characteristicNotification: "GATT 特征通知"
+    case .characteristicNotification: "GATT特征通知"
     case .classicSPP: "经典蓝牙串口"
     }
 }
