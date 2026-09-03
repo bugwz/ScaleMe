@@ -48,6 +48,7 @@ struct WidgetTrendSeries: Hashable {
 
 struct WidgetTrendSnapshot: Codable, Hashable {
     let generatedAt: Date
+    let localeIdentifier: String
     let defaultProfileID: String
     let rangeTitles: [String: String]
     let allDevicesTitle: String

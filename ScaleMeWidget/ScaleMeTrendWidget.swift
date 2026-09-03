@@ -80,7 +80,14 @@ struct WidgetProfileQuery: EntityQuery {
 struct WidgetDeviceEntity: AppEntity, Hashable {
     static let typeDisplayRepresentation: TypeDisplayRepresentation = "来源设备"
     static let defaultQuery = WidgetDeviceQuery()
-    static let all = WidgetDeviceEntity(id: "all", name: "全部设备", modelName: "")
+    static var all: WidgetDeviceEntity {
+        WidgetDeviceEntity(
+            id: "all",
+            name: (try? WidgetTrendRepository().load())?.allDevicesTitle
+                ?? String(localized: "全部设备"),
+            modelName: ""
+        )
+    }
 
     let id: String
     let name: String
@@ -105,7 +112,7 @@ struct WidgetDeviceQuery: EntityQuery {
         let snapshot = try? WidgetTrendRepository().load()
         let all = WidgetDeviceEntity(
             id: "all",
-            name: snapshot?.allDevicesTitle ?? "全部设备",
+            name: snapshot?.allDevicesTitle ?? String(localized: "全部设备"),
             modelName: ""
         )
         return [all] + (snapshot?.devices ?? []).map(WidgetDeviceEntity.init)
@@ -125,6 +132,7 @@ struct TrendWidgetIntent: WidgetConfigurationIntent {
 
 struct TrendWidgetEntry: TimelineEntry {
     let date: Date
+    let localeIdentifier: String
     let displayStyle: WidgetDisplayStyle
     let series: WidgetTrendSeries?
     let dateDomain: ClosedRange<Date>?
@@ -187,6 +195,7 @@ struct TrendWidgetProvider: AppIntentTimelineProvider {
         let now = Date.now
         return TrendWidgetEntry(
             date: now,
+            localeIdentifier: snapshot?.localeIdentifier ?? Locale.current.identifier,
             displayStyle: displayStyle,
             series: snapshot?.series(
                 metricID: metric.rawValue,
@@ -213,6 +222,7 @@ struct ScaleMeTrendWidget: Widget {
             provider: TrendWidgetProvider()
         ) { entry in
             TrendWidgetView(entry: entry)
+                .environment(\.locale, Locale(identifier: entry.localeIdentifier))
                 .containerBackground(for: .widget) { WidgetPalette.canvas }
         }
         .configurationDisplayName("身体趋势")
@@ -274,12 +284,6 @@ private struct TrendWidgetView: View {
             }
             .font(.caption2)
             .foregroundStyle(WidgetPalette.secondary)
-
-            if series.metadata.isEstimated {
-                Text("消费级估算，仅供趋势参考")
-                    .font(.system(size: 9))
-                    .foregroundStyle(WidgetPalette.secondary)
-            }
         }
         .padding(2)
         .accessibilityElement(children: .combine)
@@ -378,10 +382,14 @@ private extension WidgetDeviceEntity {
 
 private extension WidgetTrendSnapshot {
     static let placeholder: WidgetTrendSnapshot = {
-        let profile = WidgetTrendProfile(id: "preview", name: "我", relation: "本人")
+        let profile = WidgetTrendProfile(
+            id: "preview",
+            name: String(localized: "我"),
+            relation: String(localized: "本人")
+        )
         let metric = WidgetTrendMetricMetadata(
             metricID: WidgetTrendMetric.weight.rawValue,
-            title: "体重",
+            title: String(localized: "体重"),
             systemImage: "scalemass.fill",
             unit: "kg",
             isEstimated: false
@@ -397,9 +405,10 @@ private extension WidgetTrendSnapshot {
         }
         return WidgetTrendSnapshot(
             generatedAt: .now,
+            localeIdentifier: Locale.current.identifier,
             defaultProfileID: profile.id,
-            rangeTitles: ["month": "近 30 天"],
-            allDevicesTitle: "全部设备",
+            rangeTitles: ["month": String(localized: "近 30 天")],
+            allDevicesTitle: String(localized: "全部设备"),
             metrics: [metric],
             profiles: [profile],
             devices: [],

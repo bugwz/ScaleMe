@@ -27,7 +27,11 @@ extension MeasurementStore {
             )
         }
         let profiles = displayProfiles.map {
-            WidgetTrendProfile(id: $0.id.uuidString, name: $0.name, relation: $0.relation)
+            WidgetTrendProfile(
+                id: $0.id.uuidString,
+                name: $0.name,
+                relation: appLanguage.text($0.relation)
+            )
         }
         let devices = displayPairedScales.map {
             WidgetTrendDevice(
@@ -55,6 +59,7 @@ extension MeasurementStore {
 
         return WidgetTrendSnapshot(
             generatedAt: now,
+            localeIdentifier: appLanguage.rawValue,
             defaultProfileID: displaySelectedProfileID.uuidString,
             rangeTitles: Dictionary(uniqueKeysWithValues: WidgetTrendTimeRange.allCases.map {
                 ($0.rawValue, appLanguage.text($0.title))

@@ -2,13 +2,25 @@ import Foundation
 
 @main
 enum WidgetTrendSnapshotSmoke {
-    static func main() {
+    static func main() throws {
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = TimeZone(secondsFromGMT: 0) ?? calendar.timeZone
         let endDate = date(2026, 9, 2, calendar: calendar)
-        let profileA = WidgetTrendProfile(id: "profile-a", name: "甲", relation: "本人")
-        let profileB = WidgetTrendProfile(id: "profile-b", name: "乙", relation: "家人")
-        let deviceA = WidgetTrendDevice(id: "device-a", name: "秤 A", modelName: "A1")
+        let profileA = WidgetTrendProfile(
+            id: "profile-a",
+            name: "甲",
+            relation: "本人"
+        )
+        let profileB = WidgetTrendProfile(
+            id: "profile-b",
+            name: "乙",
+            relation: "家人"
+        )
+        let deviceA = WidgetTrendDevice(
+            id: "device-a",
+            name: "秤 A",
+            modelName: "A1"
+        )
         let metric = WidgetTrendMetricMetadata(
             metricID: "weight",
             title: "体重",
@@ -18,6 +30,7 @@ enum WidgetTrendSnapshotSmoke {
         )
         let snapshot = WidgetTrendSnapshot(
             generatedAt: endDate,
+            localeIdentifier: "en",
             defaultProfileID: profileA.id,
             rangeTitles: ["week": "近 7 天", "month": "近 30 天"],
             allDevicesTitle: "全部设备",
@@ -43,6 +56,7 @@ enum WidgetTrendSnapshotSmoke {
             calendar: calendar
         )
         precondition(aggregate?.points.count == 1)
+        precondition(snapshot.localeIdentifier == "en")
         precondition(aggregate?.points.first?.value == 61)
         precondition(aggregate?.profileName == "甲")
         precondition(aggregate?.deviceName == "秤 A")
@@ -73,6 +87,14 @@ enum WidgetTrendSnapshotSmoke {
             endingAt: endDate,
             calendar: calendar
         ) == nil)
+
+        let decodedSnapshot = try JSONDecoder().decode(
+            WidgetTrendSnapshot.self,
+            from: JSONEncoder().encode(snapshot)
+        )
+        precondition(decodedSnapshot.localeIdentifier == "en")
+        precondition(decodedSnapshot.profiles.first?.name == "甲")
+        precondition(decodedSnapshot.devices.first?.name == "秤 A")
 
         print("Widget trend snapshot smoke passed")
     }

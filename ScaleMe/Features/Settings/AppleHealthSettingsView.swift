@@ -14,19 +14,6 @@ struct AppleHealthSettingsView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
-                if store.isSimulationEnabled {
-                    Label(
-                        "当前为模拟数据模式。你仍可完成 Apple 健康授权、开启同步并选择模拟成员，但模拟成员和模拟测量不会写入 Apple 健康。这里的同步开关与成员选择仅用于演示，关闭应用后会重置。",
-                        systemImage: "sparkles"
-                    )
-                    .font(.caption)
-                    .foregroundStyle(AppColor.secondary)
-                    .lineSpacing(3)
-                    .padding(14)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(AppColor.paleMint.opacity(0.72), in: RoundedRectangle(cornerRadius: 14))
-                }
-
                 SettingsPanel(title: "Apple 健康", icon: "heart.fill") {
                     authorizationStatusRow
 
@@ -109,6 +96,17 @@ struct AppleHealthSettingsView: View {
                 .foregroundStyle(AppColor.secondary)
                 .lineSpacing(3)
                 .padding(.horizontal, 2)
+
+                if store.isSimulationEnabled {
+                    Label(
+                        "模拟数据不会写入 Apple 健康，同步设置仅用于演示并会在关闭应用后重置。",
+                        systemImage: "sparkles"
+                    )
+                    .font(.caption)
+                    .foregroundStyle(AppColor.secondary)
+                    .lineSpacing(3)
+                    .padding(.horizontal, 2)
+                }
 
                 if let lastShareError = appleHealth.lastShareError {
                     errorBanner(lastShareError)

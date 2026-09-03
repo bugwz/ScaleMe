@@ -8,7 +8,8 @@ struct DisplaySettingsView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
-                preferencesPanel
+                displayPanel
+                measurementHistoryPanel
             }
             .padding(.horizontal, 18)
             .padding(.top, 8)
@@ -41,8 +42,8 @@ struct DisplaySettingsView: View {
         .onDisappear { isWeightUnitDropdownExpanded = false }
     }
 
-    private var preferencesPanel: some View {
-        SettingsPanel(title: "显示与记录", icon: "slider.horizontal.3") {
+    private var displayPanel: some View {
+        SettingsPanel(title: "显示", icon: "textformat.size") {
             NavigationLink {
                 AppearanceSettingsView()
             } label: {
@@ -66,9 +67,11 @@ struct DisplaySettingsView: View {
                 )
             }
             .buttonStyle(.plain)
+        }
+    }
 
-            SettingsSeparator()
-
+    private var measurementHistoryPanel: some View {
+        SettingsPanel(title: "测量记录", icon: "clock.arrow.2.circlepath") {
             VStack(alignment: .leading, spacing: 10) {
                 Text("体重单位")
                     .font(.subheadline.weight(.semibold))
@@ -90,7 +93,6 @@ struct DisplaySettingsView: View {
                 detail: "同一成员和设备在 30 秒内连续完成的称重，只保留最新一条。",
                 isOn: $store.mergeFrequentMeasurements
             )
-
         }
     }
 

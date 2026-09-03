@@ -4760,66 +4760,66 @@
         }
       }
     },
-    "当前为模拟数据模式。你仍可完成 Apple 健康授权、开启同步并选择模拟成员，但模拟成员和模拟测量不会写入 Apple 健康。这里的同步开关与成员选择仅用于演示，关闭应用后会重置。" : {
+    "模拟数据不会写入 Apple 健康，同步设置仅用于演示并会在关闭应用后重置。" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Der Simulationsmodus ist aktiv. Sie können Apple Health weiterhin autorisieren, das Teilen aktivieren und eine simulierte Person auswählen. Simulierte Personen und Messungen werden jedoch nicht in Apple Health geschrieben. Der Schalter und die Personenauswahl dienen nur zur Demonstration und werden beim Beenden der App zurückgesetzt."
+            "value" : "Simulierte Daten werden nicht in Apple Health geschrieben. Die Synchronisierungseinstellungen dienen nur zur Demonstration und werden beim Beenden der App zurückgesetzt."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Simulation data mode is active. You can still authorize Apple Health, enable sharing, and select a simulated person, but simulated people and measurements are never written to Apple Health. The sharing switch and person selection are for demonstration only and reset when the app closes."
+            "value" : "Simulated data is not written to Apple Health. Sync settings are for demonstration only and reset when the app closes."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "El modo de datos simulados está activo. Puedes autorizar Apple Salud, activar el uso compartido y seleccionar un miembro simulado, pero los miembros y las mediciones simulados nunca se escriben en Apple Salud. El interruptor y la selección solo sirven como demostración y se restablecen al cerrar la app."
+            "value" : "Los datos simulados no se escriben en Apple Salud. Los ajustes de sincronización son solo para demostración y se restablecen al cerrar la app."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Le mode de données simulées est actif. Vous pouvez toujours autoriser Apple Santé, activer le partage et choisir un membre simulé, mais les membres et mesures simulés ne sont jamais écrits dans Apple Santé. L’interrupteur et le choix du membre servent uniquement à la démonstration et sont réinitialisés à la fermeture de l’app."
+            "value" : "Les données simulées ne sont pas écrites dans Apple Santé. Les réglages de synchronisation servent uniquement à la démonstration et sont réinitialisés à la fermeture de l’app."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "現在はシミュレーションデータモードです。Appleヘルスケアの許可、共有の有効化、シミュレーションメンバーの選択は操作できますが、シミュレーションのメンバーと測定値がAppleヘルスケアに書き込まれることはありません。共有スイッチとメンバー選択はデモ専用で、アプリを終了するとリセットされます。"
+            "value" : "シミュレーションデータはAppleヘルスケアに書き込まれません。同期設定はデモ専用で、アプリを終了するとリセットされます。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "현재 시뮬레이션 데이터 모드입니다. Apple 건강 권한을 승인하고 공유를 켜며 시뮬레이션 구성원을 선택할 수 있지만, 시뮬레이션 구성원과 측정값은 Apple 건강에 기록되지 않습니다. 공유 스위치와 구성원 선택은 데모 전용이며 앱을 종료하면 초기화됩니다."
+            "value" : "시뮬레이션 데이터는 Apple 건강에 기록되지 않습니다. 동기화 설정은 데모 전용이며 앱을 종료하면 초기화됩니다."
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "O modo de dados simulados está ativo. Pode autorizar a Saúde Apple, ativar a partilha e selecionar um membro simulado, mas os membros e as medições simulados nunca são escritos na Saúde Apple. O interruptor e a seleção servem apenas para demonstração e são repostos ao fechar a app."
+            "value" : "Os dados simulados não são escritos na Saúde Apple. As definições de sincronização servem apenas para demonstração e são repostas ao fechar a app."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Включен режим симуляции данных. Можно авторизовать Apple Здоровье, включить отправку и выбрать демонстрационный профиль, но демонстрационные профили и измерения никогда не записываются в Apple Здоровье. Переключатель и выбор профиля служат только для демонстрации и сбрасываются после закрытия приложения."
+            "value" : "Демонстрационные данные не записываются в Apple Здоровье. Настройки синхронизации служат только для демонстрации и сбрасываются после закрытия приложения."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "当前为模拟数据模式。你仍可完成 Apple 健康授权、开启同步并选择模拟成员，但模拟成员和模拟测量不会写入 Apple 健康。这里的同步开关与成员选择仅用于演示，关闭应用后会重置。"
+            "value" : "模拟数据不会写入 Apple 健康，同步设置仅用于演示并会在关闭应用后重置。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "目前為模擬資料模式。你仍可完成 Apple 健康授權、開啟同步並選擇模擬成員，但模擬成員和模擬測量不會寫入 Apple 健康。這裡的同步開關與成員選擇僅用於示範，關閉 App 後會重置。"
+            "value" : "模擬資料不會寫入 Apple 健康，同步設定僅用於示範，並會在關閉 App 後重設。"
           }
         }
       }
