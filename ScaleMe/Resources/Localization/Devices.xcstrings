@@ -10726,67 +10726,67 @@
         }
       }
     },
-    "设备详细参数" : {
+    "设备信息" : {
       "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Device details"
+            "value" : "Device information"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Device details"
+            "value" : "Device information"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Device details"
+            "value" : "Device information"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Device details"
+            "value" : "Device information"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Device details"
+            "value" : "Device information"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Device details"
+            "value" : "Device information"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Device details"
+            "value" : "Device information"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Device details"
+            "value" : "Device information"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "设备详细参数"
+            "value" : "设备信息"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "设备详细参数"
+            "value" : "設備資訊"
           }
         }
       }

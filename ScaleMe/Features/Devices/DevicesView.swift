@@ -1084,17 +1084,19 @@ private struct ScaleSettingsView: View {
                 Spacer(minLength: 8)
             }
 
-            SettingsSeparator()
+            if !store.isSimulationEnabled {
+                SettingsSeparator()
 
-            HStack(spacing: 10) {
-                Label {
-                    AppLocalizedText(scale?.compatibility ?? "协议待验证")
-                } icon: {
-                    Image(systemName: "checkmark.shield")
+                HStack(spacing: 10) {
+                    Label {
+                        AppLocalizedText(scale?.compatibility ?? "协议待验证")
+                    } icon: {
+                        Image(systemName: "checkmark.shield")
+                    }
+                    .font(.caption.weight(.medium))
+                    .foregroundStyle(AppColor.secondary)
+                    .lineLimit(1)
                 }
-                .font(.caption.weight(.medium))
-                .foregroundStyle(AppColor.secondary)
-                .lineLimit(1)
             }
 
             SettingsSeparator()
@@ -1450,8 +1452,7 @@ private struct ScaleSettingsView: View {
                     protocolDropdownRow(
                         title: rule.name,
                         rule: rule,
-                        isSelected: scale.communicationRuleID == rule.id,
-                        isEnabled: rule.canMeasure
+                        isSelected: scale.communicationRuleID == rule.id
                     ) {
                         selectCommunicationRule(rule.id)
                     }
@@ -1469,7 +1470,6 @@ private struct ScaleSettingsView: View {
         detail: String? = nil,
         rule: CommunicationRule? = nil,
         isSelected: Bool,
-        isEnabled: Bool = true,
         action: @escaping () -> Void
     ) -> some View {
         Button(action: action) {
@@ -1500,8 +1500,6 @@ private struct ScaleSettingsView: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .disabled(!isEnabled)
-        .opacity(isEnabled ? 1 : 0.55)
         .accessibilityValue(store.appLanguage.text(isSelected ? "已选择" : "未选择"))
     }
 
@@ -1518,7 +1516,7 @@ private struct ScaleSettingsView: View {
     @ViewBuilder
     private var informationPanel: some View {
         if let scale {
-            SettingsPanel(title: "设备详细参数", icon: "info.circle") {
+            SettingsPanel(title: "设备信息", icon: "info.circle") {
                 SettingsValueRow(title: "设备型号", value: scale.modelName)
                 Divider()
                 SettingsValueRow(

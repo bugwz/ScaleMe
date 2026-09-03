@@ -269,9 +269,7 @@ final class BLEScaleManager: NSObject, ObservableObject {
     }
 
     private func selectedRule(for deviceID: UUID) -> CommunicationRule? {
-        guard let rule = pairedScaleRuleIDs[deviceID].flatMap({ communicationRulesByID[$0] }),
-              rule.canMeasure else { return nil }
-        return rule
+        pairedScaleRuleIDs[deviceID].flatMap { communicationRulesByID[$0] }
     }
 
     private func isMonitoredScale(_ deviceID: UUID) -> Bool {
