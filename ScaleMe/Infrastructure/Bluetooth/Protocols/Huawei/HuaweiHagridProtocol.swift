@@ -218,10 +218,6 @@ enum HuaweiHagridProtocol {
         throw ScalePayloadError.unsupported
     }
 
-    static func normalizedCredentialInput(_ value: String) -> String {
-        String(value.uppercased().filter { $0.isHexDigit }.prefix(32))
-    }
-
     private static func credentialData(from value: String) throws -> Data {
         let normalized = value.trimmingCharacters(in: .whitespacesAndNewlines)
         guard normalized.count == 32, normalized.allSatisfy(\.isHexDigit) else {

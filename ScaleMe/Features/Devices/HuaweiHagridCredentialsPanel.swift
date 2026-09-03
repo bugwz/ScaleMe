@@ -59,7 +59,11 @@ struct HuaweiHagridCredentialsPanel: View {
     }
 
     private var canSave: Bool {
-        cak.count == 32 && c1.count == 32 && c2.count == 32
+        (try? HuaweiHagridProtocol.Credentials(
+            cakHex: cak,
+            c1Hex: c1,
+            c2Hex: c2
+        )) != nil
     }
 
     private func loadStatus() {
@@ -114,7 +118,7 @@ private struct HuaweiHagridCredentialField: View {
             }
 
             ResponsiveTextField(
-                text: normalizedText,
+                text: $text,
                 isFocused: $isFocused,
                 placeholder: "",
                 keyboardType: .asciiCapable,
@@ -141,12 +145,5 @@ private struct HuaweiHagridCredentialField: View {
             )
             .accessibilityLabel(title)
         }
-    }
-
-    private var normalizedText: Binding<String> {
-        Binding(
-            get: { text },
-            set: { text = HuaweiHagridProtocol.normalizedCredentialInput($0) }
-        )
     }
 }

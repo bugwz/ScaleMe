@@ -41,8 +41,16 @@ enum ParserSmoke {
         precondition(huaweiCredentials.encoded.count == 48)
         let decodedHuaweiCredentials = try HuaweiHagridProtocol.Credentials(encoded: huaweiCredentials.encoded)
         precondition(decodedHuaweiCredentials == huaweiCredentials)
-        precondition(HuaweiHagridProtocol.normalizedCredentialInput("00:11 zz 2233445566778899aabbccddeeff")
-            == "00112233445566778899AABBCCDDEEFF")
+        do {
+            _ = try HuaweiHagridProtocol.Credentials(
+                cakHex: "GG112233445566778899AABBCCDDEEFF",
+                c1Hex: "FFEEDDCCBBAA99887766554433221100",
+                c2Hex: "0123456789ABCDEFFEDCBA9876543210"
+            )
+            preconditionFailure("Huawei WSP 认证材料必须拒绝非十六进制字符")
+        } catch ScalePayloadError.unsupported {
+            // Expected.
+        }
         do {
             var invalidHuaweiChallenge = huaweiChallenge
             invalidHuaweiChallenge[invalidHuaweiChallenge.index(before: invalidHuaweiChallenge.endIndex)] ^= 0x01
