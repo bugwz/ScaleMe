@@ -413,7 +413,7 @@ private struct MeasurementRecordLink: View {
                 }
                 Spacer()
                 VStack(alignment: .trailing, spacing: 4) {
-                    Text(measurement.date, format: .dateTime.month().day())
+                    Text(measurement.date, format: .dateTime.year().month().day())
                         .foregroundStyle(AppColor.ink)
                     Text(measurement.date, format: .dateTime.hour().minute())
                         .font(.caption)
@@ -430,6 +430,9 @@ private struct MeasurementRecordLink: View {
 
 private struct FilteredMeasurementRecordsView: View {
     @EnvironmentObject private var store: MeasurementStore
+    @State private var visibleMeasurementCount = 50
+
+    private static let measurementPageSize = 50
 
     let range: TrendTimeRange
     let rangeTitle: String
@@ -460,6 +463,9 @@ private struct FilteredMeasurementRecordsView: View {
     }
 
     var body: some View {
+        let allMeasurements = measurements
+        let visibleMeasurements = Array(allMeasurements.prefix(visibleMeasurementCount))
+
         ScrollView {
             VStack(spacing: 16) {
                 ScrollView(.horizontal, showsIndicators: false) {
@@ -477,16 +483,23 @@ private struct FilteredMeasurementRecordsView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
 
                 SoftCard {
-                    VStack(alignment: .leading, spacing: 0) {
-                        if measurements.isEmpty {
+                    LazyVStack(alignment: .leading, spacing: 0) {
+                        if allMeasurements.isEmpty {
                             Text("当前筛选条件下没有记录")
                                 .font(.subheadline)
                                 .foregroundStyle(AppColor.secondary)
                                 .padding(.vertical, 18)
                         }
-                        ForEach(Array(measurements.enumerated()), id: \.element.id) { index, item in
+                        ForEach(Array(visibleMeasurements.enumerated()), id: \.element.id) { index, item in
                             MeasurementRecordLink(measurement: item, sourceName: sourceName(for: item))
-                            if index < measurements.count - 1 { Divider() }
+                                .onAppear {
+                                    loadMoreIfNeeded(
+                                        visibleIndex: index,
+                                        visibleCount: visibleMeasurements.count,
+                                        totalCount: allMeasurements.count
+                                    )
+                                }
+                            if index < visibleMeasurements.count - 1 { Divider() }
                         }
                     }
                 }
@@ -497,6 +510,11 @@ private struct FilteredMeasurementRecordsView: View {
         .navigationTitle("全部测量记录")
         .navigationBarTitleDisplayMode(.inline)
         .localizedNavigationBackButton()
+    }
+
+    private func loadMoreIfNeeded(visibleIndex: Int, visibleCount: Int, totalCount: Int) {
+        guard visibleIndex == visibleCount - 1, visibleCount < totalCount else { return }
+        visibleMeasurementCount = min(totalCount, visibleCount + Self.measurementPageSize)
     }
 
     private func sourceName(for measurement: BodyMeasurement) -> String {
