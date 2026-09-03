@@ -473,13 +473,13 @@ private struct CommunicationRuleDetailView: View {
                     if !rule.capabilities.isEmpty {
                         featureSection(title: "设备操作") {
                             if rule.capabilities.contains(.historyRead) {
-                                SettingsValueRow(title: "历史记录", value: "支持读取")
+                                SettingsValueRow(title: "历史记录", value: language.text("支持读取"))
                             }
                             if rule.capabilities.contains(.historyClear) {
                                 if rule.capabilities.contains(.historyRead) { SettingsSeparator() }
-                                SettingsValueRow(title: "清除设备历史", value: "破坏性操作")
+                                SettingsValueRow(title: "清除设备历史", value: language.text("破坏性操作"))
                             }
-                            Text("操作受超时、响应字节数和最大记录数限制；清除命令不会自动运行。")
+                            AppLocalizedText("操作受超时、响应字节数和最大记录数限制；清除命令不会自动运行。")
                                 .font(.caption2)
                                 .foregroundStyle(AppColor.secondary)
                         }
@@ -492,7 +492,11 @@ private struct CommunicationRuleDetailView: View {
                         .foregroundStyle(AppColor.ink)
                         .lineSpacing(3)
                     if rule.origin != .builtIn {
-                        Label("该规则尚未通过硬件验证，结果仅供协议调试和趋势参考。", systemImage: "exclamationmark.shield")
+                        Label {
+                            AppLocalizedText("该规则尚未通过硬件验证，结果仅供协议调试和趋势参考。")
+                        } icon: {
+                            Image(systemName: "exclamationmark.shield")
+                        }
                             .font(.caption)
                             .foregroundStyle(AppColor.apricot)
                     }
@@ -511,7 +515,7 @@ private struct CommunicationRuleDetailView: View {
             .padding(.bottom, 28)
         }
         .pageBackground()
-        .navigationTitle("协议详情")
+        .navigationTitle(language.text("协议详情"))
         .navigationBarTitleDisplayMode(.inline)
         .localizedNavigationBackButton()
     }
@@ -547,7 +551,7 @@ private struct CommunicationRuleDetailView: View {
     }
 
     private func featureSection<Content: View>(
-        title: LocalizedStringKey,
+        title: String,
         showsSeparator: Bool = true,
         @ViewBuilder content: () -> Content
     ) -> some View {
@@ -557,7 +561,7 @@ private struct CommunicationRuleDetailView: View {
                     .padding(.vertical, 2)
             }
 
-            Text(title)
+            AppLocalizedText(title)
                 .font(.subheadline.weight(.semibold))
                 .foregroundStyle(AppColor.ink)
 
@@ -596,9 +600,9 @@ private struct CommunicationRuleDetailView: View {
         }
     }
 
-    private func uuidRow(title: LocalizedStringKey, value: String) -> some View {
+    private func uuidRow(title: String, value: String) -> some View {
         HStack(alignment: .firstTextBaseline, spacing: 12) {
-            Text(title)
+            AppLocalizedText(title)
                 .font(.subheadline)
                 .foregroundStyle(AppColor.secondary)
                 .fixedSize(horizontal: true, vertical: false)

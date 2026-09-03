@@ -97,6 +97,7 @@ struct LocalizationSmoke {
             "设计原则", "本地优先", "标准优先", "关注长期趋势", "重要说明",
             "返回", "正在连接", "正在读取设备能力", "设备能力已更新"
         ]
+            + CommunicationRuleCatalog.builtIn.map(\.summary)
             + MemberAvatar.allCases.flatMap { [$0.title, $0.ageHint] }
         let catalogDirectory = URL(fileURLWithPath: "ScaleMe/Resources/Localization", isDirectory: true)
         var strings: [String: Any] = [:]
