@@ -137,32 +137,46 @@ enum ParserSmoke {
         let historyRecord = Data([0x20, 0xE0, 0x2E, 0xE4, 0x07, 1, 2, 3, 4, 5])
         let historyValue = try XiaomiScaleHistoryProtocol.parseRecord(historyRecord)
         precondition(abs(historyValue.weightKG - 60) < 0.001)
-        var historySession = XiaomiScaleHistorySession()
-        guard case .progress(received: 0, announced: 1) = try historySession.consume(
-            Data([0x01, 0x01, 0xFF, 0xFF, 0xFF, 0xFF])
+        precondition(
+            XiaomiScaleHistoryProtocol.query() == Data([0x01, 0x98, 0x84, 0x30, 0x59])
+        )
+        precondition(
+            XiaomiScaleHistoryProtocol.acknowledge(since: XiaomiScaleHistoryProtocol.capturedQueryCursor)
+                == Data([0x04, 0x98, 0x84, 0x30, 0x59])
+        )
+        var countFixtureSession = XiaomiScaleHistorySession()
+        guard case .readyToTransfer(announced: 63) = try countFixtureSession.consume(
+            Data([0x01, 0x3F, 0x00, 0x98, 0x84, 0x30, 0x59])
         ) else {
-            preconditionFailure("小米历史计数响应解析失败")
+            preconditionFailure("MI SCALE2 抓包计数响应解析失败")
         }
-        _ = try historySession.consume(historyRecord.prefix(4))
-        guard case .progress(received: 1, announced: 1) = try historySession.consume(historyRecord.dropFirst(4)),
-              case .completed(let importedHistory) = try historySession.consume(Data([0x03])) else {
-            preconditionFailure("小米历史分片重组失败")
-        }
-        precondition(importedHistory.count == 1)
 
-        let bodyHistoryRecord = Data([
-            0x00, 0x22, 0xEA, 0x07, 8, 29, 10, 13, 0,
-            0xF4, 0x01, 0xE0, 0x2E
+        let capturedHistoryPair = Data([
+            0x32, 0x10, 0x27, 0xE4, 0x07, 0x01, 0x02, 0x03, 0x04, 0x05, 0x32, 0xE0, 0x2E, 0xE4, 0x07, 0x01, 0x03, 0x03, 0x04, 0x05
         ])
-        let bodyHistoryValue = try XiaomiScaleHistoryProtocol.parseBodyCompositionRecord(bodyHistoryRecord)
-        precondition(abs(bodyHistoryValue.weightKG - 60) < 0.001)
-        precondition(bodyHistoryValue.impedanceOhm == 500)
+        var historySession = XiaomiScaleHistorySession()
+        guard case .readyToTransfer(announced: 2) = try historySession.consume(
+            Data([0x01, 0x02, 0x00, 0x98, 0x84, 0x30, 0x59])
+        ), case .progress(received: 2, announced: 2) = try historySession.consume(capturedHistoryPair),
+              case .completed(let importedHistory) = try historySession.consume(Data([0x03])) else {
+            preconditionFailure("MI SCALE2 双记录历史通知解析失败")
+        }
+        precondition(importedHistory.count == 2)
+        precondition(abs(importedHistory[0].weightKG - 50.0) < 0.001)
         do {
             var incompleteHistory = XiaomiScaleHistorySession()
+            _ = try incompleteHistory.consume(Data([0x01, 0x01, 0x00, 0x98, 0x84, 0x30, 0x59]))
             _ = try incompleteHistory.consume(historyRecord.prefix(4))
             _ = try incompleteHistory.consume(Data([0x03]))
             preconditionFailure("不完整的小米历史记录不得被静默丢弃")
         } catch ScalePayloadError.tooShort {
+            // Expected.
+        }
+        do {
+            var mismatchedCursor = XiaomiScaleHistorySession()
+            _ = try mismatchedCursor.consume(Data([0x01, 0x01, 0x00, 0xFF, 0xFF, 0xFF, 0xFF]))
+            preconditionFailure("历史计数响应必须回显请求游标")
+        } catch ScalePayloadError.unsupported {
             // Expected.
         }
 

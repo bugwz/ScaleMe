@@ -179,6 +179,7 @@ final class BLEScaleManager: NSObject, ObservableObject {
     private var settingsCurrentTimeCharacteristic: CBCharacteristic?
     private var settingsHistoryCharacteristic: CBCharacteristic?
     private var xiaomiHistorySession: XiaomiScaleHistorySession?
+    private var xiaomiHistoryCursor: Data?
     private var declarativeHistorySession: DeclarativeHistoryOperationSession?
     private var activeHistoryOperation: CommunicationGATTOperation?
     private var activeHistorySessionToken: UInt16?
@@ -307,6 +308,17 @@ final class BLEScaleManager: NSObject, ObservableObject {
         pairedScaleRuleIDs[deviceID].flatMap { communicationRulesByID[$0] }
     }
 
+    private func historyOperation(for deviceID: UUID) -> CommunicationGATTOperation? {
+        if pairedScaleRuleIDs[deviceID] != nil {
+            return selectedRule(for: deviceID)?.operations?.historyRead
+        }
+        guard pairedScaleModelNames[deviceID]?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .uppercased() == "MI SCALE2" else { return nil }
+        return communicationRulesByID[CommunicationRuleCatalog.xiaomiMiScale2ID]?
+            .operations?.historyRead
+    }
+
     private func isHuaweiHagridSelected(for deviceID: UUID) -> Bool {
         selectedRule(for: deviceID)?.id == CommunicationRuleCatalog.huaweiHagridID
     }
@@ -428,6 +440,7 @@ final class BLEScaleManager: NSObject, ObservableObject {
         historyState = .unavailable
         settingsHistoryCharacteristic = nil
         xiaomiHistorySession = nil
+        xiaomiHistoryCursor = nil
         declarativeHistorySession = nil
         activeHistoryOperation = nil
         activeHistorySessionToken = nil
@@ -462,6 +475,7 @@ final class BLEScaleManager: NSObject, ObservableObject {
         settingsCurrentTimeCharacteristic = nil
         settingsHistoryCharacteristic = nil
         xiaomiHistorySession = nil
+        xiaomiHistoryCursor = nil
         declarativeHistorySession = nil
         activeHistoryOperation = nil
         activeHistorySessionToken = nil
@@ -564,12 +578,17 @@ final class BLEScaleManager: NSObject, ObservableObject {
     }
 
     func readDeviceHistory() {
-        if let scaleID = settingsScaleID,
-           let operation = selectedRule(for: scaleID)?.operations?.historyRead,
-           operation.historyResponse?.builtInParser == nil {
+        guard let scaleID = settingsScaleID,
+              let operation = historyOperation(for: scaleID) else {
+            historyState = .failed("当前协议没有声明可执行的历史读取操作")
+            return
+        }
+        if operation.historyResponse?.builtInParser == nil {
             readDeclarativeHistory(operation)
-        } else {
+        } else if operation.historyResponse?.builtInParser == "xiaomiHistory10" {
             readXiaomiHistory()
+        } else {
+            historyState = .failed("当前协议的历史解析器尚未实现")
         }
     }
 
@@ -582,15 +601,25 @@ final class BLEScaleManager: NSObject, ObservableObject {
             historyState = .failed("当前连接未发现可读写的小米历史特征")
             return
         }
-        xiaomiHistorySession = XiaomiScaleHistorySession()
+        guard characteristic.service?.uuid == Self.weightService else {
+            historyState = .failed("当前历史协议仅验证了 MI SCALE2 的 181D 服务")
+            return
+        }
+        let cursor = XiaomiScaleHistoryProtocol.capturedQueryCursor
+        xiaomiHistorySession = XiaomiScaleHistorySession(cursor: cursor)
+        xiaomiHistoryCursor = cursor
         declarativeHistorySession = nil
         activeHistoryOperation = nil
+        activeHistorySessionToken = nil
+        activeHistoryCompletionResponse = nil
+        pendingHistorySubscriptions.removeAll()
         historyState = .reading(received: 0, announced: nil)
         historyTimeoutTask?.cancel()
         historyTimeoutTask = Task { [weak self] in
             try? await Task.sleep(for: .seconds(20))
             guard !Task.isCancelled, let self, case .reading = self.historyState else { return }
             self.xiaomiHistorySession = nil
+            self.xiaomiHistoryCursor = nil
             self.historyState = .failed("读取历史超时，请唤醒秤后重试")
         }
         if characteristic.isNotifying {
@@ -606,9 +635,15 @@ final class BLEScaleManager: NSObject, ObservableObject {
         let imported = store.importDeviceHistory(measurements)
         if let operation = activeHistoryOperation {
             write(operation.acknowledgementCommands, on: connected, response: activeHistoryCompletionResponse)
-        } else if let characteristic = settingsHistoryCharacteristic {
-            writeHistoryCommand(XiaomiScaleHistoryProtocol.acknowledgeRecent, on: connected, characteristic: characteristic)
+        } else if let characteristic = settingsHistoryCharacteristic,
+                  let cursor = xiaomiHistoryCursor {
+            writeHistoryCommand(
+                XiaomiScaleHistoryProtocol.acknowledge(since: cursor),
+                on: connected,
+                characteristic: characteristic
+            )
         }
+        xiaomiHistoryCursor = nil
         historyState = .imported(imported)
     }
 
@@ -659,6 +694,7 @@ final class BLEScaleManager: NSObject, ObservableObject {
             }
             declarativeHistorySession = try DeclarativeHistoryOperationSession(operation: operation)
             xiaomiHistorySession = nil
+            xiaomiHistoryCursor = nil
             activeHistoryOperation = operation
             activeHistorySessionToken = UInt16.random(in: .min ... .max)
             activeHistoryCompletionResponse = nil
@@ -713,9 +749,8 @@ final class BLEScaleManager: NSObject, ObservableObject {
     }
 
     private func sendXiaomiHistoryRequest(on peripheral: CBPeripheral, characteristic: CBCharacteristic) {
-        writeHistoryCommand(XiaomiScaleHistoryProtocol.enableHistory, on: peripheral, characteristic: characteristic)
-        writeHistoryCommand(XiaomiScaleHistoryProtocol.requestRecent, on: peripheral, characteristic: characteristic)
-        writeHistoryCommand(XiaomiScaleHistoryProtocol.startTransfer, on: peripheral, characteristic: characteristic)
+        guard let cursor = xiaomiHistoryCursor else { return }
+        writeHistoryCommand(XiaomiScaleHistoryProtocol.query(since: cursor), on: peripheral, characteristic: characteristic)
     }
 
     private func writeHistoryCommand(_ data: Data, on peripheral: CBPeripheral, characteristic: CBCharacteristic) {
@@ -733,6 +768,9 @@ final class BLEScaleManager: NSObject, ObservableObject {
             }
             xiaomiHistorySession = session
             switch event {
+            case .readyToTransfer(let announced):
+                historyState = .reading(received: 0, announced: announced)
+                writeHistoryCommand(XiaomiScaleHistoryProtocol.startTransfer, on: peripheral, characteristic: characteristic)
             case .progress(let received, let announced):
                 historyState = .reading(received: received, announced: announced)
             case .completed(let measurements):
@@ -750,6 +788,7 @@ final class BLEScaleManager: NSObject, ObservableObject {
         } catch {
             historyTimeoutTask?.cancel()
             xiaomiHistorySession = nil
+            xiaomiHistoryCursor = nil
             historyState = .failed("历史数据格式无效或超过安全上限")
         }
     }
@@ -2068,8 +2107,16 @@ extension BLEScaleManager: CBPeripheralDelegate {
             settingsSnapshot.canSynchronizeTime = isWritable
         case Self.xiaomiHistory:
             let canNotify = characteristic.properties.contains(.notify) || characteristic.properties.contains(.indicate)
-            settingsSnapshot.hasHistoryChannel = canNotify && isWritable
-            if settingsSnapshot.hasHistoryChannel {
+            let target = CommunicationGATTTarget(
+                serviceUUID: service.uuid.uuidString,
+                characteristicUUID: characteristic.uuid.uuidString
+            )
+            let isDeclaredHistoryTarget = historyOperation(for: peripheral.identifier)?
+                .subscriptions.contains(where: {
+                    targetKey($0) == targetKey(target)
+                }) == true
+            if canNotify && isWritable && isDeclaredHistoryTarget {
+                settingsSnapshot.hasHistoryChannel = true
                 settingsHistoryCharacteristic = characteristic
                 historyState = .ready
             }

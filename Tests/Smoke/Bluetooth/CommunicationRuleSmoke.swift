@@ -56,9 +56,14 @@ struct CommunicationRuleSmoke {
         expect(rules[0].match.serviceUUID == "FFF0", "UUID should normalize")
         expect(rules[0].effectiveVerification == .unverified, "external rules cannot claim hardware validation")
         expect(
-            CommunicationRuleCatalog.builtIn.first(where: { $0.id == CommunicationRuleCatalog.xiaomiLegacyID })?
+            CommunicationRuleCatalog.builtIn.first(where: { $0.id == CommunicationRuleCatalog.xiaomiMiScale2ID })?
                 .capabilities.contains(.historyRead) == true,
-            "Xiaomi built-in rule should declare history read support"
+            "MI SCALE2 built-in rule should declare captured 181D history support"
+        )
+        expect(
+            CommunicationRuleCatalog.builtIn.first(where: { $0.id == CommunicationRuleCatalog.xiaomiLegacyID })?
+                .capabilities.contains(.historyRead) == false,
+            "Xiaomi 181B advertising support must not claim unverified GATT history support"
         )
 
         let rendered = try CommunicationPayloadTemplate.render(

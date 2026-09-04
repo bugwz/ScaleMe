@@ -329,60 +329,7 @@ enum CommunicationRuleCatalog {
             match: .init(transport: .advertisementServiceData, serviceUUID: "181B", characteristicUUID: nil, minimumLength: 13),
             decoder: nil,
             builtInParser: "xiaomiLegacyAdvertisement",
-            verification: .fixtureValidated,
-            operations: CommunicationRuleOperations(
-                historyRead: CommunicationGATTOperation(
-                    capability: .historyRead,
-                    subscriptions: [
-                        CommunicationGATTTarget(
-                            serviceUUID: "181B",
-                            characteristicUUID: XiaomiScaleConfigurationProtocol.historyCharacteristicUUID
-                        )
-                    ],
-                    commands: [
-                        CommunicationCommand(
-                            target: .init(serviceUUID: "181B", characteristicUUID: XiaomiScaleConfigurationProtocol.historyCharacteristicUUID),
-                            payloadHexTemplate: "01968ABD62"
-                        ),
-                        CommunicationCommand(
-                            target: .init(serviceUUID: "181B", characteristicUUID: XiaomiScaleConfigurationProtocol.historyCharacteristicUUID),
-                            payloadHexTemplate: "01FFFFFFFF"
-                        ),
-                        CommunicationCommand(
-                            target: .init(serviceUUID: "181B", characteristicUUID: XiaomiScaleConfigurationProtocol.historyCharacteristicUUID),
-                            payloadHexTemplate: "02"
-                        )
-                    ],
-                    completionCommands: [
-                        CommunicationCommand(
-                            target: .init(serviceUUID: "181B", characteristicUUID: XiaomiScaleConfigurationProtocol.historyCharacteristicUUID),
-                            payloadHexTemplate: "03"
-                        )
-                    ],
-                    acknowledgementCommands: [
-                        CommunicationCommand(
-                            target: .init(serviceUUID: "181B", characteristicUUID: XiaomiScaleConfigurationProtocol.historyCharacteristicUUID),
-                            payloadHexTemplate: "04FFFFFFFF"
-                        )
-                    ],
-                    historyResponse: CommunicationHistoryResponse(
-                        recordMatcher: .init(
-                            target: .init(serviceUUID: "181B", characteristicUUID: XiaomiScaleConfigurationProtocol.historyCharacteristicUUID),
-                            minimumLength: 10,
-                            maximumLength: 512
-                        ),
-                        completionMatcher: .init(
-                            target: .init(serviceUUID: "181B", characteristicUUID: XiaomiScaleConfigurationProtocol.historyCharacteristicUUID),
-                            minimumLength: 1,
-                            maximumLength: 1,
-                            exactHex: "03"
-                        ),
-                        framing: .fixedLength,
-                        recordLength: 10,
-                        builtInParser: "xiaomiHistory10"
-                    )
-                )
-            )
+            verification: .fixtureValidated
         ),
         CommunicationRule(
             id: wolaiAFUID,
@@ -500,7 +447,55 @@ enum CommunicationRuleCatalog {
             ),
             decoder: nil,
             builtInParser: "xiaomiMiScale2Advertisement",
-            verification: .fixtureValidated
+            verification: .fixtureValidated,
+            operations: CommunicationRuleOperations(
+                historyRead: CommunicationGATTOperation(
+                    capability: .historyRead,
+                    subscriptions: [
+                        .init(serviceUUID: "181D", characteristicUUID: XiaomiScaleConfigurationProtocol.historyCharacteristicUUID)
+                    ],
+                    commands: [
+                        CommunicationCommand(
+                            target: .init(serviceUUID: "181D", characteristicUUID: XiaomiScaleConfigurationProtocol.historyCharacteristicUUID),
+                            payloadHexTemplate: "0198843059"
+                        ),
+                        CommunicationCommand(
+                            target: .init(serviceUUID: "181D", characteristicUUID: XiaomiScaleConfigurationProtocol.historyCharacteristicUUID),
+                            payloadHexTemplate: "02"
+                        )
+                    ],
+                    completionCommands: [
+                        CommunicationCommand(
+                            target: .init(serviceUUID: "181D", characteristicUUID: XiaomiScaleConfigurationProtocol.historyCharacteristicUUID),
+                            payloadHexTemplate: "03"
+                        )
+                    ],
+                    acknowledgementCommands: [
+                        CommunicationCommand(
+                            target: .init(serviceUUID: "181D", characteristicUUID: XiaomiScaleConfigurationProtocol.historyCharacteristicUUID),
+                            payloadHexTemplate: "0498843059"
+                        )
+                    ],
+                    historyResponse: CommunicationHistoryResponse(
+                        recordMatcher: .init(
+                            target: .init(serviceUUID: "181D", characteristicUUID: XiaomiScaleConfigurationProtocol.historyCharacteristicUUID),
+                            minimumLength: 10,
+                            maximumLength: 20
+                        ),
+                        completionMatcher: .init(
+                            target: .init(serviceUUID: "181D", characteristicUUID: XiaomiScaleConfigurationProtocol.historyCharacteristicUUID),
+                            minimumLength: 1,
+                            maximumLength: 1,
+                            exactHex: "03"
+                        ),
+                        framing: .fixedLength,
+                        recordLength: 10,
+                        builtInParser: "xiaomiHistory10"
+                    )
+                )
+            ),
+            supportedModels: ["MI SCALE2"],
+            requirements: [.multiFrameSession, .historyStateMachine]
         ),
         CommunicationRule(
             id: silvergear108ID,
