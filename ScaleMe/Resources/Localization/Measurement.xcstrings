@@ -391,67 +391,67 @@
         }
       }
     },
-    "当前为模拟数据模式，本次记录只保存在内存中，重新打开应用后会消失。" : {
+    "当前为模拟数据模式，本次记录会写入模拟记录文件，可单独导出或同步到 iCloud。" : {
       "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Demo data mode is active. This record is kept in memory only and disappears when the app is reopened."
+            "value" : "Demo data mode is active. This entry is written to the demo records and can be exported separately or synced to iCloud."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Demo data mode is active. This record is kept in memory only and disappears when the app is reopened."
+            "value" : "Demo data mode is active. This entry is written to the demo records and can be exported separately or synced to iCloud."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Demo data mode is active. This record is kept in memory only and disappears when the app is reopened."
+            "value" : "Demo data mode is active. This entry is written to the demo records and can be exported separately or synced to iCloud."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Demo data mode is active. This record is kept in memory only and disappears when the app is reopened."
+            "value" : "Demo data mode is active. This entry is written to the demo records and can be exported separately or synced to iCloud."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Demo data mode is active. This record is kept in memory only and disappears when the app is reopened."
+            "value" : "Demo data mode is active. This entry is written to the demo records and can be exported separately or synced to iCloud."
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Demo data mode is active. This record is kept in memory only and disappears when the app is reopened."
+            "value" : "Demo data mode is active. This entry is written to the demo records and can be exported separately or synced to iCloud."
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Demo data mode is active. This record is kept in memory only and disappears when the app is reopened."
+            "value" : "Demo data mode is active. This entry is written to the demo records and can be exported separately or synced to iCloud."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Demo data mode is active. This record is kept in memory only and disappears when the app is reopened."
+            "value" : "Demo data mode is active. This entry is written to the demo records and can be exported separately or synced to iCloud."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "当前为模拟数据模式，本次记录只保存在内存中，重新打开应用后会消失。"
+            "value" : "当前为模拟数据模式，本次记录会写入模拟记录文件，可单独导出或同步到 iCloud。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "当前为模拟数据模式，本次记录只保存在内存中，重新打开应用后会消失。"
+            "value" : "当前为模拟数据模式，本次记录会写入模拟记录文件，可单独导出或同步到 iCloud。"
           }
         }
       }

@@ -4,8 +4,10 @@ import Security
 
 enum AppStorageLayout {
     static let directoryName = "ScaleMe"
-    static let configurationFileName = "configuration-v4.json"
+    static let configurationFileName = "configuration-v5.json"
     static let measurementsFileName = "measurements-v2.enc"
+    static let simulationConfigurationFileName = "simulation-configuration-v1.json"
+    static let simulationMeasurementsFileName = "simulation-measurements-v1.enc"
 }
 
 enum SecureStorageError: LocalizedError {
@@ -139,11 +141,11 @@ struct LocalAppRepository {
     func loadConfiguration() throws -> AppConfiguration? {
         let url = directoryURL.appending(path: AppStorageLayout.configurationFileName)
         guard FileManager.default.fileExists(atPath: url.path) else { return nil }
-        return try decoder.decode(AppConfiguration.self, from: Data(contentsOf: url))
+        return try ConfigurationFileCodec.decode(Data(contentsOf: url))
     }
 
     func saveConfiguration(_ configuration: AppConfiguration) throws {
-        let data = try encoder.encode(configuration)
+        let data = try ConfigurationFileCodec.encode(configuration, prettyPrinted: false)
         try data.write(
             to: directoryURL.appending(path: AppStorageLayout.configurationFileName),
             options: [.atomic, .completeFileProtectionUntilFirstUserAuthentication]
@@ -165,12 +167,44 @@ struct LocalAppRepository {
             options: [.atomic, .completeFileProtectionUntilFirstUserAuthentication]
         )
     }
+
+    func loadSimulationConfiguration() throws -> AppConfiguration? {
+        let url = directoryURL.appending(path: AppStorageLayout.simulationConfigurationFileName)
+        guard FileManager.default.fileExists(atPath: url.path) else { return nil }
+        return try ConfigurationFileCodec.decode(Data(contentsOf: url))
+    }
+
+    func saveSimulationConfiguration(_ configuration: AppConfiguration) throws {
+        let data = try ConfigurationFileCodec.encode(configuration, prettyPrinted: false)
+        try data.write(
+            to: directoryURL.appending(path: AppStorageLayout.simulationConfigurationFileName),
+            options: [.atomic, .completeFileProtectionUntilFirstUserAuthentication]
+        )
+    }
+
+    func loadSimulationArchive() throws -> MeasurementArchive? {
+        let url = directoryURL.appending(path: AppStorageLayout.simulationMeasurementsFileName)
+        guard FileManager.default.fileExists(atPath: url.path) else { return nil }
+        let encryptedData = try Data(contentsOf: url)
+        return try decoder.decode(MeasurementArchive.self, from: cipher.decrypt(encryptedData))
+    }
+
+    func saveSimulationArchive(_ archive: MeasurementArchive) throws {
+        let plaintext = try encoder.encode(archive)
+        let encryptedData = try cipher.encrypt(plaintext)
+        try encryptedData.write(
+            to: directoryURL.appending(path: AppStorageLayout.simulationMeasurementsFileName),
+            options: [.atomic, .completeFileProtectionUntilFirstUserAuthentication]
+        )
+    }
 }
 
 actor LocalPersistenceWriter {
     private let repository: LocalAppRepository
     private var latestConfigurationRevision = 0
     private var latestArchiveRevision = 0
+    private var latestSimulationConfigurationRevision = 0
+    private var latestSimulationArchiveRevision = 0
 
     init(repository: LocalAppRepository) {
         self.repository = repository
@@ -186,5 +220,17 @@ actor LocalPersistenceWriter {
         guard revision > latestArchiveRevision else { return }
         latestArchiveRevision = revision
         try repository.saveArchive(archive)
+    }
+
+    func saveSimulationConfiguration(_ configuration: AppConfiguration, revision: Int) throws {
+        guard revision > latestSimulationConfigurationRevision else { return }
+        latestSimulationConfigurationRevision = revision
+        try repository.saveSimulationConfiguration(configuration)
+    }
+
+    func saveSimulationArchive(_ archive: MeasurementArchive, revision: Int) throws {
+        guard revision > latestSimulationArchiveRevision else { return }
+        latestSimulationArchiveRevision = revision
+        try repository.saveSimulationArchive(archive)
     }
 }

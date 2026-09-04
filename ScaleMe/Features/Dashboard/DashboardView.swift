@@ -211,7 +211,7 @@ struct DashboardView: View {
                             .lineLimit(1)
                             .minimumScaleFactor(0.75)
                             .contentTransition(.numericText())
-                        Text(store.unit.rawValue)
+                        Text(store.unit.symbol)
                             .font(.subheadline.weight(.semibold))
                             .fixedSize()
                     }
@@ -427,7 +427,7 @@ struct DashboardView: View {
            let scale = store.displayPairedScales.first(where: { $0.id == deviceID }) {
             return scale.name
         }
-        return measurement.deviceName ?? store.appLanguage.text(measurement.source.rawValue)
+        return measurement.deviceName ?? store.appLanguage.text(measurement.source.localizationKey)
     }
 }
 

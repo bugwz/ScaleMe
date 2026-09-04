@@ -159,7 +159,7 @@ private extension WeightUnit {
 }
 
 private struct LocalTransferDocument: FileDocument {
-    static let readableContentTypes: [UTType] = [.json, .data]
+    static let readableContentTypes: [UTType] = [.json]
 
     var data: Data
 
@@ -184,9 +184,9 @@ struct DataManagementSettingsView: View {
     @EnvironmentObject private var cloudSync: ICloudSyncManager
     @State private var activeAlert: DataManagementAlert?
     @State private var pendingConfiguration: AppConfiguration?
-    @State private var pendingArchive: MeasurementArchive?
+    @State private var pendingRecords: MeasurementArchive?
     @State private var showsConfigurationImporter = false
-    @State private var showsMeasurementImporter = false
+    @State private var showsRecordImporter = false
     @State private var showsExporter = false
     @State private var exportDocument = LocalTransferDocument()
     @State private var exportContentType = UTType.json
@@ -220,10 +220,10 @@ struct DataManagementSettingsView: View {
             importConfiguration(result)
         }
         .fileImporter(
-            isPresented: $showsMeasurementImporter,
-            allowedContentTypes: [.data]
+            isPresented: $showsRecordImporter,
+            allowedContentTypes: [.json]
         ) { result in
-            importMeasurements(result)
+            importRecords(result)
         }
         .fileExporter(
             isPresented: $showsExporter,
@@ -241,7 +241,7 @@ struct DataManagementSettingsView: View {
     }
 
     private var localTransferPanel: some View {
-        SettingsPanel(title: "数据导入/导出", icon: "arrow.up.arrow.down.square") {
+        SettingsPanel(title: "记录文件导入/导出", icon: "arrow.up.arrow.down.square") {
             transferSection(
                 title: "配置",
                 detail: "成员、设备、显示单位和通信协议。",
@@ -252,13 +252,13 @@ struct DataManagementSettingsView: View {
             SettingsSeparator()
 
             transferSection(
-                title: "测量记录",
-                detail: "加密保存的称重和身体成分记录。",
-                importAction: { showsMeasurementImporter = true },
-                exportAction: { exportMeasurements() }
+                title: "记录文件",
+                detail: "包含称重和身体成分记录的版本化 JSON 文件。",
+                importAction: { showsRecordImporter = true },
+                exportAction: { exportRecords() }
             )
 
-            Label("配置文件可跨设备导入；测量文件使用本机 Keychain 密钥加密，只能由持有同一密钥的本应用读取。", systemImage: "lock.shield.fill")
+            Label("配置与健康记录均以版本化 JSON 文件导入导出，可跨设备分享。", systemImage: "doc.text.fill")
                 .font(.caption)
                 .foregroundStyle(AppColor.secondary)
                 .fixedSize(horizontal: false, vertical: true)
@@ -387,7 +387,7 @@ struct DataManagementSettingsView: View {
             )
 
             if store.isSimulationEnabled {
-                Label("模拟模式下可手动录入，也可新增、编辑或删除模拟资料。所有变动只保存在应用内存中，不会写入本机档案或同步到 iCloud；关闭应用后再次打开，将恢复为初始模拟数据。", systemImage: "sparkles")
+                Label("模拟模式下的修改可通过独立命名的模拟文件导入导出，并可同步到 iCloud；真实配置和记录不会被替换。", systemImage: "sparkles")
                     .font(.caption)
                     .foregroundStyle(AppColor.secondary)
                     .padding(12)
@@ -500,20 +500,22 @@ struct DataManagementSettingsView: View {
 
     private func exportConfiguration() {
         do {
-            exportDocument = LocalTransferDocument(data: try transferService.exportConfiguration(store.configuration))
+            exportDocument = LocalTransferDocument(data: try transferService.exportConfiguration(store.currentConfiguration))
             exportContentType = .json
-            exportFilename = "ScaleMe-Configuration-\(Int(Date.now.timeIntervalSince1970)).json"
+            let kind = store.isSimulationEnabled ? "Simulation-Configuration" : "Configuration"
+            exportFilename = "ScaleMe-\(kind)-\(Int(Date.now.timeIntervalSince1970)).json"
             showsExporter = true
         } catch {
             activeAlert = .message(title: "导出失败", message: error.localizedDescription)
         }
     }
 
-    private func exportMeasurements() {
+    private func exportRecords() {
         do {
-            exportDocument = LocalTransferDocument(data: try transferService.exportMeasurements(store.archive))
-            exportContentType = .data
-            exportFilename = "ScaleMe-Measurements-\(Int(Date.now.timeIntervalSince1970)).enc"
+            exportDocument = LocalTransferDocument(data: try transferService.exportRecords(store.currentArchive))
+            exportContentType = .json
+            let kind = store.isSimulationEnabled ? "Simulation-Records" : "Records"
+            exportFilename = "ScaleMe-\(kind)-\(Int(Date.now.timeIntervalSince1970)).json"
             showsExporter = true
         } catch {
             activeAlert = .message(title: "导出失败", message: error.localizedDescription)
@@ -529,11 +531,11 @@ struct DataManagementSettingsView: View {
         }
     }
 
-    private func importMeasurements(_ result: Result<URL, Error>) {
+    private func importRecords(_ result: Result<URL, Error>) {
         do {
-            let archive = try transferService.importMeasurements(from: importedData(from: result))
-            pendingArchive = archive
-            activeAlert = .measurementImport(count: archive.measurements.count)
+            let archive = try transferService.importRecords(from: importedData(from: result))
+            pendingRecords = archive
+            activeAlert = .recordImport(count: archive.measurements.count)
         } catch {
             activeAlert = .message(title: "导入失败", message: error.localizedDescription)
         }
@@ -576,21 +578,21 @@ struct DataManagementSettingsView: View {
                     pendingConfiguration = nil
                 }
             )
-        case .measurementImport(let count):
+        case .recordImport(let count):
             Alert(
-                title: Text("导入测量数据？"),
+                title: Text("导入记录文件？"),
                 message: Text(store.appLanguage.format(
-                    "将把文件中的 %lld 条测量记录与本机记录合并，重复记录不会重复保存。",
+                    "将把文件中的 %lld 条记录与本机记录合并，重复记录不会重复保存。",
                     Int64(count)
                 )),
                 primaryButton: .default(Text("合并导入")) {
-                    if let pendingArchive {
-                        store.apply(archive: store.archive.merging(pendingArchive))
+                    if let pendingRecords {
+                        store.apply(archive: store.currentArchive.merging(pendingRecords))
                     }
-                    self.pendingArchive = nil
+                    self.pendingRecords = nil
                 },
                 secondaryButton: .cancel {
-                    pendingArchive = nil
+                    pendingRecords = nil
                 }
             )
         case .message(let title, let message):
@@ -612,14 +614,14 @@ struct DataManagementSettingsView: View {
     private enum DataManagementAlert: Identifiable {
         case cloud(PendingCloudAction)
         case configurationImport
-        case measurementImport(count: Int)
+        case recordImport(count: Int)
         case message(title: String, message: String)
 
         var id: String {
             switch self {
             case .cloud(let action): "cloud-\(action.rawValue)"
             case .configurationImport: "configuration-import"
-            case .measurementImport: "measurement-import"
+            case .recordImport: "record-import"
             case .message(let title, let message): "message-\(title)-\(message)"
             }
         }

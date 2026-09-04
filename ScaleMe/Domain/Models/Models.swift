@@ -2,10 +2,18 @@ import Foundation
 
 enum WeightUnit: String, Codable, CaseIterable, Identifiable {
     case kilograms = "kg"
-    case jin = "斤"
+    case jin
     case pounds = "lb"
 
     var id: String { rawValue }
+
+    var symbol: String {
+        switch self {
+        case .kilograms: "kg"
+        case .jin: "斤"
+        case .pounds: "lb"
+        }
+    }
 
     func value(fromKilograms kg: Double) -> Double {
         switch self {
@@ -62,15 +70,29 @@ enum WidgetTrendDisplayStyle: String, Codable, CaseIterable, Identifiable {
 }
 
 enum MeasurementSource: String, Codable {
-    case xiaomi = "小米体重秤"
-    case wolaiAFU = "Wolai AFU 体脂秤"
-    case senssunIF2121 = "香山 IF2121 体脂秤"
-    case huaweiHagrid = "华为 Hagrid/WSP 体脂秤"
-    case bluetoothSIG = "标准蓝牙体重秤"
-    case communityProtocol = "社区协议体重秤"
-    case customProtocol = "自定义通信协议"
-    case manual = "手动记录"
-    case demo = "示例数据"
+    case xiaomi
+    case wolaiAFU
+    case senssunIF2121
+    case huaweiHagrid
+    case bluetoothSIG
+    case communityProtocol
+    case customProtocol
+    case manual
+    case demo
+
+    var localizationKey: String {
+        switch self {
+        case .xiaomi: "小米体重秤"
+        case .wolaiAFU: "Wolai AFU 体脂秤"
+        case .senssunIF2121: "香山 IF2121 体脂秤"
+        case .huaweiHagrid: "华为 Hagrid/WSP 体脂秤"
+        case .bluetoothSIG: "标准蓝牙体重秤"
+        case .communityProtocol: "社区协议体重秤"
+        case .customProtocol: "自定义通信协议"
+        case .manual: "手动记录"
+        case .demo: "示例数据"
+        }
+    }
 }
 
 struct BodyMeasurement: Identifiable, Codable, Hashable {
@@ -140,9 +162,17 @@ struct UserProfile: Identifiable, Codable, Equatable {
     var avatar = MemberAvatar.adult
 
     enum BiologicalSex: String, Codable, CaseIterable, Identifiable {
-        case female = "女"
-        case male = "男"
+        case female
+        case male
+
         var id: String { rawValue }
+
+        var displayName: String {
+            switch self {
+            case .female: "女"
+            case .male: "男"
+            }
+        }
     }
 
     var age: Int {

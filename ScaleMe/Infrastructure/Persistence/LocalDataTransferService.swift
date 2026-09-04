@@ -2,37 +2,26 @@ import Foundation
 
 enum LocalDataTransferError: LocalizedError {
     case invalidConfiguration
-    case invalidMeasurementArchive
+    case invalidRecordFile
 
     var errorDescription: String? {
         switch self {
         case .invalidConfiguration:
             "配置文件格式无效"
-        case .invalidMeasurementArchive:
-            "测量数据文件格式无效或无法使用本机密钥解密"
+        case .invalidRecordFile:
+            "记录文件格式无效"
         }
     }
 }
 
 struct LocalDataTransferService {
-    private let encoder: JSONEncoder
-    private let decoder = JSONDecoder()
-    private let measurementCipher: MeasurementFileCipher?
-
-    init(measurementCipher: MeasurementFileCipher? = nil) {
-        let encoder = JSONEncoder()
-        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
-        self.encoder = encoder
-        self.measurementCipher = measurementCipher
-    }
-
     func exportConfiguration(_ configuration: AppConfiguration) throws -> Data {
-        try encoder.encode(configuration)
+        try ConfigurationFileCodec.encode(configuration, prettyPrinted: true)
     }
 
     func importConfiguration(from data: Data) throws -> AppConfiguration {
         do {
-            let configuration = try decoder.decode(AppConfiguration.self, from: data)
+            let configuration = try ConfigurationFileCodec.decode(data)
             guard !configuration.profiles.isEmpty else {
                 throw LocalDataTransferError.invalidConfiguration
             }
@@ -44,22 +33,15 @@ struct LocalDataTransferService {
         }
     }
 
-    func exportMeasurements(_ archive: MeasurementArchive) throws -> Data {
-        let plaintext = try encoder.encode(archive)
-        return try resolvedMeasurementCipher().encrypt(plaintext)
+    func exportRecords(_ archive: MeasurementArchive) throws -> Data {
+        try RecordFileCodec.encode(archive, prettyPrinted: true)
     }
 
-    func importMeasurements(from data: Data) throws -> MeasurementArchive {
+    func importRecords(from data: Data) throws -> MeasurementArchive {
         do {
-            let plaintext = try resolvedMeasurementCipher().decrypt(data)
-            return try decoder.decode(MeasurementArchive.self, from: plaintext)
+            return try RecordFileCodec.decode(data)
         } catch {
-            throw LocalDataTransferError.invalidMeasurementArchive
+            throw LocalDataTransferError.invalidRecordFile
         }
-    }
-
-    private func resolvedMeasurementCipher() throws -> MeasurementFileCipher {
-        if let measurementCipher { return measurementCipher }
-        return try MeasurementFileCipher()
     }
 }

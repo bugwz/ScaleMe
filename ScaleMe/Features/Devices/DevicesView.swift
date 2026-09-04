@@ -728,7 +728,7 @@ private struct DeviceScannerView: View {
 
     private var scanInformation: String {
         store.isSimulationEnabled
-            ? "关联后的模拟设备只保存在应用内存中，重新打开应用后会恢复初始模拟设备。"
+            ? "关联后的模拟设备会写入模拟配置，可单独导出或同步到 iCloud。"
             : "标准 BLE Weight 协议及已知的小米广播设备会优先置顶，其余设备需验证兼容性。"
     }
 

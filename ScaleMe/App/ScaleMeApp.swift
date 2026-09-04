@@ -67,12 +67,16 @@ struct ScaleMeApp: App {
             }
             .onChange(of: store.configuration) {
                 bluetooth.updatePairedScales(store.pairedScales, communicationRules: store.communicationRules)
-                cloudSync.configurationDidChange()
                 exportWidgetSnapshot()
             }
             .onChange(of: store.archive) {
-                cloudSync.measurementsDidChange()
                 exportWidgetSnapshot()
+            }
+            .onChange(of: store.cloudConfigurationRevision) {
+                cloudSync.configurationDidChange()
+            }
+            .onChange(of: store.cloudArchiveRevision) {
+                cloudSync.measurementsDidChange()
             }
             .onChange(of: store.displayMeasurements) {
                 exportWidgetSnapshot()

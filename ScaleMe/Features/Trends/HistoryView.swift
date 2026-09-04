@@ -390,7 +390,7 @@ struct HistoryView: View {
            let scale = store.displayPairedScales.first(where: { $0.id == deviceID }) {
             return scale.name
         }
-        return measurement.deviceName ?? store.appLanguage.text(measurement.source.rawValue)
+        return measurement.deviceName ?? store.appLanguage.text(measurement.source.localizationKey)
     }
 }
 
@@ -404,7 +404,7 @@ private struct MeasurementRecordLink: View {
         NavigationLink { MeasurementDetailView(measurement: measurement) } label: {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("\(store.unit.value(fromKilograms: measurement.weightKG).formatted(2)) \(store.unit.rawValue)")
+                    Text("\(store.unit.value(fromKilograms: measurement.weightKG).formatted(2)) \(store.unit.symbol)")
                         .font(.body.bold())
                         .foregroundStyle(AppColor.ink)
                     ScaleDeviceLabel(title: sourceName, iconSize: 13)
@@ -522,7 +522,7 @@ private struct FilteredMeasurementRecordsView: View {
            let scale = store.displayPairedScales.first(where: { $0.id == deviceID }) {
             return scale.name
         }
-        return measurement.deviceName ?? store.appLanguage.text(measurement.source.rawValue)
+        return measurement.deviceName ?? store.appLanguage.text(measurement.source.localizationKey)
     }
 }
 
@@ -539,7 +539,7 @@ struct MeasurementDetailView: View {
            let scale = store.displayPairedScales.first(where: { $0.id == deviceID }) {
             return scale.name
         }
-        return measurement.deviceName ?? store.appLanguage.text(measurement.source.rawValue)
+        return measurement.deviceName ?? store.appLanguage.text(measurement.source.localizationKey)
     }
 
     var body: some View {
@@ -551,7 +551,7 @@ struct MeasurementDetailView: View {
                     HStack(alignment: .firstTextBaseline, spacing: 6) {
                         Text(store.unit.value(fromKilograms: measurement.weightKG).formatted(2))
                             .font(.system(size: 58, weight: .medium, design: .rounded))
-                        Text(store.unit.rawValue).font(.headline)
+                        Text(store.unit.symbol).font(.headline)
                     }
                     ScaleDeviceLabel(title: sourceName, iconSize: 13)
                         .font(.caption).foregroundStyle(AppColor.secondary)

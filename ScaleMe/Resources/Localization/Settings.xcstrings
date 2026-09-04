@@ -1431,67 +1431,67 @@
         }
       }
     },
-    "加密保存的称重和身体成分记录。" : {
+    "包含称重和身体成分记录的版本化 JSON 文件。" : {
       "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Verschlüsselte Gewichts- und Körperzusammensetzungsaufzeichnungen."
+            "value" : "Versionierte JSON-Datei mit Gewichts- und Körperzusammensetzungsdaten."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Encrypted weight and body composition records."
+            "value" : "A versioned JSON file containing weight and body composition records."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Registros cifrados de peso y composición corporal."
+            "value" : "Un archivo JSON con versión que contiene registros de peso y composición corporal."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Mesures chiffrées du poids et de la composition corporelle."
+            "value" : "Un fichier JSON versionné contenant les relevés de poids et de composition corporelle."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "暗号化して保存された体重と身体組成の記録。"
+            "value" : "体重と身体組成の記録を含む、バージョン付きJSONファイル。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "암호화하여 저장된 체중 및 체성분 기록입니다."
+            "value" : "체중 및 체성분 기록이 포함된 버전 관리 JSON 파일입니다."
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Registos encriptados de peso e composição corporal."
+            "value" : "Um ficheiro JSON com versão que contém registos de peso e composição corporal."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Зашифрованные записи веса и состава тела."
+            "value" : "Версионируемый файл JSON с записями веса и состава тела."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "加密保存的称重和身体成分记录。"
+            "value" : "包含称重和身体成分记录的版本化 JSON 文件。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "加密儲存的體重和身體組成記錄。"
+            "value" : "包含體重和身體組成記錄的版本化 JSON 檔案。"
           }
         }
       }
@@ -2666,67 +2666,67 @@
         }
       }
     },
-    "将把文件中的 %lld 条测量记录与本机记录合并，重复记录不会重复保存。" : {
+    "将把文件中的 %lld 条记录与本机记录合并，重复记录不会重复保存。" : {
       "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%lld Messungen aus der Datei werden mit den lokalen Daten zusammengeführt. Duplikate werden nicht erneut gespeichert."
+            "value" : "%lld Einträge aus der Datei werden mit den lokalen Einträgen zusammengeführt. Duplikate werden nicht erneut gespeichert."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%lld measurements from the file will be merged with local records. Duplicates will not be saved again."
+            "value" : "%lld records from the file will be merged with local records. Duplicates will not be saved again."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Se combinarán %lld mediciones del archivo con los registros locales. Los duplicados no se guardarán de nuevo."
+            "value" : "Se combinarán %lld registros del archivo con los registros locales. Los duplicados no se guardarán de nuevo."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%lld mesures du fichier seront fusionnées avec les enregistrements locaux. Les doublons ne seront pas enregistrés à nouveau."
+            "value" : "%lld relevés du fichier seront fusionnés avec les relevés locaux. Les doublons ne seront pas enregistrés à nouveau."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ファイル内の%lld件の測定記録をローカル記録と統合します。重複する記録は再保存されません。"
+            "value" : "ファイル内の%lld件の記録をローカル記録と統合します。重複する記録は再保存されません。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "파일의 측정 기록 %lld개를 로컬 기록과 병합합니다. 중복 기록은 다시 저장하지 않습니다."
+            "value" : "파일의 기록 %lld개를 로컬 기록과 병합합니다. 중복 기록은 다시 저장하지 않습니다."
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Serão combinadas %lld medições do ficheiro com os registos locais. Os duplicados não serão guardados novamente."
+            "value" : "%lld registos do ficheiro serão combinados com os registos locais. Os duplicados não serão guardados novamente."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%lld измерений из файла будут объединены с локальными записями. Дубликаты не будут сохранены повторно."
+            "value" : "Записи из файла (%lld) будут объединены с локальными. Дубликаты не будут сохранены повторно."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "将把文件中的 %lld 条测量记录与本机记录合并，重复记录不会重复保存。"
+            "value" : "将把文件中的 %lld 条记录与本机记录合并，重复记录不会重复保存。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "將把檔案中的 %lld 筆測量記錄與本機記錄合併，重複記錄不會重複儲存。"
+            "value" : "會將檔案中的 %lld 筆記錄與本機記錄合併，重複記錄不會再次儲存。"
           }
         }
       }
@@ -3771,67 +3771,67 @@
         }
       }
     },
-    "数据导入/导出" : {
+    "记录文件导入/导出" : {
       "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Datenimport/-export"
+            "value" : "Datensatzdatei importieren/exportieren"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Data Import/Export"
+            "value" : "Record File Import/Export"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Importación/exportación de datos"
+            "value" : "Importar/exportar archivo de registros"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Importation/exportation des données"
+            "value" : "Importer/exporter le fichier de relevés"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "データのインポート／エクスポート"
+            "value" : "記録ファイルの読み込み／書き出し"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "데이터 가져오기/내보내기"
+            "value" : "기록 파일 가져오기/내보내기"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Importação/exportação de dados"
+            "value" : "Importar/exportar ficheiro de registos"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Импорт/экспорт данных"
+            "value" : "Импорт/экспорт файла записей"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "数据导入/导出"
+            "value" : "记录文件导入/导出"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "資料匯入/匯出"
+            "value" : "記錄檔案匯入/匯出"
           }
         }
       }
@@ -4681,67 +4681,67 @@
         }
       }
     },
-    "测量数据文件格式无效或无法使用本机密钥解密" : {
+    "记录文件格式无效" : {
       "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ungültige Messdatendatei oder Entschlüsselung mit dem lokalen Schlüssel nicht möglich"
+            "value" : "Ungültiges Format der Datensatzdatei"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The measurement data file is invalid or cannot be decrypted with this device's key"
+            "value" : "The record file is invalid"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "El archivo de mediciones no es válido o no puede descifrarse con la clave de este dispositivo"
+            "value" : "El formato del archivo de registros no es válido"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Le fichier de mesures n’est pas valide ou ne peut pas être déchiffré avec la clé de cet appareil"
+            "value" : "Le format du fichier de relevés n’est pas valide"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "測定データファイルが無効か、このデバイスの鍵で復号できません"
+            "value" : "記録ファイルの形式が無効です"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "측정 데이터 파일이 올바르지 않거나 이 기기의 키로 복호화할 수 없습니다"
+            "value" : "기록 파일 형식이 올바르지 않습니다"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "O ficheiro de medições é inválido ou não pode ser desencriptado com a chave deste dispositivo"
+            "value" : "O formato do ficheiro de registos é inválido"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Файл измерений недопустим или не может быть расшифрован ключом этого устройства"
+            "value" : "Недопустимый формат файла записей"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "测量数据文件格式无效或无法使用本机密钥解密"
+            "value" : "记录文件格式无效"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "測量資料檔格式無效，或無法使用本機金鑰解密"
+            "value" : "記錄檔案格式無效"
           }
         }
       }

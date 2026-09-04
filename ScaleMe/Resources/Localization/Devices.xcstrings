@@ -1626,67 +1626,67 @@
         }
       }
     },
-    "关联后的模拟设备只保存在应用内存中，重新打开应用后会恢复初始模拟设备。" : {
+    "关联后的模拟设备会写入模拟配置，可单独导出或同步到 iCloud。" : {
       "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Linked demo devices are kept in memory only. Reopening the app restores the initial demo devices."
+            "value" : "Linked demo devices are written to the demo configuration and can be exported separately or synced to iCloud."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Linked demo devices are kept in memory only. Reopening the app restores the initial demo devices."
+            "value" : "Linked demo devices are written to the demo configuration and can be exported separately or synced to iCloud."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Linked demo devices are kept in memory only. Reopening the app restores the initial demo devices."
+            "value" : "Linked demo devices are written to the demo configuration and can be exported separately or synced to iCloud."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Linked demo devices are kept in memory only. Reopening the app restores the initial demo devices."
+            "value" : "Linked demo devices are written to the demo configuration and can be exported separately or synced to iCloud."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Linked demo devices are kept in memory only. Reopening the app restores the initial demo devices."
+            "value" : "Linked demo devices are written to the demo configuration and can be exported separately or synced to iCloud."
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Linked demo devices are kept in memory only. Reopening the app restores the initial demo devices."
+            "value" : "Linked demo devices are written to the demo configuration and can be exported separately or synced to iCloud."
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Linked demo devices are kept in memory only. Reopening the app restores the initial demo devices."
+            "value" : "Linked demo devices are written to the demo configuration and can be exported separately or synced to iCloud."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Linked demo devices are kept in memory only. Reopening the app restores the initial demo devices."
+            "value" : "Linked demo devices are written to the demo configuration and can be exported separately or synced to iCloud."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "关联后的模拟设备只保存在应用内存中，重新打开应用后会恢复初始模拟设备。"
+            "value" : "关联后的模拟设备会写入模拟配置，可单独导出或同步到 iCloud。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "关联后的模拟设备只保存在应用内存中，重新打开应用后会恢复初始模拟设备。"
+            "value" : "关联后的模拟设备会写入模拟配置，可单独导出或同步到 iCloud。"
           }
         }
       }

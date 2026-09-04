@@ -322,70 +322,6 @@
         }
       }
     },
-    "需提供秤的蓝牙地址，以及各 32 位十六进制的 CAK、C1 和 C2。认证材料仅保存到本机 Keychain，不写入配置文件、诊断日志或 iCloud。" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Die Bluetooth-Adresse der Waage sowie CAK, C1 und C2 mit jeweils 32 Hexadezimalzeichen sind erforderlich. Die Anmeldedaten werden nur im lokalen Schlüsselbund gespeichert."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "The scale's Bluetooth address and 32 hexadecimal characters each for CAK, C1, and C2 are required. Credentials are stored only in the local Keychain."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Se requieren la dirección Bluetooth de la báscula y 32 caracteres hexadecimales para CAK, C1 y C2. Las credenciales solo se guardan en el llavero local."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "L’adresse Bluetooth de la balance et 32 caractères hexadécimaux pour CAK, C1 et C2 sont requis. Les identifiants sont stockés uniquement dans le trousseau local."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "体重計のBluetoothアドレスと、CAK・C1・C2それぞれ32桁の16進数が必要です。認証情報は端末のKeychainにのみ保存されます。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "체중계의 Bluetooth 주소와 CAK, C1, C2 각각 32자리 16진수가 필요합니다. 인증 정보는 로컬 Keychain에만 저장됩니다."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "São necessários o endereço Bluetooth da balança e 32 caracteres hexadecimais para CAK, C1 e C2. As credenciais ficam apenas no Keychain local."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Требуются Bluetooth-адрес весов и по 32 шестнадцатеричных символа для CAK, C1 и C2. Данные хранятся только в локальной Связке ключей."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "需提供秤的蓝牙地址，以及各 32 位十六进制的 CAK、C1 和 C2。认证材料仅保存到本机 Keychain，不写入配置文件、诊断日志或 iCloud。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "需提供秤的藍牙位址，以及各 32 位十六進位的 CAK、C1 和 C2。認證資料僅儲存於本機 Keychain，不寫入設定檔、診斷記錄或 iCloud。"
-          }
-        }
-      }
-    },
     "cm" : {
       "localizations" : {
         "de" : {
@@ -510,6 +446,70 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "iCloud 中的成員、裝置、顯示單位和通訊協定將取代本機設定。測量記錄不受影響。"
+          }
+        }
+      }
+    },
+    "iOS 不提供外设的真实蓝牙地址；该地址用于生成 C3。协议解析已通过抓包夹具验证，仍需在真实设备上验证完整测量会话。" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iOS stellt die echte Bluetooth-Adresse des Geräts nicht bereit; sie wird zur Erzeugung von C3 benötigt. Die Protokollanalyse ist mit Aufzeichnungsdaten verifiziert, die vollständige Messsitzung benötigt noch einen Gerätetest."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iOS does not expose the peripheral's real Bluetooth address; it is used to generate C3. Protocol parsing is capture-fixture validated, while the complete measurement session still needs real-device validation."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iOS no proporciona la dirección Bluetooth real del periférico; se usa para generar C3. El análisis está validado con una captura, pero la sesión completa aún requiere una prueba real."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iOS n’expose pas l’adresse Bluetooth réelle du périphérique ; elle sert à générer C3. L’analyse est validée par une capture, mais la session complète doit encore être testée sur appareil réel."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iOSでは周辺機器の実際のBluetoothアドレスを取得できません。このアドレスはC3の生成に使います。解析はキャプチャで検証済みですが、完全な測定セッションには実機検証が必要です。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iOS는 주변 기기의 실제 Bluetooth 주소를 제공하지 않으며, 이 주소는 C3 생성에 사용됩니다. 프로토콜 분석은 캡처로 검증했지만 전체 측정 세션은 실제 기기 검증이 필요합니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O iOS não expõe o endereço Bluetooth real do periférico; ele é usado para gerar C3. A análise foi validada com uma captura, mas a sessão completa ainda requer teste num dispositivo real."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iOS не предоставляет реальный Bluetooth-адрес устройства; он нужен для генерации C3. Разбор проверен по записи, но полный сеанс измерения ещё требует проверки на реальном устройстве."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iOS 不提供外设的真实蓝牙地址；该地址用于生成 C3。协议解析已通过抓包夹具验证，仍需在真实设备上验证完整测量会话。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iOS 不提供周邊裝置的真實藍牙位址；該位址用於產生 C3。協議解析已通過擷取資料驗證，完整測量工作階段仍需實機驗證。"
           }
         }
       }
@@ -3858,70 +3858,6 @@
         }
       }
     },
-    "导入测量数据？" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Messdaten importieren?"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Import Measurement Data?"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "¿Importar datos de medición?"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Importer les données de mesure ?"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "測定データをインポートしますか？"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "측정 데이터를 가져오시겠습니까?"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Importar dados de medição?"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Импортировать данные измерений?"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "导入测量数据？"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "匯入測量資料？"
-          }
-        }
-      }
-    },
     "导入的成员、设备、显示单位和通信协议将替换本机配置。测量记录不受影响。" : {
       "localizations" : {
         "de" : {
@@ -3982,6 +3918,70 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "匯入的成員、裝置、顯示單位和通訊協定將取代本機設定。測量記錄不受影響。"
+          }
+        }
+      }
+    },
+    "导入记录文件？" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Datensatzdatei importieren?"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Import Record File?"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿Importar archivo de registros?"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Importer le fichier de relevés ?"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "記録ファイルを読み込みますか？"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "기록 파일을 가져오시겠습니까?"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Importar ficheiro de registos?"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Импортировать файл записей?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "导入记录文件？"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "匯入記錄檔案？"
           }
         }
       }
@@ -4693,70 +4693,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "開始測量"
-          }
-        }
-      }
-    },
-    "iOS 不提供外设的真实蓝牙地址；该地址用于生成 C3。协议解析已通过抓包夹具验证，仍需在真实设备上验证完整测量会话。" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "iOS stellt die echte Bluetooth-Adresse des Geräts nicht bereit; sie wird zur Erzeugung von C3 benötigt. Die Protokollanalyse ist mit Aufzeichnungsdaten verifiziert, die vollständige Messsitzung benötigt noch einen Gerätetest."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "iOS does not expose the peripheral's real Bluetooth address; it is used to generate C3. Protocol parsing is capture-fixture validated, while the complete measurement session still needs real-device validation."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "iOS no proporciona la dirección Bluetooth real del periférico; se usa para generar C3. El análisis está validado con una captura, pero la sesión completa aún requiere una prueba real."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "iOS n’expose pas l’adresse Bluetooth réelle du périphérique ; elle sert à générer C3. L’analyse est validée par une capture, mais la session complète doit encore être testée sur appareil réel."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "iOSでは周辺機器の実際のBluetoothアドレスを取得できません。このアドレスはC3の生成に使います。解析はキャプチャで検証済みですが、完全な測定セッションには実機検証が必要です。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "iOS는 주변 기기의 실제 Bluetooth 주소를 제공하지 않으며, 이 주소는 C3 생성에 사용됩니다. 프로토콜 분석은 캡처로 검증했지만 전체 측정 세션은 실제 기기 검증이 필요합니다."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "O iOS não expõe o endereço Bluetooth real do periférico; ele é usado para gerar C3. A análise foi validada com uma captura, mas a sessão completa ainda requer teste num dispositivo real."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "iOS не предоставляет реальный Bluetooth-адрес устройства; он нужен для генерации C3. Разбор проверен по записи, но полный сеанс измерения ещё требует проверки на реальном устройстве."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "iOS 不提供外设的真实蓝牙地址；该地址用于生成 C3。协议解析已通过抓包夹具验证，仍需在真实设备上验证完整测量会话。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "iOS 不提供周邊裝置的真實藍牙位址；該位址用於產生 C3。協議解析已通過擷取資料驗證，完整測量工作階段仍需實機驗證。"
           }
         }
       }
@@ -6495,130 +6431,130 @@
         }
       }
     },
-    "模拟数据不会写入 Apple 健康，同步设置仅用于演示并会在关闭应用后重置。" : {
+    "模拟数据不会写入 Apple 健康；这里的同步设置仅用于预览并保存在模拟配置中。" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Simulierte Daten werden nicht in Apple Health geschrieben. Die Synchronisierungseinstellungen dienen nur zur Demonstration und werden beim Beenden der App zurückgesetzt."
+            "value" : "Simulierte Daten werden nicht in Apple Health geschrieben. Diese Synchronisierungseinstellungen dienen nur der Vorschau und werden in der Demokonfiguration gespeichert."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Simulated data is not written to Apple Health. Sync settings are for demonstration only and reset when the app closes."
+            "value" : "Simulated data is not written to Apple Health. These sync settings are for preview only and are saved in the demo configuration."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Los datos simulados no se escriben en Apple Salud. Los ajustes de sincronización son solo para demostración y se restablecen al cerrar la app."
+            "value" : "Los datos simulados no se escriben en Apple Salud. Estos ajustes de sincronización son solo para previsualización y se guardan en la configuración de demostración."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Les données simulées ne sont pas écrites dans Apple Santé. Les réglages de synchronisation servent uniquement à la démonstration et sont réinitialisés à la fermeture de l’app."
+            "value" : "Les données simulées ne sont pas écrites dans Apple Santé. Ces réglages servent uniquement à l’aperçu et sont enregistrés dans la configuration de démonstration."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "シミュレーションデータはAppleヘルスケアに書き込まれません。同期設定はデモ専用で、アプリを終了するとリセットされます。"
+            "value" : "シミュレーションデータはAppleヘルスケアに書き込まれません。ここでの同期設定はプレビュー専用で、シミュレーション設定に保存されます。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "시뮬레이션 데이터는 Apple 건강에 기록되지 않습니다. 동기화 설정은 데모 전용이며 앱을 종료하면 초기화됩니다."
+            "value" : "시뮬레이션 데이터는 Apple 건강에 기록되지 않습니다. 여기의 동기화 설정은 미리보기 전용이며 데모 설정에 저장됩니다."
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Os dados simulados não são escritos na Saúde Apple. As definições de sincronização servem apenas para demonstração e são repostas ao fechar a app."
+            "value" : "Os dados simulados não são escritos na Saúde Apple. Estas definições servem apenas para pré-visualização e são guardadas na configuração de demonstração."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Демонстрационные данные не записываются в Apple Здоровье. Настройки синхронизации служат только для демонстрации и сбрасываются после закрытия приложения."
+            "value" : "Демонстрационные данные не записываются в Apple Здоровье. Эти настройки используются только для предварительного просмотра и сохраняются в демонстрационной конфигурации."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "模拟数据不会写入 Apple 健康，同步设置仅用于演示并会在关闭应用后重置。"
+            "value" : "模拟数据不会写入 Apple 健康；这里的同步设置仅用于预览并保存在模拟配置中。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "模擬資料不會寫入 Apple 健康，同步設定僅用於示範，並會在關閉 App 後重設。"
+            "value" : "模擬資料不會寫入 Apple 健康；這裡的同步設定僅供預覽，並儲存在模擬設定中。"
           }
         }
       }
     },
-    "模拟模式下可手动录入，也可新增、编辑或删除模拟资料。所有变动只保存在应用内存中，不会写入本机档案或同步到 iCloud；关闭应用后再次打开，将恢复为初始模拟数据。" : {
+    "模拟模式下的修改可通过独立命名的模拟文件导入导出，并可同步到 iCloud；真实配置和记录不会被替换。" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Im Demomodus können Messungen eingegeben und simulierte Profile hinzugefügt, bearbeitet oder gelöscht werden. Änderungen bleiben nur im Speicher und werden weder lokal noch in iCloud gespeichert. Nach einem Neustart werden die ursprünglichen Demodaten wiederhergestellt."
+            "value" : "Änderungen im Demomodus können über separat benannte Demodateien importiert und exportiert sowie mit iCloud synchronisiert werden. Echte Konfigurationen und Daten bleiben unverändert."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "In demo mode, you can enter measurements and add, edit, or delete simulated profiles. Changes stay in memory and are never saved locally or synced to iCloud. Reopening the app restores the initial demo data."
+            "value" : "Demo changes can be imported and exported in separately named demo files and synced to iCloud. Real configuration and records remain unchanged."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "En el modo de demostración puedes introducir mediciones y añadir, editar o eliminar perfiles simulados. Los cambios solo se guardan en memoria y no se almacenan localmente ni se sincronizan con iCloud. Al reabrir la app se restauran los datos iniciales."
+            "value" : "Los cambios del modo de demostración se pueden importar y exportar en archivos con nombres propios y sincronizar con iCloud. La configuración y los registros reales no se modifican."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "En mode démonstration, vous pouvez saisir des mesures et ajouter, modifier ou supprimer des profils simulés. Les changements restent en mémoire, sans enregistrement local ni synchronisation iCloud. Les données initiales sont restaurées au redémarrage."
+            "value" : "Les modifications du mode démonstration peuvent être importées et exportées dans des fichiers nommés séparément, puis synchronisées avec iCloud. La configuration et les relevés réels restent inchangés."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "シミュレーションモードでは手動入力やプロフィールの追加・編集・削除ができます。変更はメモリ内だけに保持され、端末やiCloudには保存されません。アプリを再起動すると初期データに戻ります。"
+            "value" : "シミュレーションモードの変更は、専用名のシミュレーションファイルで読み込み・書き出しでき、iCloudにも同期できます。実際の設定と記録は変更されません。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "데모 모드에서는 측정값을 직접 입력하고 시뮬레이션 프로필을 추가, 편집 또는 삭제할 수 있습니다. 변경 사항은 메모리에만 유지되며 기기나 iCloud에 저장되지 않습니다. 앱을 다시 열면 초기 데모 데이터로 복원됩니다."
+            "value" : "데모 모드의 변경 사항은 별도 이름의 데모 파일로 가져오고 내보낼 수 있으며 iCloud와 동기화할 수 있습니다. 실제 설정과 기록은 변경되지 않습니다."
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No modo de demonstração pode introduzir medições e adicionar, editar ou eliminar perfis simulados. As alterações ficam apenas na memória e não são guardadas localmente nem sincronizadas com o iCloud. Ao reabrir a app, os dados iniciais são restaurados."
+            "value" : "As alterações do modo de demonstração podem ser importadas e exportadas em ficheiros com nomes próprios e sincronizadas com o iCloud. A configuração e os registos reais permanecem inalterados."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "В деморежиме можно вводить измерения, добавлять, редактировать и удалять имитируемые профили. Изменения хранятся только в памяти, не записываются на устройство и не синхронизируются с iCloud. После перезапуска восстанавливаются исходные демоданные."
+            "value" : "Изменения деморежима можно импортировать и экспортировать в файлах с отдельными именами, а также синхронизировать с iCloud. Настоящие настройки и записи не изменяются."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "模拟模式下可手动录入，也可新增、编辑或删除模拟资料。所有变动只保存在应用内存中，不会写入本机档案或同步到 iCloud；关闭应用后再次打开，将恢复为初始模拟数据。"
+            "value" : "模拟模式下的修改可通过独立命名的模拟文件导入导出，并可同步到 iCloud；真实配置和记录不会被替换。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "模擬模式下可手動輸入，也可新增、編輯或刪除模擬資料。所有變更只保存在 App 記憶體中，不會寫入本機檔案或同步至 iCloud；關閉並重新開啟 App 後，將恢復初始模擬資料。"
+            "value" : "模擬模式下的修改可透過獨立命名的模擬檔案匯入匯出，並可同步至 iCloud；真實設定與記錄不會被取代。"
           }
         }
       }
@@ -8615,6 +8551,71 @@
         }
       }
     },
+    "解析香山 IF2121A 的 33CC 实时重量、稳定状态、检测阶段及 40 字节分片最终结果；未确认的身体成分字段不会入库。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Analysiert Echtzeitgewicht, Stabilitätsstatus, Erkennungsphase und das fragmentierte 40-Byte-Endergebnis des Senssun IF2121A über 33CC; unbestätigte Körperzusammensetzungsfelder werden nicht gespeichert."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Parses Senssun IF2121A 33CC live weight, stability, detection stages, and the fragmented 40-byte final result; unverified body-composition fields are not saved."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Analiza el peso en tiempo real, la estabilidad, las fases de detección y el resultado final fragmentado de 40 bytes del Senssun IF2121A mediante 33CC; no guarda campos de composición corporal sin confirmar."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Analyse le poids en temps réel, la stabilité, les phases de détection et le résultat final fragmenté de 40 octets du Senssun IF2121A via 33CC ; les champs de composition corporelle non confirmés ne sont pas enregistrés."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Senssun IF2121A の 33CC によるリアルタイム体重、安定状態、検出段階、40バイトの分割最終結果を解析します。未確認の体組成フィールドは保存しません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Senssun IF2121A의 33CC 실시간 체중, 안정 상태, 감지 단계 및 40바이트 분할 최종 결과를 해석하며, 확인되지 않은 체성분 필드는 저장하지 않습니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Analisa o peso em tempo real, a estabilidade, as fases de deteção e o resultado final fragmentado de 40 bytes do Senssun IF2121A através de 33CC; os campos de composição corporal não confirmados não são guardados."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Разбирает вес в реальном времени, стабильность, этапы определения и фрагментированный итоговый результат длиной 40 байт Senssun IF2121A через 33CC; неподтверждённые поля состава тела не сохраняются."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "解析香山 IF2121A 的 33CC 实时重量、稳定状态、检测阶段及 40 字节分片最终结果；未确认的身体成分字段不会入库。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "解析香山 IF2121A 的 33CC 即時體重、穩定狀態、偵測階段及 40 位元組分段最終結果；未確認的身體組成欄位不會儲存。"
+          }
+        }
+      }
+    },
     "认证材料已在本机安全保存" : {
       "localizations" : {
         "de" : {
@@ -9842,6 +9843,70 @@
         }
       }
     },
+    "配置与健康记录均以版本化 JSON 文件导入导出，可跨设备分享。" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Konfiguration und Gesundheitsdaten werden als versionierte JSON-Dateien importiert und exportiert und können geräteübergreifend geteilt werden."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Configuration and health records are imported and exported as versioned JSON files for sharing across devices."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La configuración y los registros de salud se importan y exportan como archivos JSON con versión que pueden compartirse entre dispositivos."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La configuration et les relevés de santé sont importés et exportés sous forme de fichiers JSON versionnés partageables entre appareils."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "設定と健康記録はバージョン付きJSONファイルとして読み込み・書き出しでき、デバイス間で共有できます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "설정과 건강 기록은 버전 관리 JSON 파일로 가져오고 내보낼 수 있으며 기기 간에 공유할 수 있습니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A configuração e os registos de saúde são importados e exportados como ficheiros JSON com versão que podem ser partilhados entre dispositivos."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Конфигурация и записи о здоровье импортируются и экспортируются в версионируемых файлах JSON, которыми можно делиться между устройствами."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "配置与健康记录均以版本化 JSON 文件导入导出，可跨设备分享。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "設定與健康記錄均以版本化 JSON 檔案匯入匯出，可跨裝置分享。"
+          }
+        }
+      }
+    },
     "配置同步方向" : {
       "localizations" : {
         "de" : {
@@ -9902,70 +9967,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "設定同步方向"
-          }
-        }
-      }
-    },
-    "配置文件可跨设备导入；测量文件使用本机 Keychain 密钥加密，只能由持有同一密钥的本应用读取。" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Konfigurationsdateien können geräteübergreifend importiert werden. Messdateien sind mit dem Schlüsselbund-Schlüssel dieses Geräts verschlüsselt und nur mit demselben Schlüssel lesbar."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Config files can be imported across devices. Measurement files are encrypted with this device's Keychain key and can only be read with the same key."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Los archivos de configuración pueden importarse entre dispositivos. Los archivos de medición se cifran con la clave del llavero de este dispositivo y solo pueden leerse con la misma clave."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Les fichiers de configuration peuvent être importés entre appareils. Les fichiers de mesure sont chiffrés avec la clé du trousseau de cet appareil et ne sont lisibles qu’avec cette même clé."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "設定ファイルはデバイス間でインポートできます。測定ファイルはこのデバイスのキーチェーン鍵で暗号化され、同じ鍵を持つ本アプリだけが読み取れます。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "설정 파일은 기기 간에 가져올 수 있습니다. 측정 파일은 이 기기의 키체인 키로 암호화되며 동일한 키를 가진 이 앱에서만 읽을 수 있습니다."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Os ficheiros de configuração podem ser importados entre dispositivos. Os ficheiros de medição são encriptados com a chave do Porta-chaves deste dispositivo e só podem ser lidos com a mesma chave."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Файлы конфигурации можно импортировать между устройствами. Файлы измерений зашифрованы ключом Связки ключей этого устройства и читаются только при наличии того же ключа."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "配置文件可跨设备导入；测量文件使用本机 Keychain 密钥加密，只能由持有同一密钥的本应用读取。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "設定檔可跨裝置匯入；測量檔使用本機 Keychain 金鑰加密，只能由持有相同金鑰的本應用程式讀取。"
           }
         }
       }
@@ -10351,6 +10352,70 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "阻抗通道名稱和頻率尚未取得廠商定義，因此僅保留原始讀數，不據此聲稱特定頻率。"
+          }
+        }
+      }
+    },
+    "需提供秤的蓝牙地址，以及各 32 位十六进制的 CAK、C1 和 C2。认证材料仅保存到本机 Keychain，不写入配置文件、诊断日志或 iCloud。" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Bluetooth-Adresse der Waage sowie CAK, C1 und C2 mit jeweils 32 Hexadezimalzeichen sind erforderlich. Die Anmeldedaten werden nur im lokalen Schlüsselbund gespeichert."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The scale's Bluetooth address and 32 hexadecimal characters each for CAK, C1, and C2 are required. Credentials are stored only in the local Keychain."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se requieren la dirección Bluetooth de la báscula y 32 caracteres hexadecimales para CAK, C1 y C2. Las credenciales solo se guardan en el llavero local."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L’adresse Bluetooth de la balance et 32 caractères hexadécimaux pour CAK, C1 et C2 sont requis. Les identifiants sont stockés uniquement dans le trousseau local."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "体重計のBluetoothアドレスと、CAK・C1・C2それぞれ32桁の16進数が必要です。認証情報は端末のKeychainにのみ保存されます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "체중계의 Bluetooth 주소와 CAK, C1, C2 각각 32자리 16진수가 필요합니다. 인증 정보는 로컬 Keychain에만 저장됩니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "São necessários o endereço Bluetooth da balança e 32 caracteres hexadecimais para CAK, C1 e C2. As credenciais ficam apenas no Keychain local."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Требуются Bluetooth-адрес весов и по 32 шестнадцатеричных символа для CAK, C1 и C2. Данные хранятся только в локальной Связке ключей."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "需提供秤的蓝牙地址，以及各 32 位十六进制的 CAK、C1 和 C2。认证材料仅保存到本机 Keychain，不写入配置文件、诊断日志或 iCloud。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "需提供秤的藍牙位址，以及各 32 位十六進位的 CAK、C1 和 C2。認證資料僅儲存於本機 Keychain，不寫入設定檔、診斷記錄或 iCloud。"
           }
         }
       }

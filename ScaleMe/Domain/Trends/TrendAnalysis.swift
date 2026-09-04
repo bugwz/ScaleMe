@@ -90,7 +90,7 @@ enum TrendMetric: String, CaseIterable, Identifiable {
 
     func unitLabel(weightUnit: WeightUnit) -> String {
         switch self {
-        case .weight, .fatMass, .muscleMass, .waterMass, .proteinMass, .boneMass: weightUnit.rawValue
+        case .weight, .fatMass, .muscleMass, .waterMass, .proteinMass, .boneMass: weightUnit.symbol
         case .bodyFat, .musclePercent, .waterPercent, .proteinPercent, .bonePercent: "%"
         case .basalMetabolism: "kcal"
         case .bmi, .visceralFat: ""

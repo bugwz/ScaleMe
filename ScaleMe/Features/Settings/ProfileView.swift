@@ -906,7 +906,7 @@ private struct MemberEditorView: View {
                                     availableSize: proxy.size,
                                     options: UserProfile.BiologicalSex.allCases,
                                     isSelected: { $0 == draft.biologicalSex },
-                                    title: { $0.rawValue },
+                                    title: { $0.displayName },
                                     appearance: .compact,
                                     onSelect: { biologicalSex in
                                         draft.biologicalSex = biologicalSex
@@ -1001,7 +1001,7 @@ private struct MemberEditorView: View {
             VStack(alignment: .leading, spacing: 9) {
                 fieldLabel("生理性别")
                 AppDropdownField(
-                    value: draft.biologicalSex.rawValue,
+                    value: draft.biologicalSex.displayName,
                     icon: "person.crop.circle",
                     accessibilityLabel: "生理性别",
                     isExpanded: expandedDropdown == .biologicalSex,

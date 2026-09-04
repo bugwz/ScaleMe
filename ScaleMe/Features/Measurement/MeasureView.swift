@@ -258,7 +258,7 @@ struct MeasureView: View {
                             .font(.system(size: 54, weight: .medium, design: .rounded))
                             .contentTransition(.numericText())
                         if bluetooth.liveWeightKG != nil {
-                            Text(store.unit.rawValue).font(.headline)
+                            Text(store.unit.symbol).font(.headline)
                         }
                     }
                     AppLocalizedText(statusText)
@@ -457,7 +457,7 @@ struct MeasureView: View {
                     ScaleDeviceLabel(
                         title: measurement.deviceName
                             ?? bluetooth.currentScaleName
-                            ?? store.appLanguage.text(measurement.source.rawValue),
+                            ?? store.appLanguage.text(measurement.source.localizationKey),
                         iconSize: 13
                     )
                         .font(.caption).foregroundStyle(AppColor.secondary)
@@ -785,7 +785,7 @@ struct ManualEntryView: View {
                         .font(.caption)
                         .foregroundStyle(AppColor.mint)
                     AppLocalizedText(store.isSimulationEnabled
-                        ? "当前为模拟数据模式，本次记录只保存在内存中，重新打开应用后会消失。"
+                        ? "当前为模拟数据模式，本次记录会写入模拟记录文件，可单独导出或同步到 iCloud。"
                         : "手动记录仅保存在本机，并会清晰标记为“手动记录”来源。")
                         .font(.caption)
                         .foregroundStyle(AppColor.secondary)

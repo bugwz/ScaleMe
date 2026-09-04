@@ -99,7 +99,7 @@ struct AppleHealthSettingsView: View {
 
                 if store.isSimulationEnabled {
                     Label(
-                        "模拟数据不会写入 Apple 健康，同步设置仅用于演示并会在关闭应用后重置。",
+                        "模拟数据不会写入 Apple 健康；这里的同步设置仅用于预览并保存在模拟配置中。",
                         systemImage: "sparkles"
                     )
                     .font(.caption)

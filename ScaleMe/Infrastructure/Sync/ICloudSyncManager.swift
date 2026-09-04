@@ -135,16 +135,22 @@ final class ICloudSyncManager: ObservableObject {
             return
         }
 
+        let isSimulation = store.isSimulationEnabled
         let request = CloudSyncRequest(
+            isSimulation: isSimulation,
             configurationAction: isConfigurationSyncEnabled ? configurationStrategy : nil,
-            configuration: configurationStrategy == .push ? store.configuration : nil,
+            configuration: configurationStrategy == .push ? store.currentConfiguration : nil,
             shouldSyncData: isDataSyncEnabled,
-            archive: isDataSyncEnabled ? store.archive : nil
+            archive: isDataSyncEnabled ? store.currentArchive : nil
         )
 
         state = .syncing
         let result = await cloudRepository.sync(request)
         guard !Task.isCancelled else { return }
+        guard store.isSimulationEnabled == isSimulation else {
+            scheduleSync()
+            return
+        }
 
         if let configuration = result.configuration {
             store.apply(configuration: configuration)
@@ -164,6 +170,7 @@ final class ICloudSyncManager: ObservableObject {
 }
 
 private struct CloudSyncRequest {
+    let isSimulation: Bool
     let configurationAction: ConfigurationSyncStrategy?
     let configuration: AppConfiguration?
     let shouldSyncData: Bool
@@ -175,12 +182,6 @@ private struct CloudSyncResult {
     var archive: MeasurementArchive?
     var errors: [String] = []
     var didCompleteAnyOperation = false
-}
-
-private struct CloudConfigurationDocument: Codable {
-    let schemaVersion: Int
-    let updatedAt: Date
-    let configuration: AppConfiguration
 }
 
 private enum ICloudSyncError: LocalizedError {
@@ -218,26 +219,17 @@ private actor ICloudFileRepository {
                         guard let configuration = request.configuration else {
                             throw ICloudSyncError.missingConfiguration
                         }
-                        let document = CloudConfigurationDocument(
-                            schemaVersion: 1,
-                            updatedAt: .now,
-                            configuration: configuration
-                        )
                         try coordinatedWrite(
-                            encoder.encode(document),
-                            to: directory.appending(path: AppStorageLayout.configurationFileName)
+                            ConfigurationFileCodec.encode(configuration, prettyPrinted: false),
+                            to: directory.appending(path: configurationFileName(for: request))
                         )
                     case .pull:
-                        let url = directory.appending(path: AppStorageLayout.configurationFileName)
+                        let url = directory.appending(path: configurationFileName(for: request))
                         guard fileManager.fileExists(atPath: url.path) else {
                             throw ICloudSyncError.missingConfiguration
                         }
                         try await ensureDownloaded(at: url)
-                        let document = try decoder.decode(
-                            CloudConfigurationDocument.self,
-                            from: coordinatedRead(from: url)
-                        )
-                        result.configuration = document.configuration
+                        result.configuration = try ConfigurationFileCodec.decode(coordinatedRead(from: url))
                     }
                     result.didCompleteAnyOperation = true
                 } catch {
@@ -248,7 +240,7 @@ private actor ICloudFileRepository {
             if request.shouldSyncData {
                 do {
                     guard let localArchive = request.archive else { throw ICloudSyncError.missingArchive }
-                    let url = directory.appending(path: AppStorageLayout.measurementsFileName)
+                    let url = directory.appending(path: measurementsFileName(for: request))
                     let cloudFileExists = fileManager.fileExists(atPath: url.path)
                     if cloudFileExists {
                         try await ensureDownloaded(at: url)
@@ -273,6 +265,18 @@ private actor ICloudFileRepository {
         }
 
         return result
+    }
+
+    private func configurationFileName(for request: CloudSyncRequest) -> String {
+        request.isSimulation
+            ? AppStorageLayout.simulationConfigurationFileName
+            : AppStorageLayout.configurationFileName
+    }
+
+    private func measurementsFileName(for request: CloudSyncRequest) -> String {
+        request.isSimulation
+            ? AppStorageLayout.simulationMeasurementsFileName
+            : AppStorageLayout.measurementsFileName
     }
 
     private func cloudDirectory() throws -> URL {

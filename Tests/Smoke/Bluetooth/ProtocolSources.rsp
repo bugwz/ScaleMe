@@ -1,5 +1,8 @@
 ScaleMe/Core/Localization/AppLanguage.swift
 ScaleMe/Domain/Models/Models.swift
+ScaleMe/Infrastructure/Persistence/ConfigurationFileCodec.swift
+ScaleMe/Infrastructure/Persistence/RecordFileCodec.swift
+ScaleMe/Infrastructure/Persistence/LocalDataTransferService.swift
 ScaleMe/Domain/Trends/TrendAnalysis.swift
 ScaleMe/Infrastructure/Bluetooth/ScaleDiscoveryClassifier.swift
 ScaleMe/Infrastructure/Bluetooth/Protocols/ScalePayloadError.swift

@@ -3,6 +3,19 @@ import Foundation
 @main
 enum StorageSmoke {
     static func main() throws {
+        let productionFileNames = Set([
+            AppStorageLayout.configurationFileName,
+            AppStorageLayout.measurementsFileName
+        ])
+        let simulationFileNames = Set([
+            AppStorageLayout.simulationConfigurationFileName,
+            AppStorageLayout.simulationMeasurementsFileName
+        ])
+        precondition(
+            productionFileNames.isDisjoint(with: simulationFileNames),
+            "simulation storage files must remain separate from production storage"
+        )
+
         let cipher = MeasurementFileCipher(keyData: Data(repeating: 0x5A, count: 32))
         let plaintext = Data("private measurement payload".utf8)
         let encrypted = try cipher.encrypt(plaintext)
