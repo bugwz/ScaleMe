@@ -21,11 +21,7 @@ struct LocalDataTransferService {
 
     func importConfiguration(from data: Data) throws -> AppConfiguration {
         do {
-            let configuration = try ConfigurationFileCodec.decode(data)
-            guard !configuration.profiles.isEmpty else {
-                throw LocalDataTransferError.invalidConfiguration
-            }
-            return configuration
+            return try ConfigurationFileCodec.decode(data)
         } catch let error as LocalDataTransferError {
             throw error
         } catch {

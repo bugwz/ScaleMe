@@ -25,8 +25,8 @@ struct DashboardView: View {
         selectedProfileID ?? store.displaySelectedProfileID
     }
 
-    private var latest: BodyMeasurement {
-        store.displayMeasurements(for: visibleProfileID).first ?? MeasurementStore.demoMeasurements[0]
+    private var latest: BodyMeasurement? {
+        store.displayMeasurements(for: visibleProfileID).first
     }
 
     var body: some View {
@@ -248,7 +248,11 @@ struct DashboardView: View {
                     .padding(.top, 12)
 
                     Button { onMeasure(profile.id) } label: {
-                        Label("开始测量", systemImage: "wave.3.right")
+                        Label {
+                            AppLocalizedText(store.isUsingPlaceholderData ? "添加成员" : "开始测量")
+                        } icon: {
+                            Image(systemName: store.isUsingPlaceholderData ? "person.badge.plus" : "wave.3.right")
+                        }
                             .font(.caption.weight(.semibold))
                             .foregroundStyle(.white)
                             .padding(.horizontal, 10)
@@ -419,7 +423,7 @@ struct DashboardView: View {
             ForEach(visibleMetrics) { kind in
                 MetricTile(
                     title: kind.title,
-                    value: kind.value(in: latest).map { $0.formatted(2) } ?? "--",
+                    value: latest.flatMap { kind.value(in: $0) }.map { $0.formatted(2) } ?? "--",
                     unit: kind.unit,
                     source: sourceName(for: latest),
                     icon: kind.icon,
@@ -431,7 +435,8 @@ struct DashboardView: View {
         }
     }
 
-    private func sourceName(for measurement: BodyMeasurement) -> String {
+    private func sourceName(for measurement: BodyMeasurement?) -> String {
+        guard let measurement else { return "--" }
         if let deviceID = measurement.deviceID,
            let scale = store.displayPairedScales.first(where: { $0.id == deviceID }) {
             return scale.name
@@ -654,14 +659,14 @@ private struct DashboardMetricsEditorView: View {
     @State private var dragActivationFeedback = 0
     @State private var isDragLifted = false
     @State private var isSettlingDrag = false
-    let measurement: BodyMeasurement
+    let measurement: BodyMeasurement?
     let source: String
     let onSave: ([DashboardMetricKind], Set<DashboardMetricKind>) -> Void
 
     init(
         order: [DashboardMetricKind],
         visible: Set<DashboardMetricKind>,
-        measurement: BodyMeasurement,
+        measurement: BodyMeasurement?,
         source: String,
         onSave: @escaping ([DashboardMetricKind], Set<DashboardMetricKind>) -> Void
     ) {
@@ -741,7 +746,7 @@ private struct DashboardMetricsEditorView: View {
            let location = dragLocation {
             MetricTile(
                 title: kind.title,
-                value: kind.value(in: measurement).map { $0.formatted(2) } ?? "--",
+                value: measurement.flatMap { kind.value(in: $0) }.map { $0.formatted(2) } ?? "--",
                 unit: kind.unit,
                 source: source,
                 icon: kind.icon,
@@ -794,7 +799,7 @@ private struct DashboardMetricsEditorView: View {
 
         return MetricTile(
             title: kind.title,
-            value: kind.value(in: measurement).map { $0.formatted(2) } ?? "--",
+            value: measurement.flatMap { kind.value(in: $0) }.map { $0.formatted(2) } ?? "--",
             unit: kind.unit,
             source: source,
             icon: kind.icon,

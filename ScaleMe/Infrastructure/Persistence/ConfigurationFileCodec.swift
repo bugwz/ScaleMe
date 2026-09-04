@@ -24,7 +24,6 @@ enum ConfigurationFileCodec {
         .object([
             ("schemaVersion", .number(String(currentSchemaVersion))),
             ("members", .object([
-                ("selectedProfileID", .string(configuration.selectedProfileID.uuidString)),
                 ("profiles", .array(configuration.profiles.map(profileValue)))
             ])),
             ("devices", .object([
@@ -68,6 +67,7 @@ enum ConfigurationFileCodec {
             ("name", .string(profile.name)),
             ("relation", .string(profile.relation)),
             ("heightCM", .number(numberString(profile.heightCM))),
+            ("referenceWeightKG", .number(numberString(profile.referenceWeightKG))),
             ("birthDate", .number(numberString(profile.birthDate.timeIntervalSinceReferenceDate))),
             ("biologicalSex", .string(profile.biologicalSex.rawValue)),
             ("avatar", .string(profile.avatar.rawValue))
@@ -120,7 +120,6 @@ private struct ConfigurationDocument: Codable {
     var widget: Widget
 
     struct Members: Codable {
-        var selectedProfileID: UUID
         var profiles: [UserProfile]
     }
 
@@ -162,7 +161,6 @@ private struct ConfigurationDocument: Codable {
     var configuration: AppConfiguration {
         AppConfiguration(
             profiles: members.profiles,
-            selectedProfileID: members.selectedProfileID,
             pairedScales: devices.pairedScales,
             unit: measurement.unit,
             languageSelection: general.languageSelection,

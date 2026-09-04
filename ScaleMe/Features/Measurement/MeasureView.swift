@@ -37,14 +37,14 @@ struct MeasureView: View {
             guard simulationState == .completed else { return nil }
             return store.latest
         }
-        guard bluetooth.state == .completed else { return nil }
+        guard !store.isUsingPlaceholderData, bluetooth.state == .completed else { return nil }
         return bluetooth.latestMeasurement.map {
             BodyCompositionEstimator.enriching($0, profile: store.displaySelectedProfile)
         }
     }
 
     private var profileOptions: [TrendDropdownOption<UUID>] {
-        store.displayProfiles.map { profile in
+        store.managedProfiles.map { profile in
             TrendDropdownOption(
                 id: profile.id.uuidString,
                 value: profile.id,
@@ -116,7 +116,7 @@ struct MeasureView: View {
                 isPulsing = true
                 if store.isSimulationEnabled {
                     resetSimulatedMeasurement()
-                } else {
+                } else if !store.isUsingPlaceholderData {
                     displayedActualWeightKG = bluetooth.liveWeightKG
                     startMeasurementMonitoring()
                 }
@@ -272,6 +272,8 @@ struct MeasureView: View {
                 }
         }
         .accessibilityHint("打开手动测量数据输入表单")
+        .disabled(store.isUsingPlaceholderData)
+        .opacity(store.isUsingPlaceholderData ? 0.55 : 1)
     }
 
     private var scaleStage: some View {
@@ -360,6 +362,7 @@ struct MeasureView: View {
             .shadow(color: AppColor.mint.opacity(0.08), radius: 8, y: 3)
         }
         .buttonStyle(.plain)
+        .disabled(store.isUsingPlaceholderData)
         .anchorPreference(key: MeasureProfileAnchorKey.self, value: .bounds) { $0 }
         .accessibilityLabel(store.appLanguage.format("切换测量成员，当前为 %@", store.displaySelectedProfile.name))
         .accessibilityHint(store.appLanguage.text("点击选择本次测量数据所属的成员"))
@@ -410,6 +413,11 @@ struct MeasureView: View {
     }
 
     private func startMeasurementMonitoring() {
+        guard !store.isUsingPlaceholderData else {
+            bluetooth.stopScanning()
+            displayedActualWeightKG = nil
+            return
+        }
         bluetooth.startMeasurementMonitoring(
             scales: store.pairedScales,
             selectedScaleID: selectedScaleID,
@@ -427,6 +435,7 @@ struct MeasureView: View {
 
     private var statusText: String {
         if store.isSimulationEnabled { return simulationState.title(in: store.appLanguage) }
+        if store.isUsingPlaceholderData { return "需要成员资料" }
         if store.pairedScales.isEmpty { return "请先在“设备”页添加体重秤" }
         return bluetooth.state.title(in: store.appLanguage)
     }

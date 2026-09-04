@@ -316,7 +316,6 @@ struct PairedScale: Identifiable, Codable, Equatable, Hashable {
 
 struct AppConfiguration: Codable, Equatable {
     var profiles: [UserProfile]
-    var selectedProfileID: UUID
     var pairedScales: [PairedScale]
     var unit: WeightUnit
     var languageSelection: AppLanguageSelection
@@ -334,7 +333,6 @@ struct AppConfiguration: Codable, Equatable {
 
     init(
         profiles: [UserProfile],
-        selectedProfileID: UUID,
         pairedScales: [PairedScale],
         unit: WeightUnit,
         languageSelection: AppLanguageSelection = .system,
@@ -351,7 +349,6 @@ struct AppConfiguration: Codable, Equatable {
         widgetDisplayStyle: WidgetTrendDisplayStyle = .periodFocused
     ) {
         self.profiles = profiles
-        self.selectedProfileID = selectedProfileID
         self.pairedScales = pairedScales
         self.unit = unit
         self.languageSelection = languageSelection
@@ -370,7 +367,6 @@ struct AppConfiguration: Codable, Equatable {
 
     private enum CodingKeys: String, CodingKey {
         case profiles
-        case selectedProfileID
         case pairedScales
         case unit
         case languageSelection
@@ -390,7 +386,6 @@ struct AppConfiguration: Codable, Equatable {
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         profiles = try container.decode([UserProfile].self, forKey: .profiles)
-        selectedProfileID = try container.decode(UUID.self, forKey: .selectedProfileID)
         pairedScales = try container.decode([PairedScale].self, forKey: .pairedScales)
         unit = try container.decode(WeightUnit.self, forKey: .unit)
         languageSelection = try container.decodeIfPresent(AppLanguageSelection.self, forKey: .languageSelection) ?? .system
@@ -408,10 +403,8 @@ struct AppConfiguration: Codable, Equatable {
     }
 
     static var standard: AppConfiguration {
-        let profile = UserProfile()
         return AppConfiguration(
-            profiles: [profile],
-            selectedProfileID: profile.id,
+            profiles: [],
             pairedScales: [],
             unit: .kilograms,
             mergeFrequentMeasurements: false,

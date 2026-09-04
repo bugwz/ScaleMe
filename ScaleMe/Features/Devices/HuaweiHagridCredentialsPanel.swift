@@ -15,7 +15,7 @@ struct HuaweiHagridCredentialsPanel: View {
     private let credentialStore = HuaweiHagridCredentialStore()
 
     var body: some View {
-        SettingsPanel(title: "华为 Hagrid 认证材料", icon: "key.horizontal.fill") {
+        SettingsPanel(title: "通信设置", icon: "key.horizontal.fill") {
             Text("需提供秤的蓝牙地址，以及各 32 位十六进制的 CAK、C1 和 C2。认证材料仅保存到本机 Keychain，不写入配置文件或诊断日志。")
                 .font(.caption)
                 .foregroundStyle(AppColor.secondary)

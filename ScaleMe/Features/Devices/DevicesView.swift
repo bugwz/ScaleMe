@@ -36,6 +36,14 @@ private struct ScaleProtocolMenuAnchorKey: PreferenceKey {
     }
 }
 
+private struct ScaleUnitMenuAnchorKey: PreferenceKey {
+    static var defaultValue: Anchor<CGRect>? = nil
+
+    static func reduce(value: inout Anchor<CGRect>?, nextValue: () -> Anchor<CGRect>?) {
+        value = nextValue() ?? value
+    }
+}
+
 private struct ScannerDevice: Identifiable, Hashable {
     let id: UUID
     let name: String
@@ -191,9 +199,7 @@ struct DevicesView: View {
                     Text("添加设备")
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(AppColor.ink)
-                    AppLocalizedText(store.isSimulationEnabled
-                        ? "演示扫描并关联预设模拟设备"
-                        : "扫描并关联附近的体重秤或体脂秤")
+                    AppLocalizedText(addDeviceDescription)
                         .font(.caption)
                         .foregroundStyle(AppColor.secondary)
                 }
@@ -211,6 +217,15 @@ struct DevicesView: View {
             .overlay(RoundedRectangle(cornerRadius: 24, style: .continuous).stroke(AppColor.mint.opacity(0.08)))
         }
         .buttonStyle(.plain)
+        .disabled(store.isUsingPlaceholderData)
+        .opacity(store.isUsingPlaceholderData ? 0.55 : 1)
+    }
+
+    private var addDeviceDescription: String {
+        if store.isUsingPlaceholderData { return "请先添加成员，再添加设备" }
+        return store.isSimulationEnabled
+            ? "演示扫描并关联预设模拟设备"
+            : "扫描并关联附近的体重秤或体脂秤"
     }
 
     private var deviceSection: some View {
@@ -246,7 +261,9 @@ struct DevicesView: View {
                 Text("还没有绑定设备")
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(AppColor.ink)
-                Text("添加设备后，测量页会自动接收并关联这些设备上报的健康数据。")
+                AppLocalizedText(store.isUsingPlaceholderData
+                    ? "请先添加成员，再添加设备"
+                    : "添加设备后，测量页会自动接收并关联这些设备上报的健康数据。")
                     .font(.caption)
                     .foregroundStyle(AppColor.secondary)
                     .multilineTextAlignment(.center)
@@ -588,6 +605,7 @@ private struct DeviceScannerView: View {
                         .foregroundStyle(AppColor.mint)
                 }
                 .accessibilityLabel("重新扫描")
+                .disabled(store.isUsingPlaceholderData)
             }
         }
         .onAppear {
@@ -825,7 +843,7 @@ private struct DeviceScannerView: View {
                 .foregroundStyle(AppColor.secondary)
 
             Button {
-                guard !existing else { return }
+                guard !existing, !store.isUsingPlaceholderData else { return }
                 store.addScale(PairedScale(
                     id: device.id,
                     name: device.name,
@@ -845,7 +863,7 @@ private struct DeviceScannerView: View {
                     .background(existing ? AppColor.paleMint : AppColor.mint, in: Capsule())
             }
             .buttonStyle(.plain)
-            .disabled(existing)
+            .disabled(existing || store.isUsingPlaceholderData)
         }
         .padding(12)
         .background(AppColor.surface, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
@@ -867,6 +885,11 @@ private struct DeviceScannerView: View {
     }
 
     private func startScan() {
+        guard !store.isUsingPlaceholderData else {
+            simulatedScanTask?.cancel()
+            bluetooth.stopScanning()
+            return
+        }
         showsOtherDevices = false
         if store.isSimulationEnabled {
             simulatedScanTask?.cancel()
@@ -894,6 +917,7 @@ private struct ScaleSettingsView: View {
     @State private var confirmDelete = false
     @State private var confirmClearHistory = false
     @State private var selectedHardwareUnit = XiaomiScaleHardwareUnit.kilograms
+    @State private var showsHardwareUnitMenu = false
     @State private var showsProtocolMenu = false
     @State private var diagnosticExportState: DiagnosticExportState?
     @State private var diagnosticReportDocument = DiagnosticReportDocument()
@@ -910,8 +934,7 @@ private struct ScaleSettingsView: View {
             VStack(alignment: .leading, spacing: 20) {
                 deviceSummaryCard
                 informationPanel
-                hardwarePanel
-                historyPanel
+                deviceOperationsPanel
                 protocolPanel
                 if showsHuaweiHagridCredentials {
                     HuaweiHagridCredentialsPanel(scaleID: scaleID)
@@ -964,6 +987,25 @@ private struct ScaleSettingsView: View {
                             .offset(x: buttonFrame.minX, y: menuY)
                             .transition(.opacity.combined(with: .scale(scale: 0.98, anchor: opensBelow ? .top : .bottom)))
                     }
+                }
+            }
+        }
+        .overlayPreferenceValue(ScaleUnitMenuAnchorKey.self) { anchor in
+            GeometryReader { proxy in
+                if showsHardwareUnitMenu, let anchor {
+                    AppDropdownMenuLayer(
+                        anchorFrame: proxy[anchor],
+                        availableSize: proxy.size,
+                        options: XiaomiScaleHardwareUnit.allCases,
+                        isSelected: { $0 == selectedHardwareUnit },
+                        title: { $0.title },
+                        appearance: .compact,
+                        onSelect: {
+                            selectedHardwareUnit = $0
+                            showsHardwareUnitMenu = false
+                        },
+                        onDismiss: { showsHardwareUnitMenu = false }
+                    )
                 }
             }
         }
@@ -1118,21 +1160,6 @@ private struct ScaleSettingsView: View {
                 .accessibilityLabel(store.appLanguage.text(isEditingName ? "保存设备名称" : "设备重命名"))
             }
 
-            if !store.isSimulationEnabled {
-                SettingsSeparator()
-
-                HStack(spacing: 10) {
-                    Label {
-                        AppLocalizedText(scale?.compatibility ?? "协议待验证")
-                    } icon: {
-                        Image(systemName: "checkmark.shield")
-                    }
-                    .font(.caption.weight(.medium))
-                    .foregroundStyle(AppColor.secondary)
-                    .lineLimit(1)
-                }
-            }
-
             SettingsSeparator()
 
             HStack(spacing: 10) {
@@ -1140,7 +1167,7 @@ private struct ScaleSettingsView: View {
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(AppColor.secondary)
                 StatusPill(
-                    text: bluetooth.settingsState.title(in: store.appLanguage),
+                    text: store.appLanguage.text(settingsConnectionStatusText),
                     color: settingsStatusColor
                 )
                 .lineLimit(1)
@@ -1150,7 +1177,7 @@ private struct ScaleSettingsView: View {
                 Button {
                     if let scale { bluetooth.reconnectSettings(for: scale) }
                 } label: {
-                    Group {
+                    HStack(spacing: 6) {
                         if bluetooth.settingsState.isBusy {
                             ProgressView()
                                 .tint(AppColor.mint)
@@ -1159,14 +1186,19 @@ private struct ScaleSettingsView: View {
                                 .font(.caption.weight(.bold))
                                 .foregroundStyle(AppColor.mint)
                         }
+
+                        AppLocalizedText("刷新")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(AppColor.mint)
                     }
-                    .frame(width: 32, height: 32)
+                    .padding(.horizontal, 10)
+                    .frame(height: 32)
                     .background(AppColor.paleMint, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
                 .disabled(bluetooth.settingsState.isBusy || scale == nil)
-                .accessibilityLabel(store.appLanguage.text("重新连接检测"))
+                .accessibilityLabel(store.appLanguage.text("刷新"))
             }
         }
         .padding(16)
@@ -1204,61 +1236,66 @@ private struct ScaleSettingsView: View {
         }
     }
 
-    private var hardwarePanel: some View {
-        SettingsPanel(title: "秤端设置", icon: "slider.horizontal.3") {
+    private var deviceOperationsPanel: some View {
+        SettingsPanel(title: "设备操作", icon: "slider.horizontal.3") {
             if bluetooth.settingsSnapshot.canConfigureXiaomiUnit {
                 VStack(alignment: .leading, spacing: 10) {
-                    Text("秤端显示单位")
+                    Text("设备显示单位")
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(AppColor.ink)
 
-                    HStack(spacing: 8) {
-                        ForEach(XiaomiScaleHardwareUnit.allCases) { unit in
-                            let isSelected = selectedHardwareUnit == unit
-                            Button {
-                                selectedHardwareUnit = unit
-                            } label: {
-                                AppLocalizedText(unit.title)
-                                    .font(.caption.weight(.semibold))
-                                    .foregroundStyle(isSelected ? .white : AppColor.ink)
-                                    .frame(maxWidth: .infinity)
-                                    .padding(.vertical, 10)
-                                    .background(isSelected ? AppColor.mint : AppColor.canvas, in: Capsule())
+                    AppDropdownField(
+                        value: selectedHardwareUnit.title,
+                        icon: "scalemass",
+                        accessibilityLabel: "设备显示单位",
+                        isExpanded: showsHardwareUnitMenu,
+                        appearance: .compact,
+                        onToggle: {
+                            withAnimation(.easeInOut(duration: 0.18)) {
+                                showsHardwareUnitMenu.toggle()
                             }
-                            .buttonStyle(.plain)
                         }
-                    }
+                    )
+                    .anchorPreference(key: ScaleUnitMenuAnchorKey.self, value: .bounds) { $0 }
+                    .disabled(bluetooth.settingsState != .ready)
 
                     Button {
                         bluetooth.configureHardwareUnit(selectedHardwareUnit)
                     } label: {
-                        ScaleDeviceLabel(title: "写入秤端单位", iconSize: 16)
-                            .font(.caption.weight(.bold))
-                            .foregroundStyle(.white)
+                        AppLocalizedText("设置")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(AppColor.mint)
                             .frame(maxWidth: .infinity)
-                            .padding(.vertical, 11)
-                            .background(AppColor.mint, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                            .padding(.vertical, 10)
+                            .background(AppColor.paleMint, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
                     }
                     .buttonStyle(.plain)
+                    .disabled(bluetooth.settingsState != .ready)
                 }
             } else {
-                SettingsValueRow(title: "秤端显示单位", value: "未发现可写特征")
+                SettingsValueRow(title: "设备显示单位", value: "未发现可写特征")
             }
 
             Divider()
 
             if bluetooth.settingsSnapshot.canSynchronizeTime {
-                Button {
-                    bluetooth.synchronizeScaleTime()
-                } label: {
-                    Label("同步当前手机时间到秤端", systemImage: "clock.arrow.circlepath")
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(AppColor.mint)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 10)
-                        .background(AppColor.paleMint, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                VStack(alignment: .leading, spacing: 10) {
+                    AppLocalizedText("更新设备时间")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(AppColor.ink)
+                    Button {
+                        bluetooth.synchronizeScaleTime()
+                    } label: {
+                        AppLocalizedText("更新")
+                    }
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(AppColor.mint)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 10)
+                    .background(AppColor.paleMint, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    .buttonStyle(.plain)
+                    .disabled(bluetooth.settingsState != .ready)
                 }
-                .buttonStyle(.plain)
             } else {
                 SettingsValueRow(title: "秤端时间同步", value: "未发现可写特征")
             }
@@ -1273,15 +1310,11 @@ private struct ScaleSettingsView: View {
                 .fixedSize(horizontal: false, vertical: true)
             }
 
-            Text("单位写入支持小米二代 0x1542 可写特征。ATT 交互响应会实时记录在下方诊断日志中。")
-                .font(.caption2).foregroundStyle(AppColor.secondary).lineSpacing(3)
-        }
-    }
-
-    @ViewBuilder
-    private var historyPanel: some View {
-        if canReadDeviceHistory {
-            SettingsPanel(title: "设备历史", icon: "clock.arrow.2.circlepath") {
+            if canReadDeviceHistory {
+                Divider()
+                AppLocalizedText("拉取设备历史数据")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(AppColor.ink)
                 switch bluetooth.historyState {
                 case .reading(let received, let announced):
                     HStack(spacing: 10) {
@@ -1297,12 +1330,16 @@ private struct ScaleSettingsView: View {
                     Button {
                         bluetooth.importPendingHistory(into: store)
                     } label: {
-                        Label("确认导入", systemImage: "square.and.arrow.down")
-                            .font(.caption.weight(.bold))
-                            .foregroundStyle(.white)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 11)
-                            .background(AppColor.mint, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                        Label {
+                            AppLocalizedText("确认导入")
+                        } icon: {
+                            Image(systemName: "square.and.arrow.down")
+                        }
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 8)
+                        .background(AppColor.mint, in: Capsule())
                     }
                     .buttonStyle(.plain)
                 case .imported(let summary):
@@ -1332,13 +1369,6 @@ private struct ScaleSettingsView: View {
                     historyReadButton
                 }
 
-                Text(canClearDeviceHistory
-                    ? "读取完成前不会保存数据。清除操作只会在二次确认后发送，结果需通过重新读取验证。"
-                    : "读取完成前不会保存数据；只有全部记录已导入或判重后才会向设备回执。无法识别的记录会保留在秤中，完善成员资料后可再次导入。")
-                    .font(.caption2)
-                    .foregroundStyle(AppColor.secondary)
-                    .lineSpacing(3)
-
                 if canClearDeviceHistory {
                     Button(role: .destructive) {
                         confirmClearHistory = true
@@ -1361,7 +1391,11 @@ private struct ScaleSettingsView: View {
         Button {
             bluetooth.readDeviceHistory()
         } label: {
-            Label("读取秤内历史", systemImage: "arrow.down.circle")
+            Label {
+                AppLocalizedText("拉取")
+            } icon: {
+                Image(systemName: "arrow.down.circle")
+            }
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(AppColor.mint)
                 .frame(maxWidth: .infinity)
@@ -1401,21 +1435,13 @@ private struct ScaleSettingsView: View {
 
                     protocolMenu(for: scale)
 
-                    if let selected = store.communicationRule(for: scale) {
-                        Text(selected.origin == .builtIn
-                            ? store.appLanguage.text(selected.summary)
-                            : selected.summary)
-                            .font(.caption2)
-                            .foregroundStyle(AppColor.secondary)
-                            .fixedSize(horizontal: false, vertical: true)
-                            .padding(10)
-                            .background(AppColor.paleMint.opacity(0.5), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
-                    } else {
-                        Text("自动识别模式优先遵循 Bluetooth SIG 标准服务及已知小米通信规范。")
-                            .font(.caption2)
-                            .foregroundStyle(AppColor.secondary)
-                            .lineSpacing(2)
-                    }
+                    Text(store.appLanguage.format(
+                        "当前匹配协议：%@",
+                        store.effectiveCommunicationRule(for: scale)?.name ?? store.appLanguage.text("自动识别")
+                    ))
+                        .font(.caption2)
+                        .foregroundStyle(AppColor.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
 
                     SettingsSeparator()
 
@@ -1571,11 +1597,6 @@ private struct ScaleSettingsView: View {
                 SettingsValueRow(title: "设备型号", value: scale.modelName)
                 Divider()
                 SettingsValueRow(
-                    title: "兼容性评估",
-                    value: store.appLanguage.text(scale.compatibility)
-                )
-                Divider()
-                SettingsValueRow(
                     title: "固件版本",
                     value: bluetooth.settingsSnapshot.firmwareRevision ?? store.appLanguage.text("未读取")
                 )
@@ -1705,7 +1726,16 @@ private struct ScaleSettingsView: View {
         switch bluetooth.settingsState {
         case .ready: AppColor.mint
         case .failed: AppColor.apricot
-        default: AppColor.sky
+        case .idle: AppColor.secondary
+        case .locating, .connecting, .discovering: AppColor.sky
+        }
+    }
+
+    private var settingsConnectionStatusText: String {
+        switch bluetooth.settingsState {
+        case .idle, .failed: "未连接"
+        case .locating, .connecting, .discovering: "连接中"
+        case .ready: "已连接"
         }
     }
 

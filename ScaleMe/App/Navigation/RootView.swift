@@ -46,6 +46,10 @@ struct RootView: View {
             DashboardView(
                 scrollToTopRequest: scrollToTopRequests[.home, default: 0],
                 onMeasure: { profileID in
+                    guard !store.isUsingPlaceholderData else {
+                        selection = .settings
+                        return
+                    }
                     store.selectDisplayProfile(profileID)
                     selection = .measure
                 },

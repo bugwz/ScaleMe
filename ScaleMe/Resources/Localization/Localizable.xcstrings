@@ -2449,6 +2449,7 @@
       }
     },
     "单位写入支持小米二代 0x1542 可写特征。ATT 交互响应会实时记录在下方诊断日志中。" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -2576,66 +2577,67 @@
         }
       }
     },
-    "可以换一个姓名或关系关键词。" : {
+    "可以换一个姓名或角色关键词。" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Try another name or relationship keyword."
+            "value" : "Versuche einen anderen Namen oder eine andere Rolle."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Try another name or relationship keyword."
+            "value" : "Try another name or role keyword."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Try another name or relationship keyword."
+            "value" : "Prueba con otro nombre o rol."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Try another name or relationship keyword."
+            "value" : "Essayez un autre nom ou rôle."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Try another name or relationship keyword."
+            "value" : "別の名前または役割を試してください。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Try another name or relationship keyword."
+            "value" : "다른 이름이나 역할을 입력해 보세요."
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Try another name or relationship keyword."
+            "value" : "Tente outro nome ou papel."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Try another name or relationship keyword."
+            "value" : "Попробуйте другое имя или роль."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "可以换一个姓名或关系关键词。"
+            "value" : "可以换一个姓名或角色关键词。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "可以换一个姓名或关系关键词。"
+            "value" : "可以換一個姓名或角色關鍵詞。"
           }
         }
       }
@@ -2770,6 +2772,7 @@
       }
     },
     "同步当前手机时间到秤端" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -4513,6 +4516,7 @@
       }
     },
     "开始测量" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -5154,66 +5158,66 @@
         }
       }
     },
-    "搜索、切换或编辑资料" : {
+    "搜索、排序或编辑资料" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Profile suchen, wechseln oder bearbeiten"
+            "value" : "Profile suchen, sortieren oder bearbeiten"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Search, switch, or edit profiles"
+            "value" : "Search, sort, or edit profiles"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Buscar, cambiar o editar perfiles"
+            "value" : "Buscar, ordenar o editar perfiles"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Rechercher, changer ou modifier les profils"
+            "value" : "Rechercher, trier ou modifier les profils"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "プロフィールの検索・切替・編集"
+            "value" : "プロフィールの検索・並べ替え・編集"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "프로필 검색, 전환 또는 편집"
+            "value" : "프로필 검색, 정렬 또는 편집"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pesquisar, mudar ou editar perfis"
+            "value" : "Pesquisar, ordenar ou editar perfis"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Поиск, переключение и редактирование профилей"
+            "value" : "Поиск, сортировка и редактирование профилей"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "搜索、切换或编辑资料"
+            "value" : "搜索、排序或编辑资料"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "搜尋、切換或編輯資料"
+            "value" : "搜尋、排序或編輯資料"
           }
         }
       }
@@ -6503,6 +6507,7 @@
       }
     },
     "没有找到匹配的成员" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -6887,6 +6892,7 @@
       }
     },
     "添加设备后，测量页会自动接收并关联这些设备上报的健康数据。" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -7272,6 +7278,7 @@
       }
     },
     "确认导入" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -7466,6 +7473,7 @@
       }
     },
     "秤端显示单位" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -7980,6 +7988,7 @@
       }
     },
     "自动识别模式优先遵循 Bluetooth SIG 标准服务及已知小米通信规范。" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -8623,6 +8632,9 @@
         }
       }
     },
+    "设备显示单位" : {
+
+    },
     "设备管理" : {
       "localizations" : {
         "de" : {
@@ -9014,9 +9026,6 @@
         }
       }
     },
-    "读取完成前不会保存数据；只有全部记录已导入或判重后才会向设备回执。无法识别的记录会保留在秤中，完善成员资料后可再次导入。" : {
-
-    },
     "读取完成前不会保存数据；确认导入后会向设备回执“最近历史已收到”。当前没有经过验证的清空全部历史命令。" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -9083,6 +9092,7 @@
       }
     },
     "读取完成前不会保存数据。清除操作只会在二次确认后发送，结果需通过重新读取验证。" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -9147,6 +9157,7 @@
       }
     },
     "读取秤内历史" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {

@@ -24,8 +24,16 @@ struct AppleHealthSettingsView: View {
                         detail: "开启时会请求 Apple 健康写入权限；关闭后本应用不会继续写入新数据。",
                         isOn: sharingBinding
                     )
-                    .disabled(appleHealth.isRequestingAuthorization || appleHealth.authorizationState == .unavailable)
-                    .opacity(appleHealth.authorizationState == .unavailable ? 0.55 : 1)
+                    .disabled(
+                        appleHealth.isRequestingAuthorization
+                            || appleHealth.authorizationState == .unavailable
+                            || store.managedProfiles.isEmpty
+                    )
+                    .opacity(
+                        appleHealth.authorizationState == .unavailable || store.managedProfiles.isEmpty
+                            ? 0.55
+                            : 1
+                    )
 
                     if store.displayAppleHealthProfileID != nil {
                         SettingsSeparator()
@@ -128,7 +136,7 @@ struct AppleHealthSettingsView: View {
                         anchorFrame: proxy[anchor],
                         availableSize: proxy.size,
                         options: profileOptions,
-                        isSelected: { $0 == selectedProfileOption },
+                        isSelected: { $0.id == sharedProfile?.id },
                         title: { $0.name },
                         appearance: .compact,
                         onSelect: { option in
@@ -165,19 +173,11 @@ struct AppleHealthSettingsView: View {
 
     private var sharedProfile: UserProfile? {
         guard let profileID = store.displayAppleHealthProfileID else { return nil }
-        return store.displayProfiles.first { $0.id == profileID }
+        return store.managedProfiles.first { $0.id == profileID }
     }
 
     private var profileOptions: [ProfileOption] {
-        store.displayProfiles.map { ProfileOption(id: $0.id, name: $0.name) }
-    }
-
-    private var selectedProfileOption: ProfileOption {
-        if let sharedProfile {
-            return ProfileOption(id: sharedProfile.id, name: sharedProfile.name)
-        }
-        let fallback = store.displayProfiles[0]
-        return ProfileOption(id: fallback.id, name: fallback.name)
+        store.managedProfiles.map { ProfileOption(id: $0.id, name: $0.name) }
     }
 
     private var sharingBinding: Binding<Bool> {
@@ -186,6 +186,7 @@ struct AppleHealthSettingsView: View {
             set: { isEnabled in
                 if isEnabled {
                     Task {
+                        guard !store.managedProfiles.isEmpty else { return }
                         guard await appleHealth.requestSharingAuthorization() else { return }
                         store.setDisplayAppleHealthProfileID(store.displaySelectedProfileID)
                     }

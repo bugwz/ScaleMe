@@ -546,6 +546,74 @@ struct AppDropdownField: View {
     }
 }
 
+struct AppEditableDropdownField: View {
+    @Environment(\.appLanguage) private var language
+    @Binding var text: String
+    @Binding var isFocused: Bool
+    let placeholder: String
+    let icon: String
+    let accessibilityLabel: String
+    let isExpanded: Bool
+    var appearance: AppDropdownAppearance = .tinted
+    let onToggle: () -> Void
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: icon)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(AppColor.mint)
+                .frame(width: 34, height: 34)
+                .background(
+                    appearance == .compact ? AppColor.paleMint : AppColor.surface.opacity(0.88),
+                    in: RoundedRectangle(cornerRadius: 10, style: .continuous)
+                )
+
+            ResponsiveTextField(
+                text: $text,
+                isFocused: $isFocused,
+                placeholder: placeholder,
+                returnKeyType: .done,
+                autocorrectionType: .no
+            )
+            .frame(minHeight: 24)
+
+            Button(action: onToggle) {
+                Image(systemName: "chevron.down")
+                    .font(.caption.weight(.bold))
+                    .foregroundStyle(AppColor.mint)
+                    .rotationEffect(.degrees(isExpanded ? 180 : 0))
+                    .frame(width: 34, height: 34)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(language.text(accessibilityLabel))
+            .accessibilityHint(language.text(isExpanded ? "点击收起选项" : "点击展开选项"))
+        }
+        .padding(.horizontal, 12)
+        .frame(maxWidth: .infinity)
+        .frame(minHeight: 52)
+        .background(
+            appearance == .compact
+                ? AppColor.canvas
+                : AppColor.paleMint.opacity(isExpanded ? 0.90 : 0.72),
+            in: RoundedRectangle(cornerRadius: 14, style: .continuous)
+        )
+        .overlay {
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .stroke(
+                    isExpanded
+                        ? AppColor.mint.opacity(appearance == .compact ? 1 : 0.60)
+                        : AppColor.mint.opacity(appearance == .compact ? 0.18 : 0.14),
+                    lineWidth: isExpanded ? 1.5 : 1
+                )
+                .allowsHitTesting(false)
+        }
+        .anchorPreference(key: AppDropdownAnchorPreferenceKey.self, value: .bounds) {
+            isExpanded ? $0 : nil
+        }
+    }
+}
+
 struct AppDropdownMenuLayer<Option: Hashable>: View {
     let anchorFrame: CGRect
     let availableSize: CGSize

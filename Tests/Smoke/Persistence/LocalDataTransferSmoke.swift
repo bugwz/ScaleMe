@@ -4,6 +4,7 @@ import Foundation
 struct LocalDataTransferSmoke {
     static func main() throws {
         var configuration = AppConfiguration.standard
+        configuration.profiles = [UserProfile(name: "测试成员", relation: "本人")]
         guard let deviceID = UUID(uuidString: "ABBA7280-8FDE-4A55-8D87-FA9BFE003F67") else {
             preconditionFailure("invalid fixture UUID")
         }
@@ -22,17 +23,22 @@ struct LocalDataTransferSmoke {
         configuration.appearance = .dark
         configuration.mergeFrequentMeasurements = true
         configuration.isSimulationEnabled = true
-        configuration.appleHealthProfileID = configuration.selectedProfileID
+        configuration.appleHealthProfileID = configuration.profiles[0].id
         configuration.appleHealthDeviceIDs = [deviceID]
         guard let communicationRule = CommunicationRuleCatalog.builtIn.first else {
             preconditionFailure("missing communication rule fixture")
         }
         configuration.customCommunicationRules = [communicationRule]
         configuration.dashboardVisibleMetrics = [.bodyFatPercent, .waterPercent]
-        configuration.widgetProfileID = configuration.selectedProfileID
+        configuration.widgetProfileID = configuration.profiles[0].id
         configuration.widgetTimeRange = .quarter
         configuration.widgetDisplayStyle = .actualFullRange
+        configuration.profiles[0].referenceWeightKG = 63.4
         let service = LocalDataTransferService()
+
+        let emptyConfigurationData = try service.exportConfiguration(.standard)
+        let importedEmptyConfiguration = try service.importConfiguration(from: emptyConfigurationData)
+        precondition(importedEmptyConfiguration.profiles.isEmpty, "an empty member list must remain valid configuration")
 
         let configurationData = try service.exportConfiguration(configuration)
         let configurationJSON = String(decoding: configurationData, as: UTF8.self)
@@ -40,11 +46,11 @@ struct LocalDataTransferSmoke {
             in: configurationJSON,
             keys: ["schemaVersion", "members", "devices", "communication", "general", "measurement", "appleHealth", "dashboard", "widget"]
         )
-        assertOrderedKeys(in: configurationJSON, after: "\"members\"", keys: ["selectedProfileID", "profiles"])
+        assertOrderedKeys(in: configurationJSON, after: "\"members\"", keys: ["profiles"])
         assertOrderedKeys(
             in: configurationJSON,
             after: "\"profiles\"",
-            keys: ["id", "name", "relation", "heightCM", "birthDate", "biologicalSex", "avatar"]
+            keys: ["id", "name", "relation", "heightCM", "referenceWeightKG", "birthDate", "biologicalSex", "avatar"]
         )
         assertOrderedKeys(
             in: configurationJSON,
@@ -72,9 +78,10 @@ struct LocalDataTransferSmoke {
         precondition(configurationObject?["profiles"] == nil, "configuration fields must not remain flat")
         let members = configurationObject?["members"] as? [String: Any]
         let profiles = members?["profiles"] as? [[String: Any]]
-        precondition(isHyphenatedUUID(members?["selectedProfileID"] as? String))
+        precondition(members?["selectedProfileID"] == nil)
         precondition(isHyphenatedUUID(profiles?.first?["id"] as? String))
         precondition(profiles?.first?["biologicalSex"] as? String == "female")
+        precondition(profiles?.first?["referenceWeightKG"] as? Double == 63.4)
         let devices = configurationObject?["devices"] as? [String: Any]
         let pairedScales = devices?["pairedScales"] as? [[String: Any]]
         precondition(isHyphenatedUUID(pairedScales?.first?["id"] as? String))
@@ -96,7 +103,7 @@ struct LocalDataTransferSmoke {
             boneMassKG: 2.5,
             source: .bluetoothSIG,
             isStable: true,
-            profileID: configuration.selectedProfileID,
+            profileID: configuration.profiles[0].id,
             deviceID: deviceID,
             deviceName: "浴室秤"
         )
@@ -106,7 +113,7 @@ struct LocalDataTransferSmoke {
             weightKG: 62.1,
             source: .manual,
             isStable: true,
-            profileID: configuration.selectedProfileID
+            profileID: configuration.profiles[0].id
         )
         let archive = MeasurementArchive(
             updatedAt: manualRecord.date,
@@ -125,7 +132,7 @@ struct LocalDataTransferSmoke {
         let recordProfiles = references?["profiles"] as? [String]
         let recordDevices = references?["devices"] as? [[String: Any]]
         let recordSources = references?["sources"] as? [String]
-        precondition(recordProfiles == [configuration.selectedProfileID.uuidString])
+        precondition(recordProfiles == [configuration.profiles[0].id.uuidString])
         precondition(recordDevices?.first?["id"] as? String == deviceID.uuidString)
         precondition(recordDevices?.first?["name"] as? String == "浴室秤")
         precondition(recordSources == ["bluetoothSIG", "manual"])

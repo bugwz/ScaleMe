@@ -104,6 +104,12 @@ struct LocalAppRepository {
         cipher = try DataFileCipher()
     }
 
+    init(directoryURL: URL, cipher: DataFileCipher) throws {
+        self.directoryURL = directoryURL
+        self.cipher = cipher
+        try FileManager.default.createDirectory(at: directoryURL, withIntermediateDirectories: true)
+    }
+
     func loadConfiguration() throws -> AppConfiguration? {
         let url = directoryURL.appending(path: AppStorageLayout.configurationFileName)
         guard FileManager.default.fileExists(atPath: url.path) else { return nil }
@@ -136,7 +142,7 @@ struct LocalAppRepository {
 
 }
 
-actor LocalPersistenceWriter {
+final class LocalPersistenceWriter {
     private let repository: LocalAppRepository
     private var latestConfigurationRevision = 0
     private var latestArchiveRevision = 0

@@ -72,7 +72,6 @@ enum StorageSmoke {
         )
         let configuration = AppConfiguration(
             profiles: [profile],
-            selectedProfileID: profile.id,
             pairedScales: [scale],
             unit: .kilograms,
             mergeFrequentMeasurements: true,
@@ -86,6 +85,51 @@ enum StorageSmoke {
         precondition(decoded.isSimulationEnabled, "simulation preference must survive configuration round trip")
         precondition(decoded.languageSelection == .system, "language should follow the system by default")
         precondition(decoded.appearance == .system, "appearance should follow the system by default")
+        precondition(AppConfiguration.standard.profiles.isEmpty, "a fresh install must not create a preset member")
+
+        let storageDirectory = FileManager.default.temporaryDirectory
+            .appending(path: "ScaleMe-StorageSmoke-\(UUID().uuidString)", directoryHint: .isDirectory)
+        defer { try? FileManager.default.removeItem(at: storageDirectory) }
+        let repository = try LocalAppRepository(directoryURL: storageDirectory, cipher: cipher)
+        var persistedConfiguration = configuration
+        persistedConfiguration.profiles = [
+            UserProfile(name: "甲", relation: "本人", referenceWeightKG: 61.2),
+            UserProfile(name: "乙", relation: "本人", referenceWeightKG: 78.6)
+        ]
+        persistedConfiguration.isSimulationEnabled = false
+        try repository.saveConfiguration(persistedConfiguration)
+        let reloadedConfiguration = try repository.loadConfiguration()
+        precondition(
+            reloadedConfiguration == persistedConfiguration,
+            "member edits, ordering, duplicate self roles, and device settings must survive repository reload"
+        )
+
+        let manualMeasurement = BodyMeasurement(
+            date: .now,
+            weightKG: 63.8,
+            impedanceOhm: 512,
+            secondaryImpedanceOhm: 498,
+            bodyFatPercent: 22.1,
+            muscleMassKG: 46.4,
+            waterPercent: 54.2,
+            visceralFat: 7,
+            basalMetabolismKCal: 1_430,
+            boneMassKG: 2.6,
+            source: .manual,
+            isStable: true,
+            profileID: persistedConfiguration.profiles[1].id
+        )
+        let persistedArchive = MeasurementArchive(
+            updatedAt: .now,
+            measurements: [manualMeasurement, retained],
+            deletedMeasurementIDs: [removed.id]
+        )
+        try repository.saveArchive(persistedArchive)
+        let reloadedArchive = try repository.loadArchive()
+        precondition(
+            reloadedArchive == persistedArchive,
+            "weight, body-composition, manual, device-attributed, and deleted records must survive repository reload"
+        )
         print("Storage smoke tests passed")
     }
 }

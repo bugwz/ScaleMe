@@ -4,6 +4,11 @@ struct ProfileView: View {
     @EnvironmentObject private var store: MeasurementStore
     let scrollToTopRequest: Int
 
+    private var firstSelfProfile: UserProfile? {
+        store.managedProfiles.first(where: { $0.relation == "本人" })
+            ?? store.managedProfiles.first
+    }
+
     var body: some View {
         NavigationStack {
             RootPageScrollView(scrollToTopRequest: scrollToTopRequest) {
@@ -29,37 +34,16 @@ struct ProfileView: View {
                     .foregroundStyle(AppColor.ink)
                 Spacer()
                 StatusPill(
-                    text: store.appLanguage.format("%lld 人", store.displayProfiles.count),
+                    text: store.appLanguage.format("%lld 人", store.managedProfiles.count),
                     color: AppColor.sky
                 )
             }
 
             NavigationLink {
-                MemberManagementView(initialProfiles: store.displayProfiles)
+                MemberManagementView(initialProfiles: store.managedProfiles)
             } label: {
                 VStack(spacing: 0) {
-                    HStack(spacing: 16) {
-                        MemberAvatarView(avatar: store.displaySelectedProfile.avatar, width: 64, height: 64)
-                        VStack(alignment: .leading, spacing: 5) {
-                            HStack(spacing: 8) {
-                                Text(store.displaySelectedProfile.name)
-                                    .font(.headline.weight(.bold))
-                                    .foregroundStyle(AppColor.ink)
-                                StatusPill(text: "当前")
-                            }
-                            Text(memberDetail(store.displaySelectedProfile))
-                                .font(.caption)
-                                .foregroundStyle(AppColor.secondary)
-                                .lineLimit(2)
-                        }
-                        Spacer(minLength: 8)
-                        Image(systemName: "person.2.fill")
-                            .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(AppColor.mint)
-                            .frame(width: 36, height: 36)
-                            .background(AppColor.paleMint, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-                    }
-                    .padding(18)
+                    memberSummary
 
                     SettingsSeparator()
 
@@ -68,7 +52,7 @@ struct ProfileView: View {
                             .font(.subheadline.weight(.semibold))
                             .foregroundStyle(AppColor.ink)
                         Spacer()
-                        Text("搜索、切换或编辑资料")
+                        Text("搜索、排序或编辑资料")
                             .font(.caption)
                             .foregroundStyle(AppColor.secondary)
                         Image(systemName: "chevron.right")
@@ -84,13 +68,59 @@ struct ProfileView: View {
                 .shadow(color: AppColor.mint.opacity(0.07), radius: 15, y: 6)
             }
             .buttonStyle(.plain)
-            .accessibilityLabel(
-                store.appLanguage.format(
-                    "当前成员，%@，管理全部成员",
-                    store.displaySelectedProfile.name
-                )
-            )
+            .accessibilityLabel(memberSectionAccessibilityLabel)
         }
+    }
+
+    @ViewBuilder
+    private var memberSummary: some View {
+        HStack(spacing: 16) {
+            if let firstSelfProfile {
+                MemberAvatarView(avatar: firstSelfProfile.avatar, width: 64, height: 64)
+                VStack(alignment: .leading, spacing: 5) {
+                    Text(firstSelfProfile.name)
+                        .font(.headline.weight(.bold))
+                        .foregroundStyle(AppColor.ink)
+                    Text(memberRoleAndAge(firstSelfProfile))
+                        .font(.caption)
+                        .foregroundStyle(AppColor.secondary)
+                        .lineLimit(1)
+                    Text(memberHeightAndWeight(firstSelfProfile))
+                        .font(.caption)
+                        .foregroundStyle(AppColor.secondary)
+                        .lineLimit(1)
+                }
+            } else {
+                Image(systemName: "person.crop.circle.badge.plus")
+                    .font(.system(size: 30, weight: .medium))
+                    .foregroundStyle(AppColor.mint)
+                    .frame(width: 64, height: 64)
+                    .background(AppColor.paleMint, in: Circle())
+                VStack(alignment: .leading, spacing: 5) {
+                    AppLocalizedText("添加成员")
+                        .font(.headline.weight(.bold))
+                        .foregroundStyle(AppColor.ink)
+                    AppLocalizedText("需要成员资料")
+                        .font(.caption)
+                        .foregroundStyle(AppColor.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+            Spacer(minLength: 8)
+            Image(systemName: "person.2.fill")
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(AppColor.mint)
+                .frame(width: 36, height: 36)
+                .background(AppColor.paleMint, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        }
+        .padding(18)
+    }
+
+    private var memberSectionAccessibilityLabel: String {
+        guard let firstSelfProfile else {
+            return store.appLanguage.text("添加成员")
+        }
+        return "\(firstSelfProfile.name)，\(store.appLanguage.text("管理全部成员"))"
     }
 
     private var settingsSection: some View {
@@ -162,13 +192,19 @@ struct ProfileView: View {
         .contentShape(Rectangle())
     }
 
-    private func memberDetail(_ profile: UserProfile) -> String {
+    private func memberRoleAndAge(_ profile: UserProfile) -> String {
         store.appLanguage.format(
-            "%@ · %@ cm · %@ kg · %lld 岁",
+            "%@ · %lld 岁",
             store.appLanguage.text(profile.relation),
-            profile.heightCM.formatted(2),
-            profile.referenceWeightKG.formatted(2),
             profile.age
+        )
+    }
+
+    private func memberHeightAndWeight(_ profile: UserProfile) -> String {
+        store.appLanguage.format(
+            "%@ cm · %@ kg",
+            profile.heightCM.formatted(2),
+            profile.referenceWeightKG.formatted(2)
         )
     }
 }
@@ -370,7 +406,7 @@ private struct MemberManagementView: View {
     }
 
     private var orderedProfiles: [UserProfile] {
-        let profiles = store.displayProfiles
+        let profiles = store.managedProfiles
         guard profileOrder.count == profiles.count,
               Set(profileOrder) == Set(profiles.map(\.id)) else { return profiles }
         let profilesByID = Dictionary(
@@ -418,7 +454,7 @@ private struct MemberManagementView: View {
                 }
 
                 if filteredProfiles.isEmpty {
-                    emptySearchState
+                    emptyMemberState
                 } else {
                     LazyVStack(spacing: 10) {
                         ForEach(filteredProfiles) { profile in
@@ -464,7 +500,7 @@ private struct MemberManagementView: View {
         .navigationTitle("成员管理")
         .navigationBarTitleDisplayMode(.inline)
         .localizedNavigationBackButton()
-        .onChange(of: store.displayProfiles.map(\.id)) { _, _ in
+        .onChange(of: store.managedProfiles.map(\.id)) { _, _ in
             guard draggingProfileID == nil else { return }
             synchronizeProfileOrder()
         }
@@ -487,13 +523,14 @@ private struct MemberManagementView: View {
     }
 
     private func memberDetail(_ profile: UserProfile) -> String {
-        store.appLanguage.format(
-            "%@ · %@ cm · %@ kg · %lld 岁",
-            store.appLanguage.text(profile.relation),
-            profile.heightCM.formatted(2),
-            profile.referenceWeightKG.formatted(2),
-            profile.age
-        )
+        [
+            store.appLanguage.format(
+                "%@ · %lld 岁",
+                store.appLanguage.text(profile.relation),
+                profile.age
+            ),
+            "\(profile.heightCM.formatted(2)) cm"
+        ].joined(separator: " · ")
     }
 
     private var searchField: some View {
@@ -502,16 +539,15 @@ private struct MemberManagementView: View {
 
     @ViewBuilder
     private func memberRow(_ profile: UserProfile) -> some View {
-        let isSelected = profile.id == store.displaySelectedProfileID
         let isDragging = draggingProfileID == profile.id
         let isLiftedInPlace = isDragging
             && dragState?.hasStartedMoving == false
             && dragState?.isLifted == true
             && dragState?.isSettling == false
 
-        let row = memberRowVisual(profile, isSelected: isSelected, showsActions: true)
+        let row = memberRowVisual(profile, showsActions: true)
             .overlay {
-                memberRowActions(profile, isSelected: isSelected)
+                memberRowActions(profile)
             }
             .overlay(
                 RoundedRectangle(cornerRadius: 19, style: .continuous)
@@ -556,31 +592,22 @@ private struct MemberManagementView: View {
 
     private func memberRowVisual(
         _ profile: UserProfile,
-        isSelected: Bool,
         showsActions: Bool
     ) -> some View {
         HStack(spacing: 10) {
             HStack(spacing: 14) {
                 MemberAvatarView(avatar: profile.avatar, width: 52, height: 52)
                 VStack(alignment: .leading, spacing: 4) {
-                    HStack(spacing: 7) {
-                        Text(profile.name)
-                            .font(.body.weight(.semibold))
-                            .foregroundStyle(AppColor.ink)
-                            .lineLimit(1)
-                        if isSelected { StatusPill(text: "当前") }
-                    }
+                    Text(profile.name)
+                        .font(.body.weight(.semibold))
+                        .foregroundStyle(AppColor.ink)
+                        .lineLimit(1)
                     Text(memberDetail(profile))
                         .font(.caption)
                         .foregroundStyle(AppColor.secondary)
                         .lineLimit(1)
                 }
                 Spacer(minLength: 4)
-                if showsActions {
-                    Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
-                        .font(.title3)
-                        .foregroundStyle(isSelected ? AppColor.mint : AppColor.secondary.opacity(0.38))
-                }
             }
 
             if showsActions {
@@ -594,31 +621,17 @@ private struct MemberManagementView: View {
             }
         }
         .padding(14)
-        .background(isSelected ? AppColor.paleMint.opacity(0.72) : AppColor.surface.opacity(0.94))
+        .background(AppColor.surface.opacity(0.94))
         .clipShape(RoundedRectangle(cornerRadius: 19, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 19, style: .continuous)
-                .stroke(isSelected ? AppColor.mint.opacity(0.25) : AppColor.mint.opacity(0.07))
+                .stroke(AppColor.mint.opacity(0.07))
         )
     }
 
-    private func memberRowActions(_ profile: UserProfile, isSelected: Bool) -> some View {
-        HStack(spacing: 10) {
-            Button {
-                store.selectDisplayProfile(profile.id)
-            } label: {
-                Color.clear
-                    .contentShape(Rectangle())
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-            }
-            .buttonStyle(.plain)
-            .disabled(draggingProfileID != nil)
-            .accessibilityLabel(store.appLanguage.format("选择%@", profile.name))
-            .accessibilityValue(isSelected ? store.appLanguage.text("当前成员") : "")
-
-            Color.clear
-                .frame(width: 1, height: 32)
-
+    private func memberRowActions(_ profile: UserProfile) -> some View {
+        HStack {
+            Spacer()
             Button {
                 editingProfile = profile
             } label: {
@@ -638,7 +651,6 @@ private struct MemberManagementView: View {
         if let state = dragState, state.hasStartedMoving {
             memberRowVisual(
                 state.profile,
-                isSelected: state.profile.id == store.displaySelectedProfileID,
                 showsActions: false
             )
                 .overlay(
@@ -759,7 +771,7 @@ private struct MemberManagementView: View {
     }
 
     private func synchronizeProfileOrder() {
-        let currentOrder = store.displayProfiles.map(\.id)
+        let currentOrder = store.managedProfiles.map(\.id)
         guard profileOrder != currentOrder else { return }
         profileOrder = currentOrder
     }
@@ -793,15 +805,17 @@ private struct MemberManagementView: View {
         dragState = nil
     }
 
-    private var emptySearchState: some View {
+    private var emptyMemberState: some View {
         VStack(spacing: 10) {
-            Image(systemName: "person.crop.circle.badge.questionmark")
+            Image(systemName: orderedProfiles.isEmpty
+                ? "person.crop.circle.badge.plus"
+                : "person.crop.circle.badge.questionmark")
                 .font(.title2)
                 .foregroundStyle(AppColor.sky)
-            Text("没有找到匹配的成员")
+            AppLocalizedText(orderedProfiles.isEmpty ? "添加成员" : "没有找到匹配的成员")
                 .font(.subheadline.weight(.semibold))
                 .foregroundStyle(AppColor.ink)
-            Text("可以换一个姓名或关系关键词。")
+            AppLocalizedText(orderedProfiles.isEmpty ? "需要成员资料" : "可以换一个姓名或角色关键词。")
                 .font(.caption)
                 .foregroundStyle(AppColor.secondary)
         }
@@ -839,17 +853,32 @@ private struct MemberEditorView: View {
     @State private var draft: UserProfile
     @State private var heightText: String
     @State private var weightText: String
+    @State private var selectedAvatar: MemberAvatar?
+    @State private var selectedSex: UserProfile.BiologicalSex?
+    @State private var selectedBirthDate: Date?
+    @State private var pendingBirthDate: Date
+    @State private var isSelectingBirthDate = false
+    @State private var usesCustomRole: Bool
+    @State private var isRoleFocused = false
     @State private var confirmDelete = false
     @State private var expandedDropdown: MemberEditorDropdown?
 
-    private let relations = ["本人", "伴侣", "父母", "子女", "其他"]
+    private static let standardRoles = ["本人", "伴侣", "父母", "子女"]
+    private var roles: [String] { Self.standardRoles + ["其他"] }
 
     init(profile: UserProfile?) {
         isNew = profile == nil
-        let initialDraft = profile ?? UserProfile(name: "", relation: "其他")
+        let initialDraft = profile ?? UserProfile(name: "", relation: "")
         _draft = State(initialValue: initialDraft)
-        _heightText = State(initialValue: initialDraft.heightCM.formatted(.number.precision(.fractionLength(0...2))))
+        _heightText = State(initialValue: profile == nil ? "" : initialDraft.heightCM.formatted(.number.precision(.fractionLength(0...2))))
         _weightText = State(initialValue: profile == nil ? "" : initialDraft.referenceWeightKG.formatted(.number.precision(.fractionLength(0...2))))
+        _selectedAvatar = State(initialValue: profile?.avatar)
+        _selectedSex = State(initialValue: profile?.biologicalSex)
+        _selectedBirthDate = State(initialValue: profile?.birthDate)
+        _pendingBirthDate = State(initialValue: profile?.birthDate
+            ?? Calendar.current.date(byAdding: .year, value: -30, to: .now)
+            ?? .now)
+        _usesCustomRole = State(initialValue: !Self.standardRoles.contains(initialDraft.relation))
     }
 
     var body: some View {
@@ -875,10 +904,15 @@ private struct MemberEditorView: View {
                         Button("保存") {
                             KeyboardFocus.dismiss()
                             draft.name = draft.name.trimmingCharacters(in: .whitespacesAndNewlines)
+                            draft.relation = draft.relation.trimmingCharacters(in: .whitespacesAndNewlines)
                             guard let heightCM = parsedHeight else { return }
                             guard let referenceWeightKG = parsedWeight else { return }
+                            guard let selectedAvatar, let selectedSex, let selectedBirthDate else { return }
                             draft.heightCM = heightCM
                             draft.referenceWeightKG = referenceWeightKG
+                            draft.avatar = selectedAvatar
+                            draft.biologicalSex = selectedSex
+                            draft.birthDate = selectedBirthDate
                             if isNew { store.addProfile(draft) } else { store.updateProfile(draft) }
                             dismiss()
                         }
@@ -896,12 +930,20 @@ private struct MemberEditorView: View {
                                 AppDropdownMenuLayer(
                                     anchorFrame: proxy[anchor],
                                     availableSize: proxy.size,
-                                    options: relations,
-                                    isSelected: { $0 == draft.relation },
+                                    options: roles,
+                                    isSelected: { $0 == "其他" ? usesCustomRole : !usesCustomRole && $0 == draft.relation },
                                     title: { $0 },
                                     appearance: .compact,
                                     onSelect: { relation in
-                                        draft.relation = relation
+                                        if relation == "其他" {
+                                            usesCustomRole = true
+                                            draft.relation = ""
+                                            isRoleFocused = true
+                                        } else {
+                                            usesCustomRole = false
+                                            draft.relation = relation
+                                            isRoleFocused = false
+                                        }
                                         dismissDropdown()
                                     },
                                     onDismiss: dismissDropdown
@@ -911,11 +953,11 @@ private struct MemberEditorView: View {
                                     anchorFrame: proxy[anchor],
                                     availableSize: proxy.size,
                                     options: UserProfile.BiologicalSex.allCases,
-                                    isSelected: { $0 == draft.biologicalSex },
+                                    isSelected: { $0 == selectedSex },
                                     title: { $0.displayName },
                                     appearance: .compact,
                                     onSelect: { biologicalSex in
-                                        draft.biologicalSex = biologicalSex
+                                        selectedSex = biologicalSex
                                         dismissDropdown()
                                     },
                                     onDismiss: dismissDropdown
@@ -924,6 +966,9 @@ private struct MemberEditorView: View {
                         }
                     }
                 }
+            }
+            .sheet(isPresented: $isSelectingBirthDate) {
+                birthDatePickerSheet
             }
 
             if confirmDelete {
@@ -976,7 +1021,7 @@ private struct MemberEditorView: View {
 
     private var avatarPanel: some View {
         SettingsPanel(title: "人物形象", icon: "person.crop.rectangle.stack") {
-            MemberAvatarPicker(selection: draft.avatar) { draft.avatar = $0 }
+            MemberAvatarPicker(selection: selectedAvatar) { selectedAvatar = $0 }
                 .equatable()
         }
     }
@@ -984,32 +1029,45 @@ private struct MemberEditorView: View {
     private var informationPanel: some View {
         SettingsPanel(title: "成员信息", icon: "person.text.rectangle") {
             VStack(alignment: .leading, spacing: 8) {
-                fieldLabel("姓名或昵称")
+                fieldLabel("名称")
                 MemberNameInput(text: $draft.name)
             }
 
             SettingsSeparator()
 
             VStack(alignment: .leading, spacing: 9) {
-                fieldLabel("与我的关系")
-                AppDropdownField(
-                    value: draft.relation,
-                    icon: "person.2.fill",
-                    accessibilityLabel: "与我的关系",
-                    isExpanded: expandedDropdown == .relation,
-                    appearance: .compact,
-                    onToggle: { toggleDropdown(.relation) }
-                )
+                fieldLabel("角色")
+                if usesCustomRole {
+                    AppEditableDropdownField(
+                        text: $draft.relation,
+                        isFocused: $isRoleFocused,
+                        placeholder: "输入角色",
+                        icon: "person.2.fill",
+                        accessibilityLabel: "角色",
+                        isExpanded: expandedDropdown == .relation,
+                        appearance: .compact,
+                        onToggle: { toggleDropdown(.relation) }
+                    )
+                } else {
+                    AppDropdownField(
+                        value: draft.relation,
+                        icon: "person.2.fill",
+                        accessibilityLabel: "角色",
+                        isExpanded: expandedDropdown == .relation,
+                        appearance: .compact,
+                        onToggle: { toggleDropdown(.relation) }
+                    )
+                }
             }
 
             SettingsSeparator()
 
             VStack(alignment: .leading, spacing: 9) {
-                fieldLabel("生理性别")
+                fieldLabel("性别")
                 AppDropdownField(
-                    value: draft.biologicalSex.displayName,
+                    value: selectedSex.map(\.displayName) ?? store.appLanguage.text("未选择"),
                     icon: "person.crop.circle",
-                    accessibilityLabel: "生理性别",
+                    accessibilityLabel: "性别",
                     isExpanded: expandedDropdown == .biologicalSex,
                     appearance: .compact,
                     onToggle: { toggleDropdown(.biologicalSex) }
@@ -1020,14 +1078,25 @@ private struct MemberEditorView: View {
 
             VStack(alignment: .leading, spacing: 9) {
                 fieldLabel("出生日期")
-                HStack {
-                    Image(systemName: "calendar").foregroundStyle(AppColor.sky)
-                    DatePicker("出生日期", selection: $draft.birthDate, in: ...Date.now, displayedComponents: .date)
-                        .labelsHidden()
-                        .tint(AppColor.mint)
-                    Spacer()
+                Button {
+                    pendingBirthDate = selectedBirthDate
+                        ?? Calendar.current.date(byAdding: .year, value: -30, to: .now)
+                        ?? .now
+                    isSelectingBirthDate = true
+                } label: {
+                    HStack {
+                        Image(systemName: "calendar").foregroundStyle(AppColor.sky)
+                        Text(selectedBirthDate?.formatted(.dateTime.year().month().day())
+                            ?? store.appLanguage.text("未选择"))
+                            .foregroundStyle(selectedBirthDate == nil ? AppColor.secondary : AppColor.ink)
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                            .font(.caption.bold())
+                            .foregroundStyle(AppColor.secondary)
+                    }
+                    .settingsInputSurface()
                 }
-                .settingsInputSurface()
+                .buttonStyle(.plain)
             }
 
             SettingsSeparator()
@@ -1055,9 +1124,38 @@ private struct MemberEditorView: View {
         }
     }
 
+    private var birthDatePickerSheet: some View {
+        NavigationStack {
+            DatePicker(
+                "出生日期",
+                selection: $pendingBirthDate,
+                in: ...Date.now,
+                displayedComponents: .date
+            )
+            .datePickerStyle(.graphical)
+            .tint(AppColor.mint)
+            .padding(18)
+            .navigationTitle(store.appLanguage.text("出生日期"))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("取消") { isSelectingBirthDate = false }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("完成") {
+                        selectedBirthDate = pendingBirthDate
+                        isSelectingBirthDate = false
+                    }
+                    .fontWeight(.semibold)
+                }
+            }
+        }
+        .presentationDetents([.medium])
+    }
+
     @ViewBuilder
     private var deletePanel: some View {
-        if !isNew, store.displayProfiles.count > 1 {
+        if !isNew, store.managedProfiles.count > 1 {
             Button(role: .destructive, action: showDeleteConfirmation) {
                 Label("删除成员", systemImage: "trash")
                     .font(.subheadline.weight(.semibold))
@@ -1078,6 +1176,10 @@ private struct MemberEditorView: View {
 
     private var canSave: Bool {
         !draft.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            && !draft.relation.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            && selectedAvatar != nil
+            && selectedSex != nil
+            && selectedBirthDate != nil
             && parsedHeight.map { (50...250).contains($0) } == true
             && parsedWeight.map { (5...350).contains($0) } == true
     }
@@ -1119,7 +1221,7 @@ private struct MemberSearchField: View {
             ResponsiveTextField(
                 text: $text,
                 isFocused: $isFocused,
-                placeholder: "搜索姓名或关系",
+                placeholder: "搜索姓名或角色",
                 returnKeyType: .search,
                 autocorrectionType: .no
             )
@@ -1143,7 +1245,7 @@ private struct MemberSearchField: View {
 
 private struct MemberAvatarPicker: View, Equatable {
     @Environment(\.appLanguage) private var language
-    let selection: MemberAvatar
+    let selection: MemberAvatar?
     let onSelect: (MemberAvatar) -> Void
 
     static func == (lhs: Self, rhs: Self) -> Bool {
@@ -1196,7 +1298,7 @@ private struct MemberNameInput: View {
             ResponsiveTextField(
                 text: $text,
                 isFocused: $isFocused,
-                placeholder: "请输入姓名或昵称",
+                placeholder: "名称",
                 returnKeyType: .done
             )
             .frame(minHeight: 24)

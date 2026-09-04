@@ -2,10 +2,11 @@ import Foundation
 
 @MainActor
 final class MeasurementStore: ObservableObject {
+    private static let placeholderProfileID = UUID()
     @Published private(set) var measurements: [BodyMeasurement]
     @Published private(set) var deletedMeasurementIDs: Set<UUID>
     @Published private(set) var profiles: [UserProfile] { didSet { persistConfigurationIfNeeded() } }
-    @Published private(set) var selectedProfileID: UUID { didSet { persistConfigurationIfNeeded() } }
+    @Published private(set) var selectedProfileID: UUID
     @Published private(set) var pairedScales: [PairedScale] { didSet { persistConfigurationIfNeeded() } }
     @Published var unit: WeightUnit { didSet { persistConfigurationIfNeeded() } }
     @Published var languageSelection: AppLanguageSelection { didSet { languageSelectionDidChange() } }
@@ -87,7 +88,8 @@ final class MeasurementStore: ObservableObject {
         simulationArchiveUpdatedAt = .distantPast
         isSimulationHistoryLoaded = false
         profiles = loadedConfiguration.profiles
-        selectedProfileID = loadedConfiguration.selectedProfileID
+        selectedProfileID = Self.preferredProfileID(in: loadedConfiguration.profiles)
+            ?? Self.placeholderProfileID
         pairedScales = loadedConfiguration.pairedScales
         unit = loadedConfiguration.unit
         languageSelection = loadedConfiguration.languageSelection
@@ -120,7 +122,6 @@ final class MeasurementStore: ObservableObject {
     var configuration: AppConfiguration {
         AppConfiguration(
             profiles: profiles,
-            selectedProfileID: selectedProfileID,
             pairedScales: pairedScales,
             unit: unit,
             languageSelection: languageSelection,
@@ -150,7 +151,6 @@ final class MeasurementStore: ObservableObject {
         guard isSimulationEnabled else { return configuration }
         return AppConfiguration(
             profiles: simulationData.profiles,
-            selectedProfileID: simulationSelectedProfileID,
             pairedScales: simulationData.pairedScales,
             unit: unit,
             languageSelection: languageSelection,
@@ -178,13 +178,22 @@ final class MeasurementStore: ObservableObject {
     }
 
     var selectedProfile: UserProfile {
-        profiles.first(where: { $0.id == selectedProfileID }) ?? profiles[0]
+        profiles.first(where: { $0.id == selectedProfileID }) ?? placeholderProfile
     }
 
     var profile: UserProfile { selectedProfile }
 
     var displayProfiles: [UserProfile] {
+        if isSimulationEnabled { return simulationData.profiles }
+        return profiles.isEmpty ? [placeholderProfile] : profiles
+    }
+
+    var managedProfiles: [UserProfile] {
         isSimulationEnabled ? simulationData.profiles : profiles
+    }
+
+    var isUsingPlaceholderData: Bool {
+        !isSimulationEnabled && profiles.isEmpty
     }
 
     var displaySelectedProfileID: UUID {
@@ -192,7 +201,7 @@ final class MeasurementStore: ObservableObject {
     }
 
     var displaySelectedProfile: UserProfile {
-        displayProfiles.first(where: { $0.id == displaySelectedProfileID }) ?? displayProfiles[0]
+        displayProfiles.first(where: { $0.id == displaySelectedProfileID }) ?? placeholderProfile
     }
 
     var widgetDisplayProfile: UserProfile {
@@ -223,7 +232,7 @@ final class MeasurementStore: ObservableObject {
         displayMeasurements(for: displaySelectedProfileID)
     }
     var latest: BodyMeasurement? { displayMeasurements.first }
-    var isShowingDemoData: Bool { isSimulationEnabled }
+    var isShowingDemoData: Bool { isSimulationEnabled || isUsingPlaceholderData }
 
     func measurements(for profileID: UUID) -> [BodyMeasurement] {
         measurements.filter { $0.profileID == profileID }
@@ -233,12 +242,14 @@ final class MeasurementStore: ObservableObject {
         if isSimulationEnabled {
             return simulationData.measurements.filter { $0.profileID == profileID }
         }
-        let profileMeasurements = measurements(for: profileID)
-        return profileMeasurements.isEmpty ? Self.demoMeasurements.map {
+        guard isUsingPlaceholderData, profileID == Self.placeholderProfileID else {
+            return measurements(for: profileID)
+        }
+        return Self.demoMeasurements.map {
             var value = $0
             value.profileID = profileID
             return value
-        } : profileMeasurements
+        }
     }
 
     func add(_ measurement: BodyMeasurement) {
@@ -247,6 +258,7 @@ final class MeasurementStore: ObservableObject {
             return
         }
 
+        guard profiles.contains(where: { $0.id == selectedProfileID }) else { return }
         var attributed = measurement
         attributed.profileID = selectedProfileID
         if let deviceID = measurement.deviceID,
@@ -364,7 +376,11 @@ final class MeasurementStore: ObservableObject {
             simulationData.profiles.append(profile)
             return
         }
+        let isFirstProfile = profiles.isEmpty
         profiles.append(profile)
+        if isFirstProfile {
+            selectedProfileID = profile.id
+        }
     }
 
     func updateProfile(_ profile: UserProfile) {
@@ -386,7 +402,7 @@ final class MeasurementStore: ObservableObject {
     }
 
     func setDisplayProfileOrder(_ orderedProfileIDs: [UUID]) {
-        let currentProfiles = displayProfiles
+        let currentProfiles = managedProfiles
         guard orderedProfileIDs.count == currentProfiles.count,
               Set(orderedProfileIDs).count == orderedProfileIDs.count,
               Set(orderedProfileIDs) == Set(currentProfiles.map(\.id)) else { return }
@@ -421,7 +437,8 @@ final class MeasurementStore: ObservableObject {
             simulationData.profiles.remove(at: index)
             if simulationAppleHealthProfileID == id { simulationAppleHealthProfileID = nil }
             if simulationSelectedProfileID == id {
-                simulationSelectedProfileID = simulationData.profiles[0].id
+                simulationSelectedProfileID = Self.preferredProfileID(in: simulationData.profiles)
+                    ?? simulationData.profiles[0].id
                 simulationData.selectedProfileID = simulationSelectedProfileID
             }
             return
@@ -429,7 +446,9 @@ final class MeasurementStore: ObservableObject {
         guard profiles.count > 1, let index = profiles.firstIndex(where: { $0.id == id }) else { return }
         profiles.remove(at: index)
         if appleHealthProfileID == id { appleHealthProfileID = nil }
-        if selectedProfileID == id { selectedProfileID = profiles[0].id }
+        if selectedProfileID == id {
+            selectedProfileID = Self.preferredProfileID(in: profiles) ?? profiles[0].id
+        }
     }
 
     func addScale(_ scale: PairedScale) {
@@ -438,7 +457,8 @@ final class MeasurementStore: ObservableObject {
             simulationData.pairedScales.append(scale)
             return
         }
-        guard !pairedScales.contains(where: { $0.id == scale.id }) else { return }
+        guard !profiles.isEmpty,
+              !pairedScales.contains(where: { $0.id == scale.id }) else { return }
         pairedScales.append(scale)
     }
 
@@ -480,6 +500,33 @@ final class MeasurementStore: ObservableObject {
     func communicationRule(for scale: PairedScale) -> CommunicationRule? {
         guard let id = scale.communicationRuleID else { return nil }
         return communicationRules.first { $0.id == id }
+    }
+
+    func effectiveCommunicationRule(for scale: PairedScale) -> CommunicationRule? {
+        if let selectedRule = communicationRule(for: scale) {
+            return selectedRule
+        }
+
+        let ruleID: String?
+        switch ScaleDiscoveryCompatibility(rawValue: scale.compatibility) {
+        case .bluetoothSIG: ruleID = CommunicationRuleCatalog.bluetoothSIGWeightID
+        case .xiaomiAdvertisement: ruleID = CommunicationRuleCatalog.xiaomiLegacyID
+        case .wolaiAFU: ruleID = CommunicationRuleCatalog.wolaiAFUID
+        case .qnAABBBroadcast: ruleID = CommunicationRuleCatalog.qnAABBID
+        case .aaaSeriesBroadcast: ruleID = CommunicationRuleCatalog.aaaSeriesID
+        case .sinocareBroadcast: ruleID = CommunicationRuleCatalog.sinocareID
+        case .scaleupBroadcast: ruleID = CommunicationRuleCatalog.scaleupID
+        case .okokBroadcast: ruleID = CommunicationRuleCatalog.okokID
+        case .etekcityFit8SBroadcast: ruleID = CommunicationRuleCatalog.etekcityFit8SID
+        case .eufyC20Broadcast: ruleID = CommunicationRuleCatalog.eufyC20ID
+        case .yunmaiXBroadcast: ruleID = CommunicationRuleCatalog.yunmaiXID
+        case .silvergear108Broadcast: ruleID = CommunicationRuleCatalog.silvergear108ID
+        case .xiaomiMiScale2Advertisement: ruleID = CommunicationRuleCatalog.xiaomiMiScale2ID
+        case .huaweiHagridAuthorizationRequired: ruleID = CommunicationRuleCatalog.huaweiHagridID
+        case .unverified, nil: ruleID = nil
+        }
+        guard let ruleID else { return nil }
+        return communicationRules.first { $0.id == ruleID }
     }
 
     func setCommunicationRule(_ ruleID: String?, for scaleID: UUID) {
@@ -547,6 +594,23 @@ final class MeasurementStore: ObservableObject {
         return sanitized
     }
 
+    private static func preferredProfileID(in profiles: [UserProfile]) -> UUID? {
+        profiles.first(where: { $0.relation == "本人" })?.id ?? profiles.first?.id
+    }
+
+    private var placeholderProfile: UserProfile {
+        UserProfile(
+            id: Self.placeholderProfileID,
+            name: appLanguage.text("示例用户"),
+            relation: "本人",
+            heightCM: 168,
+            referenceWeightKG: 60,
+            birthDate: Calendar.current.date(byAdding: .year, value: -30, to: .now) ?? .now,
+            biologicalSex: .female,
+            avatar: .adult
+        )
+    }
+
     func delete(at offsets: IndexSet) {
         if isSimulationEnabled {
             let visibleMeasurements = displayMeasurements(for: simulationSelectedProfileID)
@@ -571,12 +635,11 @@ final class MeasurementStore: ObservableObject {
             return
         }
         guard configuration != self.configuration else { return }
-        guard !configuration.profiles.isEmpty else { return }
         isApplyingExternalState = true
         profiles = configuration.profiles
-        selectedProfileID = configuration.profiles.contains(where: { $0.id == configuration.selectedProfileID })
-            ? configuration.selectedProfileID
-            : configuration.profiles[0].id
+        selectedProfileID = configuration.profiles.contains(where: { $0.id == selectedProfileID })
+            ? selectedProfileID
+            : Self.preferredProfileID(in: configuration.profiles) ?? Self.placeholderProfileID
         pairedScales = configuration.pairedScales
         unit = configuration.unit
         languageSelection = configuration.languageSelection
@@ -627,9 +690,10 @@ final class MeasurementStore: ObservableObject {
         guard !configuration.profiles.isEmpty else { return }
         isApplyingExternalState = true
         simulationData.profiles = configuration.profiles
-        simulationSelectedProfileID = configuration.profiles.contains(where: { $0.id == configuration.selectedProfileID })
-            ? configuration.selectedProfileID
-            : configuration.profiles[0].id
+        if !configuration.profiles.contains(where: { $0.id == simulationSelectedProfileID }) {
+            simulationSelectedProfileID = Self.preferredProfileID(in: configuration.profiles)
+                ?? configuration.profiles[0].id
+        }
         simulationData.selectedProfileID = simulationSelectedProfileID
         simulationData.pairedScales = configuration.pairedScales
         unit = configuration.unit
@@ -813,15 +877,11 @@ final class MeasurementStore: ObservableObject {
         let revision = configurationRevision
         var snapshot = configurationBeforeSimulation ?? configuration
         snapshot.isSimulationEnabled = isSimulationEnabled
-        Task {
-            do {
-                try await persistenceWriter.saveConfiguration(snapshot, revision: revision)
-                guard revision == configurationRevision else { return }
-                storageError = nil
-            } catch {
-                guard revision == configurationRevision else { return }
-                storageError = error.localizedDescription
-            }
+        do {
+            try persistenceWriter.saveConfiguration(snapshot, revision: revision)
+            storageError = nil
+        } catch {
+            storageError = error.localizedDescription
         }
     }
 
@@ -834,15 +894,11 @@ final class MeasurementStore: ObservableObject {
         archiveRevision += 1
         let revision = archiveRevision
         let snapshot = archive
-        Task {
-            do {
-                try await persistenceWriter.saveArchive(snapshot, revision: revision)
-                guard revision == archiveRevision else { return }
-                storageError = nil
-            } catch {
-                guard revision == archiveRevision else { return }
-                storageError = error.localizedDescription
-            }
+        do {
+            try persistenceWriter.saveArchive(snapshot, revision: revision)
+            storageError = nil
+        } catch {
+            storageError = error.localizedDescription
         }
     }
 
