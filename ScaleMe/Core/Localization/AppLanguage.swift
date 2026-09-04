@@ -182,6 +182,11 @@ enum AppText: String, CaseIterable {
     case communicationProtocolDetail = "settings.communication.detail"
     case about = "settings.about.title"
     case aboutDetail = "settings.about.detail"
+    case privacyPolicy = "settings.privacy.title"
+    case privacyPolicyDetail = "settings.privacy.detail"
+    case privacyPolicyRevision = "settings.privacy.revision"
+    case privacyPolicySummary = "settings.privacy.summary"
+    case privacyPolicyBody = "settings.privacy.body"
 
     var defaultValue: String {
         switch self {
@@ -216,6 +221,33 @@ enum AppText: String, CaseIterable {
         case .communicationProtocolDetail: "设备识别与数据解析"
         case .about: "关于应用"
         case .aboutDetail: "产品原则与版本信息"
+        case .privacyPolicy: "隐私政策"
+        case .privacyPolicyDetail: "了解数据处理、系统权限、导入导出与删除方式"
+        case .privacyPolicyRevision: "更新日期：2026年9月4日"
+        case .privacyPolicySummary: "观我坚持本地优先。我们不会创建用户账号，也不会将你的成员资料或健康测量上传至开发者服务器。"
+        case .privacyPolicyBody:
+            """
+            **本地存储与安全**
+            成员姓名或昵称、关系、出生日期、生理性别、身高、运动员模式、关联设备、应用设置和测量记录默认保存在你的设备上。测量记录使用 AES-GCM 加密，密钥由系统钥匙串保管。应用不使用 iCloud 同步这些数据。
+
+            **蓝牙设备**
+            只有在你使用设备发现或测量功能时，应用才会请求蓝牙权限。应用会处理附近设备公开的标识、名称、型号、协议信息，以及体重、阻抗和设备明确提供的身体成分数据。部分设备所需的绑定或认证材料保存在系统钥匙串中，不会上传至开发者服务器。
+
+            **Apple 健康**
+            应用不会读取 Apple 健康数据。只有在你主动开启同步并授权后，应用才会把所选成员由所选真实设备产生的新稳定测量写入 Apple 健康，包括体重和设备明确提供的体脂率；历史记录、手动记录、模拟数据和估算身体成分不会写入。关闭应用内同步不会删除已写入的数据，你可以在“健康”应用中查看、删除或撤回权限。
+
+            **网络与外部通信规则**
+            应用不包含账号、广告或分析服务，也不会自动上传成员资料、设备认证材料或健康测量。只有在你主动输入 HTTPS 地址导入通信规则时，应用才会访问该地址并下载受限的 JSON 规则；远程服务器运营者可能按照其自身政策处理 IP 地址和请求信息。导入的规则保存在本机，内置规则无需联网下载。
+
+            **导入、导出与分享**
+            配置和测量记录仅在你主动操作时通过 JSON 文件导入或导出。导出的文件是未加密的明文，可能包含成员资料、设备信息和健康测量；保存位置、分享对象以及接收服务如何处理文件由你决定。导入前请确认文件来源可信。
+
+            **数据保留与删除**
+            本地数据会保留到你在应用内删除或移除应用。你可以在测量历史中删除记录，并在设置中删除成员或设备。删除成员或设备不会自动删除其历史测量记录，需要另行删除相关记录。移除应用会删除应用容器内的配置和加密测量文件；Apple 健康中的数据由“健康”应用管理。
+
+            **权限、健康说明与联系**
+            你可以随时在系统“设置”中撤回蓝牙或健康权限。消费级体脂秤的身体成分结果仅为趋势参考，不构成医疗诊断、治疗建议或临床结论。若对本政策有疑问，请通过 App Store 产品页面中的“开发者网站”或“App 支持”链接联系开发者；政策发生重要变化时，我们会更新本页及其日期。
+            """
         }
     }
 }

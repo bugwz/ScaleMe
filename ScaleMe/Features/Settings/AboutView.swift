@@ -41,6 +41,27 @@ struct AboutView: View {
                         .foregroundStyle(AppColor.secondary)
                         .lineSpacing(4)
                 }
+
+                NavigationLink {
+                    PrivacyPolicyView()
+                } label: {
+                    SettingsPanel(title: store.appLanguage.text(.privacyPolicy), icon: "hand.raised.fill") {
+                        HStack(alignment: .center, spacing: 12) {
+                            Text(store.appLanguage.text(.privacyPolicyDetail))
+                                .font(.caption)
+                                .foregroundStyle(AppColor.secondary)
+                                .multilineTextAlignment(.leading)
+                                .fixedSize(horizontal: false, vertical: true)
+                            Spacer(minLength: 8)
+                            Image(systemName: "chevron.right")
+                                .font(.caption.bold())
+                                .foregroundStyle(AppColor.mint)
+                                .accessibilityHidden(true)
+                        }
+                        .contentShape(Rectangle())
+                    }
+                }
+                .buttonStyle(.plain)
             }
             .padding(.horizontal, 18)
             .padding(.top, 12)
