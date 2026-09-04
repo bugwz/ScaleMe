@@ -4,11 +4,11 @@
 <dict>
 	<key>com.apple.security.application-groups</key>
 	<array>
-		<string>group.com.scaleme.app</string>
+		<string>group.com.bugwz.scaleme</string>
 	</array>
 	<key>keychain-access-groups</key>
 	<array>
-		<string>$(AppIdentifierPrefix)com.scaleme.shared</string>
+		<string>$(AppIdentifierPrefix)com.bugwz.scaleme.shared</string>
 	</array>
 </dict>
 </plist>

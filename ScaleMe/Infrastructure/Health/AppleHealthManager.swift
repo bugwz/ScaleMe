@@ -85,7 +85,7 @@ final class AppleHealthManager: ObservableObject {
     private func samples(for measurement: BodyMeasurement) -> [HKQuantitySample] {
         guard let bodyMassType, (2...500).contains(measurement.weightKG) else { return [] }
         let metadata: [String: Any] = [
-            "com.scaleme.measurement-id": measurement.id.uuidString,
+            "com.bugwz.scaleme.measurement-id": measurement.id.uuidString,
             HKMetadataKeyWasUserEntered: measurement.source == .manual
         ]
         var samples = [

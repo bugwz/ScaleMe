@@ -3,12 +3,12 @@
 <plist version="1.0">
 <dict>
 	<key>ScaleMeKeychainAccessGroup</key>
-	<string>$(DEVELOPMENT_TEAM).com.scaleme.shared</string>
+	<string>$(DEVELOPMENT_TEAM).com.bugwz.scaleme.shared</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
 			<key>CFBundleURLName</key>
-			<string>com.scaleme.app.trends</string>
+			<string>com.bugwz.scaleme.trends</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>scaleme</string>

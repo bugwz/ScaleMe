@@ -209,11 +209,11 @@ enum WidgetTrendRepositoryError: Error {
 }
 
 struct WidgetTrendRepository {
-    static let appGroupIdentifier = "group.com.scaleme.app"
+    static let appGroupIdentifier = "group.com.bugwz.scaleme"
     static let widgetKind = "ScaleMeTrendWidget"
 
     private static let fileName = "widget-trends-v2.enc"
-    private static let keyService = "com.scaleme.app.widget-encryption"
+    private static let keyService = "com.bugwz.scaleme.widget-encryption"
     private static let keyAccount = "widget-trend-snapshot-key"
     private static let authenticatedContext = Data("ScaleMe.widget-trends.v2".utf8)
 

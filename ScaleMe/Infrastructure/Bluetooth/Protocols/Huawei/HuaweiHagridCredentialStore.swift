@@ -2,7 +2,7 @@ import Foundation
 import Security
 
 struct HuaweiHagridCredentialStore {
-    private let service = "com.scaleme.app.bluetooth.huawei-hagrid"
+    private let service = "com.bugwz.scaleme.bluetooth.huawei-hagrid"
 
     func load(for scaleID: UUID) throws -> HuaweiHagridProtocol.Credentials? {
         var result: CFTypeRef?

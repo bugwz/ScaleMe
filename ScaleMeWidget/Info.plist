@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>ScaleMeKeychainAccessGroup</key>
-	<string>$(DEVELOPMENT_TEAM).com.scaleme.shared</string>
+	<string>$(DEVELOPMENT_TEAM).com.bugwz.scaleme.shared</string>
 	<key>NSExtension</key>
 	<dict>
 		<key>NSExtensionPointIdentifier</key>

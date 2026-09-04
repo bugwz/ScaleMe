@@ -51,7 +51,7 @@ struct MeasurementFileCipher: Sendable {
 }
 
 private struct EncryptionKeyStore {
-    private let service = "com.scaleme.app.data-encryption"
+    private let service = "com.bugwz.scaleme.data-encryption"
     private let account = "local-measurement-file-key"
 
     func loadOrCreateKey() throws -> Data {
