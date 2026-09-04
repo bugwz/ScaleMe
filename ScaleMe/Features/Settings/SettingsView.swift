@@ -1,15 +1,21 @@
 import SwiftUI
 import UniformTypeIdentifiers
 
+private enum DisplaySettingsDropdown: Equatable {
+    case appearance
+    case language
+    case weightUnit
+}
+
 struct DisplaySettingsView: View {
     @EnvironmentObject private var store: MeasurementStore
-    @State private var isWeightUnitDropdownExpanded = false
+    @State private var expandedDropdown: DisplaySettingsDropdown?
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
-                displayPanel
-                measurementHistoryPanel
+                interfaceDisplayPanel
+                dataDisplayPanel
             }
             .padding(.horizontal, 18)
             .padding(.top, 8)
@@ -19,59 +25,98 @@ struct DisplaySettingsView: View {
         .navigationTitle(store.appLanguage.text(.displaySettings))
         .navigationBarTitleDisplayMode(.inline)
         .localizedNavigationBackButton()
-        .accessibilityHidden(isWeightUnitDropdownExpanded)
+        .accessibilityHidden(expandedDropdown != nil)
         .overlayPreferenceValue(AppDropdownAnchorPreferenceKey.self) { anchor in
             GeometryReader { proxy in
-                if let anchor, isWeightUnitDropdownExpanded {
-                    AppDropdownMenuLayer(
-                        anchorFrame: proxy[anchor],
-                        availableSize: proxy.size,
-                        options: WeightUnit.allCases,
-                        isSelected: { $0 == store.unit },
-                        title: { $0.settingsTitle },
-                        appearance: .compact,
-                        onSelect: { unit in
-                            store.unit = unit
-                            dismissWeightUnitDropdown()
-                        },
-                        onDismiss: dismissWeightUnitDropdown
-                    )
+                if let anchor {
+                    switch expandedDropdown {
+                    case .appearance:
+                        AppDropdownMenuLayer(
+                            anchorFrame: proxy[anchor],
+                            availableSize: proxy.size,
+                            options: AppAppearance.allCases,
+                            isSelected: { $0 == store.appearance },
+                            title: { title(for: $0) },
+                            appearance: .compact,
+                            onSelect: { appearance in
+                                store.appearance = appearance
+                                dismissDropdown()
+                            },
+                            onDismiss: dismissDropdown
+                        )
+                    case .language:
+                        AppDropdownMenuLayer(
+                            anchorFrame: proxy[anchor],
+                            availableSize: proxy.size,
+                            options: AppLanguageSelection.allCases,
+                            isSelected: { $0 == store.languageSelection },
+                            title: { title(for: $0) },
+                            appearance: .compact,
+                            onSelect: { selection in
+                                store.languageSelection = selection
+                                dismissDropdown()
+                            },
+                            onDismiss: dismissDropdown
+                        )
+                    case .weightUnit:
+                        AppDropdownMenuLayer(
+                            anchorFrame: proxy[anchor],
+                            availableSize: proxy.size,
+                            options: WeightUnit.allCases,
+                            isSelected: { $0 == store.unit },
+                            title: { $0.settingsTitle },
+                            appearance: .compact,
+                            onSelect: { unit in
+                                store.unit = unit
+                                dismissDropdown()
+                            },
+                            onDismiss: dismissDropdown
+                        )
+                    case nil:
+                        EmptyView()
+                    }
                 }
             }
         }
-        .onDisappear { isWeightUnitDropdownExpanded = false }
+        .onDisappear { expandedDropdown = nil }
     }
 
-    private var displayPanel: some View {
-        SettingsPanel(title: "显示", icon: "textformat.size") {
-            NavigationLink {
-                AppearanceSettingsView()
-            } label: {
-                navigationRow(
-                    title: store.appLanguage.text(.appearance),
-                    detail: appearanceTitle,
-                    icon: "circle.lefthalf.filled"
+    private var interfaceDisplayPanel: some View {
+        SettingsPanel(title: "界面显示", icon: "textformat.size") {
+            VStack(alignment: .leading, spacing: 10) {
+                Text(store.appLanguage.text(.appearance))
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(AppColor.ink)
+                AppDropdownField(
+                    value: appearanceTitle,
+                    icon: "circle.lefthalf.filled",
+                    accessibilityLabel: store.appLanguage.text(.appearance),
+                    isExpanded: expandedDropdown == .appearance,
+                    appearance: .compact,
+                    onToggle: { toggleDropdown(.appearance) }
                 )
             }
-            .buttonStyle(.plain)
 
             SettingsSeparator()
 
-            NavigationLink {
-                LanguageSettingsView()
-            } label: {
-                navigationRow(
-                    title: store.appLanguage.text(.language),
-                    detail: languageSelectionTitle,
-                    icon: "globe"
+            VStack(alignment: .leading, spacing: 10) {
+                Text(store.appLanguage.text(.language))
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(AppColor.ink)
+                AppDropdownField(
+                    value: languageSelectionTitle,
+                    icon: "globe",
+                    accessibilityLabel: store.appLanguage.text(.language),
+                    isExpanded: expandedDropdown == .language,
+                    appearance: .compact,
+                    onToggle: { toggleDropdown(.language) }
                 )
             }
-            .buttonStyle(.plain)
         }
     }
 
-    private var measurementHistoryPanel: some View {
-        SettingsPanel(title: "测量记录", icon: "clock.arrow.2.circlepath") {
+    private var dataDisplayPanel: some View {
+        SettingsPanel(title: "数据显示", icon: "clock.arrow.2.circlepath") {
             VStack(alignment: .leading, spacing: 10) {
                 Text("体重单位")
                     .font(.subheadline.weight(.semibold))
@@ -80,9 +125,9 @@ struct DisplaySettingsView: View {
                     value: store.unit.settingsTitle,
                     icon: "scalemass.fill",
                     accessibilityLabel: "体重单位",
-                    isExpanded: isWeightUnitDropdownExpanded,
+                    isExpanded: expandedDropdown == .weightUnit,
                     appearance: .compact,
-                    onToggle: toggleWeightUnitDropdown
+                    onToggle: { toggleDropdown(.weightUnit) }
                 )
             }
 
@@ -97,53 +142,38 @@ struct DisplaySettingsView: View {
     }
 
     private var languageSelectionTitle: String {
-        if store.languageSelection == .system {
-            return store.appLanguage.text(.followSystem)
-        }
-        return store.languageSelection.explicitLanguage?.nativeName ?? AppLanguage.english.nativeName
+        title(for: store.languageSelection)
     }
 
     private var appearanceTitle: String {
-        switch store.appearance {
+        title(for: store.appearance)
+    }
+
+    private func title(for selection: AppLanguageSelection) -> String {
+        if selection == .system {
+            return store.appLanguage.text(.followSystem)
+        }
+        return selection.explicitLanguage?.nativeName ?? AppLanguage.english.nativeName
+    }
+
+    private func title(for appearance: AppAppearance) -> String {
+        switch appearance {
         case .system: store.appLanguage.text(.followSystem)
         case .light: store.appLanguage.text(.lightAppearance)
         case .dark: store.appLanguage.text(.darkAppearance)
         }
     }
 
-    private func navigationRow(title: String, detail: String, icon: String) -> some View {
-        HStack(spacing: 12) {
-            Image(systemName: icon)
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(AppColor.mint)
-                .frame(width: 36, height: 36)
-                .background(AppColor.paleMint, in: RoundedRectangle(cornerRadius: 11, style: .continuous))
-            VStack(alignment: .leading, spacing: 3) {
-                Text(title)
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(AppColor.ink)
-                Text(detail)
-                    .font(.caption)
-                    .foregroundStyle(AppColor.secondary)
-            }
-            Spacer()
-            Image(systemName: "chevron.right")
-                .font(.caption.bold())
-                .foregroundStyle(AppColor.secondary.opacity(0.7))
-        }
-        .contentShape(Rectangle())
-    }
-
-    private func toggleWeightUnitDropdown() {
+    private func toggleDropdown(_ dropdown: DisplaySettingsDropdown) {
         KeyboardFocus.dismiss()
         withAnimation(.easeInOut(duration: 0.18)) {
-            isWeightUnitDropdownExpanded.toggle()
+            expandedDropdown = expandedDropdown == dropdown ? nil : dropdown
         }
     }
 
-    private func dismissWeightUnitDropdown() {
+    private func dismissDropdown() {
         withAnimation(.easeInOut(duration: 0.16)) {
-            isWeightUnitDropdownExpanded = false
+            expandedDropdown = nil
         }
     }
 }

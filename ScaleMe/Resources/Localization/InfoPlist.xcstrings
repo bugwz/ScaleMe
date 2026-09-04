@@ -109,43 +109,43 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ScaleMe schreibt nur mit Ihrer Zustimmung Gewicht und ausdrücklich erfassten Körperfettanteil in Apple Health."
+            "value" : "ScaleMe schreibt mit Ihrer Zustimmung Gewicht und erfassten Körperfettanteil in Apple Health."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "With your permission, ScaleMe writes weight and explicitly recorded body fat percentage to Apple Health."
+            "value" : "With your permission, ScaleMe writes weight and recorded body fat to Apple Health."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Con tu permiso, ScaleMe escribe el peso y el porcentaje de grasa registrado explícitamente en Apple Salud."
+            "value" : "Con tu permiso, ScaleMe escribe el peso y la grasa registrada en Apple Salud."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Avec votre autorisation, ScaleMe écrit le poids et le taux de graisse explicitement enregistré dans Apple Santé."
+            "value" : "Avec votre autorisation, ScaleMe écrit le poids et la graisse enregistrée dans Apple Santé."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "許可された場合のみ、ScaleMeは体重と明示的に記録された体脂肪率をAppleヘルスケアに書き込みます。"
+            "value" : "許可された場合、ScaleMeは体重と記録した体脂肪をAppleヘルスケアに保存します。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "사용자가 허용한 경우에만 ScaleMe가 체중 및 명시적으로 기록된 체지방률을 Apple 건강에 기록합니다."
+            "value" : "허용 시 ScaleMe가 체중과 기록된 체지방을 Apple 건강에 저장합니다."
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Com a sua permissão, o ScaleMe escreve o peso e a percentagem de gordura explicitamente registada na Saúde Apple."
+            "value" : "Com a sua permissão, o ScaleMe escreve o peso e a gordura registada na Saúde Apple."
           }
         },
         "ru" : {

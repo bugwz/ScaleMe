@@ -627,10 +627,17 @@ struct AppDropdownMenuLayer<Option: Hashable>: View {
     let onDismiss: () -> Void
 
     var body: some View {
-        let rowHeight: CGFloat = detail == nil ? 48 : 58
-        let desiredHeight = CGFloat(options.count) * rowHeight + 8
-        let menuHeight = min(desiredHeight, max(80, availableSize.height - 24))
-        let opensBelow = availableSize.height - anchorFrame.maxY >= menuHeight + 10
+        let rowHeight: CGFloat = detail == nil ? (appearance == .compact ? 48 : 44) : 58
+        let rowSpacing: CGFloat = 4
+        let listPadding: CGFloat = 12 // matches the `.padding(6)` applied around the option list
+        // Cap visible rows so long option lists (e.g. languages) scroll instead of forcing the menu to the top of the screen.
+        let maxVisibleRows: CGFloat = 6
+        let visibleRows = min(CGFloat(options.count), maxVisibleRows)
+        let desiredHeight = visibleRows * rowHeight + max(0, visibleRows - 1) * rowSpacing + listPadding
+        let spaceBelow = availableSize.height - anchorFrame.maxY - 10
+        let spaceAbove = anchorFrame.minY - 10
+        let opensBelow = spaceBelow >= desiredHeight || spaceBelow >= spaceAbove
+        let menuHeight = min(desiredHeight, max(80, opensBelow ? spaceBelow : spaceAbove))
         let menuY = opensBelow
             ? anchorFrame.maxY + 7
             : max(8, anchorFrame.minY - menuHeight - 7)
@@ -684,7 +691,7 @@ struct AppDropdownMenuLayer<Option: Hashable>: View {
                             }
                             .padding(.horizontal, appearance == .compact ? 10 : 14)
                             .frame(maxWidth: .infinity)
-                            .frame(height: detail == nil ? (appearance == .compact ? 48 : 44) : rowHeight)
+                            .frame(height: rowHeight)
                             .background {
                                 if optionIsSelected {
                                     RoundedRectangle(cornerRadius: appearance == .compact ? 10 : 12, style: .continuous)

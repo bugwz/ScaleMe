@@ -260,7 +260,7 @@ struct MeasureView: View {
         Button {
             showManualEntry = true
         } label: {
-            Label("手动录入测量数据", systemImage: "square.and.pencil")
+            Label("手动录入数据", systemImage: "square.and.pencil")
                 .font(.subheadline.weight(.semibold))
                 .foregroundStyle(AppColor.mint)
                 .frame(maxWidth: .infinity)

@@ -202,49 +202,49 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Profile and measurement data is stored on this device by default."
+            "value" : "Profildaten und Messungen werden standardmäßig auf diesem Gerät gespeichert."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Profile and measurement data is stored on this device by default."
+            "value" : "Profile and measurements are stored on this device by default."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Profile and measurement data is stored on this device by default."
+            "value" : "Los perfiles y las mediciones se guardan en este dispositivo."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Profile and measurement data is stored on this device by default."
+            "value" : "Les profils et mesures sont enregistrés sur cet appareil."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Profile and measurement data is stored on this device by default."
+            "value" : "プロフィールと測定値はこのデバイスに保存されます。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Profile and measurement data is stored on this device by default."
+            "value" : "프로필과 측정값은 이 기기에 저장됩니다."
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Profile and measurement data is stored on this device by default."
+            "value" : "Os perfis e as medições são guardados neste dispositivo."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Profile and measurement data is stored on this device by default."
+            "value" : "Профили и измерения сохраняются на этом устройстве."
           }
         },
         "zh-Hans" : {
@@ -462,49 +462,49 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wählen Sie nur Geräte aus, deren Daten Sie für zuverlässig halten. Nicht ausgewählte Geräte, Daten ohne zugeordnetes Gerät und manuelle Einträge werden nicht in Apple Health geschrieben."
+            "value" : "Nur vertrauenswürdige Geräte auswählen. Andere und manuelle Daten werden nicht in Apple Health gespeichert."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Select only devices whose data you trust. Unselected devices, data that cannot be linked to a device, and manual entries are not written to Apple Health."
+            "value" : "Select trusted devices. Other and manual data is not written to Apple Health."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Selecciona solo dispositivos cuyos datos consideres fiables. Los dispositivos no seleccionados, los datos sin un dispositivo asociado y las entradas manuales no se escriben en Apple Salud."
+            "value" : "Selecciona dispositivos fiables. Los datos restantes y las entradas manuales no se escriben en Apple Salud."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sélectionnez uniquement les appareils dont les données vous semblent fiables. Les appareils non sélectionnés, les données sans appareil associé et les saisies manuelles ne sont pas écrits dans Apple Santé."
+            "value" : "Sélectionnez les appareils fiables. Les autres données et saisies manuelles ne sont pas envoyées à Apple Santé."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "データが信頼できると確認したデバイスだけを選択してください。未選択のデバイス、デバイスに関連付けられないデータ、手動入力はAppleヘルスケアに書き込まれません。"
+            "value" : "信頼できるデバイスを選択してください。それ以外のデータと手入力はAppleヘルスケアに保存されません。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "데이터를 신뢰할 수 있는 기기만 선택하세요. 선택하지 않은 기기, 기기에 연결할 수 없는 데이터 및 수동 기록은 Apple 건강에 기록되지 않습니다."
+            "value" : "신뢰할 수 있는 기기만 선택하세요. 그 외 데이터와 수동 기록은 Apple 건강에 저장되지 않습니다."
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Selecione apenas dispositivos cujos dados considera fiáveis. Dispositivos não selecionados, dados sem dispositivo associado e registos manuais não são escritos na Saúde Apple."
+            "value" : "Selecione dispositivos fiáveis. Os restantes dados e registos manuais não são enviados para a Saúde Apple."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Выбирайте только устройства, данным которых доверяете. Данные с невыбранных или неопределенных устройств и ручные записи не передаются в Apple Здоровье."
+            "value" : "Выбирайте надёжные устройства. Остальные данные и записи вручную не передаются в Apple Здоровье."
           }
         },
         "zh-Hans" : {

@@ -1372,49 +1372,49 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Gewichtsmessung abgeschlossen. Körperzusammensetzung wird gemessen. Bitte still stehen."
+            "value" : "Gewicht erfasst. Körperzusammensetzung wird gemessen. Stillstehen."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Weight measurement complete. Measuring body composition. Keep standing still."
+            "value" : "Weight recorded. Measuring body composition. Keep still."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Peso medido. Midiendo la composición corporal. Mantente de pie sin moverte."
+            "value" : "Peso registrado. Midiendo la composición corporal. No te muevas."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Poids mesuré. Mesure de la composition corporelle en cours. Restez immobile."
+            "value" : "Poids enregistré. Composition corporelle en cours. Ne bougez pas."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "体重の測定が完了しました。体組成を測定中です。そのままお待ちください。"
+            "value" : "体重を記録しました。体組成を測定中です。動かないでください。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "체중 측정이 완료되었습니다. 신체 구성을 측정하고 있으니 그대로 서 있어 주세요."
+            "value" : "체중을 기록했습니다. 체성분 측정 중입니다. 움직이지 마세요."
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Peso medido. A medir a composição corporal. Permaneça imóvel sobre a balança."
+            "value" : "Peso registado. A medir a composição corporal. Não se mexa."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Вес измерен. Идёт измерение состава тела. Стойте неподвижно."
+            "value" : "Вес записан. Измеряется состав тела. Не двигайтесь."
           }
         },
         "zh-Hans" : {

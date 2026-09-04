@@ -10,49 +10,49 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "“Built-in” means the parser is implemented. Actual compatibility still requires validation with hardware, firmware, and captured data."
+            "value" : "„Integriert“ heißt: Parser vorhanden. Kompatibilität muss mit Gerätedaten und echter Hardware geprüft werden."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "“Built-in” means the parser is implemented. Actual compatibility still requires validation with hardware, firmware, and captured data."
+            "value" : "Built-in means the parser is ready. Hardware compatibility still needs device testing."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "“Built-in” means the parser is implemented. Actual compatibility still requires validation with hardware, firmware, and captured data."
+            "value" : "Integrado significa que el analizador está listo. La compatibilidad requiere probar el dispositivo."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "“Built-in” means the parser is implemented. Actual compatibility still requires validation with hardware, firmware, and captured data."
+            "value" : "Intégré signifie que l’analyseur est prêt. La compatibilité doit être testée sur l’appareil."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "“Built-in” means the parser is implemented. Actual compatibility still requires validation with hardware, firmware, and captured data."
+            "value" : "内蔵は解析器が利用できる状態です。互換性は実機で確認が必要です。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "“Built-in” means the parser is implemented. Actual compatibility still requires validation with hardware, firmware, and captured data."
+            "value" : "내장은 파서가 준비된 상태입니다. 호환성은 실제 기기에서 확인해야 합니다."
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "“Built-in” means the parser is implemented. Actual compatibility still requires validation with hardware, firmware, and captured data."
+            "value" : "Integrado indica que o analisador está pronto. A compatibilidade requer testes no dispositivo."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "“Built-in” means the parser is implemented. Actual compatibility still requires validation with hardware, firmware, and captured data."
+            "value" : "Встроенный означает, что анализатор готов. Совместимость нужно проверить на устройстве."
           }
         },
         "zh-Hans" : {
@@ -654,49 +654,49 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Körperfett und verwandte Werte sind Verbraucherschätzungen auf Basis bioelektrischer Impedanz und persönlicher Daten. Sie dienen nur zur Beobachtung alltäglicher Trends und stellen keine medizinische Diagnose dar."
+            "value" : "Körperfett und verwandte Werte sind Schätzungen für Alltagstrends, keine Diagnose."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Body fat and related metrics are consumer estimates based on bioelectrical impedance and profile data. They are for everyday trend tracking only and are not a medical diagnosis."
+            "value" : "Body fat and related values are estimates for everyday trends, not a diagnosis."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "La grasa corporal y los indicadores relacionados son estimaciones de consumo basadas en la impedancia bioeléctrica y los datos personales. Solo sirven para observar tendencias cotidianas y no constituyen un diagnóstico médico."
+            "value" : "La grasa corporal y otros valores son estimaciones para observar tendencias, no un diagnóstico."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "La masse grasse et les indicateurs associés sont des estimations grand public fondées sur l’impédance bioélectrique et les données personnelles. Ils servent uniquement au suivi des tendances quotidiennes et ne constituent pas un diagnostic médical."
+            "value" : "La masse grasse et les valeurs associées sont des estimations de tendance, pas un diagnostic."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "体脂肪および関連指標は、生体電気インピーダンスと個人情報に基づく一般消費者向けの推定値です。日々の傾向を確認するための参考であり、医療診断ではありません。"
+            "value" : "体脂肪などは傾向を見るための推定値で、医療診断ではありません。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "체지방 및 관련 지표는 생체전기 임피던스와 개인 정보를 바탕으로 한 소비자용 추정치입니다. 일상적인 추세 확인을 위한 참고 자료이며 의료 진단이 아닙니다."
+            "value" : "체지방 등은 추세 확인용 추정치이며 의료 진단이 아닙니다."
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "A gordura corporal e os indicadores relacionados são estimativas de consumo baseadas na impedância bioelétrica e nos dados pessoais. Servem apenas para acompanhar tendências do dia a dia e não constituem diagnóstico médico."
+            "value" : "A gordura corporal e outros valores são estimativas de tendência, não um diagnóstico."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Жировая масса и связанные показатели — это потребительские оценки на основе биоэлектрического импеданса и личных данных. Они предназначены только для отслеживания повседневных тенденций и не являются медицинским диагнозом."
+            "value" : "Жировая масса и другие показатели — оценки для отслеживания тенденций, не диагноз."
           }
         },
         "zh-Hans" : {
@@ -2067,49 +2067,49 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Deleting a member does not automatically delete historical measurements."
+            "value" : "Beim Löschen eines Mitglieds bleiben frühere Messungen erhalten."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Deleting a member does not automatically delete historical measurements."
+            "value" : "Deleting a member keeps past measurements."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Deleting a member does not automatically delete historical measurements."
+            "value" : "Al borrar un miembro, sus mediciones anteriores se conservan."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Deleting a member does not automatically delete historical measurements."
+            "value" : "La suppression d’un membre conserve ses mesures passées."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Deleting a member does not automatically delete historical measurements."
+            "value" : "メンバーを削除しても過去の測定値は残ります。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Deleting a member does not automatically delete historical measurements."
+            "value" : "구성원을 삭제해도 이전 측정값은 유지됩니다."
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Deleting a member does not automatically delete historical measurements."
+            "value" : "Ao eliminar um membro, as medições anteriores são mantidas."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Deleting a member does not automatically delete historical measurements."
+            "value" : "Удаление участника не удаляет прошлые измерения."
           }
         },
         "zh-Hans" : {
@@ -2131,49 +2131,49 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Deleting an active rule returns its devices to automatic detection. Community rules are not an official compatibility claim."
+            "value" : "Beim Löschen einer aktiven Regel wechseln Geräte zur automatischen Erkennung. Community-Regeln sind keine offizielle Kompatibilitätszusage."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Deleting an active rule returns its devices to automatic detection. Community rules are not an official compatibility claim."
+            "value" : "Deleting an active rule returns devices to auto-detection. Community rules are not official compatibility claims."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Deleting an active rule returns its devices to automatic detection. Community rules are not an official compatibility claim."
+            "value" : "Al borrar una regla activa, los dispositivos vuelven a la detección automática. Las reglas comunitarias no garantizan compatibilidad oficial."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Deleting an active rule returns its devices to automatic detection. Community rules are not an official compatibility claim."
+            "value" : "Supprimer une règle active rétablit la détection automatique. Les règles communautaires ne garantissent pas la compatibilité officielle."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Deleting an active rule returns its devices to automatic detection. Community rules are not an official compatibility claim."
+            "value" : "有効なルールを削除すると自動検出に戻ります。コミュニティルールは公式互換性を保証しません。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Deleting an active rule returns its devices to automatic detection. Community rules are not an official compatibility claim."
+            "value" : "활성 규칙을 삭제하면 기기가 자동 검색으로 돌아갑니다. 커뮤니티 규칙은 공식 호환성을 보장하지 않습니다."
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Deleting an active rule returns its devices to automatic detection. Community rules are not an official compatibility claim."
+            "value" : "Ao eliminar uma regra ativa, os dispositivos voltam à deteção automática. As regras da comunidade não garantem compatibilidade oficial."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Deleting an active rule returns its devices to automatic detection. Community rules are not an official compatibility claim."
+            "value" : "Удаление активного правила возвращает устройства к автоопределению. Правила сообщества не гарантируют официальную совместимость."
           }
         },
         "zh-Hans" : {
@@ -2259,49 +2259,49 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Removing a device does not delete its historical health measurements."
+            "value" : "Beim Entfernen eines Geräts bleiben frühere Gesundheitsmessungen erhalten."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Removing a device does not delete its historical health measurements."
+            "value" : "Removing a device keeps its past health measurements."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Removing a device does not delete its historical health measurements."
+            "value" : "Al quitar un dispositivo, sus mediciones de salud anteriores se conservan."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Removing a device does not delete its historical health measurements."
+            "value" : "Retirer un appareil conserve ses anciennes mesures de santé."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Removing a device does not delete its historical health measurements."
+            "value" : "デバイスを削除しても過去の健康測定値は残ります。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Removing a device does not delete its historical health measurements."
+            "value" : "기기를 삭제해도 이전 건강 측정값은 유지됩니다."
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Removing a device does not delete its historical health measurements."
+            "value" : "Ao remover um dispositivo, as medições de saúde anteriores são mantidas."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Removing a device does not delete its historical health measurements."
+            "value" : "Удаление устройства не удаляет прошлые измерения здоровья."
           }
         },
         "zh-Hans" : {
@@ -3809,49 +3809,49 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Importierte Mitglieder, Geräte, Anzeigeeinheiten und Kommunikationsprotokolle ersetzen die lokale Konfiguration. Messungen bleiben unverändert."
+            "value" : "Importierte Mitglieder, Geräte, Einheiten und Protokolle ersetzen die Einstellungen. Messungen bleiben erhalten."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Imported members, devices, display units, and communication protocols will replace the local configuration. Measurements are not affected."
+            "value" : "Imported members, devices, units, and protocols replace the settings. Measurements stay unchanged."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Los miembros, dispositivos, unidades de visualización y protocolos importados sustituirán la configuración local. Las mediciones no se verán afectadas."
+            "value" : "Los miembros, dispositivos, unidades y protocolos importados reemplazan los ajustes. Las mediciones se conservan."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Les membres, appareils, unités d’affichage et protocoles importés remplaceront la configuration locale. Les mesures ne seront pas affectées."
+            "value" : "Les membres, appareils, unités et protocoles importés remplacent les réglages. Les mesures sont conservées."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "インポートしたメンバー、デバイス、表示単位、通信プロトコルでローカル設定を置き換えます。測定記録には影響しません。"
+            "value" : "読み込んだメンバー、デバイス、単位、プロトコルで設定を置き換えます。測定値は残ります。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "가져온 구성원, 기기, 표시 단위 및 통신 프로토콜이 로컬 설정을 대체합니다. 측정 기록에는 영향을 주지 않습니다."
+            "value" : "가져온 구성원, 기기, 단위, 프로토콜로 설정을 바꿉니다. 측정값은 유지됩니다."
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Os membros, dispositivos, unidades de apresentação e protocolos importados substituirão a configuração local. As medições não serão afetadas."
+            "value" : "Os membros, dispositivos, unidades e protocolos importados substituem as definições. As medições são mantidas."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Импортированные участники, устройства, единицы отображения и протоколы заменят локальную конфигурацию. Измерения не изменятся."
+            "value" : "Импортированные участники, устройства, единицы и протоколы заменят настройки. Измерения сохранятся."
           }
         },
         "zh-Hans" : {
@@ -4836,66 +4836,66 @@
         }
       }
     },
-    "手动录入测量数据" : {
+    "手动录入数据" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Messwert eingeben"
+            "value" : "Daten eingeben"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter measurement"
+            "value" : "Enter data"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Introducir medición"
+            "value" : "Introducir datos"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Saisir une mesure"
+            "value" : "Saisir des données"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "測定値を入力"
+            "value" : "データを入力"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "측정값 직접 입력"
+            "value" : "데이터 직접 입력"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Introduzir medição"
+            "value" : "Introduzir dados"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ввести измерение"
+            "value" : "Ввести данные"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "手动录入测量数据"
+            "value" : "手动录入数据"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "手動輸入測量資料"
+            "value" : "手動輸入資料"
           }
         }
       }
@@ -5155,70 +5155,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "建議裝置"
-          }
-        }
-      }
-    },
-    "搜索、排序或编辑资料" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Profile suchen, sortieren oder bearbeiten"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Search, sort, or edit profiles"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Buscar, ordenar o editar perfiles"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Rechercher, trier ou modifier les profils"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "プロフィールの検索・並べ替え・編集"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "프로필 검색, 정렬 또는 편집"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pesquisar, ordenar ou editar perfis"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Поиск, сортировка и редактирование профилей"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "搜索、排序或编辑资料"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "搜尋、排序或編輯資料"
           }
         }
       }
@@ -7598,70 +7534,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "等待广播包或交互事件..."
-          }
-        }
-      }
-    },
-    "管理全部成员" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Alle Mitglieder verwalten"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Manage all members"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Gestionar todos los miembros"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Gérer tous les membres"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "すべてのメンバーを管理"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "모든 구성원 관리"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Gerir todos os membros"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Управление всеми участниками"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "管理全部成员"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "管理所有成員"
           }
         }
       }

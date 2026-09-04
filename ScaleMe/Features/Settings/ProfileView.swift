@@ -45,23 +45,6 @@ struct ProfileView: View {
             } label: {
                 VStack(spacing: 0) {
                     memberSummary
-
-                    SettingsSeparator()
-
-                    HStack {
-                        Text("管理全部成员")
-                            .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(AppColor.ink)
-                        Spacer()
-                        Text("搜索、排序或编辑资料")
-                            .font(.caption)
-                            .foregroundStyle(AppColor.secondary)
-                        Image(systemName: "chevron.right")
-                            .font(.caption.bold())
-                            .foregroundStyle(AppColor.mint)
-                    }
-                    .padding(.horizontal, 18)
-                    .padding(.vertical, 13)
                 }
                 .background(AppColor.surface.opacity(0.94))
                 .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
@@ -121,7 +104,7 @@ struct ProfileView: View {
         guard let firstSelfProfile else {
             return store.appLanguage.text("添加成员")
         }
-        return "\(firstSelfProfile.name)，\(store.appLanguage.text("管理全部成员"))"
+        return "\(firstSelfProfile.name)，\(store.appLanguage.text("成员管理"))"
     }
 
     private var settingsSection: some View {
@@ -135,31 +118,31 @@ struct ProfileView: View {
                 NavigationLink {
                     DisplaySettingsView()
                 } label: {
-                    settingsRow(store.appLanguage.text(.displaySettings), detail: store.appLanguage.text(.displaySettingsDetail), icon: "slider.horizontal.3", color: AppColor.mint)
+                    settingsRow(store.appLanguage.text(.displaySettings), icon: "slider.horizontal.3", color: AppColor.mint)
                 }
                 SettingsSeparator().padding(.leading, 68)
                 NavigationLink {
                     DataManagementSettingsView()
                 } label: {
-                    settingsRow(store.appLanguage.text(.dataManagement), detail: store.appLanguage.text(.dataManagementDetail), icon: "externaldrive.fill", color: AppColor.sky)
+                    settingsRow(store.appLanguage.text(.dataManagement), icon: "externaldrive.fill", color: AppColor.sky)
                 }
                 SettingsSeparator().padding(.leading, 68)
                 NavigationLink {
                     AppleHealthSettingsView()
                 } label: {
-                    settingsRow(store.appLanguage.text(.dataSharing), detail: store.appLanguage.text(.dataSharingDetail), icon: "heart.fill", color: AppColor.rose)
+                    settingsRow(store.appLanguage.text(.dataSharing), icon: "heart.fill", color: AppColor.rose)
                 }
                 SettingsSeparator().padding(.leading, 68)
                 NavigationLink {
                     CommunicationRulesView()
                 } label: {
-                    settingsRow(store.appLanguage.text(.communicationProtocol), detail: store.appLanguage.text(.communicationProtocolDetail), icon: "point.3.connected.trianglepath.dotted", color: AppColor.violet)
+                    settingsRow(store.appLanguage.text(.communicationProtocol), icon: "point.3.connected.trianglepath.dotted", color: AppColor.violet)
                 }
                 SettingsSeparator().padding(.leading, 68)
                 NavigationLink {
                     AboutView()
                 } label: {
-                    settingsRow(store.appLanguage.text(.about), detail: store.appLanguage.text(.aboutDetail), icon: "leaf.fill", color: AppColor.mint)
+                    settingsRow(store.appLanguage.text(.about), icon: "leaf.fill", color: AppColor.mint)
                 }
             }
             .padding(.horizontal, 14)
@@ -169,21 +152,16 @@ struct ProfileView: View {
         }
     }
 
-    private func settingsRow(_ title: String, detail: String, icon: String, color: Color) -> some View {
+    private func settingsRow(_ title: String, icon: String, color: Color) -> some View {
         HStack(spacing: 14) {
             Image(systemName: icon)
                 .font(.subheadline.weight(.semibold))
                 .foregroundStyle(color)
                 .frame(width: 40, height: 40)
                 .background(color.opacity(0.12), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-            VStack(alignment: .leading, spacing: 3) {
-                Text(title)
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(AppColor.ink)
-                Text(detail)
-                    .font(.caption)
-                    .foregroundStyle(AppColor.secondary)
-            }
+            Text(title)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(AppColor.ink)
             Spacer()
             Image(systemName: "chevron.right")
                 .font(.caption.bold())
@@ -207,164 +185,6 @@ struct ProfileView: View {
             profile.heightCM.formatted(2),
             profile.referenceWeightKG.formatted(2)
         )
-    }
-}
-
-struct LanguageSettingsView: View {
-    @EnvironmentObject private var store: MeasurementStore
-
-    var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 14) {
-                Text(store.appLanguage.text(.languageHint))
-                    .font(.subheadline)
-                    .foregroundStyle(AppColor.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .padding(.horizontal, 2)
-
-                VStack(spacing: 0) {
-                    ForEach(Array(AppLanguageSelection.allCases.enumerated()), id: \.element.id) { index, selection in
-                        languageButton(selection)
-                        if index < AppLanguageSelection.allCases.count - 1 {
-                            SettingsSeparator().padding(.leading, 58)
-                        }
-                    }
-                }
-                .padding(.horizontal, 14)
-                .background(AppColor.surface.opacity(0.94))
-                .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
-                .overlay(RoundedRectangle(cornerRadius: 24, style: .continuous).stroke(AppColor.mint.opacity(0.08)))
-            }
-            .padding(.horizontal, 18)
-            .padding(.top, 8)
-            .padding(.bottom, 28)
-        }
-        .pageBackground()
-        .navigationTitle(store.appLanguage.text(.languageSettings))
-        .navigationBarTitleDisplayMode(.inline)
-        .localizedNavigationBackButton()
-    }
-
-    private func languageButton(_ selection: AppLanguageSelection) -> some View {
-        let isSelected = store.languageSelection == selection
-        let title = selection == .system
-            ? store.appLanguage.text(.followSystem)
-            : selection.explicitLanguage?.nativeName ?? AppLanguage.english.nativeName
-        return Button {
-            withAnimation(.easeInOut(duration: 0.18)) {
-                store.languageSelection = selection
-            }
-        } label: {
-            HStack(spacing: 14) {
-                Image(systemName: "character.bubble.fill")
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(isSelected ? AppColor.mint : AppColor.secondary)
-                    .frame(width: 36, height: 36)
-                    .background(
-                        isSelected ? AppColor.paleMint : AppColor.canvas,
-                        in: RoundedRectangle(cornerRadius: 11, style: .continuous)
-                    )
-
-                Text(title)
-                    .font(.body.weight(isSelected ? .semibold : .regular))
-                    .foregroundStyle(AppColor.ink)
-
-                Spacer()
-
-                Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
-                    .font(.title3)
-                    .foregroundStyle(isSelected ? AppColor.mint : AppColor.secondary.opacity(0.35))
-            }
-            .padding(.vertical, 10)
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel(title)
-        .accessibilityValue(isSelected ? store.appLanguage.text(.selected) : "")
-        .accessibilityAddTraits(isSelected ? .isSelected : [])
-    }
-}
-
-struct AppearanceSettingsView: View {
-    @EnvironmentObject private var store: MeasurementStore
-
-    var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 14) {
-                Text(store.appLanguage.text(.appearanceHint))
-                    .font(.subheadline)
-                    .foregroundStyle(AppColor.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .padding(.horizontal, 2)
-
-                VStack(spacing: 0) {
-                    ForEach(Array(AppAppearance.allCases.enumerated()), id: \.element.id) { index, appearance in
-                        appearanceButton(appearance)
-                        if index < AppAppearance.allCases.count - 1 {
-                            SettingsSeparator().padding(.leading, 58)
-                        }
-                    }
-                }
-                .padding(.horizontal, 14)
-                .background(AppColor.surface.opacity(0.94))
-                .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
-                .overlay(RoundedRectangle(cornerRadius: 24, style: .continuous).stroke(AppColor.mint.opacity(0.08)))
-            }
-            .padding(.horizontal, 18)
-            .padding(.top, 8)
-            .padding(.bottom, 28)
-        }
-        .pageBackground()
-        .navigationTitle(store.appLanguage.text(.appearance))
-        .navigationBarTitleDisplayMode(.inline)
-        .localizedNavigationBackButton()
-    }
-
-    private func appearanceButton(_ appearance: AppAppearance) -> some View {
-        let isSelected = store.appearance == appearance
-        let title = title(for: appearance)
-        return Button {
-            withAnimation(.easeInOut(duration: 0.18)) {
-                store.appearance = appearance
-            }
-        } label: {
-            HStack(spacing: 14) {
-                Image(systemName: icon(for: appearance))
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(isSelected ? AppColor.mint : AppColor.secondary)
-                    .frame(width: 36, height: 36)
-                    .background(isSelected ? AppColor.paleMint : AppColor.canvas, in: RoundedRectangle(cornerRadius: 11, style: .continuous))
-                Text(title)
-                    .font(.body.weight(isSelected ? .semibold : .regular))
-                    .foregroundStyle(AppColor.ink)
-                Spacer()
-                Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
-                    .font(.title3)
-                    .foregroundStyle(isSelected ? AppColor.mint : AppColor.secondary.opacity(0.35))
-            }
-            .padding(.vertical, 10)
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel(title)
-        .accessibilityValue(isSelected ? store.appLanguage.text(.selected) : "")
-        .accessibilityAddTraits(isSelected ? .isSelected : [])
-    }
-
-    private func title(for appearance: AppAppearance) -> String {
-        switch appearance {
-        case .system: store.appLanguage.text(.followSystem)
-        case .light: store.appLanguage.text(.lightAppearance)
-        case .dark: store.appLanguage.text(.darkAppearance)
-        }
-    }
-
-    private func icon(for appearance: AppAppearance) -> String {
-        switch appearance {
-        case .system: "circle.lefthalf.filled"
-        case .light: "sun.max.fill"
-        case .dark: "moon.stars.fill"
-        }
     }
 }
 
