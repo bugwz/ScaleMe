@@ -23,7 +23,6 @@ enum AppColor {
     static let lime = Color(red: 0.74, green: 0.91, blue: 0.64)
     static let paleMint = adaptive(light: 0xE6FAF2, dark: 0x173A32)
     static let sky = Color(red: 0.43, green: 0.76, blue: 0.90)
-    static let countPillText = adaptive(light: 0x6DC2E6, dark: 0xFFFFFF)
     static let violet = Color(red: 0.58, green: 0.66, blue: 0.88)
     static let apricot = Color(red: 0.98, green: 0.67, blue: 0.43)
     static let rose = Color(red: 0.94, green: 0.55, blue: 0.61)

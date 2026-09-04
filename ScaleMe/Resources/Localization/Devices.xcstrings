@@ -1886,71 +1886,6 @@
         }
       }
     },
-    "关联后的模拟设备仅在本次运行中保留。" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Verknüpfte Demogeräte bleiben nur während der aktuellen App-Sitzung erhalten."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Linked demo devices are kept only for the current app session."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Los dispositivos de demostración vinculados solo se conservan durante la sesión actual."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Les appareils de démonstration associés ne sont conservés que pendant la session actuelle."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "関連付けたシミュレーション機器は、現在のアプリ実行中だけ保持されます。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "연결한 데모 기기는 현재 앱 실행 중에만 유지됩니다."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Os dispositivos de demonstração associados são mantidos apenas durante a sessão atual."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Подключённые демонстрационные устройства сохраняются только в текущем сеансе."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "关联后的模拟设备仅在本次运行中保留。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "關聯後的模擬裝置僅在本次執行期間保留。"
-          }
-        }
-      }
-    },
     "其他附近蓝牙设备（%lld）" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -5786,6 +5721,71 @@
         }
       }
     },
+    "已匹配" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zugeordnet"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Matched"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Asignado"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Associé"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "照合済み"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "매칭됨"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Associado"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сопоставлено"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已匹配"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已匹配"
+          }
+        }
+      }
+    },
     "已读取 %lld 条记录，确认后导入当前成员。" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -6371,67 +6371,132 @@
         }
       }
     },
-    "待验证" : {
+    "未匹配" : {
       "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pending validation"
+            "value" : "Nicht zugeordnet"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pending validation"
+            "value" : "Not matched"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pending validation"
+            "value" : "Sin asignar"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pending validation"
+            "value" : "Non associé"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pending validation"
+            "value" : "未照合"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pending validation"
+            "value" : "매칭되지 않음"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pending validation"
+            "value" : "Não associado"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pending validation"
+            "value" : "Не сопоставлено"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "待验证"
+            "value" : "未匹配"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "待验证"
+            "value" : "未匹配"
+          }
+        }
+      }
+    },
+    "扫描完成，发现 %lld 台设备。" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scan abgeschlossen. %lld Geräte gefunden."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scan complete. Found %lld devices."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Escaneo completado. Se encontraron %lld dispositivos."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Analyse terminée. %lld appareils détectés."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "スキャン完了。%lld台のデバイスが見つかりました。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "검색 완료. %lld개의 기기를 찾았습니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pesquisa concluída. Foram encontrados %lld dispositivos."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сканирование завершено. Найдено устройств: %lld."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "扫描完成，发现 %lld 台设备。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "掃描完成，發現 %lld 台裝置。"
           }
         }
       }
@@ -8646,71 +8711,6 @@
         }
       }
     },
-    "标准 BLE Weight 协议及已知的小米广播设备会优先置顶，其余设备需验证兼容性。" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Standard BLE Weight devices and known Xiaomi advertisement devices appear first. Other devices require compatibility validation."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Standard BLE Weight devices and known Xiaomi advertisement devices appear first. Other devices require compatibility validation."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Standard BLE Weight devices and known Xiaomi advertisement devices appear first. Other devices require compatibility validation."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Standard BLE Weight devices and known Xiaomi advertisement devices appear first. Other devices require compatibility validation."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Standard BLE Weight devices and known Xiaomi advertisement devices appear first. Other devices require compatibility validation."
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Standard BLE Weight devices and known Xiaomi advertisement devices appear first. Other devices require compatibility validation."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Standard BLE Weight devices and known Xiaomi advertisement devices appear first. Other devices require compatibility validation."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Standard BLE Weight devices and known Xiaomi advertisement devices appear first. Other devices require compatibility validation."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "标准 BLE Weight 协议及已知的小米广播设备会优先置顶，其余设备需验证兼容性。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "标准 BLE Weight 协议及已知的小米广播设备会优先置顶，其余设备需验证兼容性。"
-          }
-        }
-      }
-    },
     "标准体成分" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -9166,132 +9166,132 @@
         }
       }
     },
-    "正在扫描周围设备" : {
+    "正在扫描附近的设备…" : {
       "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Geräte werden gesucht"
+            "value" : "Geräte in der Nähe werden gesucht…"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Scanning nearby devices"
+            "value" : "Scanning for nearby devices…"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Buscando dispositivos"
+            "value" : "Buscando dispositivos cercanos…"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Recherche à proximité"
+            "value" : "Recherche des appareils à proximité…"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "周辺をスキャン中"
+            "value" : "近くのデバイスをスキャン中…"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "주변 기기 검색 중"
+            "value" : "주변 기기를 검색하는 중…"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "A procurar dispositivos"
+            "value" : "A procurar dispositivos próximos…"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Поиск устройств"
+            "value" : "Поиск устройств поблизости…"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "正在扫描周围设备"
+            "value" : "正在扫描附近的设备…"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "正在掃描附近裝置"
+            "value" : "正在掃描附近的裝置…"
           }
         }
       }
     },
-    "正在扫描模拟设备" : {
+    "正在扫描模拟设备…" : {
       "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Scanning for demo devices"
+            "value" : "Scanning for demo devices…"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Scanning for demo devices"
+            "value" : "Scanning for demo devices…"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Scanning for demo devices"
+            "value" : "Scanning for demo devices…"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Scanning for demo devices"
+            "value" : "Scanning for demo devices…"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Scanning for demo devices"
+            "value" : "Scanning for demo devices…"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Scanning for demo devices"
+            "value" : "Scanning for demo devices…"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Scanning for demo devices"
+            "value" : "Scanning for demo devices…"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Scanning for demo devices"
+            "value" : "Scanning for demo devices…"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "正在扫描模拟设备"
+            "value" : "正在扫描模拟设备…"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "正在扫描模拟设备"
+            "value" : "正在掃描模擬裝置…"
           }
         }
       }

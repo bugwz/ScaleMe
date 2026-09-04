@@ -35,7 +35,7 @@ struct ProfileView: View {
                 Spacer()
                 StatusPill(
                     text: store.appLanguage.format("%lld 人", store.managedProfiles.count),
-                    color: AppColor.countPillText,
+                    color: AppColor.secondary,
                     backgroundColor: AppColor.surface
                 )
             }

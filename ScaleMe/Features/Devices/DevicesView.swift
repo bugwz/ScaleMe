@@ -53,6 +53,10 @@ private struct ScannerDevice: Identifiable, Hashable {
     let discoveryPriority: Int
     let isVerifiedCompatible: Bool
 
+    var isUnnamed: Bool {
+        name.hasPrefix("未命名设备 ")
+    }
+
     init(
         id: UUID,
         name: String,
@@ -237,7 +241,7 @@ struct DevicesView: View {
                 Spacer()
                 StatusPill(
                     text: store.appLanguage.format("%lld 台", orderedScales.count),
-                    color: AppColor.countPillText,
+                    color: AppColor.secondary,
                     backgroundColor: AppColor.surface
                 )
             }
@@ -335,8 +339,8 @@ struct DevicesView: View {
     }
 
     private func deviceRowVisual(_ scale: PairedScale) -> some View {
-        let isUnverified = ScaleDiscoveryCompatibility(rawValue: scale.compatibility)?.isVerified != true
-        let accentColor = isUnverified ? AppColor.apricot : AppColor.mint
+        let hasMatchedProtocol = store.effectiveCommunicationRule(for: scale) != nil
+        let accentColor = hasMatchedProtocol ? AppColor.mint : AppColor.apricot
 
         return HStack(spacing: 14) {
             ScaleDeviceIconView(size: 40, iconSize: 19, accent: accentColor)
@@ -345,6 +349,8 @@ struct DevicesView: View {
                 Text(scale.name)
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(AppColor.ink)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
                 Text(scale.modelName)
                     .font(.caption)
                     .foregroundStyle(AppColor.secondary)
@@ -354,7 +360,7 @@ struct DevicesView: View {
             Spacer(minLength: 8)
 
             StatusPill(
-                text: isUnverified ? "待验证" : "已关联",
+                text: hasMatchedProtocol ? "已匹配" : "未匹配",
                 color: accentColor
             )
 
@@ -551,10 +557,9 @@ private struct DeviceScannerView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var showsOtherDevices = false
-    @State private var isPulsing = false
+    @State private var isScanRunning = false
     @State private var simulatedDevices: [ScannerDevice] = []
-    @State private var isSimulatedScanRunning = false
-    @State private var simulatedScanTask: Task<Void, Never>?
+    @State private var scanTask: Task<Void, Never>?
 
     private var simulatedCandidates: [ScannerDevice] { [
         ScannerDevice(
@@ -592,29 +597,18 @@ private struct DeviceScannerView: View {
                 scanArea
             }
             .padding(.horizontal, 18)
+            .padding(.top, 16)
             .padding(.bottom, 28)
         }
         .pageBackground()
         .navigationTitle("添加设备")
         .navigationBarTitleDisplayMode(.inline)
         .localizedNavigationBackButton()
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button(action: startScan) {
-                    Image(systemName: "arrow.clockwise")
-                        .font(.body.weight(.semibold))
-                        .foregroundStyle(AppColor.mint)
-                }
-                .accessibilityLabel("重新扫描")
-                .disabled(store.isUsingPlaceholderData)
-            }
-        }
         .onAppear {
-            isPulsing = true
             startScan()
         }
         .onDisappear {
-            simulatedScanTask?.cancel()
+            scanTask?.cancel()
             if !store.isSimulationEnabled {
                 bluetooth.stopScanning()
             }
@@ -625,21 +619,7 @@ private struct DeviceScannerView: View {
         VStack(spacing: 24) {
             scanStage
 
-            HStack(alignment: .top, spacing: 8) {
-                Image(systemName: "info.circle.fill")
-                    .foregroundStyle(AppColor.mint)
-                    .font(.caption)
-                AppLocalizedText(scanInformation)
-                    .font(.caption)
-                    .foregroundStyle(AppColor.secondary)
-                    .lineSpacing(2)
-            }
-            .padding(.horizontal, 2)
-            .frame(maxWidth: .infinity, alignment: .leading)
-
-            if scannerDevices.isEmpty {
-                emptyScanState
-            } else {
+            if !scannerDevices.isEmpty {
                 discoveryResults
             }
         }
@@ -652,11 +632,15 @@ private struct DeviceScannerView: View {
                 Circle()
                     .stroke(AppColor.mint.opacity(0.08), lineWidth: 28)
                     .frame(width: 250, height: 250)
-                    .scaleEffect(isPulsing && !reduceMotion ? 1.06 : 0.98)
-                    .opacity(isPulsing && !reduceMotion ? 0.28 : 0.6)
+                    .scaleEffect(isScanRunning && !reduceMotion ? 1.06 : 0.98)
+                    .opacity(isScanRunning && !reduceMotion ? 0.28 : 0.6)
                     .animation(
-                        reduceMotion ? nil : .easeInOut(duration: 1.4).repeatForever(autoreverses: true),
-                        value: isPulsing
+                        reduceMotion
+                            ? nil
+                            : isScanRunning
+                                ? .easeInOut(duration: 1.4).repeatForever(autoreverses: true)
+                                : .easeOut(duration: 0.2),
+                        value: isScanRunning
                     )
 
                 Circle()
@@ -670,85 +654,40 @@ private struct DeviceScannerView: View {
                     .frame(width: 204, height: 204)
                     .shadow(color: AppColor.mint.opacity(0.12), radius: 24, y: 10)
 
-                VStack(spacing: 13) {
+                Button(action: startScan) {
                     ScaleDeviceIconView(size: 78, iconSize: 36, accent: scanStageColor)
-
-                    StatusPill(text: scanStageLabel, color: scanStageColor)
                 }
+                .buttonStyle(.plain)
+                .contentShape(Circle())
+                .accessibilityLabel("重新扫描")
+                .disabled(store.isUsingPlaceholderData)
             }
             .frame(maxWidth: .infinity)
 
-            VStack(spacing: 7) {
-                AppLocalizedText(scanTitle)
-                    .font(.title3.bold())
-                    .foregroundStyle(AppColor.ink)
-
-                AppLocalizedText(scanDescription)
-                    .font(.subheadline)
-                    .foregroundStyle(AppColor.secondary)
-                    .multilineTextAlignment(.center)
-                    .lineSpacing(3)
-            }
+            Text(scanDescription)
+                .font(.subheadline)
+                .foregroundStyle(AppColor.secondary)
+                .multilineTextAlignment(.center)
+                .lineSpacing(3)
         }
-        .frame(maxWidth: .infinity, minHeight: 330)
-    }
-
-    @ViewBuilder
-    private var emptyScanState: some View {
-        if !store.isSimulationEnabled, case .unavailable = bluetooth.state {
-            Button(action: startScan) {
-                Label("重试扫描", systemImage: "arrow.clockwise")
-                    .frame(maxWidth: .infinity)
-            }
-            .buttonStyle(MintActionButtonStyle())
-        } else {
-            HStack(spacing: 10) {
-                ProgressView()
-                    .tint(AppColor.mint)
-                AppLocalizedText(store.isSimulationEnabled ? "正在载入预设模拟设备" : "暂未发现设备，请唤醒体重秤并靠近手机")
-                    .font(.caption)
-                    .foregroundStyle(AppColor.secondary)
-            }
-            .frame(maxWidth: .infinity)
-        }
-    }
-
-    private var scanStageLabel: String {
-        if !store.isSimulationEnabled, case .unavailable = bluetooth.state {
-            return "扫描不可用"
-        }
-        if scannerDevices.isEmpty {
-            return "搜索中"
-        }
-        return store.appLanguage.format("已发现 %lld 台", Int64(scannerDevices.count))
+        .frame(maxWidth: .infinity, minHeight: 300)
     }
 
     private var scanStageColor: Color {
         if !store.isSimulationEnabled, case .unavailable = bluetooth.state {
             return AppColor.apricot
         }
-        return scannerDevices.isEmpty ? AppColor.sky : AppColor.mint
-    }
-
-    private var scanTitle: String {
-        if store.isSimulationEnabled {
-            return isSimulatedScanRunning ? "正在扫描模拟设备" : "已发现模拟设备"
-        }
-        if case .unavailable(let reason) = bluetooth.state { return reason }
-        return "正在扫描周围设备"
+        return isScanRunning ? AppColor.sky : AppColor.mint
     }
 
     private var scanDescription: String {
-        if store.isSimulationEnabled {
-            return "正在演示设备发现流程。这里显示的都是预设内容，不会搜索、连接或操作附近的真实设备。"
+        if !store.isSimulationEnabled, case .unavailable(let reason) = bluetooth.state {
+            return store.appLanguage.text(reason)
         }
-        return "正在搜索附近的低功耗蓝牙设备。部分体重秤只有踩亮屏幕或站上去后才会广播。"
-    }
-
-    private var scanInformation: String {
-        store.isSimulationEnabled
-            ? "关联后的模拟设备仅在本次运行中保留。"
-            : "标准 BLE Weight 协议及已知的小米广播设备会优先置顶，其余设备需验证兼容性。"
+        if isScanRunning {
+            return store.appLanguage.text(store.isSimulationEnabled ? "正在扫描模拟设备…" : "正在扫描附近的设备…")
+        }
+        return store.appLanguage.format("扫描完成，发现 %lld 台设备。", Int64(scannerDevices.count))
     }
 
     private var scannerDevices: [ScannerDevice] {
@@ -763,59 +702,70 @@ private struct DeviceScannerView: View {
     }
 
     private var otherDevices: [ScannerDevice] {
-        scannerDevices.filter { $0.discoveryPriority == 2 }
+        let nearbyDevices = scannerDevices.filter { $0.discoveryPriority == 2 }
+        return nearbyDevices.filter { !$0.isUnnamed } + nearbyDevices.filter(\.isUnnamed)
     }
 
     private var discoveryResults: some View {
         VStack(alignment: .leading, spacing: 14) {
-            if likelyScaleDevices.isEmpty {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("暂未识别到体重秤")
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(AppColor.ink)
-                    Text("请先踩亮体重秤。如果名称较普通，可在下方展开附近设备查找。")
-                        .font(.caption)
-                        .foregroundStyle(AppColor.secondary)
+            SettingsPanel(title: "推荐识别", icon: "checkmark.seal.fill") {
+                if likelyScaleDevices.isEmpty {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("暂未识别到体重秤")
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(AppColor.ink)
+                        Text("请先踩亮体重秤。如果名称较普通，可在下方展开附近设备查找。")
+                            .font(.caption)
+                            .foregroundStyle(AppColor.secondary)
+                    }
+                } else {
+                    deviceRows(likelyScaleDevices)
                 }
-            } else {
-                Text("推荐识别")
-                    .font(.caption.weight(.bold))
-                    .foregroundStyle(AppColor.mint)
-                deviceRows(likelyScaleDevices)
             }
 
             if !otherDevices.isEmpty {
-                VStack(alignment: .leading, spacing: 10) {
-                    Button {
-                        showsOtherDevices.toggle()
-                    } label: {
-                        HStack {
-                            Text(store.appLanguage.format("其他附近蓝牙设备（%lld）", Int64(otherDevices.count)))
-                                .font(.subheadline.weight(.semibold))
-                            Spacer()
-                            Image(systemName: showsOtherDevices ? "chevron.up" : "chevron.down")
-                                .font(.caption.bold())
+                SoftCard(padding: 18) {
+                    VStack(alignment: .leading, spacing: 14) {
+                        Button {
+                            showsOtherDevices.toggle()
+                        } label: {
+                            HStack(spacing: 8) {
+                                Image(systemName: "antenna.radiowaves.left.and.right")
+                                    .font(.caption.weight(.semibold))
+                                    .foregroundStyle(AppColor.mint)
+                                    .frame(width: 26, height: 26)
+                                    .background(AppColor.paleMint, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                                Text(store.appLanguage.format("其他附近蓝牙设备（%lld）", Int64(otherDevices.count)))
+                                    .font(.headline)
+                                    .foregroundStyle(AppColor.ink)
+                                Spacer()
+                                Image(systemName: "chevron.down")
+                                    .font(.caption.bold())
+                                    .foregroundStyle(AppColor.secondary)
+                                    .rotationEffect(.degrees(showsOtherDevices ? 180 : 0))
+                                    .animation(.easeInOut(duration: 0.18), value: showsOtherDevices)
+                            }
+                            .contentShape(Rectangle())
                         }
-                        .foregroundStyle(AppColor.secondary)
-                        .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
+                        .buttonStyle(.plain)
 
-                    if showsOtherDevices {
-                        deviceRows(otherDevices)
-                            .transition(.opacity.combined(with: .scale(scale: 0.98, anchor: .top)))
+                        if showsOtherDevices {
+                            deviceRows(otherDevices)
+                        }
                     }
                 }
-                .animation(.smooth(duration: 0.25), value: showsOtherDevices)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private func deviceRows(_ devices: [ScannerDevice]) -> some View {
-        VStack(spacing: 10) {
+        LazyVStack(spacing: 0) {
             ForEach(devices) { device in
                 discoveredRow(device)
+                if device.id != devices.last?.id {
+                    SettingsSeparator()
+                }
             }
         }
     }
@@ -866,9 +816,7 @@ private struct DeviceScannerView: View {
             .buttonStyle(.plain)
             .disabled(existing || store.isUsingPlaceholderData)
         }
-        .padding(12)
-        .background(AppColor.surface, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).stroke(accent.opacity(0.12)))
+        .padding(.vertical, 8)
     }
 
     private func signalSymbol(for rssi: Int) -> String {
@@ -887,25 +835,36 @@ private struct DeviceScannerView: View {
 
     private func startScan() {
         guard !store.isUsingPlaceholderData else {
-            simulatedScanTask?.cancel()
+            scanTask?.cancel()
             bluetooth.stopScanning()
+            isScanRunning = false
             return
         }
+        scanTask?.cancel()
         showsOtherDevices = false
-        if store.isSimulationEnabled {
-            simulatedScanTask?.cancel()
+        isScanRunning = true
+        let isSimulation = store.isSimulationEnabled
+
+        if isSimulation {
             simulatedDevices = []
-            isSimulatedScanRunning = true
-            simulatedScanTask = Task { @MainActor in
-                try? await Task.sleep(for: reduceMotion ? .milliseconds(180) : .milliseconds(1_100))
-                guard !Task.isCancelled else { return }
-                withAnimation(.easeOut(duration: reduceMotion ? 0 : 0.24)) {
-                    simulatedDevices = simulatedCandidates
-                    isSimulatedScanRunning = false
-                }
-            }
         } else {
             bluetooth.startScanning()
+        }
+
+        scanTask = Task { @MainActor in
+            if isSimulation {
+                try? await Task.sleep(for: .milliseconds(900))
+                guard !Task.isCancelled else { return }
+                simulatedDevices = simulatedCandidates
+                try? await Task.sleep(for: .milliseconds(5_100))
+            } else {
+                try? await Task.sleep(for: .seconds(6))
+            }
+            guard !Task.isCancelled else { return }
+            if !isSimulation {
+                bluetooth.stopScanning()
+            }
+            isScanRunning = false
         }
     }
 }

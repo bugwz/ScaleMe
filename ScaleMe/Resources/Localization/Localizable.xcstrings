@@ -5095,6 +5095,7 @@
       }
     },
     "推荐识别" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -9867,6 +9868,7 @@
       }
     },
     "重试扫描" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
