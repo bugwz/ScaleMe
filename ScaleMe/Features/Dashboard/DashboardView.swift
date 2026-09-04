@@ -242,6 +242,7 @@ struct DashboardView: View {
 
                     compactTrend(
                         measurements: measurements,
+                        profile: profile,
                         theme: theme
                     )
                     .padding(.top, 12)
@@ -299,21 +300,36 @@ struct DashboardView: View {
 
     private func compactTrend(
         measurements: [BodyMeasurement],
+        profile: UserProfile,
         theme: MemberVisualTheme
     ) -> some View {
-        let recentMeasurements = lastWeekMeasurements(from: measurements)
-        let weightDomain = compactWeightDomain(for: recentMeasurements)
-        let placeholderValue = recentMeasurements.first
-            .map { store.unit.value(fromKilograms: $0.weightKG) }
+        let endDate = Date.now
+        let recentMeasurements = TrendAnalysis.measurements(
+            from: measurements,
+            metric: .weight,
+            profile: profile,
+            range: .week,
+            endingAt: endDate
+        )
+        let trendPoints = TrendAnalysis.points(
+            from: recentMeasurements,
+            metric: .weight,
+            profile: profile,
+            range: .week,
+            mode: .period
+        )
+        let weightDomain = compactWeightDomain(for: trendPoints)
+        let placeholderValue = trendPoints.first
+            .map { store.unit.value(fromKilograms: $0.value) }
             ?? 0.5
 
         return Button(action: onShowTrends) {
             Chart {
-                if recentMeasurements.count >= 2 {
-                    ForEach(recentMeasurements) { item in
+                if trendPoints.count >= 2 {
+                    ForEach(trendPoints) { point in
                         LineMark(
-                            x: .value("日期", item.date),
-                            y: .value("体重", store.unit.value(fromKilograms: item.weightKG))
+                            x: .value("日期", point.date),
+                            y: .value("体重", store.unit.value(fromKilograms: point.value))
                         )
                         .foregroundStyle(theme.primary)
                         .lineStyle(.init(lineWidth: 2.5, lineCap: .round, lineJoin: .round))
@@ -324,10 +340,10 @@ struct DashboardView: View {
                         .foregroundStyle(theme.primary.opacity(0.32))
                         .lineStyle(.init(lineWidth: 2, dash: [5, 5]))
 
-                    if let item = recentMeasurements.first {
+                    if let point = trendPoints.first {
                         PointMark(
-                            x: .value("日期", item.date),
-                            y: .value("体重", store.unit.value(fromKilograms: item.weightKG))
+                            x: .value("日期", point.date),
+                            y: .value("体重", store.unit.value(fromKilograms: point.value))
                         )
                         .foregroundStyle(theme.primary)
                         .symbolSize(24)
@@ -345,23 +361,16 @@ struct DashboardView: View {
         .accessibilityLabel("查看近期趋势")
         .accessibilityValue(
             store.appLanguage.text(
-                recentMeasurements.count >= 2 ? "近一周体重趋势" : "近一周趋势数据不足"
+                trendPoints.count >= 2 ? "近一周体重趋势" : "近一周趋势数据不足"
             )
         )
         .accessibilityHint("切换到趋势页面")
     }
 
-    private func lastWeekMeasurements(from measurements: [BodyMeasurement]) -> [BodyMeasurement] {
-        let start = Calendar.current.date(byAdding: .day, value: -7, to: .now) ?? .distantPast
-        return measurements
-            .filter { $0.date >= start && $0.date <= .now }
-            .sorted { $0.date < $1.date }
-    }
-
     private func compactWeightDomain(
-        for measurements: [BodyMeasurement]
+        for points: [TrendPoint]
     ) -> ClosedRange<Double> {
-        let values = measurements.map { store.unit.value(fromKilograms: $0.weightKG) }
+        let values = points.map { store.unit.value(fromKilograms: $0.value) }
         guard let minimum = values.min(), let maximum = values.max() else { return 0...1 }
 
         let spread = maximum - minimum

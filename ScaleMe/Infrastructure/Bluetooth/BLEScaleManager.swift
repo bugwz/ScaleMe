@@ -124,7 +124,8 @@ final class BLEScaleManager: NSObject, ObservableObject {
         case failed
     }
     enum State: Equatable {
-        case idle, unavailable(String), scanning, connecting(String), connected(String), measuring, stabilizing, completed
+        case idle, unavailable(String), scanning, connecting(String), connected(String)
+        case measuringWeight, measuringBodyComposition, confirmingMeasurement, completed
 
         func title(in language: AppLanguage) -> String {
             switch self {
@@ -133,8 +134,9 @@ final class BLEScaleManager: NSObject, ObservableObject {
             case .scanning: language.text("正在等待已关联的设备")
             case .connecting(let name): language.format("正在连接 %@", name)
             case .connected(let name): language.format("已连接 %@", name)
-            case .measuring: language.text("已感知到体重，正在测量")
-            case .stabilizing: language.text("读数正在稳定，请保持站立")
+            case .measuringWeight: language.text("正在测量体重，请保持站立")
+            case .measuringBodyComposition: language.text("体重测量完成，正在测量身体成分，请保持站立")
+            case .confirmingMeasurement: language.text("正在确认测量结果，请保持站立")
             case .completed: language.text("测量完成，最终值已保存")
             }
         }
@@ -977,9 +979,9 @@ final class BLEScaleManager: NSObject, ObservableObject {
         }
         switch update.phase {
         case .measuring:
-            state = .measuring
+            state = .measuringWeight
         case .stabilizing:
-            state = .stabilizing
+            state = .confirmingMeasurement
         case .completed:
             guard let completed = update.completedMeasurement else { return }
             latestMeasurement = completed
@@ -1014,7 +1016,7 @@ final class BLEScaleManager: NSObject, ObservableObject {
             senssunIF2121StableWeightKG = nil
             weightWasRemoved()
         case .progress:
-            if senssunIF2121StableWeightKG != nil { state = .stabilizing }
+            if senssunIF2121StableWeightKG != nil { state = .measuringBodyComposition }
         case .measurement(let phase, let measurement):
             switch phase {
             case .final:
@@ -1026,14 +1028,14 @@ final class BLEScaleManager: NSObject, ObservableObject {
                 guard prepareForSenssunIF2121LiveWeight(measurement.weightKG) else { return }
                 senssunIF2121StableWeightKG = measurement.weightKG
                 liveWeightKG = measurement.weightKG
-                state = .stabilizing
+                state = .measuringBodyComposition
             case .live:
                 guard prepareForSenssunIF2121LiveWeight(measurement.weightKG) else { return }
                 senssunIF2121StableWeightKG = nil
                 liveWeightKG = measurement.weightKG
-                state = .measuring
+                state = .measuringWeight
             case .bodyCompositionProgress:
-                break
+                if senssunIF2121StableWeightKG != nil { state = .measuringBodyComposition }
             }
         }
     }
@@ -1885,11 +1887,11 @@ extension BLEScaleManager: CBPeripheralDelegate {
                         didCompleteWolaiFinal = false
                     }
                     liveWeightKG = packet.measurement.weightKG
-                    state = .measuring
+                    state = .measuringWeight
                 case .stable:
                     guard !didCompleteWolaiFinal else { return }
                     liveWeightKG = packet.measurement.weightKG
-                    state = .stabilizing
+                    state = .measuringBodyComposition
                 case .final:
                     guard !didCompleteWolaiFinal else { return }
                     didCompleteWolaiFinal = true
@@ -2495,7 +2497,7 @@ extension BLEScaleManager: CBPeripheralDelegate {
                 on: peripheral
             )
         } else if status == 1 {
-            state = .measuring
+            state = .measuringWeight
         }
     }
 

@@ -1,6 +1,9 @@
 import Foundation
 
 struct SimulationDataSnapshot {
+    static let bodyCompositionScaleModelName = "ScaleMe Body Pro"
+    static let weightOnlyScaleModelName = "ScaleMe Weight Mini"
+
     var profiles: [UserProfile]
     var selectedProfileID: UUID
     var pairedScales: [PairedScale]
@@ -47,14 +50,14 @@ struct SimulationDataSnapshot {
             PairedScale(
                 id: primaryScaleID,
                 name: copy.primaryScaleName,
-                modelName: "ScaleMe Body Pro",
+                modelName: bodyCompositionScaleModelName,
                 compatibility: copy.simulatedDevice,
                 addedAt: calendar.date(byAdding: .day, value: -420, to: today) ?? today
             ),
             PairedScale(
                 id: secondaryScaleID,
                 name: copy.secondaryScaleName,
-                modelName: "ScaleMe Weight Mini",
+                modelName: weightOnlyScaleModelName,
                 compatibility: copy.simulatedDevice,
                 addedAt: calendar.date(byAdding: .day, value: -210, to: today) ?? today
             )
@@ -83,6 +86,10 @@ struct SimulationDataSnapshot {
             )
         }
         return snapshot
+    }
+
+    static func supportsBodyComposition(on device: PairedScale?) -> Bool {
+        device?.modelName == bodyCompositionScaleModelName
     }
 
     private static func simulationProfile(
@@ -224,20 +231,23 @@ struct SimulationDataSnapshot {
         let muscleMassKG = fatFreeMassKG * (profile.biologicalSex == .male ? 0.94 : 0.91)
         let deviceID = random.nextUnit() < 0.84 ? primaryScaleID : secondaryScaleID
 
+        let supportsBodyComposition = deviceID == primaryScaleID
         result.append(BodyMeasurement(
             id: random.uuid(),
             date: date,
             weightKG: weightKG,
-            impedanceOhm: 485 + random.nextGaussianish() * 22,
-            bodyFatPercent: bodyFatPercent,
-            muscleMassKG: muscleMassKG,
-            waterPercent: waterPercent,
-            visceralFat: max(1, (bodyFatPercent - 12) * 0.42),
-            basalMetabolismKCal: 10 * weightKG
-                + 6.25 * profile.heightCM
-                - 5 * Double(profile.age)
-                + (profile.biologicalSex == .male ? 5 : -161),
-            boneMassKG: max(0.5, fatFreeMassKG * 0.052),
+            impedanceOhm: supportsBodyComposition ? 485 + random.nextGaussianish() * 22 : nil,
+            bodyFatPercent: supportsBodyComposition ? bodyFatPercent : nil,
+            muscleMassKG: supportsBodyComposition ? muscleMassKG : nil,
+            waterPercent: supportsBodyComposition ? waterPercent : nil,
+            visceralFat: supportsBodyComposition ? max(1, (bodyFatPercent - 12) * 0.42) : nil,
+            basalMetabolismKCal: supportsBodyComposition
+                ? 10 * weightKG
+                    + 6.25 * profile.heightCM
+                    - 5 * Double(profile.age)
+                    + (profile.biologicalSex == .male ? 5 : -161)
+                : nil,
+            boneMassKG: supportsBodyComposition ? max(0.5, fatFreeMassKG * 0.052) : nil,
             source: .demo,
             isStable: true,
             profileID: profile.id,
@@ -254,6 +264,59 @@ struct SimulationDataSnapshot {
             return 6 * 60 + 18 + random.nextInt(in: 0...116)
         }
         return 19 * 60 + 5 + random.nextInt(in: 0...178)
+    }
+}
+
+enum SimulationMeasurementGenerator {
+    static func make(
+        profile: UserProfile,
+        recentMeasurement: BodyMeasurement?,
+        device: PairedScale?,
+        date: Date = .now,
+        calendar: Calendar = .current
+    ) -> BodyMeasurement {
+        let age = max(5, calendar.dateComponents([.year], from: profile.birthDate, to: date).year ?? 30)
+        let heightMeters = profile.heightCM / 100
+        let fallbackBMI = age < 18 ? 18.0 : 22.0
+        let baselineWeightKG = recentMeasurement?.weightKG ?? max(15, fallbackBMI * heightMeters * heightMeters)
+        let phase = date.timeIntervalSinceReferenceDate / 43
+        let weightDeltaKG = sin(phase) * 0.18
+        let weightKG = max(5, min(350, baselineWeightKG + weightDeltaKG))
+
+        let fallbackBodyFat = profile.biologicalSex == .male
+            ? 16 + max(0, Double(age - 30)) * 0.08
+            : 24 + max(0, Double(age - 30)) * 0.10
+        let baselineBodyFat = recentMeasurement?.bodyFatPercent ?? fallbackBodyFat
+        let bodyFatPercent = max(3, min(60, baselineBodyFat + weightDeltaKG * 0.25 + cos(phase) * 0.04))
+        let fatFreeMassKG = weightKG * (1 - bodyFatPercent / 100)
+        let muscleRatio = profile.biologicalSex == .male ? 0.94 : 0.91
+        let impedanceOhm = max(100, min(2_000, (recentMeasurement?.impedanceOhm ?? 485) + cos(phase) * 4))
+        let supportsBodyComposition = SimulationDataSnapshot.supportsBodyComposition(on: device)
+
+        return BodyMeasurement(
+            date: date,
+            weightKG: weightKG,
+            impedanceOhm: supportsBodyComposition ? impedanceOhm : nil,
+            secondaryImpedanceOhm: supportsBodyComposition ? recentMeasurement?.secondaryImpedanceOhm : nil,
+            bodyFatPercent: supportsBodyComposition ? bodyFatPercent : nil,
+            muscleMassKG: supportsBodyComposition ? fatFreeMassKG * muscleRatio : nil,
+            waterPercent: supportsBodyComposition ? max(30, min(75, (100 - bodyFatPercent) * 0.732)) : nil,
+            visceralFat: supportsBodyComposition
+                ? max(1, min(30, (bodyFatPercent - 12) * 0.45 + Double(age) * 0.03))
+                : nil,
+            basalMetabolismKCal: supportsBodyComposition
+                ? 10 * weightKG
+                    + 6.25 * profile.heightCM
+                    - 5 * Double(age)
+                    + (profile.biologicalSex == .male ? 5 : -161)
+                : nil,
+            boneMassKG: supportsBodyComposition ? max(0.5, min(5, fatFreeMassKG * 0.052)) : nil,
+            source: .demo,
+            isStable: true,
+            profileID: profile.id,
+            deviceID: device?.id,
+            deviceName: device?.name
+        )
     }
 }
 

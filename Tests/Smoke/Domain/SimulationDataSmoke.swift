@@ -61,6 +61,49 @@ enum SimulationDataSmoke {
         precondition(Set(recentMeasurements.compactMap(\.profileID)) == Set(metadata.profiles.map(\.id)),
                      "the fast recent chunk must include every simulated member")
 
+        for profile in metadata.profiles {
+            let profileRecent = recentMeasurements
+                .filter { $0.profileID == profile.id }
+                .max { $0.date < $1.date }
+            let profileBodyCompositionRecent = recentMeasurements
+                .filter { $0.profileID == profile.id && $0.hasBodyComposition }
+                .max { $0.date < $1.date }
+            let interactive = SimulationMeasurementGenerator.make(
+                profile: profile,
+                recentMeasurement: profileBodyCompositionRecent,
+                device: metadata.pairedScales.first,
+                date: referenceDate,
+                calendar: calendar
+            )
+            precondition(interactive.profileID == profile.id,
+                         "interactive simulation must remain attributed to its selected member")
+            precondition(interactive.deviceID == metadata.pairedScales.first?.id,
+                         "interactive simulation must remain attributed to its selected scale")
+            precondition(interactive.date == referenceDate && interactive.source == .demo && interactive.isStable,
+                         "interactive simulation must create a new completed demo measurement")
+            if let profileBodyCompositionRecent {
+                precondition(abs(interactive.weightKG - profileBodyCompositionRecent.weightKG) <= 0.19,
+                             "interactive simulation must follow the selected member's recent weight trend")
+                precondition(abs((interactive.bodyFatPercent ?? 0) - (profileBodyCompositionRecent.bodyFatPercent ?? 0)) <= 0.1,
+                             "interactive simulation must follow the selected member's recent body-fat trend")
+            }
+            precondition(DashboardMetricKind.allCases.allSatisfy { $0.value(in: interactive) != nil },
+                         "interactive simulation must produce a complete, internally consistent result")
+
+            let weightOnlyInteractive = SimulationMeasurementGenerator.make(
+                profile: profile,
+                recentMeasurement: profileRecent,
+                device: metadata.pairedScales.last,
+                date: referenceDate,
+                calendar: calendar
+            )
+            precondition(!weightOnlyInteractive.hasBodyComposition,
+                         "interactive weight-only scale measurements must not contain body composition")
+            precondition(weightOnlyInteractive.impedanceOhm == nil
+                            && DashboardMetricKind.allCases.allSatisfy { $0.value(in: weightOnlyInteractive) == nil },
+                         "interactive weight-only scale measurements must contain weight only")
+        }
+
         let sameDayMorning = calendar.date(from: DateComponents(
             year: 2026, month: 8, day: 30, hour: 1
         )) ?? .now
@@ -165,13 +208,21 @@ enum SimulationDataSmoke {
                 )
             }
             for measurement in measurements {
-                for metric in DashboardMetricKind.allCases {
-                    precondition(
-                        metric.value(in: measurement) != nil,
-                        "模拟记录缺少 \(metric.title)：\(profile.name)"
-                    )
+                if measurement.deviceID == first.pairedScales.first?.id {
+                    for metric in DashboardMetricKind.allCases {
+                        precondition(
+                            metric.value(in: measurement) != nil,
+                            "模拟体脂秤记录缺少 \(metric.title)：\(profile.name)"
+                        )
+                    }
+                    precondition(measurement.impedanceOhm != nil,
+                                 "模拟体脂秤记录缺少生物电阻抗：\(profile.name)")
+                } else {
+                    precondition(!measurement.hasBodyComposition && measurement.impedanceOhm == nil,
+                                 "模拟体重秤记录只能包含体重：\(profile.name)")
+                    precondition(DashboardMetricKind.allCases.allSatisfy { $0.value(in: measurement) == nil },
+                                 "模拟体重秤记录不能包含衍生身体成分：\(profile.name)")
                 }
-                precondition(measurement.impedanceOhm != nil, "模拟记录缺少生物电阻抗：\(profile.name)")
             }
         }
 

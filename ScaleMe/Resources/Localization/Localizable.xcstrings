@@ -1,6 +1,9 @@
 {
   "sourceLanguage" : "zh-Hans",
   "strings" : {
+    "--" : {
+
+    },
     "“内置”表示解析器已实现；具体设备是否可用仍以实机、固件和已捕获数据验证为准。" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -3730,70 +3733,6 @@
         }
       }
     },
-    "导入的成员、设备、显示单位和通信协议将替换本机配置。测量记录不受影响。" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Importierte Mitglieder, Geräte, Anzeigeeinheiten und Kommunikationsprotokolle ersetzen die lokale Konfiguration. Messungen bleiben unverändert."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Imported members, devices, display units, and communication protocols will replace the local configuration. Measurements are not affected."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Los miembros, dispositivos, unidades de visualización y protocolos importados sustituirán la configuración local. Las mediciones no se verán afectadas."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Les membres, appareils, unités d’affichage et protocoles importés remplaceront la configuration locale. Les mesures ne seront pas affectées."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "インポートしたメンバー、デバイス、表示単位、通信プロトコルでローカル設定を置き換えます。測定記録には影響しません。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "가져온 구성원, 기기, 표시 단위 및 통신 프로토콜이 로컬 설정을 대체합니다. 측정 기록에는 영향을 주지 않습니다."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Os membros, dispositivos, unidades de apresentação e protocolos importados substituirão a configuração local. As medições não serão afetadas."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Импортированные участники, устройства, единицы отображения и протоколы заменят локальную конфигурацию. Измерения не изменятся."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "导入的成员、设备、显示单位和通信协议将替换本机配置。测量记录不受影响。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "匯入的成員、裝置、顯示單位和通訊協定將取代本機設定。測量記錄不受影響。"
-          }
-        }
-      }
-    },
     "导入数据文件？" : {
       "localizations" : {
         "de" : {
@@ -3854,6 +3793,70 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "匯入資料檔案？"
+          }
+        }
+      }
+    },
+    "导入的成员、设备、显示单位和通信协议将替换本机配置。测量记录不受影响。" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Importierte Mitglieder, Geräte, Anzeigeeinheiten und Kommunikationsprotokolle ersetzen die lokale Konfiguration. Messungen bleiben unverändert."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Imported members, devices, display units, and communication protocols will replace the local configuration. Measurements are not affected."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los miembros, dispositivos, unidades de visualización y protocolos importados sustituirán la configuración local. Las mediciones no se verán afectadas."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les membres, appareils, unités d’affichage et protocoles importés remplaceront la configuration locale. Les mesures ne seront pas affectées."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "インポートしたメンバー、デバイス、表示単位、通信プロトコルでローカル設定を置き換えます。測定記録には影響しません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "가져온 구성원, 기기, 표시 단위 및 통신 프로토콜이 로컬 설정을 대체합니다. 측정 기록에는 영향을 주지 않습니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Os membros, dispositivos, unidades de apresentação e protocolos importados substituirão a configuração local. As medições não serão afetadas."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Импортированные участники, устройства, единицы отображения и протоколы заменят локальную конфигурацию. Измерения не изменятся."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "导入的成员、设备、显示单位和通信协议将替换本机配置。测量记录不受影响。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "匯入的成員、裝置、顯示單位和通訊協定將取代本機設定。測量記錄不受影響。"
           }
         }
       }
@@ -9323,70 +9326,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "身體組成指標為消費級估算值，僅供長期趨勢參考，不構成醫療診斷。"
-          }
-        }
-      }
-    },
-    "身体成分由阻抗与当前成员资料估算" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Körperwerte aus Impedanz und Profil geschätzt"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Body composition is estimated from impedance and profile data"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Composición estimada con impedancia y perfil"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Composition estimée avec l’impédance et le profil"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "体組成はインピーダンスとプロフィールから推定"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "체성분은 저항값과 프로필로 추정됩니다"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Composição estimada pela impedância e perfil"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Состав тела рассчитан по импедансу и профилю"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "身体成分由阻抗与当前成员资料估算"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "身體組成依阻抗與成員資料估算"
           }
         }
       }

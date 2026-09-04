@@ -24,10 +24,20 @@ struct MeasureView: View {
     @State private var showProfileDropdown = false
     @State private var showScaleDropdown = false
     @State private var selectedScaleID: UUID?
+    @State private var simulationState: BLEScaleManager.State = .completed
+    @State private var simulatedWeightKG: Double?
+    @State private var simulationMeasurementTask: Task<Void, Never>?
+    @State private var detailMeasurement: BodyMeasurement?
+    @State private var displayedActualWeightKG: Double?
+    @State private var actualWeightPresentationTask: Task<Void, Never>?
     let scrollToTopRequest: Int
 
     private var liveMeasurement: BodyMeasurement? {
-        if store.isSimulationEnabled { return store.latest }
+        if store.isSimulationEnabled {
+            guard simulationState == .completed else { return nil }
+            return store.latest
+        }
+        guard bluetooth.state == .completed else { return nil }
         return bluetooth.latestMeasurement.map {
             BodyCompositionEstimator.enriching($0, profile: store.displaySelectedProfile)
         }
@@ -84,8 +94,10 @@ struct MeasureView: View {
                             userSwitchButton
                         }
                     }
-                    scaleStage
-                    manualEntryButton
+                    VStack(spacing: 12) {
+                        scaleStage
+                        manualEntryButton
+                    }
                     measurementSummary
                     safetyNote
                 }
@@ -96,16 +108,24 @@ struct MeasureView: View {
             .pageBackground()
             .toolbar(.hidden, for: .navigationBar)
             .sheet(isPresented: $showManualEntry) { ManualEntryView() }
+            .navigationDestination(item: $detailMeasurement) { measurement in
+                MeasurementDetailView(measurement: measurement)
+            }
             .onAppear {
                 isMeasurementViewActive = true
                 isPulsing = true
-                if !store.isSimulationEnabled {
+                if store.isSimulationEnabled {
+                    resetSimulatedMeasurement()
+                } else {
+                    displayedActualWeightKG = bluetooth.liveWeightKG
                     startMeasurementMonitoring()
                 }
             }
             .onDisappear {
                 isMeasurementViewActive = false
                 isPulsing = false
+                simulationMeasurementTask?.cancel()
+                actualWeightPresentationTask?.cancel()
                 bluetooth.stopScanning()
             }
             .onChange(of: store.pairedScales) {
@@ -121,7 +141,13 @@ struct MeasureView: View {
             .onChange(of: store.isSimulationEnabled) { _, isEnabled in
                 if isEnabled {
                     bluetooth.stopScanning()
+                    actualWeightPresentationTask?.cancel()
+                    displayedActualWeightKG = nil
+                    resetSimulatedMeasurement()
                 } else {
+                    simulationMeasurementTask?.cancel()
+                    simulatedWeightKG = nil
+                    displayedActualWeightKG = bluetooth.liveWeightKG
                     if let selectedScaleID,
                        !store.pairedScales.contains(where: { $0.id == selectedScaleID }) {
                         self.selectedScaleID = nil
@@ -130,13 +156,25 @@ struct MeasureView: View {
                     }
                 }
             }
-            .onChange(of: store.selectedProfileID) {
-                guard isMeasurementViewActive, !store.isSimulationEnabled else { return }
-                startMeasurementMonitoring()
+            .onChange(of: store.displaySelectedProfileID) {
+                guard isMeasurementViewActive else { return }
+                if store.isSimulationEnabled {
+                    resetSimulatedMeasurement()
+                } else {
+                    startMeasurementMonitoring()
+                }
             }
             .onChange(of: selectedScaleID) {
+                guard isMeasurementViewActive else { return }
+                if store.isSimulationEnabled {
+                    resetSimulatedMeasurement()
+                } else {
+                    startMeasurementMonitoring()
+                }
+            }
+            .onChange(of: bluetooth.liveWeightKG) { _, weightKG in
                 guard isMeasurementViewActive, !store.isSimulationEnabled else { return }
-                startMeasurementMonitoring()
+                presentActualWeight(weightKG)
             }
         }
         .overlayPreferenceValue(MeasureProfileAnchorKey.self) { anchor in
@@ -249,35 +287,39 @@ struct MeasureView: View {
                     .fill(LinearGradient(colors: [AppColor.surface, AppColor.paleMint], startPoint: .top, endPoint: .bottom))
                     .frame(width: 230, height: 230)
                     .shadow(color: AppColor.mint.opacity(0.12), radius: 24, y: 10)
-                VStack(spacing: 10) {
+                VStack(spacing: 12) {
                     stageIcon
                         .foregroundStyle(AppColor.mint)
                         .contentTransition(.symbolEffect(.replace))
+                        .frame(width: 44, height: 44, alignment: .center)
                     HStack(alignment: .firstTextBaseline, spacing: 5) {
                         Text(liveWeightText)
                             .font(.system(size: 54, weight: .medium, design: .rounded))
                             .contentTransition(.numericText())
-                        if bluetooth.liveWeightKG != nil {
+                        if hasLiveWeight {
                             Text(store.unit.symbol).font(.headline)
                         }
                     }
-                    AppLocalizedText(statusText)
-                        .font(.subheadline).foregroundStyle(AppColor.secondary)
-                        .multilineTextAlignment(.center)
-                    if let stageLabel {
-                        StatusPill(text: stageLabel, color: stageColor)
-                            .transition(.opacity.combined(with: .scale))
+                    .frame(height: 64, alignment: .center)
+                    ZStack {
+                        if let stageLabel {
+                            StatusPill(text: stageLabel, color: stageColor)
+                                .transition(.opacity.combined(with: .scale))
+                        }
                     }
+                    .frame(height: 26, alignment: .center)
                 }
+                .offset(y: -8)
             }
             .frame(maxWidth: .infinity)
 
-            AppLocalizedText(store.isSimulationEnabled
-                ? "当前显示最近一条模拟测量，关闭模拟数据后恢复真实设备监听"
-                : "轻踩唤醒体重秤后站稳，本应用会自动接收读数")
-                .font(.subheadline).foregroundStyle(AppColor.secondary)
+            AppLocalizedText(statusText)
+                .font(.subheadline)
+                .foregroundStyle(AppColor.secondary)
                 .multilineTextAlignment(.center)
-
+                .lineLimit(2)
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: 340, minHeight: 44)
         }
         .frame(maxWidth: .infinity, minHeight: 330)
     }
@@ -376,124 +418,305 @@ struct MeasureView: View {
     }
 
     private var liveWeightText: String {
-        if store.isSimulationEnabled, let weightKG = store.latest?.weightKG {
+        if store.isSimulationEnabled, let weightKG = simulatedDisplayWeightKG {
             return store.unit.value(fromKilograms: weightKG).formatted(2)
         }
-        guard let weightKG = bluetooth.liveWeightKG else { return "— —" }
+        guard let weightKG = displayedActualWeightKG else { return "— —" }
         return store.unit.value(fromKilograms: weightKG).formatted(2)
     }
 
     private var statusText: String {
-        if store.isSimulationEnabled { return "模拟数据模式" }
+        if store.isSimulationEnabled { return simulationState.title(in: store.appLanguage) }
         if store.pairedScales.isEmpty { return "请先在“设备”页添加体重秤" }
         return bluetooth.state.title(in: store.appLanguage)
+    }
+
+    private var displayedMeasurementState: BLEScaleManager.State {
+        store.isSimulationEnabled ? simulationState : bluetooth.state
+    }
+
+    private var simulatedDisplayWeightKG: Double? {
+        switch simulationState {
+        case .measuringWeight, .measuringBodyComposition, .confirmingMeasurement, .completed:
+            simulatedWeightKG ?? store.latest?.weightKG
+        default:
+            nil
+        }
+    }
+
+    private var hasLiveWeight: Bool {
+        store.isSimulationEnabled ? simulatedDisplayWeightKG != nil : displayedActualWeightKG != nil
     }
 
     @ViewBuilder
     private var stageIcon: some View {
         if store.isSimulationEnabled {
-            Image(systemName: "sparkles")
-                .font(.title2)
-        } else {
-            switch bluetooth.state {
-            case .completed:
-                Image(systemName: "checkmark.circle.fill")
-                    .font(.title2)
-            case .measuring, .stabilizing:
-                Image(systemName: "waveform")
-                    .font(.title2)
-            default:
-                Image("ScaleDeviceTabIcon")
-                    .renderingMode(.template)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 22, height: 22)
+            Button(action: runSimulatedMeasurement) {
+                stageIconContent
+                    .frame(width: 44, height: 44)
+                    .contentShape(Circle())
             }
+            .buttonStyle(.plain)
+            .accessibilityLabel(store.appLanguage.text("模拟一次测量"))
+        } else {
+            stageIconContent
+                .frame(width: 44, height: 44)
         }
     }
 
+    @ViewBuilder
+    private var stageIconContent: some View {
+        switch displayedMeasurementState {
+        case .measuringWeight, .measuringBodyComposition, .confirmingMeasurement:
+            Image(systemName: "waveform")
+                .font(.title2)
+        default:
+            scaleDeviceStageIcon
+        }
+    }
+
+    private var scaleDeviceStageIcon: some View {
+        Image("ScaleDeviceTabIcon")
+            .renderingMode(.template)
+            .resizable()
+            .scaledToFit()
+            .frame(width: 22, height: 22)
+    }
+
     private var stageLabel: String? {
-        if store.isSimulationEnabled { return "模拟" }
-        return switch bluetooth.state {
-        case .measuring: "已感知"
-        case .stabilizing: "稳定中"
-        case .completed: "已完成"
+        switch displayedMeasurementState {
+        case .measuringWeight, .measuringBodyComposition, .confirmingMeasurement: "测量中"
+        case .completed: "测量完成"
         default: nil
         }
     }
 
     private var stageColor: Color {
-        switch bluetooth.state {
-        case .measuring: AppColor.sky
-        case .stabilizing: AppColor.apricot
+        switch displayedMeasurementState {
+        case .measuringWeight, .measuringBodyComposition, .confirmingMeasurement: AppColor.sky
         default: AppColor.mint
+        }
+    }
+
+    private var simulationScaleName: String {
+        simulationScale?.name ?? store.appLanguage.text("模拟设备")
+    }
+
+    private var simulationScale: PairedScale? {
+        if let selectedScaleID,
+           let scale = store.displayPairedScales.first(where: { $0.id == selectedScaleID }) {
+            return scale
+        }
+        return store.displayPairedScales.first
+    }
+
+    private func runSimulatedMeasurement() {
+        guard store.isSimulationEnabled else { return }
+        simulationMeasurementTask?.cancel()
+        let selectedSimulationScale = simulationScale
+        let scaleName = selectedSimulationScale?.name ?? simulationScaleName
+        let supportsBodyComposition = SimulationDataSnapshot.supportsBodyComposition(on: selectedSimulationScale)
+        let recentMeasurement = supportsBodyComposition
+            ? store.displayMeasurements.first(where: \.hasBodyComposition) ?? store.latest
+            : store.latest
+        let completedMeasurement = SimulationMeasurementGenerator.make(
+            profile: store.displaySelectedProfile,
+            recentMeasurement: recentMeasurement,
+            device: selectedSimulationScale
+        )
+        let finalWeightKG = completedMeasurement.weightKG
+        simulationMeasurementTask = Task { @MainActor in
+            updateSimulation(state: .scanning, weightKG: nil)
+            guard await waitForSimulation(milliseconds: 1_000) else { return }
+            updateSimulation(state: .connecting(scaleName), weightKG: nil)
+            guard await waitForSimulation(milliseconds: 1_100) else { return }
+            updateSimulation(state: .connected(scaleName), weightKG: nil)
+            guard await waitForSimulation(milliseconds: 700) else { return }
+
+            for factor in [0.62, 0.74, 0.85, 0.93, 0.98, 1.0] {
+                updateSimulation(state: .measuringWeight, weightKG: finalWeightKG * factor)
+                guard await waitForSimulation(milliseconds: 450) else { return }
+            }
+
+            if supportsBodyComposition {
+                updateSimulation(state: .measuringBodyComposition, weightKG: finalWeightKG)
+                guard await waitForSimulation(milliseconds: 1_500) else { return }
+            }
+            updateSimulation(state: .confirmingMeasurement, weightKG: finalWeightKG)
+            guard await waitForSimulation(milliseconds: supportsBodyComposition ? 1_000 : 2_500) else { return }
+            store.add(completedMeasurement)
+            updateSimulation(state: .completed, weightKG: finalWeightKG)
+        }
+    }
+
+    private func resetSimulatedMeasurement() {
+        simulationMeasurementTask?.cancel()
+        simulationState = .completed
+        simulatedWeightKG = store.latest?.weightKG
+    }
+
+    @MainActor
+    private func updateSimulation(state: BLEScaleManager.State, weightKG: Double?) {
+        if reduceMotion {
+            simulationState = state
+            simulatedWeightKG = weightKG
+        } else {
+            withAnimation(.easeInOut(duration: 0.22)) {
+                simulationState = state
+                simulatedWeightKG = weightKG
+            }
+        }
+    }
+
+    private func waitForSimulation(milliseconds: Int) async -> Bool {
+        do {
+            try await Task.sleep(for: .milliseconds(milliseconds))
+            return !Task.isCancelled
+        } catch {
+            return false
+        }
+    }
+
+    private func presentActualWeight(_ targetWeightKG: Double?) {
+        actualWeightPresentationTask?.cancel()
+        guard let targetWeightKG else {
+            displayedActualWeightKG = nil
+            return
+        }
+        guard !reduceMotion else {
+            displayedActualWeightKG = targetWeightKG
+            return
+        }
+
+        if let currentWeightKG = displayedActualWeightKG {
+            withAnimation(.easeOut(duration: 0.12)) {
+                displayedActualWeightKG = targetWeightKG
+            }
+            return
+        }
+
+        displayedActualWeightKG = targetWeightKG * 0.94
+        actualWeightPresentationTask = Task { @MainActor in
+            do {
+                try await Task.sleep(for: .milliseconds(110))
+            } catch {
+                return
+            }
+            withAnimation(.easeOut(duration: 0.12)) {
+                displayedActualWeightKG = targetWeightKG
+            }
         }
     }
 
     @ViewBuilder
     private var measurementSummary: some View {
-        if let measurement = liveMeasurement {
-            SoftCard {
-                VStack(alignment: .leading, spacing: 16) {
-                    HStack {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("本次测量").font(.headline)
-                            Text(measurement.date, format: .dateTime.month().day().hour().minute())
+        Button {
+            if let liveMeasurement {
+                detailMeasurement = liveMeasurement
+            }
+        } label: {
+            measurementSummaryCard(liveMeasurement)
+        }
+        .buttonStyle(.plain)
+        .disabled(liveMeasurement == nil)
+    }
+
+    private func measurementSummaryCard(_ measurement: BodyMeasurement?) -> some View {
+        let measurementProfile = measurementProfile(for: measurement)
+        return SoftCard {
+            VStack(alignment: .leading, spacing: 16) {
+                HStack {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("本次测量").font(.headline)
+                        if let measurement {
+                            Text(measurement.date, format: .dateTime.year().month().day().hour().minute())
+                                .font(.caption).foregroundStyle(AppColor.secondary)
+                        } else {
+                            Text("--")
                                 .font(.caption).foregroundStyle(AppColor.secondary)
                         }
-                        Spacer()
-                        StatusPill(text: "最终值")
                     }
-                    LazyVGrid(columns: [.init(.flexible()), .init(.flexible())], spacing: 16) {
-                        ForEach(Array(summaryMetrics(for: measurement).enumerated()), id: \.offset) { _, metric in
-                            liveMetric(metric.title, metric.value)
-                        }
+                    Spacer()
+                    if measurement != nil {
+                        AppLocalizedText("详情")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(AppColor.mint)
                     }
-                    if measurement.hasBodyComposition {
-                        Label("身体成分由阻抗与当前成员资料估算", systemImage: "function")
-                            .font(.caption)
-                            .foregroundStyle(AppColor.secondary)
-                    }
-                    ScaleDeviceLabel(
-                        title: measurement.deviceName
-                            ?? bluetooth.currentScaleName
-                            ?? store.appLanguage.text(measurement.source.localizationKey),
-                        iconSize: 13
-                    )
-                        .font(.caption).foregroundStyle(AppColor.secondary)
                 }
+                VStack(spacing: 0) {
+                    measurementSummaryRow(
+                        "体重",
+                        value: measurement.map {
+                            "\(store.unit.value(fromKilograms: $0.weightKG).formatted(2)) \(store.unit.symbol)"
+                        } ?? "--"
+                    )
+                    measurementSummaryRow(
+                        "BMI",
+                        value: measurement.map { $0.bmi(heightCM: measurementProfile.heightCM).formatted(2) } ?? "--"
+                    )
+                    measurementSummaryRow(
+                        "体脂率",
+                        value: measurement?.bodyFatPercent.map { "\($0.formatted(2))%" } ?? "--",
+                        showsDivider: false
+                    )
+                }
+                HStack(spacing: 12) {
+                    ScaleDeviceLabel(title: summaryDeviceName(for: measurement), iconSize: 13)
+                        .lineLimit(1)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+
+                    HStack(spacing: 6) {
+                        Text(measurementProfile.name)
+                            .lineLimit(1)
+                        MemberAvatarView(
+                            avatar: measurementProfile.avatar,
+                            width: 22,
+                            height: 22,
+                            showsBackdrop: false
+                        )
+                        .clipShape(Circle())
+                    }
+                    .fixedSize(horizontal: true, vertical: false)
+                }
+                .font(.caption)
+                .foregroundStyle(AppColor.secondary)
             }
         }
     }
 
-    private func liveMetric(_ title: String, _ value: String) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(value).font(.headline).foregroundStyle(AppColor.ink)
-            AppLocalizedText(title).font(.caption2).foregroundStyle(AppColor.secondary)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
+    private func measurementProfile(for measurement: BodyMeasurement?) -> UserProfile {
+        guard let profileID = measurement?.profileID else { return store.displaySelectedProfile }
+        return store.displayProfiles.first(where: { $0.id == profileID }) ?? store.displaySelectedProfile
     }
 
-    private func summaryMetrics(for measurement: BodyMeasurement) -> [(title: String, value: String)] {
-        var metrics = [
-            ("BMI", measurement.bmi(heightCM: store.displaySelectedProfile.heightCM).formatted(2))
-        ]
-        if let value = measurement.bodyFatPercent {
-            metrics.append(("体脂率", "\(value.formatted(2))%"))
+    private func summaryDeviceName(for measurement: BodyMeasurement?) -> String {
+        if let measurement {
+            return measurement.deviceName
+                ?? bluetooth.currentScaleName
+                ?? store.appLanguage.text(measurement.source.localizationKey)
         }
-        if let value = measurement.fatMassKG {
-            metrics.append(("脂肪量", "\(value.formatted(2)) kg"))
+        if store.isSimulationEnabled { return simulationScaleName }
+        return bluetooth.currentScaleName ?? selectedScaleName
+    }
+
+    private func measurementSummaryRow(
+        _ title: String,
+        value: String,
+        showsDivider: Bool = true
+    ) -> some View {
+        VStack(spacing: 0) {
+            HStack {
+                AppLocalizedText(title)
+                    .foregroundStyle(AppColor.secondary)
+                Spacer()
+                Text(value)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(AppColor.ink)
+            }
+            .font(.subheadline)
+            .padding(.vertical, 12)
+            if showsDivider { Divider() }
         }
-        if let value = measurement.muscleMassKG {
-            metrics.append(("肌肉量", "\(value.formatted(2)) kg"))
-        }
-        if let value = measurement.waterPercent {
-            metrics.append(("身体水分", "\(value.formatted(2))%"))
-        }
-        if let value = measurement.visceralFat {
-            metrics.append(("内脏脂肪", value.formatted(2)))
-        }
-        return metrics
     }
 
     private var safetyNote: some View {

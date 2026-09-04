@@ -53,6 +53,26 @@ private enum TrendAnalysisSmoke {
         )
         require(monthWeights.count == 3, "30-day range should exclude older measurements")
 
+        let weekWeights = TrendAnalysis.measurements(
+            from: fixtures,
+            metric: .weight,
+            profile: profile,
+            range: .week,
+            endingAt: endDate,
+            calendar: calendar
+        )
+        let weekPoints = TrendAnalysis.points(
+            from: weekWeights,
+            metric: .weight,
+            profile: profile,
+            range: .week,
+            mode: .period,
+            calendar: calendar
+        )
+        require(weekWeights.count == 2, "7-day range should exclude older measurements")
+        require(weekPoints.count == 1, "7-day period mode should produce one point per measured day")
+        require(weekPoints.first?.value == 61, "7-day period mode should average same-day weights")
+
         let monthBodyFat = TrendAnalysis.measurements(
             from: fixtures,
             metric: .bodyFat,

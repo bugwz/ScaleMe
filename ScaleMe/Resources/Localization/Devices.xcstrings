@@ -11341,69 +11341,49 @@
         }
       }
     },
-    "读数正在稳定，请保持站立" : {
+    "正在测量体重，请保持站立" : {
       "extractionState" : "manual",
       "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Reading is stabilizing; keep standing still"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Reading is stabilizing; keep standing still"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Reading is stabilizing; keep standing still"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Reading is stabilizing; keep standing still"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Reading is stabilizing; keep standing still"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Reading is stabilizing; keep standing still"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Reading is stabilizing; keep standing still"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Reading is stabilizing; keep standing still"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "读数正在稳定，请保持站立"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "读数正在稳定，请保持站立"
-          }
-        }
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Das Gewicht wird gemessen. Bitte still stehen." } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Measuring weight. Keep standing still." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Midiendo el peso. Mantente de pie sin moverte." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Mesure du poids en cours. Restez immobile." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "体重を測定中です。そのまま動かずにお待ちください。" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "체중을 측정하고 있습니다. 움직이지 말고 서 있어 주세요." } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "A medir o peso. Permaneça imóvel sobre a balança." } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Идёт измерение веса. Стойте неподвижно." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "正在测量体重，请保持站立" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "正在測量體重，請保持站立" } }
+      }
+    },
+    "体重测量完成，正在测量身体成分，请保持站立" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Gewichtsmessung abgeschlossen. Körperzusammensetzung wird gemessen. Bitte still stehen." } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Weight measurement complete. Measuring body composition. Keep standing still." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Peso medido. Midiendo la composición corporal. Mantente de pie sin moverte." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Poids mesuré. Mesure de la composition corporelle en cours. Restez immobile." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "体重の測定が完了しました。体組成を測定中です。そのままお待ちください。" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "체중 측정이 완료되었습니다. 신체 구성을 측정하고 있으니 그대로 서 있어 주세요." } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Peso medido. A medir a composição corporal. Permaneça imóvel sobre a balança." } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Вес измерен. Идёт измерение состава тела. Стойте неподвижно." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "体重测量完成，正在测量身体成分，请保持站立" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "體重測量完成，正在測量身體組成，請保持站立" } }
+      }
+    },
+    "正在确认测量结果，请保持站立" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Das Messergebnis wird bestätigt. Bitte still stehen." } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Confirming the measurement. Keep standing still." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Confirmando la medición. Mantente de pie sin moverte." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Confirmation de la mesure. Restez immobile." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "測定結果を確認中です。そのまま動かずにお待ちください。" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "측정 결과를 확인하고 있습니다. 움직이지 말고 서 있어 주세요." } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "A confirmar a medição. Permaneça imóvel sobre a balança." } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Идёт подтверждение результата. Стойте неподвижно." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "正在确认测量结果，请保持站立" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "正在確認測量結果，請保持站立" } }
       }
     },
     "远程规则只允许使用 HTTPS 地址" : {
