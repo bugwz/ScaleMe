@@ -321,7 +321,17 @@ struct DevicesView: View {
         let accentColor = isUnverified ? AppColor.apricot : AppColor.mint
 
         return HStack(spacing: 14) {
-            ScaleAvatarIconView(size: 40, iconSize: 19, accent: accentColor)
+            Image("ScaleDeviceTabIcon")
+                .renderingMode(.template)
+                .resizable()
+                .scaledToFit()
+                .foregroundStyle(accentColor)
+                .frame(width: 19, height: 19)
+                .frame(width: 40, height: 40)
+                .background(
+                    accentColor.opacity(0.12),
+                    in: RoundedRectangle(cornerRadius: 12, style: .continuous)
+                )
 
             VStack(alignment: .leading, spacing: 3) {
                 Text(scale.name)
