@@ -57,7 +57,7 @@ struct ScaleMeApp: App {
 
             }
             .background(AppColor.canvas.ignoresSafeArea())
-            .preferredColorScheme(store.appearance.colorScheme)
+            .background(AppAppearanceTransitionView(appearance: store.appearance))
             .environment(\.locale, store.appLanguage.locale)
             .environment(\.appLanguage, store.appLanguage)
             .onReceive(bluetooth.$latestMeasurement.compactMap { $0 }) { measurement in
@@ -113,10 +113,68 @@ struct ScaleMeApp: App {
     }
 }
 
+private struct AppAppearanceTransitionView: UIViewControllerRepresentable {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    let appearance: AppAppearance
+
+    func makeUIViewController(context: Context) -> AppearanceController {
+        let controller = AppearanceController()
+        controller.requestedStyle = appearance.interfaceStyle
+        return controller
+    }
+
+    func updateUIViewController(_ controller: AppearanceController, context: Context) {
+        controller.apply(appearance.interfaceStyle, animated: !reduceMotion)
+    }
+
+    final class AppearanceController: UIViewController {
+        var requestedStyle: UIUserInterfaceStyle = .unspecified
+        private var hasAppliedInitialStyle = false
+
+        override func loadView() {
+            let view = UIView()
+            view.backgroundColor = .clear
+            view.isUserInteractionEnabled = false
+            self.view = view
+        }
+
+        override func viewDidAppear(_ animated: Bool) {
+            super.viewDidAppear(animated)
+            apply(requestedStyle, animated: false)
+        }
+
+        func apply(_ style: UIUserInterfaceStyle, animated: Bool) {
+            requestedStyle = style
+            guard let window = viewIfLoaded?.window else { return }
+            guard window.overrideUserInterfaceStyle != style else {
+                hasAppliedInitialStyle = true
+                return
+            }
+
+            let shouldAnimate = animated && hasAppliedInitialStyle
+            hasAppliedInitialStyle = true
+
+            guard shouldAnimate else {
+                window.overrideUserInterfaceStyle = style
+                return
+            }
+
+            UIView.transition(
+                with: window,
+                duration: 0.32,
+                options: [.transitionCrossDissolve, .beginFromCurrentState, .allowAnimatedContent]
+            ) {
+                window.overrideUserInterfaceStyle = style
+            }
+        }
+    }
+}
+
 private extension AppAppearance {
-    var colorScheme: ColorScheme? {
+    var interfaceStyle: UIUserInterfaceStyle {
         switch self {
-        case .system: nil
+        case .system: .unspecified
         case .light: .light
         case .dark: .dark
         }

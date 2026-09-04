@@ -23,6 +23,7 @@ enum AppColor {
     static let lime = Color(red: 0.74, green: 0.91, blue: 0.64)
     static let paleMint = adaptive(light: 0xE6FAF2, dark: 0x173A32)
     static let sky = Color(red: 0.43, green: 0.76, blue: 0.90)
+    static let countPillText = adaptive(light: 0x6DC2E6, dark: 0xFFFFFF)
     static let violet = Color(red: 0.58, green: 0.66, blue: 0.88)
     static let apricot = Color(red: 0.98, green: 0.67, blue: 0.43)
     static let rose = Color(red: 0.94, green: 0.55, blue: 0.61)
@@ -124,6 +125,7 @@ struct SoftCard<Content: View>: View {
 struct StatusPill: View {
     let text: String
     var color: Color = AppColor.mint
+    var backgroundColor: Color? = nil
 
     var body: some View {
         AppLocalizedText(text)
@@ -131,7 +133,7 @@ struct StatusPill: View {
             .foregroundStyle(color)
             .padding(.horizontal, 10)
             .padding(.vertical, 5)
-            .background(color.opacity(0.11), in: Capsule())
+            .background(backgroundColor ?? color.opacity(0.11), in: Capsule())
     }
 }
 

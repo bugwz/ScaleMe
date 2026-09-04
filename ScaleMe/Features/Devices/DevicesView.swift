@@ -237,7 +237,8 @@ struct DevicesView: View {
                 Spacer()
                 StatusPill(
                     text: store.appLanguage.format("%lld 台", orderedScales.count),
-                    color: AppColor.sky
+                    color: AppColor.countPillText,
+                    backgroundColor: AppColor.surface
                 )
             }
 
