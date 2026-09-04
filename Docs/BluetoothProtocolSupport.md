@@ -34,7 +34,7 @@
 | Bluetooth SIG BCS `181B/2A9C` | 标准 GATT | 体脂及标准可选身体成分字段 | 已实现，数据样本验证通过 |
 | Xiaomi legacy `181B` | Service Data 广播 | 体重、阻抗、稳定/离秤、时间戳 | 已实现广播解析；该代际的 GATT 历史协议尚无真机抓包，不声明支持 |
 | Xiaomi XMTZC04HM `181D` + `2A2F` | Service Data 广播 + 私有 GATT | 体重、稳定/离秤、时间戳；手动读取秤内历史并在导入后回执 | 已实现，MI SCALE2 HCI 抓包验证通过；待 iOS 真机验证 |
-| Wolai AFU `FFB0/FFB2` | 私有 GATT | 实时、锁定、最终体重及双阻抗原始通道 | 已用 `AFU-WL-TZ-A1 / FG2313UWB-D` 真机采集分析；改动后待回归 |
+| Wolai AFU `FFB0/FFB1/FFB2` | 私有 GATT | 主动连接、时间初始化、实时/锁定/最终体重、可选双阻抗及最终结果回执；不声明历史读取 | 已用 `AFU-WL-TZ-A1 / FG2313UWB-D` 真机采集分析；iOS 会话改动待真机回归 |
 | Senssun IF2121A `FFF0/FFF1/FFF3` | 私有 GATT | `33 CC` 校验、实时/稳定体重、体成分检测阶段、动态测量序号、40 字节最终结果分片重组；未确认字段不作为阻抗或心率入库 | 四次同机测量抓包 fixture 验证通过；实现后待 iPhone 真机回归 |
 | QN AABB | Manufacturer Data | 体重、稳定状态 | 数据样本验证通过，待真机 |
 | AAA002 / AAA007 / AAA013 | Manufacturer Data | XOR 解码、校验、体重、稳定状态 | 数据样本验证通过，待真机 |

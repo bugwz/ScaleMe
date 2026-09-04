@@ -47,12 +47,8 @@ struct WolaiAFUScaleParser {
                   bytes[13...16].allSatisfy({ $0 == 0 }) else {
                 throw ScalePayloadError.unsupported
             }
-            let primaryImpedanceOhm = Double(readUInt16BE(bytes, at: 4))
-            let secondaryImpedanceOhm = Double(readUInt16BE(bytes, at: 6))
-            guard (100...2_000).contains(primaryImpedanceOhm),
-                  (100...2_000).contains(secondaryImpedanceOhm) else {
-                throw ScalePayloadError.unsupported
-            }
+            let primaryImpedanceOhm = try impedance(bytes, at: 4)
+            let secondaryImpedanceOhm = try impedance(bytes, at: 6)
             return Packet(
                 phase: .final,
                 measurement: try measurement(
@@ -95,6 +91,13 @@ struct WolaiAFUScaleParser {
 
     private static func readUInt16BE(_ bytes: [UInt8], at index: Int) -> UInt16 {
         UInt16(bytes[index]) << 8 | UInt16(bytes[index + 1])
+    }
+
+    private static func impedance(_ bytes: [UInt8], at index: Int) throws -> Double? {
+        let raw = readUInt16BE(bytes, at: index)
+        guard raw != 0 else { return nil }
+        guard (100...2_000).contains(raw) else { throw ScalePayloadError.unsupported }
+        return Double(raw)
     }
 
     private static func readUInt24BE(_ bytes: [UInt8], at index: Int) -> UInt32 {

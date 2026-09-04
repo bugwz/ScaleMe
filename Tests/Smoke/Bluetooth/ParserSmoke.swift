@@ -301,6 +301,31 @@ enum ParserSmoke {
         precondition(latestCapture.measurement.impedanceOhm == 550)
         precondition(latestCapture.measurement.secondaryImpedanceOhm == 650)
 
+        let wolaiFinalWithoutImpedance = try WolaiAFUScaleParser.parse(hexData(
+            "AC2902000000000001806911700000000029D60C"
+        ))
+        precondition(wolaiFinalWithoutImpedance.phase == .final)
+        precondition(wolaiFinalWithoutImpedance.measurement.impedanceOhm == nil)
+        precondition(wolaiFinalWithoutImpedance.measurement.secondaryImpedanceOhm == nil)
+
+        do {
+            _ = try WolaiAFUScaleParser.parse(hexData(
+                "AC2902000063025801806911700000000029D609"
+            ))
+            preconditionFailure("Wolai 非零异常阻抗必须被拒绝")
+        } catch ScalePayloadError.unsupported {
+            // Expected.
+        }
+
+        let wolaiInitialization = WolaiAFUScaleAdapter.makeTimeInitialization(
+            at: Date(timeIntervalSince1970: TimeInterval(0x5E0C0C25))
+        )
+        precondition(wolaiInitialization == hexData("AC27085E0C0C252000000000000000000000DFA2"))
+        precondition(
+            WolaiAFUScaleAdapter.makeFinalAcknowledgement()
+                == hexData("AC2704D60000000000000000000000000000DFB9")
+        )
+
         let enriched = BodyCompositionEstimator.enriching(
             latestCapture.measurement,
             profile: UserProfile(

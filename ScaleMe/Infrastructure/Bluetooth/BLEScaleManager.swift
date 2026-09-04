@@ -168,6 +168,7 @@ final class BLEScaleManager: NSObject, ObservableObject {
     private var pairedScaleIDs: Set<UUID> = []
     private var pairedScaleNames: [UUID: String] = [:]
     private var pairedScaleModelNames: [UUID: String] = [:]
+    private var pairedScaleCompatibilities: [UUID: String] = [:]
     private var pairedScaleRuleIDs: [UUID: String] = [:]
     private var communicationRulesByID: [String: CommunicationRule] = [:]
     private var measurementScaleID: UUID?
@@ -193,6 +194,8 @@ final class BLEScaleManager: NSObject, ObservableObject {
     private var scanRequested = false
     private var discoverySequence = 0
     private var didCompleteWolaiFinal = false
+    private var didInitializeWolaiSession = false
+    private var wolaiControlCharacteristic: CBCharacteristic?
     private var senssunIF2121ResultAccumulator = SenssunIF2121ScaleParser.FrameAccumulator()
     private var senssunIF2121StableWeightKG: Double?
     private var huaweiHagridDeviceIDs = Set<UUID>()
@@ -219,6 +222,7 @@ final class BLEScaleManager: NSObject, ObservableObject {
     private static let huaweiUserDataService = CBUUID(string: HuaweiHagridProtocol.userDataServiceUUID)
     private static let huaweiCurrentTimeService = CBUUID(string: HuaweiHagridProtocol.currentTimeServiceUUID)
     private static let wolaiService = CBUUID(string: WolaiAFUScaleAdapter.serviceUUID)
+    private static let wolaiControl = CBUUID(string: WolaiAFUScaleAdapter.controlCharacteristicUUID)
     private static let wolaiMeasurement = CBUUID(string: WolaiAFUScaleAdapter.measurementCharacteristicUUID)
     private static let senssunIF2121Service = CBUUID(string: SenssunIF2121ScaleProtocol.serviceUUID)
     private static let senssunIF2121Live = CBUUID(string: SenssunIF2121ScaleProtocol.liveCharacteristicUUID)
@@ -256,6 +260,7 @@ final class BLEScaleManager: NSObject, ObservableObject {
         pairedScaleIDs = Set(scales.map(\.id))
         pairedScaleNames = Dictionary(uniqueKeysWithValues: scales.map { ($0.id, $0.name) })
         pairedScaleModelNames = Dictionary(uniqueKeysWithValues: scales.map { ($0.id, $0.modelName) })
+        pairedScaleCompatibilities = Dictionary(uniqueKeysWithValues: scales.map { ($0.id, $0.compatibility) })
         pairedScaleRuleIDs = Dictionary(uniqueKeysWithValues: scales.compactMap { scale in
             scale.communicationRuleID.map { (scale.id, $0) }
         })
@@ -285,7 +290,7 @@ final class BLEScaleManager: NSObject, ObservableObject {
             return
         }
         beginScanning(clearDevices: false)
-        connectKnownStandardScale(from: scales)
+        connectKnownScale(from: scales)
     }
 
     func updatePairedScales(
@@ -295,6 +300,7 @@ final class BLEScaleManager: NSObject, ObservableObject {
         pairedScaleIDs = Set(scales.map(\.id))
         pairedScaleNames = Dictionary(uniqueKeysWithValues: scales.map { ($0.id, $0.name) })
         pairedScaleModelNames = Dictionary(uniqueKeysWithValues: scales.map { ($0.id, $0.modelName) })
+        pairedScaleCompatibilities = Dictionary(uniqueKeysWithValues: scales.map { ($0.id, $0.compatibility) })
         pairedScaleRuleIDs = Dictionary(uniqueKeysWithValues: scales.compactMap { scale in
             scale.communicationRuleID.map { (scale.id, $0) }
         })
@@ -325,6 +331,13 @@ final class BLEScaleManager: NSObject, ObservableObject {
 
     private func isSenssunIF2121Selected(for deviceID: UUID) -> Bool {
         selectedRule(for: deviceID)?.id == CommunicationRuleCatalog.senssunIF2121ID
+    }
+
+    private func isWolaiAFUSelected(for deviceID: UUID) -> Bool {
+        if let selected = selectedRule(for: deviceID) {
+            return selected.builtInParser == "wolaiAFU"
+        }
+        return pairedScaleCompatibilities[deviceID] == ScaleDiscoveryCompatibility.wolaiAFU.rawValue
     }
 
     private func isMonitoredScale(_ deviceID: UUID) -> Bool {
@@ -980,6 +993,7 @@ final class BLEScaleManager: NSObject, ObservableObject {
     func disconnect() {
         connectionTimeoutTask?.cancel()
         if let connected { central.cancelPeripheralConnection(connected) }
+        resetWolaiSession()
         resetSenssunIF2121Session()
         connected = nil
         activeScaleID = nil
@@ -1049,6 +1063,37 @@ final class BLEScaleManager: NSObject, ObservableObject {
     private func resetSenssunIF2121Session() {
         senssunIF2121ResultAccumulator.reset()
         senssunIF2121StableWeightKG = nil
+    }
+
+    private func resetWolaiSession() {
+        didCompleteWolaiFinal = false
+        didInitializeWolaiSession = false
+        wolaiControlCharacteristic = nil
+    }
+
+    private func isWolaiMeasurement(_ characteristic: CBCharacteristic) -> Bool {
+        characteristic.uuid == Self.wolaiMeasurement
+            && characteristic.service?.uuid == Self.wolaiService
+    }
+
+    private func writeWolaiCommand(_ data: Data, on peripheral: CBPeripheral) {
+        guard let characteristic = wolaiControlCharacteristic else { return }
+        let type: CBCharacteristicWriteType
+        if characteristic.properties.contains(.write) {
+            type = .withResponse
+        } else if characteristic.properties.contains(.writeWithoutResponse) {
+            type = .withoutResponse
+        } else {
+            return
+        }
+        peripheral.writeValue(data, for: characteristic, type: type)
+    }
+
+    private func initializeWolaiSessionIfReady(on peripheral: CBPeripheral) {
+        guard !didInitializeWolaiSession,
+              wolaiControlCharacteristic != nil else { return }
+        didInitializeWolaiSession = true
+        writeWolaiCommand(WolaiAFUScaleAdapter.makeTimeInitialization(at: .now), on: peripheral)
     }
 
     private func consumeSenssunIF2121(_ packet: SenssunIF2121ScaleParser.Packet) {
@@ -1281,12 +1326,13 @@ final class BLEScaleManager: NSObject, ObservableObject {
         data.map { String(format: "%02X", $0) }.joined()
     }
 
-    private func connectKnownStandardScale(from scales: [PairedScale]) {
+    private func connectKnownScale(from scales: [PairedScale]) {
         guard central.state == .poweredOn,
               connected == nil,
               let scale = scales.first(where: {
                   isMonitoredScale($0.id)
-                      && ($0.compatibility == "Bluetooth SIG 标准"
+                      && ($0.compatibility == ScaleDiscoveryCompatibility.bluetoothSIG.rawValue
+                          || $0.compatibility == ScaleDiscoveryCompatibility.wolaiAFU.rawValue
                           || selectedRule(for: $0.id)?.match.transport == .characteristicNotification)
               }) else { return }
         let peripherals = central.retrievePeripherals(withIdentifiers: [scale.id])
@@ -1558,6 +1604,9 @@ extension BLEScaleManager: CBCentralManagerDelegate {
                 huaweiHagridNotificationAccumulators.removeAll()
             }
             state = .connected(peripheral.name ?? "体重秤")
+            if isWolaiAFUSelected(for: peripheral.identifier) {
+                resetWolaiSession()
+            }
             if isSenssunIF2121Selected(for: peripheral.identifier) {
                 resetSenssunIF2121Session()
             }
@@ -1628,6 +1677,9 @@ extension BLEScaleManager: CBCentralManagerDelegate {
             }
             if isSenssunIF2121Selected(for: peripheral.identifier) {
                 resetSenssunIF2121Session()
+            }
+            if isWolaiAFUSelected(for: peripheral.identifier) {
+                resetWolaiSession()
             }
             if let reconnectScale {
                 appendDiagnosticEvent(
@@ -1725,6 +1777,11 @@ extension BLEScaleManager: CBPeripheralDelegate {
                 )
                 let isSelectedNotificationTarget = selectedRule(for: peripheral.identifier)?
                     .notifyTargets?.contains(characteristicTarget) == true
+                let isWolaiService = service.uuid == Self.wolaiService
+                    && isWolaiAFUSelected(for: peripheral.identifier)
+                if isWolaiService, characteristic.uuid == Self.wolaiControl {
+                    wolaiControlCharacteristic = characteristic
+                }
                 let isHuaweiMeasurementTarget = settingsScaleID == nil
                     && isHuaweiHagridSelected(for: peripheral.identifier)
                     && HuaweiHagridProtocol.isSessionCharacteristic(characteristic.uuid.uuidString)
@@ -1746,7 +1803,7 @@ extension BLEScaleManager: CBPeripheralDelegate {
                     : isDiagnosticTarget
                 if characteristic.uuid == Self.weightMeasurement
                     || characteristic.uuid == Self.bodyMeasurement
-                    || characteristic.uuid == Self.wolaiMeasurement
+                    || isWolaiService && characteristic.uuid == Self.wolaiMeasurement
                     || isSelectedNotificationTarget
                     || customRule(
                         for: peripheral.identifier,
@@ -1917,7 +1974,7 @@ extension BLEScaleManager: CBPeripheralDelegate {
                 return
             }
 
-            if characteristic.uuid == Self.wolaiMeasurement,
+            if isWolaiMeasurement(characteristic),
                allowsBuiltInParser("wolaiAFU", for: peripheral.identifier),
                let packet = try? WolaiAFUScaleParser.parse(data) {
                 guard case .measuring = scanPurpose else { return }
@@ -1936,6 +1993,7 @@ extension BLEScaleManager: CBPeripheralDelegate {
                 case .final:
                     guard !didCompleteWolaiFinal else { return }
                     didCompleteWolaiFinal = true
+                    writeWolaiCommand(WolaiAFUScaleAdapter.makeFinalAcknowledgement(), on: peripheral)
                     consume(packet.measurement, reliability: .protocolFinal)
                 }
             } else if characteristic.uuid == Self.weightMeasurement,
@@ -1976,6 +2034,14 @@ extension BLEScaleManager: CBPeripheralDelegate {
 
     nonisolated func peripheral(_ peripheral: CBPeripheral, didUpdateNotificationStateFor characteristic: CBCharacteristic, error: Error?) {
         Task { @MainActor in
+            if settingsScaleID != peripheral.identifier,
+               isWolaiAFUSelected(for: peripheral.identifier),
+               isWolaiMeasurement(characteristic) {
+                if error == nil, characteristic.isNotifying {
+                    initializeWolaiSessionIfReady(on: peripheral)
+                }
+                return
+            }
             if settingsScaleID != peripheral.identifier,
                isHuaweiHagridSelected(for: peripheral.identifier) {
                 if error != nil {
@@ -2214,7 +2280,7 @@ extension BLEScaleManager: CBPeripheralDelegate {
         if characteristic.uuid == Self.bodyMeasurement {
             return diagnosticSummary(data, kind: .standardBodyComposition, receivedAt: .now)
         }
-        if characteristic.uuid == Self.wolaiMeasurement {
+        if isWolaiMeasurement(characteristic) {
             return diagnosticSummary(data, kind: .wolaiAFU, receivedAt: .now)
         }
         if characteristic.uuid == Self.senssunIF2121Live,
