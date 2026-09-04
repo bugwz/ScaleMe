@@ -1626,67 +1626,67 @@
         }
       }
     },
-    "关联后的模拟设备会写入模拟配置，可单独导出。" : {
+    "关联后的模拟设备仅在本次运行中保留。" : {
       "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Linked demo devices are written to the demo configuration and can be exported separately."
+            "value" : "Verknüpfte Demogeräte bleiben nur während der aktuellen App-Sitzung erhalten."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Linked demo devices are written to the demo configuration and can be exported separately."
+            "value" : "Linked demo devices are kept only for the current app session."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Linked demo devices are written to the demo configuration and can be exported separately."
+            "value" : "Los dispositivos de demostración vinculados solo se conservan durante la sesión actual."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Linked demo devices are written to the demo configuration and can be exported separately."
+            "value" : "Les appareils de démonstration associés ne sont conservés que pendant la session actuelle."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Linked demo devices are written to the demo configuration and can be exported separately."
+            "value" : "関連付けたシミュレーション機器は、現在のアプリ実行中だけ保持されます。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Linked demo devices are written to the demo configuration and can be exported separately."
+            "value" : "연결한 데모 기기는 현재 앱 실행 중에만 유지됩니다."
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Linked demo devices are written to the demo configuration and can be exported separately."
+            "value" : "Os dispositivos de demonstração associados são mantidos apenas durante a sessão atual."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Linked demo devices are written to the demo configuration and can be exported separately."
+            "value" : "Подключённые демонстрационные устройства сохраняются только в текущем сеансе."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "关联后的模拟设备会写入模拟配置，可单独导出。"
+            "value" : "关联后的模拟设备仅在本次运行中保留。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "關聯後的模擬裝置會寫入模擬設定，可單獨匯出。"
+            "value" : "關聯後的模擬裝置僅在本次執行期間保留。"
           }
         }
       }

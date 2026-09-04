@@ -39,7 +39,7 @@ struct MeasureView: View {
                 id: profile.id.uuidString,
                 value: profile.id,
                 title: profile.name,
-                subtitle: "\(profile.relation) · \(profile.heightCM.formatted(2)) cm",
+                subtitle: "\(store.appLanguage.text(profile.relation)) · \(profile.heightCM.formatted(2)) cm",
                 icon: .avatar(profile.avatar)
             )
         }
@@ -532,7 +532,7 @@ struct ManualEntryView: View {
                 id: profile.id.uuidString,
                 value: profile.id,
                 title: profile.name,
-                subtitle: "\(profile.relation) · \(profile.heightCM.formatted(2)) cm",
+                subtitle: "\(store.appLanguage.text(profile.relation)) · \(profile.heightCM.formatted(2)) cm",
                 icon: .avatar(profile.avatar)
             )
         }
@@ -785,7 +785,7 @@ struct ManualEntryView: View {
                         .font(.caption)
                         .foregroundStyle(AppColor.mint)
                     AppLocalizedText(store.isSimulationEnabled
-                        ? "当前为模拟数据模式，本次记录会写入模拟记录文件，可单独导出。"
+                        ? "当前为模拟数据模式，本次记录仅在本次运行中保留。"
                         : "手动记录仅保存在本机，并会清晰标记为“手动记录”来源。")
                         .font(.caption)
                         .foregroundStyle(AppColor.secondary)

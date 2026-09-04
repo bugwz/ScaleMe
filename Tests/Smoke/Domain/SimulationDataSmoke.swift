@@ -25,8 +25,9 @@ enum SimulationDataSmoke {
                      "every family character should appear exactly once in simulation")
         precondition(Set(first.profiles.map(\.name)).count == first.profiles.count,
                      "simulated family members should have distinct names")
-        precondition(first.profiles.first?.relation == "爸爸", "爸爸必须是首位模拟成员")
-        precondition(first.selectedProfileID == first.profiles.first?.id, "默认应选中爸爸")
+        precondition(first.profiles.first?.avatar == .father, "爸爸必须是首位模拟成员")
+        precondition(first.profiles.first?.relation == "本人", "默认中年男性必须使用本人关系选项")
+        precondition(first.selectedProfileID == first.profiles.first?.id, "默认应选中中年男性本人")
         precondition(first.pairedScales.count == 2, "simulation should include multiple scales")
         precondition(first.measurements == second.measurements, "simulation must be deterministic for a reference date")
         precondition(first.measurements.count == 4_096,
@@ -105,28 +106,43 @@ enum SimulationDataSmoke {
                      "all simulated children should share their father's family name")
 
         let expectedRelations: [MemberAvatar: String] = [
-            .adult: "妈妈", .father: "爸爸",
-            .child: "儿童儿子", .childDaughter: "儿童女儿",
-            .youth: "青少年儿子", .teenDaughter: "青少年女儿",
-            .senior: "奶奶", .paternalGrandfather: "爷爷",
-            .maternalGrandfather: "外公", .maternalGrandmother: "外婆"
+            .adult: "伴侣", .father: "本人",
+            .child: "子女", .childDaughter: "子女",
+            .youth: "子女", .teenDaughter: "子女",
+            .senior: "父母", .paternalGrandfather: "父母",
+            .maternalGrandfather: "父母", .maternalGrandmother: "父母"
         ]
         precondition(first.profiles.allSatisfy { expectedRelations[$0.avatar] == $0.relation },
                      "simulated names, relations, and character roles should agree")
 
         let ages = Dictionary(uniqueKeysWithValues: first.profiles.map { profile in
             let age = calendar.dateComponents([.year], from: profile.birthDate, to: referenceDate).year ?? 0
-            return (profile.relation, age)
+            return (profile.avatar, age)
         })
-        precondition(ages["爸爸"] == 45, "爸爸的模拟年龄应为 45 岁")
-        precondition(ages["妈妈"] == 42, "妈妈的模拟年龄应为 42 岁")
-        let oldestChildAge = max(ages["青少年儿子"] ?? 0, ages["青少年女儿"] ?? 0)
-        precondition((ages["爸爸"] ?? 0) - oldestChildAge >= 18, "爸爸与最年长孩子的年龄差必须合理")
-        precondition((ages["妈妈"] ?? 0) - oldestChildAge >= 18, "妈妈与最年长孩子的年龄差必须合理")
-        precondition((ages["爷爷"] ?? 0) - (ages["爸爸"] ?? 0) >= 18, "爷爷与爸爸的年龄差必须合理")
-        precondition((ages["奶奶"] ?? 0) - (ages["爸爸"] ?? 0) >= 18, "奶奶与爸爸的年龄差必须合理")
-        precondition((ages["外公"] ?? 0) - (ages["妈妈"] ?? 0) >= 18, "外公与妈妈的年龄差必须合理")
-        precondition((ages["外婆"] ?? 0) - (ages["妈妈"] ?? 0) >= 18, "外婆与妈妈的年龄差必须合理")
+        precondition(ages[.father] == 45, "爸爸的模拟年龄应为 45 岁")
+        precondition(ages[.adult] == 42, "妈妈的模拟年龄应为 42 岁")
+        let oldestChildAge = max(ages[.youth] ?? 0, ages[.teenDaughter] ?? 0)
+        precondition((ages[.father] ?? 0) - oldestChildAge >= 18, "爸爸与最年长孩子的年龄差必须合理")
+        precondition((ages[.adult] ?? 0) - oldestChildAge >= 18, "妈妈与最年长孩子的年龄差必须合理")
+        precondition((ages[.paternalGrandfather] ?? 0) - (ages[.father] ?? 0) >= 18, "爷爷与爸爸的年龄差必须合理")
+        precondition((ages[.senior] ?? 0) - (ages[.father] ?? 0) >= 18, "奶奶与爸爸的年龄差必须合理")
+        precondition((ages[.maternalGrandfather] ?? 0) - (ages[.adult] ?? 0) >= 18, "外公与妈妈的年龄差必须合理")
+        precondition((ages[.maternalGrandmother] ?? 0) - (ages[.adult] ?? 0) >= 18, "外婆与妈妈的年龄差必须合理")
+
+        let youngAvatars: Set<MemberAvatar> = [.child, .childDaughter, .youth, .teenDaughter]
+        for profile in first.profiles {
+            let weights = first.measurements
+                .filter { $0.profileID == profile.id }
+                .map(\.weightKG)
+            let bmiValues = weights.map { weightKG in
+                weightKG / pow(profile.heightCM / 100, 2)
+            }
+            let expectedRange = youngAvatars.contains(profile.avatar) ? 14.0...23.0 : 18.5...28.0
+            precondition(
+                bmiValues.allSatisfy(expectedRange.contains),
+                "模拟成员的身高和体重组合必须合理：\(profile.name)"
+            )
+        }
 
         let start = calendar.date(byAdding: .day, value: -365, to: referenceDate) ?? .distantPast
         precondition(first.measurements.allSatisfy { $0.date >= start && $0.date <= referenceDate },
@@ -201,8 +217,8 @@ enum SimulationDataSmoke {
         )
         precondition(japanese.profiles.first?.name == "佐藤健一",
                      "Japanese data should use a natural Japanese family name")
-        precondition(japanese.profiles.first?.relation == "父",
-                     "Japanese family relations should be localized")
+        precondition(japanese.profiles.first?.relation == "本人",
+                     "simulation relationships must use an available relationship option")
         precondition(japanese.pairedScales.first?.name == "体組成計",
                      "simulated device cards should switch language")
         precondition(japanese.measurements.allSatisfy { measurement in

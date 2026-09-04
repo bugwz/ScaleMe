@@ -322,7 +322,7 @@ struct DataManagementSettingsView: View {
             )
 
             if store.isSimulationEnabled {
-                Label("模拟模式下的修改可通过独立命名的模拟文件导入导出；真实配置和记录不会被替换。", systemImage: "sparkles")
+                Label("模拟模式下的修改仅保留到本次运行结束；下次启动会恢复预设数据。", systemImage: "sparkles")
                     .font(.caption)
                     .foregroundStyle(AppColor.secondary)
                     .padding(12)

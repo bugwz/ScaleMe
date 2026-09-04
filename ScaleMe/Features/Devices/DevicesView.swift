@@ -728,7 +728,7 @@ private struct DeviceScannerView: View {
 
     private var scanInformation: String {
         store.isSimulationEnabled
-            ? "关联后的模拟设备会写入模拟配置，可单独导出。"
+            ? "关联后的模拟设备仅在本次运行中保留。"
             : "标准 BLE Weight 协议及已知的小米广播设备会优先置顶，其余设备需验证兼容性。"
     }
 

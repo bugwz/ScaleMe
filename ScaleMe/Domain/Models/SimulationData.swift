@@ -60,57 +60,13 @@ struct SimulationDataSnapshot {
             )
         ]
 
-        let memberSeeds = [
-            SimulationMemberSeed(
-                heightCM: 178, age: 45,
-                sex: .male, avatar: .father
-            ),
-            SimulationMemberSeed(
-                heightCM: 165, age: 42,
-                sex: .female,
-                avatar: .adult
-            ),
-            SimulationMemberSeed(
-                heightCM: 128, age: 8,
-                sex: .male, avatar: .child
-            ),
-            SimulationMemberSeed(
-                heightCM: 116, age: 6,
-                sex: .female, avatar: .childDaughter
-            ),
-            SimulationMemberSeed(
-                heightCM: 168, age: 15,
-                sex: .male, avatar: .youth
-            ),
-            SimulationMemberSeed(
-                heightCM: 162, age: 16,
-                sex: .female, avatar: .teenDaughter
-            ),
-            SimulationMemberSeed(
-                heightCM: 158, age: 72,
-                sex: .female, avatar: .senior
-            ),
-            SimulationMemberSeed(
-                heightCM: 170, age: 74,
-                sex: .male, avatar: .paternalGrandfather
-            ),
-            SimulationMemberSeed(
-                heightCM: 168, age: 71,
-                sex: .male, avatar: .maternalGrandfather
-            ),
-            SimulationMemberSeed(
-                heightCM: 157, age: 69,
-                sex: .female, avatar: .maternalGrandmother
-            )
-        ]
-
         var profiles: [UserProfile] = []
-        for seed in memberSeeds {
-            let localizedMember = copy.member(for: seed.avatar)
+        for specification in SimulationProfileSpecification.all {
+            let localizedMember = copy.member(for: specification.avatar)
             profiles.append(simulationProfile(
                 id: random.uuid(), name: localizedMember.name, relation: localizedMember.relation,
-                heightCM: seed.heightCM, age: seed.age, sex: seed.sex,
-                avatar: seed.avatar, today: today, calendar: calendar
+                heightCM: specification.heightCM, age: specification.age, sex: specification.sex,
+                avatar: specification.avatar, today: today, calendar: calendar
             ))
         }
         var snapshot = SimulationDataSnapshot(
@@ -276,12 +232,12 @@ struct SimulationDataSnapshot {
             bodyFatPercent: bodyFatPercent,
             muscleMassKG: muscleMassKG,
             waterPercent: waterPercent,
-            visceralFat: max(3, (bodyFatPercent - 12) * 0.42),
+            visceralFat: max(1, (bodyFatPercent - 12) * 0.42),
             basalMetabolismKCal: 10 * weightKG
                 + 6.25 * profile.heightCM
                 - 5 * Double(profile.age)
                 + (profile.biologicalSex == .male ? 5 : -161),
-            boneMassKG: max(2, fatFreeMassKG * 0.052),
+            boneMassKG: max(0.5, fatFreeMassKG * 0.052),
             source: .demo,
             isStable: true,
             profileID: profile.id,
@@ -302,31 +258,43 @@ struct SimulationDataSnapshot {
 }
 
 private struct SimulationProfileSpecification {
+    let avatar: MemberAvatar
+    let heightCM: Double
+    let age: Int
+    let sex: UserProfile.BiologicalSex
     let startWeightKG: Double
     let endWeightKG: Double
     let bodyFatPercent: Double
 
-    static func specification(for avatar: MemberAvatar) -> Self {
-        switch avatar {
-        case .father: Self(startWeightKG: 78.5, endWeightKG: 76.8, bodyFatPercent: 20.1)
-        case .adult: Self(startWeightKG: 61.8, endWeightKG: 59.2, bodyFatPercent: 26.1)
-        case .child: Self(startWeightKG: 26.4, endWeightKG: 28.7, bodyFatPercent: 17.5)
-        case .childDaughter: Self(startWeightKG: 20.8, endWeightKG: 22.6, bodyFatPercent: 18.7)
-        case .youth: Self(startWeightKG: 56.8, endWeightKG: 60.2, bodyFatPercent: 15.8)
-        case .teenDaughter: Self(startWeightKG: 49.4, endWeightKG: 51.2, bodyFatPercent: 22.3)
-        case .senior: Self(startWeightKG: 61.8, endWeightKG: 61.2, bodyFatPercent: 31.8)
-        case .paternalGrandfather: Self(startWeightKG: 69.8, endWeightKG: 68.9, bodyFatPercent: 24.1)
-        case .maternalGrandfather: Self(startWeightKG: 72.2, endWeightKG: 71.1, bodyFatPercent: 23.3)
-        case .maternalGrandmother: Self(startWeightKG: 59.5, endWeightKG: 58.9, bodyFatPercent: 32.2)
-        }
-    }
-}
+    static let all: [Self] = [
+        Self(avatar: .father, heightCM: 178, age: 45, sex: .male,
+             startWeightKG: 78.5, endWeightKG: 76.8, bodyFatPercent: 20.1),
+        Self(avatar: .adult, heightCM: 165, age: 42, sex: .female,
+             startWeightKG: 61.8, endWeightKG: 59.2, bodyFatPercent: 26.1),
+        Self(avatar: .child, heightCM: 128, age: 8, sex: .male,
+             startWeightKG: 26.4, endWeightKG: 28.7, bodyFatPercent: 17.5),
+        Self(avatar: .childDaughter, heightCM: 116, age: 6, sex: .female,
+             startWeightKG: 20.8, endWeightKG: 22.6, bodyFatPercent: 18.7),
+        Self(avatar: .youth, heightCM: 168, age: 15, sex: .male,
+             startWeightKG: 56.8, endWeightKG: 60.2, bodyFatPercent: 15.8),
+        Self(avatar: .teenDaughter, heightCM: 162, age: 16, sex: .female,
+             startWeightKG: 49.4, endWeightKG: 51.2, bodyFatPercent: 22.3),
+        Self(avatar: .senior, heightCM: 158, age: 72, sex: .female,
+             startWeightKG: 61.8, endWeightKG: 61.2, bodyFatPercent: 31.8),
+        Self(avatar: .paternalGrandfather, heightCM: 170, age: 74, sex: .male,
+             startWeightKG: 69.8, endWeightKG: 68.9, bodyFatPercent: 24.1),
+        Self(avatar: .maternalGrandfather, heightCM: 168, age: 71, sex: .male,
+             startWeightKG: 72.2, endWeightKG: 71.1, bodyFatPercent: 23.3),
+        Self(avatar: .maternalGrandmother, heightCM: 157, age: 69, sex: .female,
+             startWeightKG: 59.5, endWeightKG: 58.9, bodyFatPercent: 32.2)
+    ]
 
-private struct SimulationMemberSeed {
-    let heightCM: Double
-    let age: Int
-    let sex: UserProfile.BiologicalSex
-    let avatar: MemberAvatar
+    static func specification(for avatar: MemberAvatar) -> Self {
+        guard let specification = all.first(where: { $0.avatar == avatar }) else {
+            preconditionFailure("Missing simulation profile specification for \(avatar.rawValue)")
+        }
+        return specification
+    }
 }
 
 private struct SimulationMemberCopy {
@@ -347,123 +315,106 @@ private struct SimulationCopy {
     ]
 
     init(language: AppLanguage) {
-        let values: [(name: String, relation: String)]
+        let names: [String]
         switch language {
         case .simplifiedChinese:
-            values = [
-                ("林远舟", "爸爸"), ("沈知夏", "妈妈"),
-                ("林予安", "儿童儿子"), ("林予宁", "儿童女儿"),
-                ("林清越", "青少年儿子"), ("林语桐", "青少年女儿"),
-                ("周秀琴", "奶奶"), ("林国安", "爷爷"),
-                ("沈明德", "外公"), ("唐兰芳", "外婆")
+            names = [
+                "林远舟", "沈知夏", "林予安", "林予宁", "林清越",
+                "林语桐", "周秀琴", "林国安", "沈明德", "唐兰芳"
             ]
             primaryScaleName = "浴室体脂秤"
             secondaryScaleName = "卧室体重秤"
             simulatedDevice = "模拟设备"
         case .traditionalChinese:
-            values = [
-                ("林承遠", "爸爸"), ("陳雅雯", "媽媽"),
-                ("林昱辰", "年幼兒子"), ("林語晴", "年幼女兒"),
-                ("林柏翰", "青少年兒子"), ("林欣妤", "青少年女兒"),
-                ("王美玲", "奶奶"), ("林志明", "爺爺"),
-                ("陳建國", "外公"), ("李秀蘭", "外婆")
+            names = [
+                "林承遠", "陳雅雯", "林昱辰", "林語晴", "林柏翰",
+                "林欣妤", "王美玲", "林志明", "陳建國", "李秀蘭"
             ]
             primaryScaleName = "浴室體脂計"
             secondaryScaleName = "臥室體重計"
             simulatedDevice = "模擬裝置"
         case .english:
-            values = [
-                ("Daniel", "Father"), ("Emily", "Mother"),
-                ("Noah", "Young son"), ("Lily", "Young daughter"),
-                ("Ethan", "Teenage son"), ("Chloe", "Teenage daughter"),
-                ("Margaret", "Paternal grandmother"), ("George", "Paternal grandfather"),
-                ("Robert", "Maternal grandfather"), ("Helen", "Maternal grandmother")
+            names = [
+                "Daniel", "Emily", "Noah", "Lily", "Ethan",
+                "Chloe", "Margaret", "George", "Robert", "Helen"
             ]
             primaryScaleName = "Body Scale"
             secondaryScaleName = "Weight Scale"
             simulatedDevice = "Simulated device"
         case .japanese:
-            values = [
-                ("佐藤健一", "父"), ("佐藤美咲", "母"),
-                ("佐藤悠真", "幼い息子"), ("佐藤結衣", "幼い娘"),
-                ("佐藤陽翔", "10代の息子"), ("佐藤葵", "10代の娘"),
-                ("佐藤和子", "父方の祖母"), ("佐藤正雄", "父方の祖父"),
-                ("鈴木博", "母方の祖父"), ("鈴木幸子", "母方の祖母")
+            names = [
+                "佐藤健一", "佐藤美咲", "佐藤悠真", "佐藤結衣", "佐藤陽翔",
+                "佐藤葵", "佐藤和子", "佐藤正雄", "鈴木博", "鈴木幸子"
             ]
             primaryScaleName = "体組成計"
             secondaryScaleName = "体重計"
             simulatedDevice = "シミュレーション機器"
         case .french:
-            values = [
-                ("Julien", "Père"), ("Claire", "Mère"),
-                ("Lucas", "Jeune fils"), ("Emma", "Jeune fille"),
-                ("Hugo", "Fils adolescent"), ("Léa", "Fille adolescente"),
-                ("Monique", "Grand-mère paternelle"), ("Bernard", "Grand-père paternel"),
-                ("Michel", "Grand-père maternel"), ("Françoise", "Grand-mère maternelle")
+            names = [
+                "Julien", "Claire", "Lucas", "Emma", "Hugo",
+                "Léa", "Monique", "Bernard", "Michel", "Françoise"
             ]
             primaryScaleName = "Balance santé"
             secondaryScaleName = "Balance poids"
             simulatedDevice = "Appareil simulé"
         case .german:
-            values = [
-                ("Thomas", "Vater"), ("Anna", "Mutter"),
-                ("Lukas", "Junger Sohn"), ("Mia", "Junge Tochter"),
-                ("Jonas", "Sohn im Teenageralter"), ("Sophie", "Tochter im Teenageralter"),
-                ("Helga", "Großmutter väterlicherseits"), ("Hans", "Großvater väterlicherseits"),
-                ("Klaus", "Großvater mütterlicherseits"), ("Ingrid", "Großmutter mütterlicherseits")
+            names = [
+                "Thomas", "Anna", "Lukas", "Mia", "Jonas",
+                "Sophie", "Helga", "Hans", "Klaus", "Ingrid"
             ]
             primaryScaleName = "Körperwaage"
             secondaryScaleName = "Zimmerwaage"
             simulatedDevice = "Simuliertes Gerät"
         case .spanish:
-            values = [
-                ("Carlos", "Padre"), ("Lucía", "Madre"),
-                ("Mateo", "Hijo pequeño"), ("Sofía", "Hija pequeña"),
-                ("Diego", "Hijo adolescente"), ("Valeria", "Hija adolescente"),
-                ("Carmen", "Abuela paterna"), ("José", "Abuelo paterno"),
-                ("Manuel", "Abuelo materno"), ("Isabel", "Abuela materna")
+            names = [
+                "Carlos", "Lucía", "Mateo", "Sofía", "Diego",
+                "Valeria", "Carmen", "José", "Manuel", "Isabel"
             ]
             primaryScaleName = "Báscula corporal"
             secondaryScaleName = "Báscula peso"
             simulatedDevice = "Dispositivo simulado"
         case .portuguese:
-            values = [
-                ("João", "Pai"), ("Mariana", "Mãe"),
-                ("Tiago", "Filho mais novo"), ("Beatriz", "Filha mais nova"),
-                ("Miguel", "Filho adolescente"), ("Inês", "Filha adolescente"),
-                ("Teresa", "Avó paterna"), ("António", "Avô paterno"),
-                ("Manuel", "Avô materno"), ("Maria", "Avó materna")
+            names = [
+                "João", "Mariana", "Tiago", "Beatriz", "Miguel",
+                "Inês", "Teresa", "António", "Manuel", "Maria"
             ]
             primaryScaleName = "Balança corporal"
             secondaryScaleName = "Balança peso"
             simulatedDevice = "Dispositivo simulado"
         case .russian:
-            values = [
-                ("Алексей", "Отец"), ("Елена", "Мать"),
-                ("Михаил", "Младший сын"), ("Анна", "Младшая дочь"),
-                ("Дмитрий", "Сын-подросток"), ("София", "Дочь-подросток"),
-                ("Нина", "Бабушка по отцу"), ("Виктор", "Дедушка по отцу"),
-                ("Сергей", "Дедушка по матери"), ("Людмила", "Бабушка по матери")
+            names = [
+                "Алексей", "Елена", "Михаил", "Анна", "Дмитрий",
+                "София", "Нина", "Виктор", "Сергей", "Людмила"
             ]
             primaryScaleName = "Умные весы"
             secondaryScaleName = "Весы"
             simulatedDevice = "Симулируемое устройство"
         case .korean:
-            values = [
-                ("김민준", "아빠"), ("이서연", "엄마"),
-                ("김도윤", "어린 아들"), ("김하윤", "어린 딸"),
-                ("김준서", "십 대 아들"), ("김지우", "십 대 딸"),
-                ("박영숙", "친할머니"), ("김영수", "친할아버지"),
-                ("이정호", "외할아버지"), ("최순자", "외할머니")
+            names = [
+                "김민준", "이서연", "김도윤", "김하윤", "김준서",
+                "김지우", "박영숙", "김영수", "이정호", "최순자"
             ]
             primaryScaleName = "욕실 체성분 체중계"
             secondaryScaleName = "침실 체중계"
             simulatedDevice = "시뮬레이션 기기"
         }
 
-        members = Dictionary(uniqueKeysWithValues: zip(Self.roles, values).map { role, value in
-            (role, SimulationMemberCopy(name: value.name, relation: value.relation))
+        members = Dictionary(uniqueKeysWithValues: zip(Self.roles, names).map { role, name in
+            (role, SimulationMemberCopy(name: name, relation: Self.relation(for: role)))
         })
+    }
+
+    private static func relation(for role: MemberAvatar) -> String {
+        switch role {
+        case .father:
+            "本人"
+        case .adult:
+            "伴侣"
+        case .child, .childDaughter, .youth, .teenDaughter:
+            "子女"
+        case .senior, .paternalGrandfather, .maternalGrandfather, .maternalGrandmother:
+            "父母"
+        }
     }
 
     func member(for avatar: MemberAvatar) -> SimulationMemberCopy {

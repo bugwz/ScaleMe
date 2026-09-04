@@ -391,67 +391,67 @@
         }
       }
     },
-    "当前为模拟数据模式，本次记录会写入模拟记录文件，可单独导出。" : {
+    "当前为模拟数据模式，本次记录仅在本次运行中保留。" : {
       "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Demo data mode is active. This entry is written to the demo records and can be exported separately."
+            "value" : "Der Demodatenmodus ist aktiv. Dieser Eintrag bleibt nur während der aktuellen App-Sitzung erhalten."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Demo data mode is active. This entry is written to the demo records and can be exported separately."
+            "value" : "Demo data mode is active. This entry is kept only for the current app session."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Demo data mode is active. This entry is written to the demo records and can be exported separately."
+            "value" : "El modo de datos de demostración está activo. Este registro solo se conserva durante la sesión actual."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Demo data mode is active. This entry is written to the demo records and can be exported separately."
+            "value" : "Le mode données de démonstration est actif. Cette mesure n’est conservée que pendant la session actuelle."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Demo data mode is active. This entry is written to the demo records and can be exported separately."
+            "value" : "シミュレーションデータモードです。この記録は現在のアプリ実行中だけ保持されます。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Demo data mode is active. This entry is written to the demo records and can be exported separately."
+            "value" : "데모 데이터 모드입니다. 이 기록은 현재 앱 실행 중에만 유지됩니다."
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Demo data mode is active. This entry is written to the demo records and can be exported separately."
+            "value" : "O modo de dados de demonstração está ativo. Este registo é mantido apenas durante a sessão atual."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Demo data mode is active. This entry is written to the demo records and can be exported separately."
+            "value" : "Включён режим демонстрационных данных. Эта запись сохраняется только в текущем сеансе."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "当前为模拟数据模式，本次记录会写入模拟记录文件，可单独导出。"
+            "value" : "当前为模拟数据模式，本次记录仅在本次运行中保留。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "目前為模擬資料模式，本次記錄會寫入模擬記錄檔案，可單獨匯出。"
+            "value" : "目前為模擬資料模式，本次記錄僅在本次執行期間保留。"
           }
         }
       }

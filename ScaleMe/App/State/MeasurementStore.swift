@@ -29,8 +29,6 @@ final class MeasurementStore: ObservableObject {
     private var isApplyingExternalState = false
     private var configurationRevision = 0
     private var archiveRevision = 0
-    private var simulationConfigurationRevision = 0
-    private var simulationArchiveRevision = 0
     @Published private var simulationData: SimulationDataSnapshot
     private let simulationLaunchDay: Date
     private let simulationCalendar: Calendar
@@ -42,13 +40,12 @@ final class MeasurementStore: ObservableObject {
     @Published private var simulationAppleHealthDeviceIDs: Set<UUID>
     @Published private var simulationDeletedMeasurementIDs: Set<UUID>
     private var simulationArchiveUpdatedAt: Date
+    private var configurationBeforeSimulation: AppConfiguration?
 
     init() {
         var loadedRepository: LocalAppRepository?
         var loadedConfiguration = AppConfiguration.standard
         var loadedArchive = MeasurementArchive.empty
-        var loadedSimulationConfiguration: AppConfiguration?
-        var loadedSimulationArchive: MeasurementArchive?
         var initialError: String?
 
         do {
@@ -66,18 +63,6 @@ final class MeasurementStore: ObservableObject {
             } catch {
                 initialError = "无法读取本地加密数据：\(error.localizedDescription)"
             }
-
-            do {
-                loadedSimulationConfiguration = try repository.loadSimulationConfiguration()
-            } catch {
-                initialError = "无法读取本地模拟配置：\(error.localizedDescription)"
-            }
-
-            do {
-                loadedSimulationArchive = try repository.loadSimulationArchive()
-            } catch {
-                initialError = "无法读取本地加密模拟数据：\(error.localizedDescription)"
-            }
         } catch {
             initialError = "无法初始化本地加密存储：\(error.localizedDescription)"
         }
@@ -86,42 +71,21 @@ final class MeasurementStore: ObservableObject {
         let simulationReferenceDate = Date.now
         let simulationCalendar = Calendar.current
         let simulationLaunchDay = simulationCalendar.startOfDay(for: simulationReferenceDate)
-        var simulationData = SimulationDataSnapshot.makeMetadata(
+        let simulationData = SimulationDataSnapshot.makeMetadata(
             language: resolvedLanguage,
             launchDay: simulationLaunchDay,
             calendar: simulationCalendar
         )
-        let hasLoadedSimulationConfiguration = loadedSimulationConfiguration?.profiles.isEmpty == false
-        if let loadedSimulationConfiguration, hasLoadedSimulationConfiguration {
-            simulationData.profiles = loadedSimulationConfiguration.profiles
-            simulationData.selectedProfileID = loadedSimulationConfiguration.profiles.contains {
-                $0.id == loadedSimulationConfiguration.selectedProfileID
-            } ? loadedSimulationConfiguration.selectedProfileID : loadedSimulationConfiguration.profiles[0].id
-            simulationData.pairedScales = loadedSimulationConfiguration.pairedScales
-        }
-        if let loadedSimulationArchive, hasLoadedSimulationConfiguration {
-            simulationData.measurements = loadedSimulationArchive.measurements
-                .filter { !loadedSimulationArchive.deletedMeasurementIDs.contains($0.id) }
-                .sorted { $0.date > $1.date }
-        }
         persistenceWriter = loadedRepository.map(LocalPersistenceWriter.init(repository:))
         self.simulationData = simulationData
         self.simulationLaunchDay = simulationLaunchDay
         self.simulationCalendar = simulationCalendar
         simulationSelectedProfileID = simulationData.selectedProfileID
-        simulationAppleHealthProfileID = loadedSimulationConfiguration?.appleHealthProfileID.flatMap { profileID in
-            simulationData.profiles.contains(where: { $0.id == profileID }) ? profileID : nil
-        }
-        simulationAppleHealthDeviceIDs = loadedSimulationConfiguration?.appleHealthDeviceIDs.intersection(
-            Set(simulationData.pairedScales.map(\.id))
-        ) ?? []
-        simulationDeletedMeasurementIDs = hasLoadedSimulationConfiguration
-            ? loadedSimulationArchive?.deletedMeasurementIDs ?? []
-            : []
-        simulationArchiveUpdatedAt = hasLoadedSimulationConfiguration
-            ? loadedSimulationArchive?.updatedAt ?? .distantPast
-            : .distantPast
-        isSimulationHistoryLoaded = hasLoadedSimulationConfiguration && loadedSimulationArchive != nil
+        simulationAppleHealthProfileID = nil
+        simulationAppleHealthDeviceIDs = []
+        simulationDeletedMeasurementIDs = []
+        simulationArchiveUpdatedAt = .distantPast
+        isSimulationHistoryLoaded = false
         profiles = loadedConfiguration.profiles
         selectedProfileID = loadedConfiguration.selectedProfileID
         pairedScales = loadedConfiguration.pairedScales
@@ -146,6 +110,11 @@ final class MeasurementStore: ObservableObject {
         archiveUpdatedAt = loadedArchive.updatedAt
         storageError = initialError
         latestHealthShareCandidate = nil
+        if isSimulationEnabled {
+            var baseline = loadedConfiguration
+            baseline.isSimulationEnabled = false
+            configurationBeforeSimulation = baseline
+        }
     }
 
     var configuration: AppConfiguration {
@@ -365,7 +334,6 @@ final class MeasurementStore: ObservableObject {
             guard simulationData.profiles.contains(where: { $0.id == id }) else { return }
             simulationSelectedProfileID = id
             simulationData.selectedProfileID = id
-            persistSimulationConfiguration()
         } else {
             selectProfile(id)
         }
@@ -375,7 +343,6 @@ final class MeasurementStore: ObservableObject {
         if isSimulationEnabled {
             guard id == nil || simulationData.profiles.contains(where: { $0.id == id }) else { return }
             simulationAppleHealthProfileID = id
-            persistSimulationConfiguration()
         } else {
             guard id == nil || profiles.contains(where: { $0.id == id }) else { return }
             appleHealthProfileID = id
@@ -388,7 +355,6 @@ final class MeasurementStore: ObservableObject {
             if simulationAppleHealthDeviceIDs.remove(id) == nil {
                 simulationAppleHealthDeviceIDs.insert(id)
             }
-            persistSimulationConfiguration()
         } else if appleHealthDeviceIDs.remove(id) == nil {
             appleHealthDeviceIDs.insert(id)
         }
@@ -399,7 +365,6 @@ final class MeasurementStore: ObservableObject {
             simulationData.profiles.append(profile)
             simulationSelectedProfileID = profile.id
             simulationData.selectedProfileID = profile.id
-            persistSimulationConfiguration()
             return
         }
         profiles.append(profile)
@@ -410,7 +375,6 @@ final class MeasurementStore: ObservableObject {
         if isSimulationEnabled {
             guard let index = simulationData.profiles.firstIndex(where: { $0.id == profile.id }) else { return }
             simulationData.profiles[index] = profile
-            persistSimulationConfiguration()
             return
         }
         guard let index = profiles.firstIndex(where: { $0.id == profile.id }) else { return }
@@ -420,7 +384,6 @@ final class MeasurementStore: ObservableObject {
     func moveProfile(_ profileID: UUID, onto targetProfileID: UUID) {
         if isSimulationEnabled {
             moveProfile(profileID, onto: targetProfileID, in: &simulationData.profiles)
-            persistSimulationConfiguration()
             return
         }
         moveProfile(profileID, onto: targetProfileID, in: &profiles)
@@ -440,7 +403,6 @@ final class MeasurementStore: ObservableObject {
 
         if isSimulationEnabled {
             simulationData.profiles = reorderedProfiles
-            persistSimulationConfiguration()
         } else {
             profiles = reorderedProfiles
         }
@@ -466,7 +428,6 @@ final class MeasurementStore: ObservableObject {
                 simulationSelectedProfileID = simulationData.profiles[0].id
                 simulationData.selectedProfileID = simulationSelectedProfileID
             }
-            persistSimulationConfiguration()
             return
         }
         guard profiles.count > 1, let index = profiles.firstIndex(where: { $0.id == id }) else { return }
@@ -479,7 +440,6 @@ final class MeasurementStore: ObservableObject {
         if isSimulationEnabled {
             guard !simulationData.pairedScales.contains(where: { $0.id == scale.id }) else { return }
             simulationData.pairedScales.append(scale)
-            persistSimulationConfiguration()
             return
         }
         guard !pairedScales.contains(where: { $0.id == scale.id }) else { return }
@@ -500,7 +460,6 @@ final class MeasurementStore: ObservableObject {
 
         if isSimulationEnabled {
             simulationData.pairedScales = reorderedScales
-            persistSimulationConfiguration()
         } else {
             pairedScales = reorderedScales
         }
@@ -512,7 +471,6 @@ final class MeasurementStore: ObservableObject {
         if isSimulationEnabled {
             guard let index = simulationData.pairedScales.firstIndex(where: { $0.id == id }) else { return }
             simulationData.pairedScales[index].name = trimmed
-            persistSimulationConfiguration()
             return
         }
         guard let index = pairedScales.firstIndex(where: { $0.id == id }) else { return }
@@ -533,7 +491,6 @@ final class MeasurementStore: ObservableObject {
             guard ruleID == nil || communicationRules.contains(where: { $0.id == ruleID }),
                   let index = simulationData.pairedScales.firstIndex(where: { $0.id == scaleID }) else { return }
             simulationData.pairedScales[index].communicationRuleID = ruleID
-            persistSimulationConfiguration()
             return
         }
         guard ruleID == nil || communicationRules.contains(where: { $0.id == ruleID }),
@@ -558,8 +515,15 @@ final class MeasurementStore: ObservableObject {
 
     func removeCommunicationRule(_ id: String) {
         customCommunicationRules.removeAll { $0.id == id }
-        for index in pairedScales.indices where pairedScales[index].communicationRuleID == id {
-            pairedScales[index].communicationRuleID = nil
+        if isSimulationEnabled {
+            for index in simulationData.pairedScales.indices
+                where simulationData.pairedScales[index].communicationRuleID == id {
+                simulationData.pairedScales[index].communicationRuleID = nil
+            }
+        } else {
+            for index in pairedScales.indices where pairedScales[index].communicationRuleID == id {
+                pairedScales[index].communicationRuleID = nil
+            }
         }
     }
 
@@ -567,7 +531,6 @@ final class MeasurementStore: ObservableObject {
         if isSimulationEnabled {
             simulationData.pairedScales.removeAll { $0.id == id }
             simulationAppleHealthDeviceIDs.remove(id)
-            persistSimulationConfiguration()
             return
         }
         pairedScales.removeAll { $0.id == id }
@@ -597,7 +560,6 @@ final class MeasurementStore: ObservableObject {
             simulationDeletedMeasurementIDs.formUnion(idsToDelete)
             simulationData.measurements.removeAll { idsToDelete.contains($0.id) }
             simulationArchiveUpdatedAt = .now
-            persistSimulationArchive()
             return
         }
         for offset in offsets where measurements.indices.contains(offset) {
@@ -639,7 +601,11 @@ final class MeasurementStore: ObservableObject {
         widgetTimeRange = configuration.widgetTimeRange
         widgetDisplayStyle = configuration.widgetDisplayStyle
         isApplyingExternalState = false
-        persistConfiguration()
+        if isSimulationEnabled {
+            simulationModeDidChange()
+        } else {
+            persistConfiguration()
+        }
     }
 
     func apply(archive: MeasurementArchive) {
@@ -688,8 +654,6 @@ final class MeasurementStore: ObservableObject {
         widgetTimeRange = configuration.widgetTimeRange
         widgetDisplayStyle = configuration.widgetDisplayStyle
         isApplyingExternalState = false
-        persistConfiguration()
-        persistSimulationConfiguration()
     }
 
     private func applySimulation(archive: MeasurementArchive) {
@@ -709,23 +673,42 @@ final class MeasurementStore: ObservableObject {
         simulationDataLoadTask?.cancel()
         simulationDataLoadTask = nil
         isSimulationDataLoading = false
-        persistSimulationArchive(markAsChanged: false)
     }
 
     private func persistConfigurationIfNeeded() {
-        guard !isApplyingExternalState else { return }
+        guard !isApplyingExternalState, !isSimulationEnabled else { return }
         persistConfiguration()
-        if isSimulationEnabled { persistSimulationConfiguration() }
     }
 
     private func simulationModeDidChange() {
         guard !isApplyingExternalState else { return }
         if isSimulationEnabled {
+            var baseline = configuration
+            baseline.isSimulationEnabled = false
+            configurationBeforeSimulation = baseline
             simulationSelectedProfileID = simulationData.selectedProfileID
             prepareSimulationDataIfNeeded()
-            persistSimulationConfiguration()
+        } else if let baseline = configurationBeforeSimulation {
+            restoreSharedConfiguration(from: baseline)
+            configurationBeforeSimulation = nil
         }
         persistConfiguration()
+    }
+
+    private func restoreSharedConfiguration(from configuration: AppConfiguration) {
+        isApplyingExternalState = true
+        unit = configuration.unit
+        languageSelection = configuration.languageSelection
+        appLanguage = configuration.languageSelection.resolvedLanguage
+        appearance = configuration.appearance
+        mergeFrequentMeasurements = configuration.mergeFrequentMeasurements
+        customCommunicationRules = configuration.customCommunicationRules
+        dashboardMetricOrder = MeasurementStore.sanitizedMetricOrder(configuration.dashboardMetricOrder)
+        dashboardVisibleMetrics = configuration.dashboardVisibleMetrics
+        widgetProfileID = configuration.widgetProfileID
+        widgetTimeRange = configuration.widgetTimeRange
+        widgetDisplayStyle = configuration.widgetDisplayStyle
+        isApplyingExternalState = false
     }
 
     func prepareSimulationDataIfNeeded() {
@@ -762,7 +745,6 @@ final class MeasurementStore: ObservableObject {
             isSimulationHistoryLoaded = true
             isSimulationDataLoading = false
             simulationDataLoadTask = nil
-            persistSimulationArchive(markAsChanged: false)
         }
     }
 
@@ -798,10 +780,6 @@ final class MeasurementStore: ObservableObject {
             self.simulationAppleHealthProfileID = nil
         }
         prepareSimulationDataIfNeeded()
-        if isSimulationEnabled {
-            persistSimulationConfiguration()
-            persistSimulationArchive(markAsChanged: false)
-        }
     }
 
     private func addSimulationMeasurement(_ measurement: BodyMeasurement) {
@@ -828,48 +806,6 @@ final class MeasurementStore: ObservableObject {
         simulationDeletedMeasurementIDs.remove(enriched.id)
         simulationData.measurements.sort { $0.date > $1.date }
         simulationArchiveUpdatedAt = .now
-        persistSimulationArchive()
-    }
-
-    private func persistSimulationConfiguration() {
-        guard let persistenceWriter else {
-            storageError = "无法初始化本地加密存储"
-            return
-        }
-        simulationConfigurationRevision += 1
-        let revision = simulationConfigurationRevision
-        let snapshot = currentConfiguration
-        Task {
-            do {
-                try await persistenceWriter.saveSimulationConfiguration(snapshot, revision: revision)
-                guard revision == simulationConfigurationRevision else { return }
-                storageError = nil
-            } catch {
-                guard revision == simulationConfigurationRevision else { return }
-                storageError = error.localizedDescription
-            }
-        }
-    }
-
-    private func persistSimulationArchive(markAsChanged: Bool = true) {
-        if markAsChanged { simulationArchiveUpdatedAt = .now }
-        guard let persistenceWriter else {
-            storageError = "无法初始化本地加密存储"
-            return
-        }
-        simulationArchiveRevision += 1
-        let revision = simulationArchiveRevision
-        let snapshot = currentArchive
-        Task {
-            do {
-                try await persistenceWriter.saveSimulationArchive(snapshot, revision: revision)
-                guard revision == simulationArchiveRevision else { return }
-                storageError = nil
-            } catch {
-                guard revision == simulationArchiveRevision else { return }
-                storageError = error.localizedDescription
-            }
-        }
     }
 
     private func persistConfiguration() {
@@ -879,7 +815,8 @@ final class MeasurementStore: ObservableObject {
         }
         configurationRevision += 1
         let revision = configurationRevision
-        let snapshot = configuration
+        var snapshot = configurationBeforeSimulation ?? configuration
+        snapshot.isSimulationEnabled = isSimulationEnabled
         Task {
             do {
                 try await persistenceWriter.saveConfiguration(snapshot, revision: revision)

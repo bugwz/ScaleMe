@@ -6239,130 +6239,130 @@
         }
       }
     },
-    "模拟数据不会写入 Apple 健康；这里的同步设置仅用于预览并保存在模拟配置中。" : {
+    "模拟数据不会写入 Apple 健康；这里的同步设置仅用于本次运行中的预览。" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Simulierte Daten werden nicht in Apple Health geschrieben. Diese Synchronisierungseinstellungen dienen nur der Vorschau und werden in der Demokonfiguration gespeichert."
+            "value" : "Simulierte Daten werden nicht in Apple Health geschrieben. Diese Synchronisierungseinstellungen dienen nur der Vorschau während der aktuellen App-Sitzung."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Simulated data is not written to Apple Health. These sync settings are for preview only and are saved in the demo configuration."
+            "value" : "Simulated data is not written to Apple Health. These sync settings are only for preview during the current app session."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Los datos simulados no se escriben en Apple Salud. Estos ajustes de sincronización son solo para previsualización y se guardan en la configuración de demostración."
+            "value" : "Los datos simulados no se escriben en Apple Salud. Estos ajustes de sincronización solo sirven para la vista previa durante la sesión actual."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Les données simulées ne sont pas écrites dans Apple Santé. Ces réglages servent uniquement à l’aperçu et sont enregistrés dans la configuration de démonstration."
+            "value" : "Les données simulées ne sont pas écrites dans Apple Santé. Ces réglages servent uniquement à l’aperçu pendant la session actuelle."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "シミュレーションデータはAppleヘルスケアに書き込まれません。ここでの同期設定はプレビュー専用で、シミュレーション設定に保存されます。"
+            "value" : "シミュレーションデータはAppleヘルスケアに書き込まれません。ここでの同期設定は、現在のアプリ実行中のプレビュー専用です。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "시뮬레이션 데이터는 Apple 건강에 기록되지 않습니다. 여기의 동기화 설정은 미리보기 전용이며 데모 설정에 저장됩니다."
+            "value" : "시뮬레이션 데이터는 Apple 건강에 기록되지 않습니다. 여기의 동기화 설정은 현재 앱 실행 중 미리보기 전용입니다."
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Os dados simulados não são escritos na Saúde Apple. Estas definições servem apenas para pré-visualização e são guardadas na configuração de demonstração."
+            "value" : "Os dados simulados não são escritos na Saúde Apple. Estas definições servem apenas para pré-visualização durante a sessão atual."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Демонстрационные данные не записываются в Apple Здоровье. Эти настройки используются только для предварительного просмотра и сохраняются в демонстрационной конфигурации."
+            "value" : "Демонстрационные данные не записываются в Apple Здоровье. Эти настройки используются только для предварительного просмотра в текущем сеансе."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "模拟数据不会写入 Apple 健康；这里的同步设置仅用于预览并保存在模拟配置中。"
+            "value" : "模拟数据不会写入 Apple 健康；这里的同步设置仅用于本次运行中的预览。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "模擬資料不會寫入 Apple 健康；這裡的同步設定僅供預覽，並儲存在模擬設定中。"
+            "value" : "模擬資料不會寫入 Apple 健康；這裡的同步設定僅供本次執行期間預覽。"
           }
         }
       }
     },
-    "模拟模式下的修改可通过独立命名的模拟文件导入导出；真实配置和记录不会被替换。" : {
+    "模拟模式下的修改仅保留到本次运行结束；下次启动会恢复预设数据。" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Änderungen im Demomodus können über separat benannte Demodateien importiert und exportiert werden. Echte Konfigurationen und Daten bleiben unverändert."
+            "value" : "Änderungen im Demomodus bleiben nur bis zum Ende der aktuellen App-Sitzung erhalten. Beim nächsten Start werden die voreingestellten Daten wiederhergestellt."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Demo changes can be imported and exported in separately named demo files. Real configuration and records remain unchanged."
+            "value" : "Demo changes last only for the current app session. Preset data is restored the next time the app starts."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Los cambios del modo de demostración se pueden importar y exportar en archivos con nombres propios. La configuración y los registros reales no se modifican."
+            "value" : "Los cambios del modo de demostración solo duran durante la sesión actual. Los datos predefinidos se restauran al volver a iniciar la app."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Les modifications du mode démonstration peuvent être importées et exportées dans des fichiers nommés séparément. La configuration et les relevés réels restent inchangés."
+            "value" : "Les modifications du mode démonstration ne durent que pendant la session actuelle. Les données prédéfinies sont restaurées au prochain lancement."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "シミュレーションモードの変更は、専用名のシミュレーションファイルで読み込み・書き出しできます。実際の設定と記録は変更されません。"
+            "value" : "シミュレーションモードの変更は現在のアプリ実行中だけ保持されます。次回起動時にプリセットデータへ戻ります。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "데모 모드의 변경 사항은 별도 이름의 데모 파일로 가져오고 내보낼 수 있습니다. 실제 설정과 기록은 변경되지 않습니다."
+            "value" : "데모 모드의 변경 사항은 현재 앱 실행 중에만 유지됩니다. 다음 실행 시 사전 설정 데이터로 복원됩니다."
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "As alterações do modo de demonstração podem ser importadas e exportadas em ficheiros com nomes próprios. A configuração e os registos reais permanecem inalterados."
+            "value" : "As alterações do modo de demonstração duram apenas durante a sessão atual. Os dados predefinidos são restaurados no próximo arranque."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Изменения деморежима можно импортировать и экспортировать в файлах с отдельными именами. Настоящие настройки и записи не изменяются."
+            "value" : "Изменения деморежима сохраняются только в текущем сеансе. При следующем запуске восстанавливаются предустановленные данные."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "模拟模式下的修改可通过独立命名的模拟文件导入导出；真实配置和记录不会被替换。"
+            "value" : "模拟模式下的修改仅保留到本次运行结束；下次启动会恢复预设数据。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "模擬模式下的修改可透過獨立命名的模擬檔案匯入匯出；真實設定與記錄不會被取代。"
+            "value" : "模擬模式下的修改僅保留到本次執行結束；下次啟動會恢復預設資料。"
           }
         }
       }
