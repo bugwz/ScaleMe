@@ -5326,67 +5326,67 @@
         }
       }
     },
-    "记录文件" : {
+    "数据文件" : {
       "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Datensatzdatei"
+            "value" : "Datendatei"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Record File"
+            "value" : "Data File"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Archivo de registros"
+            "value" : "Archivo de datos"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fichier de relevés"
+            "value" : "Fichier de données"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "記録ファイル"
+            "value" : "データファイル"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "기록 파일"
+            "value" : "데이터 파일"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ficheiro de registos"
+            "value" : "Ficheiro de dados"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Файл записей"
+            "value" : "Файл данных"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "记录文件"
+            "value" : "数据文件"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "記錄檔案"
+            "value" : "資料檔案"
           }
         }
       }
@@ -9031,67 +9031,67 @@
         }
       }
     },
-    "配置" : {
+    "配置文件" : {
       "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Configuration"
+            "value" : "Konfigurationsdatei"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Configuration"
+            "value" : "Configuration File"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Configuration"
+            "value" : "Archivo de configuración"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Configuration"
+            "value" : "Fichier de configuration"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Configuration"
+            "value" : "設定ファイル"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Configuration"
+            "value" : "설정 파일"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Configuration"
+            "value" : "Ficheiro de configuração"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Configuration"
+            "value" : "Файл конфигурации"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "配置"
+            "value" : "配置文件"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "配置"
+            "value" : "設定檔案"
           }
         }
       }

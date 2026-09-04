@@ -239,9 +239,9 @@ struct DataManagementSettingsView: View {
     }
 
     private var localTransferPanel: some View {
-        SettingsPanel(title: "记录文件导入/导出", icon: "arrow.up.arrow.down.square") {
+        SettingsPanel(title: "文件导入/导出", icon: "arrow.up.arrow.down.square") {
             transferSection(
-                title: "配置",
+                title: "配置文件",
                 detail: "成员、设备、显示单位和通信协议。",
                 importAction: { showsConfigurationImporter = true },
                 exportAction: { exportConfiguration() }
@@ -250,13 +250,13 @@ struct DataManagementSettingsView: View {
             SettingsSeparator()
 
             transferSection(
-                title: "记录文件",
+                title: "数据文件",
                 detail: "包含称重和身体成分记录的版本化 JSON 文件。",
                 importAction: { showsRecordImporter = true },
                 exportAction: { exportRecords() }
             )
 
-            Label("配置与健康记录均以版本化 JSON 文件导入导出，可跨设备分享。", systemImage: "doc.text.fill")
+            Label("配置文件与数据文件均以版本化 JSON 格式导入导出，可跨设备分享。", systemImage: "doc.text.fill")
                 .font(.caption)
                 .foregroundStyle(AppColor.secondary)
                 .fixedSize(horizontal: false, vertical: true)
@@ -274,9 +274,9 @@ struct DataManagementSettingsView: View {
     ) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .top, spacing: 12) {
-                Image(systemName: title == "配置" ? "gearshape.2.fill" : "waveform.path.ecg")
+                Image(systemName: title == "配置文件" ? "gearshape.2.fill" : "waveform.path.ecg")
                     .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(title == "配置" ? AppColor.sky : AppColor.mint)
+                    .foregroundStyle(title == "配置文件" ? AppColor.sky : AppColor.mint)
                     .frame(width: 36, height: 36)
                     .background(AppColor.paleMint, in: RoundedRectangle(cornerRadius: 11, style: .continuous))
                 VStack(alignment: .leading, spacing: 3) {
@@ -423,7 +423,7 @@ struct DataManagementSettingsView: View {
             )
         case .recordImport(let count):
             Alert(
-                title: Text("导入记录文件？"),
+                title: Text("导入数据文件？"),
                 message: Text(store.appLanguage.format(
                     "将把文件中的 %lld 条记录与本机记录合并，重复记录不会重复保存。",
                     Int64(count)

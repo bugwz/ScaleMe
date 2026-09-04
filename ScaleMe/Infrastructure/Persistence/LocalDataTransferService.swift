@@ -9,7 +9,7 @@ enum LocalDataTransferError: LocalizedError {
         case .invalidConfiguration:
             "配置文件格式无效"
         case .invalidRecordFile:
-            "记录文件格式无效"
+            "数据文件格式无效"
         }
     }
 }

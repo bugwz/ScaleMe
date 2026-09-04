@@ -3794,66 +3794,66 @@
         }
       }
     },
-    "导入记录文件？" : {
+    "导入数据文件？" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Datensatzdatei importieren?"
+            "value" : "Datendatei importieren?"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Import Record File?"
+            "value" : "Import Data File?"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "¿Importar archivo de registros?"
+            "value" : "¿Importar archivo de datos?"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Importer le fichier de relevés ?"
+            "value" : "Importer le fichier de données ?"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "記録ファイルを読み込みますか？"
+            "value" : "データファイルを読み込みますか？"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "기록 파일을 가져오시겠습니까?"
+            "value" : "데이터 파일을 가져오시겠습니까?"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Importar ficheiro de registos?"
+            "value" : "Importar ficheiro de dados?"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Импортировать файл записей?"
+            "value" : "Импортировать файл данных?"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "导入记录文件？"
+            "value" : "导入数据文件？"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "匯入記錄檔案？"
+            "value" : "匯入資料檔案？"
           }
         }
       }
@@ -9651,66 +9651,66 @@
         }
       }
     },
-    "配置与健康记录均以版本化 JSON 文件导入导出，可跨设备分享。" : {
+    "配置文件与数据文件均以版本化 JSON 格式导入导出，可跨设备分享。" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Konfiguration und Gesundheitsdaten werden als versionierte JSON-Dateien importiert und exportiert und können geräteübergreifend geteilt werden."
+            "value" : "Konfigurations- und Datendateien werden im versionierten JSON-Format importiert und exportiert und können geräteübergreifend geteilt werden."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Configuration and health records are imported and exported as versioned JSON files for sharing across devices."
+            "value" : "Configuration and data files use a versioned JSON format for import, export, and sharing across devices."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "La configuración y los registros de salud se importan y exportan como archivos JSON con versión que pueden compartirse entre dispositivos."
+            "value" : "Los archivos de configuración y datos se importan y exportan en formato JSON con versión y pueden compartirse entre dispositivos."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "La configuration et les relevés de santé sont importés et exportés sous forme de fichiers JSON versionnés partageables entre appareils."
+            "value" : "Les fichiers de configuration et de données sont importés et exportés au format JSON versionné et peuvent être partagés entre appareils."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "設定と健康記録はバージョン付きJSONファイルとして読み込み・書き出しでき、デバイス間で共有できます。"
+            "value" : "設定ファイルとデータファイルはバージョン付きJSON形式で読み込み・書き出しでき、デバイス間で共有できます。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "설정과 건강 기록은 버전 관리 JSON 파일로 가져오고 내보낼 수 있으며 기기 간에 공유할 수 있습니다."
+            "value" : "설정 파일과 데이터 파일은 버전 관리 JSON 형식으로 가져오고 내보낼 수 있으며 기기 간에 공유할 수 있습니다."
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "A configuração e os registos de saúde são importados e exportados como ficheiros JSON com versão que podem ser partilhados entre dispositivos."
+            "value" : "Os ficheiros de configuração e dados são importados e exportados em formato JSON com versão e podem ser partilhados entre dispositivos."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Конфигурация и записи о здоровье импортируются и экспортируются в версионируемых файлах JSON, которыми можно делиться между устройствами."
+            "value" : "Файлы конфигурации и данных импортируются и экспортируются в версионируемом формате JSON, и ими можно делиться между устройствами."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "配置与健康记录均以版本化 JSON 文件导入导出，可跨设备分享。"
+            "value" : "配置文件与数据文件均以版本化 JSON 格式导入导出，可跨设备分享。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "設定與健康記錄均以版本化 JSON 檔案匯入匯出，可跨裝置分享。"
+            "value" : "設定檔案與資料檔案均以版本化 JSON 格式匯入匯出，可跨裝置分享。"
           }
         }
       }

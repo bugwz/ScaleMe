@@ -3121,67 +3121,67 @@
         }
       }
     },
-    "记录文件导入/导出" : {
+    "文件导入/导出" : {
       "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Datensatzdatei importieren/exportieren"
+            "value" : "Dateien importieren/exportieren"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Record File Import/Export"
+            "value" : "File Import/Export"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Importar/exportar archivo de registros"
+            "value" : "Importar/exportar archivos"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Importer/exporter le fichier de relevés"
+            "value" : "Importer/exporter des fichiers"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "記録ファイルの読み込み／書き出し"
+            "value" : "ファイルの読み込み／書き出し"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "기록 파일 가져오기/내보내기"
+            "value" : "파일 가져오기/내보내기"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Importar/exportar ficheiro de registos"
+            "value" : "Importar/exportar ficheiros"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Импорт/экспорт файла записей"
+            "value" : "Импорт/экспорт файлов"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "记录文件导入/导出"
+            "value" : "文件导入/导出"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "記錄檔案匯入/匯出"
+            "value" : "檔案匯入/匯出"
           }
         }
       }
@@ -3576,67 +3576,67 @@
         }
       }
     },
-    "记录文件格式无效" : {
+    "数据文件格式无效" : {
       "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ungültiges Format der Datensatzdatei"
+            "value" : "Ungültiges Format der Datendatei"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The record file is invalid"
+            "value" : "The data file is invalid"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "El formato del archivo de registros no es válido"
+            "value" : "El formato del archivo de datos no es válido"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Le format du fichier de relevés n’est pas valide"
+            "value" : "Le format du fichier de données n’est pas valide"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "記録ファイルの形式が無効です"
+            "value" : "データファイルの形式が無効です"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "기록 파일 형식이 올바르지 않습니다"
+            "value" : "데이터 파일 형식이 올바르지 않습니다"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "O formato do ficheiro de registos é inválido"
+            "value" : "O formato do ficheiro de dados é inválido"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Недопустимый формат файла записей"
+            "value" : "Недопустимый формат файла данных"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "记录文件格式无效"
+            "value" : "数据文件格式无效"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "記錄檔案格式無效"
+            "value" : "資料檔案格式無效"
           }
         }
       }

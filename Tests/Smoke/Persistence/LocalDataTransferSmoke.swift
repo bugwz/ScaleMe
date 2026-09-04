@@ -160,13 +160,13 @@ struct LocalDataTransferSmoke {
 
         do {
             _ = try service.importRecords(from: Data("invalid".utf8))
-            preconditionFailure("invalid record file must be rejected")
+            preconditionFailure("invalid data file must be rejected")
         } catch LocalDataTransferError.invalidRecordFile {
         }
 
         do {
             _ = try service.importRecords(from: JSONEncoder().encode(archive))
-            preconditionFailure("unversioned record files must be rejected")
+            preconditionFailure("unversioned data files must be rejected")
         } catch LocalDataTransferError.invalidRecordFile {
         }
 
