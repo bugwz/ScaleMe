@@ -1034,6 +1034,7 @@
       }
     },
     "保存设备名称" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -3024,9 +3025,6 @@
           }
         }
       }
-    },
-    "填写大致体重即可，用于将体重秤中的历史记录智能匹配到成员。" : {
-
     },
     "外部协议" : {
       "localizations" : {

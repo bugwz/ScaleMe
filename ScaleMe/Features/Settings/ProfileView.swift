@@ -1042,18 +1042,7 @@ private struct MemberEditorView: View {
             VStack(alignment: .leading, spacing: 9) {
                 fieldLabel("参考体重")
                 MemberWeightInput(text: $weightText)
-                Text("填写大致体重即可，用于将体重秤中的历史记录智能匹配到成员。")
-                    .font(.caption)
-                    .foregroundStyle(AppColor.secondary)
             }
-
-            SettingsSeparator()
-
-            SettingsSwitch(
-                title: "运动员模式",
-                detail: "仅在长期高强度训练时开启，用于调整身体成分估算参数。",
-                isOn: $draft.athleteMode
-            )
         }
     }
 
@@ -1069,17 +1058,21 @@ private struct MemberEditorView: View {
     @ViewBuilder
     private var deletePanel: some View {
         if !isNew, store.displayProfiles.count > 1 {
-            SettingsPanel(title: "成员管理", icon: "person.crop.circle.badge.minus") {
-                Button {
-                    showDeleteConfirmation()
-                } label: {
-                    Label("删除成员", systemImage: "trash")
-                }
-                .buttonStyle(MintActionButtonStyle(isDestructive: true))
-                Text("删除成员不会自动删除其历史测量记录。")
-                    .font(.caption)
-                    .foregroundStyle(AppColor.secondary)
+            Button(role: .destructive, action: showDeleteConfirmation) {
+                Label("删除成员", systemImage: "trash")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(AppColor.rose)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
+                    .background(AppColor.rose.opacity(0.10), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    .contentShape(Rectangle())
             }
+            .buttonStyle(.plain)
+
+            Text("删除成员不会自动删除其历史测量记录。")
+                .font(.caption2)
+                .foregroundStyle(AppColor.secondary)
+                .frame(maxWidth: .infinity)
         }
     }
 
@@ -1122,20 +1115,20 @@ private struct MemberSearchField: View {
     var body: some View {
         HStack(spacing: 10) {
             Image(systemName: "magnifyingglass")
-                .foregroundStyle(AppColor.mint)
+                .foregroundStyle(AppColor.secondary)
             ResponsiveTextField(
                 text: $text,
                 isFocused: $isFocused,
                 placeholder: "搜索姓名或关系",
-                returnKeyType: .done
+                returnKeyType: .search,
+                autocorrectionType: .no
             )
-            .frame(minHeight: 24)
             if !text.isEmpty {
                 Button {
                     text = ""
                 } label: {
                     Image(systemName: "xmark.circle.fill")
-                        .foregroundStyle(AppColor.secondary.opacity(0.65))
+                        .foregroundStyle(AppColor.secondary.opacity(0.55))
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("清除搜索")
@@ -1143,12 +1136,8 @@ private struct MemberSearchField: View {
         }
         .padding(.horizontal, 14)
         .frame(minHeight: 48)
-        .background(AppColor.paleMint.opacity(0.68), in: RoundedRectangle(cornerRadius: 15, style: .continuous))
-        .overlay {
-            RoundedRectangle(cornerRadius: 15, style: .continuous)
-                .stroke(isFocused ? AppColor.mint.opacity(0.55) : AppColor.mint.opacity(0.10), lineWidth: isFocused ? 1.5 : 1)
-                .allowsHitTesting(false)
-        }
+        .background(AppColor.surface.opacity(0.94), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).stroke(AppColor.mint.opacity(0.10)))
     }
 }
 

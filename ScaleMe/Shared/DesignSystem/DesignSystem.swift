@@ -792,40 +792,23 @@ struct DestructiveConfirmationOverlay: View {
     }
 }
 
-struct ScaleAvatarIconView: View {
+struct ScaleDeviceIconView: View {
     var size: CGFloat = 64
     var iconSize: CGFloat = 28
     var accent: Color = AppColor.mint
 
     var body: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: size * 0.32, style: .continuous)
-                .fill(
-                    LinearGradient(
-                        colors: [
-                            AppColor.surface,
-                            accent.opacity(0.16),
-                            AppColor.sky.opacity(0.12)
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
-
-            Image("ScaleDeviceTabIcon")
-                .renderingMode(.template)
-                .resizable()
-                .scaledToFit()
-                .foregroundStyle(accent)
-                .frame(width: iconSize, height: iconSize)
-        }
-        .frame(width: size, height: size)
-        .clipShape(RoundedRectangle(cornerRadius: size * 0.32, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: size * 0.32, style: .continuous)
-                .stroke(accent.opacity(0.15), lineWidth: 1)
-        )
-        .shadow(color: accent.opacity(0.10), radius: 8, y: 4)
+        Image("ScaleDeviceTabIcon")
+            .renderingMode(.template)
+            .resizable()
+            .scaledToFit()
+            .foregroundStyle(accent)
+            .frame(width: iconSize, height: iconSize)
+            .frame(width: size, height: size)
+            .background(
+                accent.opacity(0.12),
+                in: RoundedRectangle(cornerRadius: size * 0.3, style: .continuous)
+            )
     }
 }
 

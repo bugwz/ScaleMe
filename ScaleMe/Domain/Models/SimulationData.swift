@@ -113,7 +113,6 @@ struct SimulationDataSnapshot {
             referenceWeightKG: referenceWeightKG,
             birthDate: calendar.date(byAdding: .year, value: -age, to: today) ?? today,
             biologicalSex: sex,
-            athleteMode: false,
             avatar: avatar
         )
     }

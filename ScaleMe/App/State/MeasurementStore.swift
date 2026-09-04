@@ -362,12 +362,9 @@ final class MeasurementStore: ObservableObject {
     func addProfile(_ profile: UserProfile) {
         if isSimulationEnabled {
             simulationData.profiles.append(profile)
-            simulationSelectedProfileID = profile.id
-            simulationData.selectedProfileID = profile.id
             return
         }
         profiles.append(profile)
-        selectedProfileID = profile.id
     }
 
     func updateProfile(_ profile: UserProfile) {

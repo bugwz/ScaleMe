@@ -3,8 +3,8 @@ import Foundation
 @main
 enum StorageSmoke {
     static func main() throws {
-        let cipher = MeasurementFileCipher(keyData: Data(repeating: 0x5A, count: 32))
-        let plaintext = Data("private measurement payload".utf8)
+        let cipher = DataFileCipher(keyData: Data(repeating: 0x5A, count: 32))
+        let plaintext = Data("private data payload".utf8)
         let encrypted = try cipher.encrypt(plaintext)
         let decrypted = try cipher.decrypt(encrypted)
 

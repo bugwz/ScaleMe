@@ -4,8 +4,8 @@ import Security
 
 enum AppStorageLayout {
     static let directoryName = "ScaleMe"
-    static let configurationFileName = "configuration-v5.json"
-    static let measurementsFileName = "measurements-v2.enc"
+    static let configurationFileName = "configuration.json"
+    static let dataFileName = "data.enc"
 }
 
 enum SecureStorageError: LocalizedError {
@@ -22,8 +22,8 @@ enum SecureStorageError: LocalizedError {
     }
 }
 
-struct MeasurementFileCipher: Sendable {
-    private static let authenticatedContext = Data("ScaleMe.measurements.v2".utf8)
+struct DataFileCipher: Sendable {
+    private static let authenticatedContext = Data("ScaleMe.data".utf8)
     private let keyData: Data
 
     init() throws {
@@ -50,7 +50,7 @@ struct MeasurementFileCipher: Sendable {
 
 private struct EncryptionKeyStore {
     private let service = "com.bugwz.scaleme.data-encryption"
-    private let account = "local-measurement-file-key"
+    private let account = "local-data-file-key"
 
     func loadOrCreateKey() throws -> Data {
         if let existing = try loadKey() { return existing }
@@ -88,7 +88,7 @@ private struct EncryptionKeyStore {
 
 struct LocalAppRepository {
     private let directoryURL: URL
-    private let cipher: MeasurementFileCipher
+    private let cipher: DataFileCipher
     private let encoder = JSONEncoder()
     private let decoder = JSONDecoder()
 
@@ -101,7 +101,7 @@ struct LocalAppRepository {
         )
         directoryURL = applicationSupport.appending(path: AppStorageLayout.directoryName, directoryHint: .isDirectory)
         try fileManager.createDirectory(at: directoryURL, withIntermediateDirectories: true)
-        cipher = try MeasurementFileCipher()
+        cipher = try DataFileCipher()
     }
 
     func loadConfiguration() throws -> AppConfiguration? {
@@ -119,7 +119,7 @@ struct LocalAppRepository {
     }
 
     func loadArchive() throws -> MeasurementArchive? {
-        let url = directoryURL.appending(path: AppStorageLayout.measurementsFileName)
+        let url = directoryURL.appending(path: AppStorageLayout.dataFileName)
         guard FileManager.default.fileExists(atPath: url.path) else { return nil }
         let encryptedData = try Data(contentsOf: url)
         return try decoder.decode(MeasurementArchive.self, from: cipher.decrypt(encryptedData))
@@ -129,7 +129,7 @@ struct LocalAppRepository {
         let plaintext = try encoder.encode(archive)
         let encryptedData = try cipher.encrypt(plaintext)
         try encryptedData.write(
-            to: directoryURL.appending(path: AppStorageLayout.measurementsFileName),
+            to: directoryURL.appending(path: AppStorageLayout.dataFileName),
             options: [.atomic, .completeFileProtectionUntilFirstUserAuthentication]
         )
     }

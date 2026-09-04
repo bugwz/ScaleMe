@@ -159,7 +159,6 @@ struct UserProfile: Identifiable, Codable, Equatable {
     var referenceWeightKG = 60.0
     var birthDate = Calendar.current.date(byAdding: .year, value: -30, to: .now) ?? .now
     var biologicalSex = BiologicalSex.female
-    var athleteMode = false
     var avatar = MemberAvatar.adult
 
     enum BiologicalSex: String, Codable, CaseIterable, Identifiable {

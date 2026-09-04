@@ -240,7 +240,7 @@ struct DevicesView: View {
 
     private var emptyDevicesCard: some View {
         VStack(spacing: 14) {
-            ScaleAvatarIconView(size: 52, iconSize: 24, accent: AppColor.mint)
+            ScaleDeviceIconView(size: 52, iconSize: 24, accent: AppColor.mint)
 
             VStack(spacing: 6) {
                 Text("还没有绑定设备")
@@ -321,17 +321,7 @@ struct DevicesView: View {
         let accentColor = isUnverified ? AppColor.apricot : AppColor.mint
 
         return HStack(spacing: 14) {
-            Image("ScaleDeviceTabIcon")
-                .renderingMode(.template)
-                .resizable()
-                .scaledToFit()
-                .foregroundStyle(accentColor)
-                .frame(width: 19, height: 19)
-                .frame(width: 40, height: 40)
-                .background(
-                    accentColor.opacity(0.12),
-                    in: RoundedRectangle(cornerRadius: 12, style: .continuous)
-                )
+            ScaleDeviceIconView(size: 40, iconSize: 19, accent: accentColor)
 
             VStack(alignment: .leading, spacing: 3) {
                 Text(scale.name)
@@ -662,7 +652,7 @@ private struct DeviceScannerView: View {
                     .shadow(color: AppColor.mint.opacity(0.12), radius: 24, y: 10)
 
                 VStack(spacing: 13) {
-                    ScaleAvatarIconView(size: 78, iconSize: 36, accent: scanStageColor)
+                    ScaleDeviceIconView(size: 78, iconSize: 36, accent: scanStageColor)
 
                     StatusPill(text: scanStageLabel, color: scanStageColor)
                 }
@@ -816,7 +806,7 @@ private struct DeviceScannerView: View {
         let accent = device.isVerifiedCompatible ? AppColor.mint : AppColor.sky
 
         return HStack(spacing: 12) {
-            ScaleAvatarIconView(size: 44, iconSize: 20, accent: accent)
+            ScaleDeviceIconView(size: 44, iconSize: 20, accent: accent)
 
             VStack(alignment: .leading, spacing: 3) {
                 Text(device.name)
@@ -909,6 +899,9 @@ private struct ScaleSettingsView: View {
     @State private var diagnosticReportDocument = DiagnosticReportDocument()
     @State private var showsDiagnosticFileExporter = false
     @State private var diagnosticExportTask: Task<Void, Never>?
+    @State private var nameDraft = ""
+    @State private var isEditingName = false
+    @State private var isNameFocused = false
 
     private var scale: PairedScale? { store.displayPairedScales.first { $0.id == scaleID } }
 
@@ -916,7 +909,6 @@ private struct ScaleSettingsView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 deviceSummaryCard
-                namePanel
                 informationPanel
                 hardwarePanel
                 historyPanel
@@ -980,6 +972,7 @@ private struct ScaleSettingsView: View {
         .navigationBarTitleDisplayMode(.inline)
         .localizedNavigationBackButton()
         .onAppear {
+            nameDraft = scale?.name ?? ""
             if let scale, !store.isSimulationEnabled { bluetooth.inspectSettings(for: scale) }
         }
         .onDisappear {
@@ -1078,13 +1071,32 @@ private struct ScaleSettingsView: View {
     private var deviceSummaryCard: some View {
         VStack(alignment: .leading, spacing: 14) {
             HStack(spacing: 14) {
-                ScaleAvatarIconView(size: 52, iconSize: 24, accent: settingsStatusColor)
+                ScaleDeviceIconView(size: 52, iconSize: 24, accent: settingsStatusColor)
 
                 VStack(alignment: .leading, spacing: 4) {
-                    AppLocalizedText(scale?.name ?? "蓝牙秤")
-                        .font(.headline)
-                        .foregroundStyle(AppColor.ink)
-                        .lineLimit(2)
+                    if isEditingName {
+                        ResponsiveTextField(
+                            text: $nameDraft,
+                            isFocused: $isNameFocused,
+                            placeholder: "设备自定义名称",
+                            returnKeyType: .done,
+                            textStyle: .headline,
+                            fontWeight: .semibold
+                        )
+                        .frame(minHeight: 34)
+                        .padding(.horizontal, 10)
+                        .background(AppColor.canvas, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                .stroke(AppColor.mint, lineWidth: 1.5)
+                                .allowsHitTesting(false)
+                        )
+                    } else {
+                        AppLocalizedText(scale?.name ?? "蓝牙秤")
+                            .font(.headline)
+                            .foregroundStyle(AppColor.ink)
+                            .lineLimit(2)
+                    }
                     Text(scale?.modelName ?? "")
                         .font(.caption)
                         .foregroundStyle(AppColor.secondary)
@@ -1092,6 +1104,18 @@ private struct ScaleSettingsView: View {
                 }
 
                 Spacer(minLength: 8)
+
+                Button(action: toggleNameEditing) {
+                    Image(systemName: isEditingName ? "checkmark" : "pencil")
+                        .font(.subheadline.weight(.bold))
+                        .foregroundStyle(isNameConfirmationEnabled ? AppColor.mint : AppColor.secondary)
+                        .frame(width: 36, height: 36)
+                        .background(AppColor.paleMint, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .disabled(!isNameConfirmationEnabled)
+                .accessibilityLabel(store.appLanguage.text(isEditingName ? "保存设备名称" : "设备重命名"))
             }
 
             if !store.isSimulationEnabled {
@@ -1154,16 +1178,28 @@ private struct ScaleSettingsView: View {
         )
     }
 
-    private var namePanel: some View {
-        Group {
-            if let scale {
-                ScaleNameEditor(scaleID: scaleID, initialName: scale.name) { updatedName in
-                    store.renameScale(scaleID, name: updatedName)
-                    if !store.isSimulationEnabled {
-                        bluetooth.updatePairedScales(store.pairedScales, communicationRules: store.communicationRules)
-                    }
-                }
-                .equatable()
+    private var isNameConfirmationEnabled: Bool {
+        scale != nil && (!isEditingName || !nameDraft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+    }
+
+    private func toggleNameEditing() {
+        guard isEditingName else {
+            nameDraft = scale?.name ?? ""
+            isEditingName = true
+            isNameFocused = true
+            return
+        }
+
+        let trimmedName = nameDraft.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedName.isEmpty else { return }
+
+        nameDraft = trimmedName
+        isNameFocused = false
+        isEditingName = false
+        if trimmedName != scale?.name {
+            store.renameScale(scaleID, name: trimmedName)
+            if !store.isSimulationEnabled {
+                bluetooth.updatePairedScales(store.pairedScales, communicationRules: store.communicationRules)
             }
         }
     }
@@ -1825,78 +1861,6 @@ private struct DiagnosticExportActionButtonStyle: ButtonStyle {
             )
             .scaleEffect(configuration.isPressed ? 0.985 : 1)
             .animation(.easeOut(duration: 0.12), value: configuration.isPressed)
-    }
-}
-
-private struct ScaleNameEditor: View, Equatable {
-    let scaleID: UUID
-    let initialName: String
-    let onSave: (String) -> Void
-
-    @State private var name: String
-    @State private var isNameFocused = false
-
-    init(scaleID: UUID, initialName: String, onSave: @escaping (String) -> Void) {
-        self.scaleID = scaleID
-        self.initialName = initialName
-        self.onSave = onSave
-        _name = State(initialValue: initialName)
-    }
-
-    static func == (lhs: ScaleNameEditor, rhs: ScaleNameEditor) -> Bool {
-        lhs.scaleID == rhs.scaleID && lhs.initialName == rhs.initialName
-    }
-
-    var body: some View {
-        SettingsPanel(title: "设备重命名", icon: "pencil") {
-            HStack(spacing: 10) {
-                ResponsiveTextField(
-                    text: $name,
-                    isFocused: $isNameFocused,
-                    placeholder: "设备自定义名称",
-                    returnKeyType: .done
-                )
-                    .padding(.horizontal, 12)
-                    .frame(minHeight: 44)
-                    .background(AppColor.canvas, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12, style: .continuous)
-                            .stroke(isNameFocused ? AppColor.mint : AppColor.mint.opacity(0.18), lineWidth: isNameFocused ? 1.5 : 1)
-                            .allowsHitTesting(false)
-                    )
-
-                Button(action: save) {
-                    Image(systemName: "checkmark")
-                        .font(.subheadline.weight(.bold))
-                        .foregroundStyle(canSave ? Color.white : AppColor.secondary)
-                        .frame(width: 44, height: 44)
-                        .background(
-                            canSave ? AppColor.mint : AppColor.paleMint,
-                            in: RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        )
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                .stroke(canSave ? Color.clear : AppColor.secondary.opacity(0.18))
-                        )
-                }
-                .buttonStyle(.plain)
-                .disabled(!canSave)
-                .accessibilityLabel("保存设备名称")
-            }
-        }
-    }
-
-    private var canSave: Bool {
-        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
-        return !trimmed.isEmpty && trimmed != initialName
-    }
-
-    private func save() {
-        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else { return }
-        name = trimmed
-        isNameFocused = false
-        if trimmed != initialName { onSave(trimmed) }
     }
 }
 

@@ -70,7 +70,6 @@ enum ConfigurationFileCodec {
             ("heightCM", .number(numberString(profile.heightCM))),
             ("birthDate", .number(numberString(profile.birthDate.timeIntervalSinceReferenceDate))),
             ("biologicalSex", .string(profile.biologicalSex.rawValue)),
-            ("athleteMode", .bool(profile.athleteMode)),
             ("avatar", .string(profile.avatar.rawValue))
         ])
     }

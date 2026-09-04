@@ -44,7 +44,7 @@ struct LocalDataTransferSmoke {
         assertOrderedKeys(
             in: configurationJSON,
             after: "\"profiles\"",
-            keys: ["id", "name", "relation", "heightCM", "birthDate", "biologicalSex", "athleteMode", "avatar"]
+            keys: ["id", "name", "relation", "heightCM", "birthDate", "biologicalSex", "avatar"]
         )
         assertOrderedKeys(
             in: configurationJSON,
