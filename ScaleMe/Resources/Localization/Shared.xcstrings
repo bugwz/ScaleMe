@@ -1632,61 +1632,61 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Import, Export, iCloud und Demodaten"
+            "value" : "Import, Export und Demodaten"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Import, export, iCloud, and demo data"
+            "value" : "Import, export, and demo data"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Importación, exportación, iCloud y datos de demostración"
+            "value" : "Importación, exportación y datos de demostración"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Importation, exportation, iCloud et données de démonstration"
+            "value" : "Importation, exportation et données de démonstration"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "インポート、エクスポート、iCloud、デモデータ"
+            "value" : "インポート、エクスポート、デモデータ"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "가져오기, 내보내기, iCloud 및 데모 데이터"
+            "value" : "가져오기, 내보내기 및 데모 데이터"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Importação, exportação, iCloud e dados de demonstração"
+            "value" : "Importação, exportação e dados de demonstração"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Импорт, экспорт, iCloud и демонстрационные данные"
+            "value" : "Импорт, экспорт и демонстрационные данные"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "导入导出、iCloud 与数据模拟"
+            "value" : "导入导出与数据模拟"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "匯入匯出、iCloud 與資料模擬"
+            "value" : "匯入匯出與資料模擬"
           }
         }
       }

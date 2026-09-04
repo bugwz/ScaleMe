@@ -19,7 +19,7 @@ struct AboutView: View {
                     aboutRow(
                         icon: "lock.shield.fill",
                         title: "本地优先",
-                        detail: "不开启同步时，成员资料和测量数据只保存在本机。"
+                        detail: "成员资料和测量数据默认保存在本机。"
                     )
                     Divider()
                     aboutRow(

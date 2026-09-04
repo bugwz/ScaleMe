@@ -33,7 +33,6 @@ struct ScaleMeApp: App {
     @Environment(\.scenePhase) private var scenePhase
     @StateObject private var store = MeasurementStore()
     @StateObject private var bluetooth = BLEScaleManager()
-    @StateObject private var cloudSync = ICloudSyncManager()
     @StateObject private var appleHealth = AppleHealthManager()
     @State private var isShowingLaunchScreen = true
     @State private var isLeavingLaunchScreen = false
@@ -44,7 +43,6 @@ struct ScaleMeApp: App {
                 RootView()
                     .environmentObject(store)
                     .environmentObject(bluetooth)
-                    .environmentObject(cloudSync)
                     .environmentObject(appleHealth)
                     .opacity(isShowingLaunchScreen && !isLeavingLaunchScreen ? 0 : 1)
                     .scaleEffect(isShowingLaunchScreen && !isLeavingLaunchScreen ? 1.012 : 1)
@@ -72,12 +70,6 @@ struct ScaleMeApp: App {
             .onChange(of: store.archive) {
                 exportWidgetSnapshot()
             }
-            .onChange(of: store.cloudConfigurationRevision) {
-                cloudSync.configurationDidChange()
-            }
-            .onChange(of: store.cloudArchiveRevision) {
-                cloudSync.measurementsDidChange()
-            }
             .onChange(of: store.displayMeasurements) {
                 exportWidgetSnapshot()
             }
@@ -94,14 +86,12 @@ struct ScaleMeApp: App {
             .onChange(of: scenePhase) { _, newPhase in
                 if newPhase == .active {
                     store.refreshSystemLanguage()
-                    cloudSync.syncWhenAppBecomesActive()
                     appleHealth.refreshAuthorizationState()
                 }
             }
             .task {
                 store.prepareSimulationDataIfNeeded()
                 bluetooth.updatePairedScales(store.pairedScales, communicationRules: store.communicationRules)
-                cloudSync.attach(to: store)
                 appleHealth.refreshAuthorizationState()
                 exportWidgetSnapshot()
                 guard isShowingLaunchScreen else { return }

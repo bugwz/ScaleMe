@@ -48,12 +48,12 @@ enum StorageSmoke {
             measurements: [retained],
             deletedMeasurementIDs: [removed.id]
         )
-        let cloud = MeasurementArchive(
+        let incomingArchive = MeasurementArchive(
             updatedAt: .now.addingTimeInterval(-30),
             measurements: [removed],
             deletedMeasurementIDs: []
         )
-        let merged = local.merging(cloud)
+        let merged = local.merging(incomingArchive)
 
         precondition(merged.measurements == [retained], "deleted records must not be resurrected")
         precondition(merged.measurements[0].deviceName == "浴室秤", "measurement source attribution must survive archive merge")

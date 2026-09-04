@@ -386,70 +386,6 @@
         }
       }
     },
-    "iCloud 中的成员、设备、显示单位和通信协议将替换本机配置。测量记录不受影响。" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mitglieder, Geräte, Anzeigeeinheiten und Kommunikationsprotokolle aus iCloud ersetzen die lokale Konfiguration. Messungen bleiben unberührt."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Members, devices, display units, and communication protocols from iCloud will replace local configuration. Measurements are not affected."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Los miembros, dispositivos, unidades de visualización y protocolos de comunicación de iCloud reemplazarán la configuración local. Las mediciones no se verán afectadas."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Les membres, appareils, unités d’affichage et protocoles de communication d’iCloud remplaceront la configuration locale. Les mesures ne sont pas affectées."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "iCloud のメンバー、デバイス、表示単位、通信プロトコルでローカル設定を置き換えます。測定記録には影響しません。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "iCloud의 구성원, 기기, 표시 단위 및 통신 프로토콜이 로컬 구성을 대체합니다. 측정 기록에는 영향을 주지 않습니다."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Os membros, dispositivos, unidades de apresentação e protocolos de comunicação do iCloud substituirão a configuração local. As medições não serão afetadas."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Участники, устройства, единицы отображения и протоколы связи из iCloud заменят локальную конфигурацию. Измерения не изменятся."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "iCloud 中的成员、设备、显示单位和通信协议将替换本机配置。测量记录不受影响。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "iCloud 中的成員、裝置、顯示單位和通訊協定將取代本機設定。測量記錄不受影響。"
-          }
-        }
-      }
-    },
     "iOS 不提供外设的真实蓝牙地址；该地址用于生成 C3。协议解析已通过抓包夹具验证，仍需在真实设备上验证完整测量会话。" : {
       "localizations" : {
         "de" : {
@@ -703,70 +639,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "僅共享裝置或手動記錄明確提供的數值"
-          }
-        }
-      }
-    },
-    "从 iCloud 拉取配置？" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pull configuration from iCloud?"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pull configuration from iCloud?"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pull configuration from iCloud?"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pull configuration from iCloud?"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pull configuration from iCloud?"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pull configuration from iCloud?"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pull configuration from iCloud?"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pull configuration from iCloud?"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "从 iCloud 拉取配置？"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "从 iCloud 拉取配置？"
           }
         }
       }
@@ -5146,70 +5018,6 @@
         }
       }
     },
-    "拉取并替换" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pull and replace"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pull and replace"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pull and replace"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pull and replace"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pull and replace"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pull and replace"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pull and replace"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pull and replace"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "拉取并替换"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "拉取并替换"
-          }
-        }
-      }
-    },
     "拉取并校验规则" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -6495,66 +6303,66 @@
         }
       }
     },
-    "模拟模式下的修改可通过独立命名的模拟文件导入导出，并可同步到 iCloud；真实配置和记录不会被替换。" : {
+    "模拟模式下的修改可通过独立命名的模拟文件导入导出；真实配置和记录不会被替换。" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Änderungen im Demomodus können über separat benannte Demodateien importiert und exportiert sowie mit iCloud synchronisiert werden. Echte Konfigurationen und Daten bleiben unverändert."
+            "value" : "Änderungen im Demomodus können über separat benannte Demodateien importiert und exportiert werden. Echte Konfigurationen und Daten bleiben unverändert."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Demo changes can be imported and exported in separately named demo files and synced to iCloud. Real configuration and records remain unchanged."
+            "value" : "Demo changes can be imported and exported in separately named demo files. Real configuration and records remain unchanged."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Los cambios del modo de demostración se pueden importar y exportar en archivos con nombres propios y sincronizar con iCloud. La configuración y los registros reales no se modifican."
+            "value" : "Los cambios del modo de demostración se pueden importar y exportar en archivos con nombres propios. La configuración y los registros reales no se modifican."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Les modifications du mode démonstration peuvent être importées et exportées dans des fichiers nommés séparément, puis synchronisées avec iCloud. La configuration et les relevés réels restent inchangés."
+            "value" : "Les modifications du mode démonstration peuvent être importées et exportées dans des fichiers nommés séparément. La configuration et les relevés réels restent inchangés."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "シミュレーションモードの変更は、専用名のシミュレーションファイルで読み込み・書き出しでき、iCloudにも同期できます。実際の設定と記録は変更されません。"
+            "value" : "シミュレーションモードの変更は、専用名のシミュレーションファイルで読み込み・書き出しできます。実際の設定と記録は変更されません。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "데모 모드의 변경 사항은 별도 이름의 데모 파일로 가져오고 내보낼 수 있으며 iCloud와 동기화할 수 있습니다. 실제 설정과 기록은 변경되지 않습니다."
+            "value" : "데모 모드의 변경 사항은 별도 이름의 데모 파일로 가져오고 내보낼 수 있습니다. 실제 설정과 기록은 변경되지 않습니다."
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "As alterações do modo de demonstração podem ser importadas e exportadas em ficheiros com nomes próprios e sincronizadas com o iCloud. A configuração e os registos reais permanecem inalterados."
+            "value" : "As alterações do modo de demonstração podem ser importadas e exportadas em ficheiros com nomes próprios. A configuração e os registos reais permanecem inalterados."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Изменения деморежима можно импортировать и экспортировать в файлах с отдельными именами, а также синхронизировать с iCloud. Настоящие настройки и записи не изменяются."
+            "value" : "Изменения деморежима можно импортировать и экспортировать в файлах с отдельными именами. Настоящие настройки и записи не изменяются."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "模拟模式下的修改可通过独立命名的模拟文件导入导出，并可同步到 iCloud；真实配置和记录不会被替换。"
+            "value" : "模拟模式下的修改可通过独立命名的模拟文件导入导出；真实配置和记录不会被替换。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "模擬模式下的修改可透過獨立命名的模擬檔案匯入匯出，並可同步至 iCloud；真實設定與記錄不會被取代。"
+            "value" : "模擬模式下的修改可透過獨立命名的模擬檔案匯入匯出；真實設定與記錄不會被取代。"
           }
         }
       }
@@ -9907,70 +9715,6 @@
         }
       }
     },
-    "配置同步方向" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Richtung der Konfigurationssynchronisierung"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Configuration sync direction"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dirección de sincronización de la configuración"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sens de synchronisation de la configuration"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "設定の同期方向"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "설정 동기화 방향"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Direção da sincronização da configuração"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Направление синхронизации конфигурации"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "配置同步方向"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "設定同步方向"
-          }
-        }
-      }
-    },
     "采集未开启。开关开启后使用称重，将记录底层交互数据。" : {
       "localizations" : {
         "de" : {
@@ -10356,7 +10100,7 @@
         }
       }
     },
-    "需提供秤的蓝牙地址，以及各 32 位十六进制的 CAK、C1 和 C2。认证材料仅保存到本机 Keychain，不写入配置文件、诊断日志或 iCloud。" : {
+    "需提供秤的蓝牙地址，以及各 32 位十六进制的 CAK、C1 和 C2。认证材料仅保存到本机 Keychain，不写入配置文件或诊断日志。" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -10409,13 +10153,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "需提供秤的蓝牙地址，以及各 32 位十六进制的 CAK、C1 和 C2。认证材料仅保存到本机 Keychain，不写入配置文件、诊断日志或 iCloud。"
+            "value" : "需提供秤的蓝牙地址，以及各 32 位十六进制的 CAK、C1 和 C2。认证材料仅保存到本机 Keychain，不写入配置文件或诊断日志。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "需提供秤的藍牙位址，以及各 32 位十六進位的 CAK、C1 和 C2。認證資料僅儲存於本機 Keychain，不寫入設定檔、診斷記錄或 iCloud。"
+            "value" : "需提供秤的藍牙位址，以及各 32 位十六進位的 CAK、C1 和 C2。認證資料僅儲存於本機 Keychain，不寫入設定檔或診斷記錄。"
           }
         }
       }

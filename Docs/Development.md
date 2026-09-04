@@ -7,7 +7,7 @@
 - Xcode 26 或更新版本
 - iOS 17 或更新版本的运行目标
 - Swift 5
-- 蓝牙测量、HealthKit、iCloud 和设备协议验证所需的签名开发账号与物理 iPhone
+- 蓝牙测量、HealthKit 和设备协议验证所需的签名开发账号与物理 iPhone
 
 项目优先使用 SwiftUI、Charts、CoreBluetooth、Foundation、CryptoKit 与 HealthKit 等 Apple 框架，不依赖第三方运行时库。
 
@@ -18,7 +18,7 @@
 3. 在“设置 → 数据管理”的“数据模拟”中开启模拟数据，可体验多成员、多设备、测量记录和趋势图表。
 4. 需要扫描或测量时，使用项目既有签名配置运行到 Xcode 当前选中的物理 iPhone，并在首次搜索设备时允许蓝牙权限。
 
-模拟器成功不代表蓝牙、HealthKit、iCloud 或具体秤型已经通过硬件验证。
+模拟器成功不代表蓝牙、HealthKit 或具体秤型已经通过硬件验证。
 
 ## 最小编译检查
 
@@ -91,7 +91,6 @@ swiftc -module-cache-path /tmp/scaleme-swift-module-cache \
 - 本次改动涉及的界面或流程可以进入。
 - 蓝牙相关改动使用目标秤及固件采集真实载荷验证。
 - HealthKit 相关改动验证系统授权与实际样本落库。
-- iCloud 相关改动验证目标容器、Keychain 同步和多设备文件行为。
 
 若设备断开、锁定、未信任或无法安装，应完成其余安全检查并记录准确的命令或 Xcode 错误，不得宣称已完成真机验证。
 

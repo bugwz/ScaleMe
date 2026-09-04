@@ -20,7 +20,6 @@ ScaleMe/
 │   ├── Bluetooth/        # CoreBluetooth 编排、协议解析与诊断
 │   ├── Health/           # Apple 健康写入
 │   ├── Persistence/      # 本地文件、加密与数据传输
-│   └── Sync/             # iCloud 文件同步
 ├── Features/             # Dashboard、Measurement、Trends、Devices、Settings
 ├── Shared/               # 设计系统、组件与输入桥接
 └── Resources/            # Assets、String Catalog 与 entitlements
@@ -41,7 +40,7 @@ Shared ──> SwiftUI
 ```
 
 - `Domain` 保存不依赖 UI 和设备会话的模型与纯计算，便于独立测试。
-- `Infrastructure` 封装蓝牙、文件系统、Keychain、iCloud 和 HealthKit 等外部边界。
+- `Infrastructure` 封装蓝牙、文件系统、Keychain 和 HealthKit 等外部边界。
 - `App/State/MeasurementStore.swift` 负责将配置、记录、设备测量和可选集成组织为应用级状态。
 - `Features` 负责用户流程与视图组合，不在视图内重新实现协议解析或持久化规则。
 - `Shared` 提供统一的视觉语言和可复用交互组件，避免功能页面产生互不一致的一次性实现。
@@ -82,9 +81,9 @@ BodyMeasurement 领域记录
 
 ## 状态与并发
 
-SwiftUI 可观察状态保持在主 actor。CoreBluetooth delegate、文件读写、加密与云端协调具有明确的并发边界：设备或云服务暂时不可用时，本地记录和浏览仍能继续工作。
+SwiftUI 可观察状态保持在主 actor。CoreBluetooth delegate、文件读写、加密与 HealthKit 操作具有明确的并发边界：设备或系统健康服务暂时不可用时，本地记录和浏览仍能继续工作。
 
-持久化写入由专用 actor 串行化，避免配置变化与连续测量并发覆盖文件。配置与测量记录使用不同文件和不同同步开关，具体边界见 [数据、同步与隐私](DataAndPrivacy.md)。
+持久化写入由专用 actor 串行化，避免配置变化与连续测量并发覆盖文件。配置与测量记录使用不同的本地文件，具体边界见 [数据、同步与隐私](DataAndPrivacy.md)。
 
 ## 趋势分析
 

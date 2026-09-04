@@ -785,7 +785,7 @@ struct ManualEntryView: View {
                         .font(.caption)
                         .foregroundStyle(AppColor.mint)
                     AppLocalizedText(store.isSimulationEnabled
-                        ? "当前为模拟数据模式，本次记录会写入模拟记录文件，可单独导出或同步到 iCloud。"
+                        ? "当前为模拟数据模式，本次记录会写入模拟记录文件，可单独导出。"
                         : "手动记录仅保存在本机，并会清晰标记为“手动记录”来源。")
                         .font(.caption)
                         .foregroundStyle(AppColor.secondary)

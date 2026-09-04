@@ -209,7 +209,7 @@ enum AppText: String, CaseIterable {
         case .displaySettings: "显示设置"
         case .displaySettingsDetail: "体重单位、外观与连续称重"
         case .dataManagement: "数据管理"
-        case .dataManagementDetail: "导入导出、iCloud 与数据模拟"
+        case .dataManagementDetail: "导入导出与数据模拟"
         case .dataSharing: "数据共享"
         case .dataSharingDetail: "管理 Apple 健康同步范围"
         case .communicationProtocol: "通信协议"

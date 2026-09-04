@@ -31,7 +31,7 @@ This project is pre-release and in rapid development. Optimize for a clean curre
   - `ScaleMe/App`: application entry, root navigation, launch flow, and app-wide observable state.
   - `ScaleMe/Core/Localization`: supported languages and semantic application text keys.
   - `ScaleMe/Domain`: framework-independent models, calculations, simulation data, and trend analysis.
-  - `ScaleMe/Infrastructure`: Bluetooth, persistence, iCloud sync, and diagnostics implementations.
+  - `ScaleMe/Infrastructure`: Bluetooth, persistence, HealthKit, and diagnostics implementations.
   - `ScaleMe/Features`: feature-first SwiftUI screens grouped by user-facing area.
   - `ScaleMe/Shared`: reusable SwiftUI components, input bridges, and design-system tokens.
   - `ScaleMe/Resources`: asset catalogs, String Catalogs, entitlements, and other bundled resources.
@@ -79,8 +79,6 @@ This project is pre-release and in rapid development. Optimize for a clean curre
 - Preserve units internally in SI (`kg`, `cm`, ohms) and convert only for display.
 - Avoid logging health measurements, profile attributes, Bluetooth binding keys, or other sensitive values.
 - Persist app configuration and measurement data as separate files under the app-owned `ScaleMe/` directory. Measurement files must remain authenticated and encrypted with AES-GCM; encryption keys belong in Keychain and must never be written beside the data file.
-- Keep configuration sync and measurement-data sync independently controllable. Configuration sync is strictly single-direction per user selection: push local changes to iCloud, or pull iCloud state and replace local configuration. Do not silently introduce two-way configuration merging.
-- iCloud setup, coordinated reads, encryption, and writes must run asynchronously away from the main actor. Cloud unavailability must not block local measurement, browsing, or local persistence.
 - UI that presents body fat, visceral fat, basal metabolism, or similar metrics must retain an appropriate non-medical disclaimer.
 
 ## Visual language

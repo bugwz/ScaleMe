@@ -24,9 +24,6 @@ final class MeasurementStore: ObservableObject {
     @Published private(set) var storageError: String?
     @Published private(set) var latestHealthShareCandidate: BodyMeasurement?
     @Published private(set) var isSimulationDataLoading = false
-    @Published private(set) var cloudConfigurationRevision = 0
-    @Published private(set) var cloudArchiveRevision = 0
-
     private let persistenceWriter: LocalPersistenceWriter?
     private var archiveUpdatedAt: Date
     private var isApplyingExternalState = false
@@ -835,7 +832,6 @@ final class MeasurementStore: ObservableObject {
     }
 
     private func persistSimulationConfiguration() {
-        cloudConfigurationRevision += 1
         guard let persistenceWriter else {
             storageError = "无法初始化本地加密存储"
             return
@@ -857,7 +853,6 @@ final class MeasurementStore: ObservableObject {
 
     private func persistSimulationArchive(markAsChanged: Bool = true) {
         if markAsChanged { simulationArchiveUpdatedAt = .now }
-        cloudArchiveRevision += 1
         guard let persistenceWriter else {
             storageError = "无法初始化本地加密存储"
             return
@@ -878,7 +873,6 @@ final class MeasurementStore: ObservableObject {
     }
 
     private func persistConfiguration() {
-        cloudConfigurationRevision += 1
         guard let persistenceWriter else {
             storageError = "无法初始化本地加密存储"
             return
@@ -900,7 +894,6 @@ final class MeasurementStore: ObservableObject {
 
     private func persistArchive(markAsChanged: Bool = true) {
         if markAsChanged { archiveUpdatedAt = .now }
-        cloudArchiveRevision += 1
         guard let persistenceWriter else {
             storageError = "无法初始化本地加密存储"
             return

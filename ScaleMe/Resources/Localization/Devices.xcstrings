@@ -1626,67 +1626,67 @@
         }
       }
     },
-    "关联后的模拟设备会写入模拟配置，可单独导出或同步到 iCloud。" : {
+    "关联后的模拟设备会写入模拟配置，可单独导出。" : {
       "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Linked demo devices are written to the demo configuration and can be exported separately or synced to iCloud."
+            "value" : "Linked demo devices are written to the demo configuration and can be exported separately."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Linked demo devices are written to the demo configuration and can be exported separately or synced to iCloud."
+            "value" : "Linked demo devices are written to the demo configuration and can be exported separately."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Linked demo devices are written to the demo configuration and can be exported separately or synced to iCloud."
+            "value" : "Linked demo devices are written to the demo configuration and can be exported separately."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Linked demo devices are written to the demo configuration and can be exported separately or synced to iCloud."
+            "value" : "Linked demo devices are written to the demo configuration and can be exported separately."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Linked demo devices are written to the demo configuration and can be exported separately or synced to iCloud."
+            "value" : "Linked demo devices are written to the demo configuration and can be exported separately."
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Linked demo devices are written to the demo configuration and can be exported separately or synced to iCloud."
+            "value" : "Linked demo devices are written to the demo configuration and can be exported separately."
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Linked demo devices are written to the demo configuration and can be exported separately or synced to iCloud."
+            "value" : "Linked demo devices are written to the demo configuration and can be exported separately."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Linked demo devices are written to the demo configuration and can be exported separately or synced to iCloud."
+            "value" : "Linked demo devices are written to the demo configuration and can be exported separately."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "关联后的模拟设备会写入模拟配置，可单独导出或同步到 iCloud。"
+            "value" : "关联后的模拟设备会写入模拟配置，可单独导出。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "关联后的模拟设备会写入模拟配置，可单独导出或同步到 iCloud。"
+            "value" : "關聯後的模擬裝置會寫入模擬設定，可單獨匯出。"
           }
         }
       }

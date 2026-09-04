@@ -8,7 +8,7 @@ README 负责介绍“观我”是什么、解决什么问题以及项目坚持�
 | --- | --- |
 | [架构与实现](Architecture.md) | 代码分层、状态与数据流、蓝牙管线、趋势分析、本地化和设计系统 |
 | [体重秤协议支持矩阵](BluetoothProtocolSupport.md) | 已实现协议、验证层级、覆盖边界、上游研究与引用 |
-| [数据、同步与隐私](DataAndPrivacy.md) | 本地存储、加密、导入导出、iCloud、HealthKit 和诊断数据 |
+| [数据、同步与隐私](DataAndPrivacy.md) | 本地存储、加密、导入导出、HealthKit 和诊断数据 |
 | [开发与验证](Development.md) | 开发环境、模拟数据、编译与烟雾测试、真机验证清单 |
 | [Agent 开发约定](../AGENTS.md) | 目录职责、实现规则、视觉语言和协作约束 |
 

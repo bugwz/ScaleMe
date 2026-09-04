@@ -12,15 +12,12 @@ enum AppStorageLayout {
 
 enum SecureStorageError: LocalizedError {
     case keychain(OSStatus)
-    case missingCloudKey
     case invalidEncryptedData
 
     var errorDescription: String? {
         switch self {
         case .keychain(let status):
             "无法访问数据加密密钥（\(status)）"
-        case .missingCloudKey:
-            "正在等待 iCloud 钥匙串同步数据密钥"
         case .invalidEncryptedData:
             "加密数据文件格式无效"
         }
@@ -28,23 +25,11 @@ enum SecureStorageError: LocalizedError {
 }
 
 struct MeasurementFileCipher: Sendable {
-    enum Scope {
-        case local
-        case cloud
-    }
-
     private static let authenticatedContext = Data("ScaleMe.measurements.v2".utf8)
     private let keyData: Data
 
-    init(scope: Scope = .local, createIfMissing: Bool = true) throws {
-        let keyStore = EncryptionKeyStore(scope: scope)
-        if createIfMissing {
-            keyData = try keyStore.loadOrCreateKey()
-        } else if let existingKey = try keyStore.loadKey() {
-            keyData = existingKey
-        } else {
-            throw SecureStorageError.missingCloudKey
-        }
+    init() throws {
+        keyData = try EncryptionKeyStore().loadOrCreateKey()
     }
 
     init(keyData: Data) {
@@ -67,22 +52,7 @@ struct MeasurementFileCipher: Sendable {
 
 private struct EncryptionKeyStore {
     private let service = "com.scaleme.app.data-encryption"
-    private let account: String
-    private let isSynchronizable: Bool
-    private let accessibility: CFString
-
-    init(scope: MeasurementFileCipher.Scope) {
-        switch scope {
-        case .local:
-            account = "local-measurement-file-key"
-            isSynchronizable = false
-            accessibility = kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
-        case .cloud:
-            account = "icloud-measurement-file-key"
-            isSynchronizable = true
-            accessibility = kSecAttrAccessibleAfterFirstUnlock
-        }
-    }
+    private let account = "local-measurement-file-key"
 
     func loadOrCreateKey() throws -> Data {
         if let existing = try loadKey() { return existing }
@@ -93,8 +63,7 @@ private struct EncryptionKeyStore {
             kSecClass: kSecClassGenericPassword,
             kSecAttrService: service,
             kSecAttrAccount: account,
-            kSecAttrSynchronizable: isSynchronizable,
-            kSecAttrAccessible: accessibility,
+            kSecAttrAccessible: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly,
             kSecValueData: data
         ] as CFDictionary, nil)
 
@@ -109,7 +78,6 @@ private struct EncryptionKeyStore {
             kSecClass: kSecClassGenericPassword,
             kSecAttrService: service,
             kSecAttrAccount: account,
-            kSecAttrSynchronizable: isSynchronizable,
             kSecReturnData: kCFBooleanTrue as Any,
             kSecMatchLimit: kSecMatchLimitOne
         ] as CFDictionary, &result)

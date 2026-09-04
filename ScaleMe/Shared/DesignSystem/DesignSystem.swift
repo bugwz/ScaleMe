@@ -470,41 +470,6 @@ struct SettingsSwitch: View {
     }
 }
 
-struct SettingsChoiceBar<Option: Hashable>: View {
-    let options: [Option]
-    @Binding var selection: Option
-    let title: (Option) -> String
-
-    var body: some View {
-        HStack(spacing: 5) {
-            ForEach(options, id: \.self) { option in
-                Button {
-                    withAnimation(.easeInOut(duration: 0.18)) {
-                        selection = option
-                    }
-                } label: {
-                    AppLocalizedText(title(option))
-                        .font(.subheadline.weight(selection == option ? .semibold : .medium))
-                        .foregroundStyle(selection == option ? AppColor.ink : AppColor.secondary)
-                        .frame(maxWidth: .infinity)
-                        .frame(minHeight: 38)
-                        .background {
-                            if selection == option {
-                                RoundedRectangle(cornerRadius: 10, style: .continuous)
-                                    .fill(.white)
-                                    .shadow(color: AppColor.mint.opacity(0.10), radius: 6, y: 2)
-                            }
-                        }
-                }
-                .buttonStyle(.plain)
-                .accessibilityAddTraits(selection == option ? .isSelected : [])
-            }
-        }
-        .padding(4)
-        .background(AppColor.paleMint.opacity(0.82), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-    }
-}
-
 struct AppDropdownAnchorPreferenceKey: PreferenceKey {
     static var defaultValue: Anchor<CGRect>?
 

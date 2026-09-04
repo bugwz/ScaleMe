@@ -391,67 +391,67 @@
         }
       }
     },
-    "当前为模拟数据模式，本次记录会写入模拟记录文件，可单独导出或同步到 iCloud。" : {
+    "当前为模拟数据模式，本次记录会写入模拟记录文件，可单独导出。" : {
       "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Demo data mode is active. This entry is written to the demo records and can be exported separately or synced to iCloud."
+            "value" : "Demo data mode is active. This entry is written to the demo records and can be exported separately."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Demo data mode is active. This entry is written to the demo records and can be exported separately or synced to iCloud."
+            "value" : "Demo data mode is active. This entry is written to the demo records and can be exported separately."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Demo data mode is active. This entry is written to the demo records and can be exported separately or synced to iCloud."
+            "value" : "Demo data mode is active. This entry is written to the demo records and can be exported separately."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Demo data mode is active. This entry is written to the demo records and can be exported separately or synced to iCloud."
+            "value" : "Demo data mode is active. This entry is written to the demo records and can be exported separately."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Demo data mode is active. This entry is written to the demo records and can be exported separately or synced to iCloud."
+            "value" : "Demo data mode is active. This entry is written to the demo records and can be exported separately."
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Demo data mode is active. This entry is written to the demo records and can be exported separately or synced to iCloud."
+            "value" : "Demo data mode is active. This entry is written to the demo records and can be exported separately."
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Demo data mode is active. This entry is written to the demo records and can be exported separately or synced to iCloud."
+            "value" : "Demo data mode is active. This entry is written to the demo records and can be exported separately."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Demo data mode is active. This entry is written to the demo records and can be exported separately or synced to iCloud."
+            "value" : "Demo data mode is active. This entry is written to the demo records and can be exported separately."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "当前为模拟数据模式，本次记录会写入模拟记录文件，可单独导出或同步到 iCloud。"
+            "value" : "当前为模拟数据模式，本次记录会写入模拟记录文件，可单独导出。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "当前为模拟数据模式，本次记录会写入模拟记录文件，可单独导出或同步到 iCloud。"
+            "value" : "目前為模擬資料模式，本次記錄會寫入模擬記錄檔案，可單獨匯出。"
           }
         }
       }

@@ -181,7 +181,6 @@ private struct LocalTransferDocument: FileDocument {
 
 struct DataManagementSettingsView: View {
     @EnvironmentObject private var store: MeasurementStore
-    @EnvironmentObject private var cloudSync: ICloudSyncManager
     @State private var activeAlert: DataManagementAlert?
     @State private var pendingConfiguration: AppConfiguration?
     @State private var pendingRecords: MeasurementArchive?
@@ -202,7 +201,6 @@ struct DataManagementSettingsView: View {
                 }
 
                 localTransferPanel
-                cloudPanel
                 simulationPanel
             }
             .padding(.horizontal, 18)
@@ -315,69 +313,6 @@ struct DataManagementSettingsView: View {
         .buttonStyle(.plain)
     }
 
-    private var cloudPanel: some View {
-        SettingsPanel(title: "iCloud 同步", icon: "icloud") {
-            cloudStatusRow
-
-            SettingsSeparator()
-
-            SettingsToggleRow(
-                title: "同步应用配置",
-                detail: "成员、设备、显示单位和通信协议。",
-                isOn: configurationSyncBinding
-            )
-
-            if cloudSync.isConfigurationSyncEnabled {
-                VStack(alignment: .leading, spacing: 10) {
-                    Text("配置同步方向")
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(AppColor.secondary)
-                    SettingsChoiceBar(
-                        options: ConfigurationSyncStrategy.allCases,
-                        selection: configurationStrategyBinding,
-                        title: { $0.title }
-                    )
-
-                    Label {
-                        AppLocalizedText(cloudSync.configurationStrategy.detail)
-                    } icon: {
-                        Image(systemName: strategyIcon)
-                    }
-                        .font(.caption)
-                        .foregroundStyle(AppColor.secondary)
-                }
-                .padding(12)
-                .background(AppColor.paleMint.opacity(0.7), in: RoundedRectangle(cornerRadius: 14))
-                .transition(.opacity.combined(with: .move(edge: .top)))
-            }
-
-            SettingsSeparator()
-
-            SettingsToggleRow(
-                title: "同步测量数据",
-                detail: "加密同步称重和身体成分记录，可与配置同步分开关闭。",
-                isOn: $cloudSync.isDataSyncEnabled
-            )
-
-            if cloudSync.isEnabled {
-                Button {
-                    cloudSync.syncNow()
-                } label: {
-                    Label {
-                        AppLocalizedText(cloudSync.state == .syncing ? "正在同步" : "立即同步")
-                    } icon: {
-                        Image(systemName: "arrow.triangle.2.circlepath")
-                    }
-                }
-                .buttonStyle(MintActionButtonStyle())
-                .disabled(cloudSync.state == .syncing)
-                .opacity(cloudSync.state == .syncing ? 0.65 : 1)
-            }
-        }
-        .animation(.easeInOut(duration: 0.2), value: cloudSync.isConfigurationSyncEnabled)
-        .animation(.easeInOut(duration: 0.2), value: cloudSync.isEnabled)
-    }
-
     private var simulationPanel: some View {
         SettingsPanel(title: "数据模拟", icon: "sparkles") {
             SettingsToggleRow(
@@ -387,7 +322,7 @@ struct DataManagementSettingsView: View {
             )
 
             if store.isSimulationEnabled {
-                Label("模拟模式下的修改可通过独立命名的模拟文件导入导出，并可同步到 iCloud；真实配置和记录不会被替换。", systemImage: "sparkles")
+                Label("模拟模式下的修改可通过独立命名的模拟文件导入导出；真实配置和记录不会被替换。", systemImage: "sparkles")
                     .font(.caption)
                     .foregroundStyle(AppColor.secondary)
                     .padding(12)
@@ -397,30 +332,6 @@ struct DataManagementSettingsView: View {
             }
         }
         .animation(.easeInOut(duration: 0.2), value: store.isSimulationEnabled)
-    }
-
-    private var cloudStatusRow: some View {
-        HStack(spacing: 12) {
-            Image(systemName: statusIcon)
-                .font(.title3)
-                .foregroundStyle(statusColor)
-                .frame(width: 28)
-                .accessibilityHidden(true)
-            VStack(alignment: .leading, spacing: 3) {
-                AppLocalizedText(cloudSync.isEnabled ? cloudSync.state.title : "未开启同步")
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(AppColor.ink)
-                AppLocalizedText(cloudStatusDetail)
-                    .font(.caption)
-                    .foregroundStyle(AppColor.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-            Spacer()
-            if cloudSync.state == .syncing {
-                ProgressView()
-                    .tint(AppColor.mint)
-            }
-        }
     }
 
     private func storageErrorBanner(_ message: String) -> some View {
@@ -440,62 +351,6 @@ struct DataManagementSettingsView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(AppColor.rose.opacity(0.1), in: RoundedRectangle(cornerRadius: 18))
         .accessibilityElement(children: .combine)
-    }
-
-    private var configurationSyncBinding: Binding<Bool> {
-        Binding(
-            get: { cloudSync.isConfigurationSyncEnabled },
-            set: { isEnabled in
-                if isEnabled, cloudSync.configurationStrategy == .pull {
-                    activeAlert = .cloud(.enableConfigurationSync)
-                } else {
-                    cloudSync.isConfigurationSyncEnabled = isEnabled
-                }
-            }
-        )
-    }
-
-    private var configurationStrategyBinding: Binding<ConfigurationSyncStrategy> {
-        Binding(
-            get: { cloudSync.configurationStrategy },
-            set: { strategy in
-                if strategy == .pull {
-                    activeAlert = .cloud(.selectPull)
-                } else {
-                    cloudSync.configurationStrategy = strategy
-                }
-            }
-        )
-    }
-
-    private var cloudStatusDetail: String {
-        if !cloudSync.isEnabled {
-            return "数据默认只保存在本机，按需开启下方项目。"
-        }
-        return cloudSync.state.detail ?? "配置与测量数据可独立同步。"
-    }
-
-    private var strategyIcon: String {
-        cloudSync.configurationStrategy == .push ? "icloud.and.arrow.up" : "icloud.and.arrow.down"
-    }
-
-    private var statusIcon: String {
-        guard cloudSync.isEnabled else { return "icloud.slash" }
-        return switch cloudSync.state {
-        case .idle: "icloud"
-        case .syncing: "arrow.triangle.2.circlepath.icloud"
-        case .success: "checkmark.icloud.fill"
-        case .unavailable, .failed: "exclamationmark.icloud.fill"
-        }
-    }
-
-    private var statusColor: Color {
-        guard cloudSync.isEnabled else { return AppColor.secondary }
-        return switch cloudSync.state {
-        case .success: AppColor.mint
-        case .unavailable, .failed: AppColor.apricot
-        case .idle, .syncing: AppColor.sky
-        }
     }
 
     private func exportConfiguration() {
@@ -552,18 +407,6 @@ struct DataManagementSettingsView: View {
 
     private func alertContent(for alert: DataManagementAlert) -> Alert {
         switch alert {
-        case .cloud(let action):
-            Alert(
-                title: Text("从 iCloud 拉取配置？"),
-                message: Text("iCloud 中的成员、设备、显示单位和通信协议将替换本机配置。测量记录不受影响。"),
-                primaryButton: .destructive(Text("拉取并替换")) {
-                    cloudSync.configurationStrategy = .pull
-                    if action == .enableConfigurationSync {
-                        cloudSync.isConfigurationSyncEnabled = true
-                    }
-                },
-                secondaryButton: .cancel(Text("取消"))
-            )
         case .configurationImport:
             Alert(
                 title: Text("导入配置？"),
@@ -604,22 +447,13 @@ struct DataManagementSettingsView: View {
         }
     }
 
-    private enum PendingCloudAction: String, Identifiable {
-        case selectPull
-        case enableConfigurationSync
-
-        var id: String { rawValue }
-    }
-
     private enum DataManagementAlert: Identifiable {
-        case cloud(PendingCloudAction)
         case configurationImport
         case recordImport(count: Int)
         case message(title: String, message: String)
 
         var id: String {
             switch self {
-            case .cloud(let action): "cloud-\(action.rawValue)"
             case .configurationImport: "configuration-import"
             case .recordImport: "record-import"
             case .message(let title, let message): "message-\(title)-\(message)"
