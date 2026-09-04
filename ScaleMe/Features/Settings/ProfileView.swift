@@ -164,9 +164,10 @@ struct ProfileView: View {
 
     private func memberDetail(_ profile: UserProfile) -> String {
         store.appLanguage.format(
-            "%@ · %@ cm · %lld 岁",
+            "%@ · %@ cm · %@ kg · %lld 岁",
             store.appLanguage.text(profile.relation),
             profile.heightCM.formatted(2),
+            profile.referenceWeightKG.formatted(2),
             profile.age
         )
     }
@@ -487,9 +488,10 @@ private struct MemberManagementView: View {
 
     private func memberDetail(_ profile: UserProfile) -> String {
         store.appLanguage.format(
-            "%@ · %@ cm · %lld 岁",
+            "%@ · %@ cm · %@ kg · %lld 岁",
             store.appLanguage.text(profile.relation),
             profile.heightCM.formatted(2),
+            profile.referenceWeightKG.formatted(2),
             profile.age
         )
     }
@@ -836,6 +838,7 @@ private struct MemberEditorView: View {
     private let isNew: Bool
     @State private var draft: UserProfile
     @State private var heightText: String
+    @State private var weightText: String
     @State private var confirmDelete = false
     @State private var expandedDropdown: MemberEditorDropdown?
 
@@ -846,6 +849,7 @@ private struct MemberEditorView: View {
         let initialDraft = profile ?? UserProfile(name: "", relation: "其他")
         _draft = State(initialValue: initialDraft)
         _heightText = State(initialValue: initialDraft.heightCM.formatted(.number.precision(.fractionLength(0...2))))
+        _weightText = State(initialValue: profile == nil ? "" : initialDraft.referenceWeightKG.formatted(.number.precision(.fractionLength(0...2))))
     }
 
     var body: some View {
@@ -872,7 +876,9 @@ private struct MemberEditorView: View {
                             KeyboardFocus.dismiss()
                             draft.name = draft.name.trimmingCharacters(in: .whitespacesAndNewlines)
                             guard let heightCM = parsedHeight else { return }
+                            guard let referenceWeightKG = parsedWeight else { return }
                             draft.heightCM = heightCM
+                            draft.referenceWeightKG = referenceWeightKG
                             if isNew { store.addProfile(draft) } else { store.updateProfile(draft) }
                             dismiss()
                         }
@@ -1033,6 +1039,16 @@ private struct MemberEditorView: View {
 
             SettingsSeparator()
 
+            VStack(alignment: .leading, spacing: 9) {
+                fieldLabel("参考体重")
+                MemberWeightInput(text: $weightText)
+                Text("填写大致体重即可，用于将体重秤中的历史记录智能匹配到成员。")
+                    .font(.caption)
+                    .foregroundStyle(AppColor.secondary)
+            }
+
+            SettingsSeparator()
+
             SettingsSwitch(
                 title: "运动员模式",
                 detail: "仅在长期高强度训练时开启，用于调整身体成分估算参数。",
@@ -1070,10 +1086,18 @@ private struct MemberEditorView: View {
     private var canSave: Bool {
         !draft.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
             && parsedHeight.map { (50...250).contains($0) } == true
+            && parsedWeight.map { (5...350).contains($0) } == true
     }
 
     private var parsedHeight: Double? {
         let normalized = heightText
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .replacingOccurrences(of: ",", with: ".")
+        return Double(normalized)
+    }
+
+    private var parsedWeight: Double? {
+        let normalized = weightText
             .trimmingCharacters(in: .whitespacesAndNewlines)
             .replacingOccurrences(of: ",", with: ".")
         return Double(normalized)
@@ -1209,6 +1233,30 @@ private struct MemberHeightInput: View {
             )
             .frame(minHeight: 24)
             Text("cm")
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(AppColor.secondary)
+        }
+        .settingsInputSurface(isFocused: isFocused)
+    }
+}
+
+private struct MemberWeightInput: View {
+    @Binding var text: String
+    @State private var isFocused = false
+
+    var body: some View {
+        HStack(spacing: 10) {
+            Image(systemName: "scalemass.fill").foregroundStyle(AppColor.mint)
+            ResponsiveTextField(
+                text: $text,
+                isFocused: $isFocused,
+                placeholder: "5–350",
+                keyboardType: .decimalPad,
+                returnKeyType: .done,
+                showsDoneAccessory: true
+            )
+            .frame(minHeight: 24)
+            Text("kg")
                 .font(.subheadline.weight(.semibold))
                 .foregroundStyle(AppColor.secondary)
         }

@@ -271,30 +271,29 @@ final class MeasurementStore: ObservableObject {
     }
 
     @discardableResult
-    func importDeviceHistory(_ history: [BodyMeasurement]) -> Int {
-        guard !isSimulationEnabled else { return 0 }
-        var imported = 0
-        for measurement in history.sorted(by: { $0.date > $1.date }) {
-            let isDuplicate = measurements.contains { existing in
-                existing.profileID == selectedProfileID
-                    && existing.deviceID == measurement.deviceID
-                    && abs(existing.date.timeIntervalSince(measurement.date)) < 1
-                    && abs(existing.weightKG - measurement.weightKG) < 0.005
-            }
-            guard !isDuplicate else { continue }
+    func importDeviceHistory(_ history: [BodyMeasurement]) -> DeviceHistoryImportSummary {
+        guard !isSimulationEnabled else {
+            return DeviceHistoryImportSummary(importedCount: 0, duplicateCount: 0, unmatchedCount: history.count)
+        }
+        let plan = DeviceHistoryMatcher.plan(
+            history: history,
+            profiles: profiles,
+            existingMeasurements: measurements
+        )
+        for measurement in plan.attributedMeasurements {
             var attributed = measurement
-            attributed.profileID = selectedProfileID
             if let deviceID = attributed.deviceID,
                let scale = pairedScales.first(where: { $0.id == deviceID }) {
                 attributed.deviceName = scale.name
             }
-            measurements.append(BodyCompositionEstimator.enriching(attributed, profile: selectedProfile))
-            imported += 1
+            guard let profileID = attributed.profileID,
+                  let profile = profiles.first(where: { $0.id == profileID }) else { continue }
+            measurements.append(BodyCompositionEstimator.enriching(attributed, profile: profile))
         }
-        guard imported > 0 else { return 0 }
+        guard !plan.attributedMeasurements.isEmpty else { return plan.summary }
         measurements.sort { $0.date > $1.date }
         persistArchive()
-        return imported
+        return plan.summary
     }
 
     func addManual(

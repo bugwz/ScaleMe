@@ -36,7 +36,7 @@ enum ScaleHistoryState: Equatable {
     case ready
     case reading(received: Int, announced: Int?)
     case awaitingImport([BodyMeasurement])
-    case imported(Int)
+    case imported(DeviceHistoryImportSummary)
     case clearCommandSent
     case failed(String)
 }
@@ -632,19 +632,21 @@ final class BLEScaleManager: NSObject, ObservableObject {
     func importPendingHistory(into store: MeasurementStore) {
         guard case .awaitingImport(let measurements) = historyState,
               let connected else { return }
-        let imported = store.importDeviceHistory(measurements)
-        if let operation = activeHistoryOperation {
-            write(operation.acknowledgementCommands, on: connected, response: activeHistoryCompletionResponse)
-        } else if let characteristic = settingsHistoryCharacteristic,
-                  let cursor = xiaomiHistoryCursor {
-            writeHistoryCommand(
-                XiaomiScaleHistoryProtocol.acknowledge(since: cursor),
-                on: connected,
-                characteristic: characteristic
-            )
+        let summary = store.importDeviceHistory(measurements)
+        if summary.unmatchedCount == 0 {
+            if let operation = activeHistoryOperation {
+                write(operation.acknowledgementCommands, on: connected, response: activeHistoryCompletionResponse)
+            } else if let characteristic = settingsHistoryCharacteristic,
+                      let cursor = xiaomiHistoryCursor {
+                writeHistoryCommand(
+                    XiaomiScaleHistoryProtocol.acknowledge(since: cursor),
+                    on: connected,
+                    characteristic: characteristic
+                )
+            }
         }
         xiaomiHistoryCursor = nil
-        historyState = .imported(imported)
+        historyState = .imported(summary)
     }
 
     func clearDeviceHistory() {

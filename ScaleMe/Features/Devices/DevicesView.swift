@@ -1255,7 +1255,7 @@ private struct ScaleSettingsView: View {
                             .foregroundStyle(AppColor.secondary)
                     }
                 case .awaitingImport(let measurements):
-                    Text(store.appLanguage.format("已读取 %lld 条记录，确认后导入当前成员。", Int64(measurements.count)))
+                    Text(store.appLanguage.format("已读取 %lld 条记录，确认后将根据参考体重与已有趋势自动匹配成员。", Int64(measurements.count)))
                         .font(.caption)
                         .foregroundStyle(AppColor.ink)
                     Button {
@@ -1269,9 +1269,14 @@ private struct ScaleSettingsView: View {
                             .background(AppColor.mint, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
                     }
                     .buttonStyle(.plain)
-                case .imported(let count):
+                case .imported(let summary):
                     Label(
-                        store.appLanguage.format("已导入 %lld 条新记录", Int64(count)),
+                        store.appLanguage.format(
+                            "已新增 %lld 条，跳过 %lld 条重复记录，%lld 条无法可靠识别",
+                            Int64(summary.importedCount),
+                            Int64(summary.duplicateCount),
+                            Int64(summary.unmatchedCount)
+                        ),
                         systemImage: "checkmark.circle.fill"
                     )
                     .font(.caption.weight(.semibold))
@@ -1293,7 +1298,7 @@ private struct ScaleSettingsView: View {
 
                 Text(canClearDeviceHistory
                     ? "读取完成前不会保存数据。清除操作只会在二次确认后发送，结果需通过重新读取验证。"
-                    : "读取完成前不会保存数据；确认导入后会向设备回执“最近历史已收到”。当前没有经过验证的清空全部历史命令。")
+                    : "读取完成前不会保存数据；只有全部记录已导入或判重后才会向设备回执。无法识别的记录会保留在秤中，完善成员资料后可再次导入。")
                     .font(.caption2)
                     .foregroundStyle(AppColor.secondary)
                     .lineSpacing(3)

@@ -68,7 +68,8 @@ struct SimulationDataSnapshot {
             let localizedMember = copy.member(for: specification.avatar)
             profiles.append(simulationProfile(
                 id: random.uuid(), name: localizedMember.name, relation: localizedMember.relation,
-                heightCM: specification.heightCM, age: specification.age, sex: specification.sex,
+                heightCM: specification.heightCM, referenceWeightKG: specification.endWeightKG,
+                age: specification.age, sex: specification.sex,
                 avatar: specification.avatar, today: today, calendar: calendar
             ))
         }
@@ -97,6 +98,7 @@ struct SimulationDataSnapshot {
         name: String,
         relation: String,
         heightCM: Double,
+        referenceWeightKG: Double,
         age: Int,
         sex: UserProfile.BiologicalSex,
         avatar: MemberAvatar,
@@ -108,6 +110,7 @@ struct SimulationDataSnapshot {
             name: name,
             relation: relation,
             heightCM: heightCM,
+            referenceWeightKG: referenceWeightKG,
             birthDate: calendar.date(byAdding: .year, value: -age, to: today) ?? today,
             biologicalSex: sex,
             athleteMode: false,

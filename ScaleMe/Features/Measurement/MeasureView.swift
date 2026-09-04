@@ -588,7 +588,7 @@ struct MeasureView: View {
             return
         }
 
-        if let currentWeightKG = displayedActualWeightKG {
+        if displayedActualWeightKG != nil {
             withAnimation(.easeOut(duration: 0.12)) {
                 displayedActualWeightKG = targetWeightKG
             }

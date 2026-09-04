@@ -156,6 +156,7 @@ struct UserProfile: Identifiable, Codable, Equatable {
     var name = "我"
     var relation = "本人"
     var heightCM = 168.0
+    var referenceWeightKG = 60.0
     var birthDate = Calendar.current.date(byAdding: .year, value: -30, to: .now) ?? .now
     var biologicalSex = BiologicalSex.female
     var athleteMode = false
