@@ -1,6 +1,17 @@
 import Foundation
 import Security
 
+enum HuaweiHagridCredentialStoreError: LocalizedError {
+    case keychain(OSStatus)
+
+    var errorDescription: String? {
+        switch self {
+        case .keychain(let status):
+            "无法访问设备认证材料（\(status)）"
+        }
+    }
+}
+
 struct HuaweiHagridCredentialStore {
     private let service = "com.bugwz.scaleme.bluetooth.huawei-hagrid"
 
@@ -13,7 +24,7 @@ struct HuaweiHagridCredentialStore {
 
         if status == errSecItemNotFound { return nil }
         guard status == errSecSuccess, let data = result as? Data else {
-            throw SecureStorageError.keychain(status)
+            throw HuaweiHagridCredentialStoreError.keychain(status)
         }
         do {
             return try HuaweiHagridProtocol.Credentials(encoded: data)
@@ -40,13 +51,13 @@ struct HuaweiHagridCredentialStore {
         } else {
             status = SecItemUpdate(query(for: scaleID) as CFDictionary, attributes as CFDictionary)
         }
-        guard status == errSecSuccess else { throw SecureStorageError.keychain(status) }
+        guard status == errSecSuccess else { throw HuaweiHagridCredentialStoreError.keychain(status) }
     }
 
     func delete(for scaleID: UUID) throws {
         let status = SecItemDelete(query(for: scaleID) as CFDictionary)
         guard status == errSecSuccess || status == errSecItemNotFound else {
-            throw SecureStorageError.keychain(status)
+            throw HuaweiHagridCredentialStoreError.keychain(status)
         }
     }
 

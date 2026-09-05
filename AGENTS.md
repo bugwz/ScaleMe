@@ -78,7 +78,7 @@ This project is pre-release and in rapid development. Optimize for a clean curre
 - Do not fabricate body-composition values received from hardware. Derived metrics must be visibly treated as estimates and based on documented profile inputs.
 - Preserve units internally in SI (`kg`, `cm`, ohms) and convert only for display.
 - Avoid logging health measurements, profile attributes, Bluetooth binding keys, or other sensitive values.
-- Persist app configuration and measurement data as separate files under the app-owned `ScaleMe/` directory. Measurement files must remain authenticated and encrypted with AES-GCM; encryption keys belong in Keychain and must never be written beside the data file.
+- Persist app configuration and measurement data as separate versioned JSON files under the app-owned `ScaleMe/` directory. Keep both eligible for normal device backup and protect them with iOS Complete File Protection; do not add app-managed encryption that depends on a nonmigrating device-only key. Device binding and authentication secrets still belong in Keychain and must never be written beside the data files.
 - UI that presents body fat, visceral fat, basal metabolism, or similar metrics must retain an appropriate non-medical disclaimer.
 
 ## Visual language

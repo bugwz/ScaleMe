@@ -19,7 +19,7 @@ ScaleMe/
 ├── Infrastructure/
 │   ├── Bluetooth/        # CoreBluetooth 编排、协议解析与诊断
 │   ├── Health/           # Apple 健康写入
-│   ├── Persistence/      # 本地文件、加密与数据传输
+│   ├── Persistence/      # 本地文件、系统数据保护与数据传输
 ├── Features/             # Dashboard、Measurement、Trends、Devices、Settings
 ├── Shared/               # 设计系统、组件与输入桥接
 └── Resources/            # Assets、String Catalog 与 entitlements
@@ -60,7 +60,7 @@ MeasurementSession 稳定性与完成态判断
         ↓
 BodyMeasurement 领域记录
         ↓
-应用状态 → 加密持久化 → 趋势与可选 HealthKit 写入
+应用状态 → 受系统数据保护的持久化 → 趋势与可选 HealthKit 写入
 ```
 
 扫描发现、载荷解码和测量会话是不同职责：
@@ -81,7 +81,7 @@ BodyMeasurement 领域记录
 
 ## 状态与并发
 
-SwiftUI 可观察状态保持在主 actor。CoreBluetooth delegate、文件读写、加密与 HealthKit 操作具有明确的并发边界：设备或系统健康服务暂时不可用时，本地记录和浏览仍能继续工作。
+SwiftUI 可观察状态保持在主 actor。CoreBluetooth delegate、受保护文件读写与 HealthKit 操作具有明确的并发边界：设备或系统健康服务暂时不可用时，本地记录和浏览仍能继续工作。
 
 持久化写入由专用 actor 串行化，避免配置变化与连续测量并发覆盖文件。配置与测量记录使用不同的本地文件，具体边界见 [数据、同步与隐私](DataAndPrivacy.md)。
 

@@ -76,7 +76,7 @@ swiftc -module-cache-path /tmp/scaleme-swift-module-cache \
 | 发现分类 | `Tests/Smoke/Bluetooth/DiscoveryClassifierSmoke.swift` |
 | 设备设置命令 | `Tests/Smoke/Bluetooth/DeviceConfigurationSmoke.swift` |
 | 趋势分析 | `Tests/Smoke/Domain/TrendAnalysisSmoke.swift` |
-| 加密存储 | `Tests/Smoke/Persistence/StorageSmoke.swift` |
+| 本地受保护存储 | `Tests/Smoke/Persistence/StorageSmoke.swift` |
 | 本地数据传输 | `Tests/Smoke/Persistence/LocalDataTransferSmoke.swift` |
 
 这些测试是确定性实现检查，不替代真实体重秤和固件验证。

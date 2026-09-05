@@ -63,10 +63,10 @@ final class MeasurementStore: ObservableObject {
             do {
                 loadedArchive = try repository.loadArchive() ?? .empty
             } catch {
-                initialError = "无法读取本地加密数据：\(error.localizedDescription)"
+                initialError = "无法读取本地数据：\(error.localizedDescription)"
             }
         } catch {
-            initialError = "无法初始化本地加密存储：\(error.localizedDescription)"
+            initialError = "无法初始化本地存储：\(error.localizedDescription)"
         }
 
         let resolvedLanguage = loadedConfiguration.languageSelection.resolvedLanguage
@@ -881,7 +881,7 @@ final class MeasurementStore: ObservableObject {
 
     private func persistConfiguration() {
         guard let persistenceWriter else {
-            storageError = "无法初始化本地加密存储"
+            storageError = "无法初始化本地存储"
             return
         }
         configurationRevision += 1
@@ -899,7 +899,7 @@ final class MeasurementStore: ObservableObject {
     private func persistArchive(markAsChanged: Bool = true) {
         if markAsChanged { archiveUpdatedAt = .now }
         guard let persistenceWriter else {
-            storageError = "无法初始化本地加密存储"
+            storageError = "无法初始化本地存储"
             return
         }
         archiveRevision += 1

@@ -3,14 +3,6 @@ import Foundation
 @main
 enum StorageSmoke {
     static func main() throws {
-        let cipher = DataFileCipher(keyData: Data(repeating: 0x5A, count: 32))
-        let plaintext = Data("private data payload".utf8)
-        let encrypted = try cipher.encrypt(plaintext)
-        let decrypted = try cipher.decrypt(encrypted)
-
-        precondition(encrypted != plaintext, "encrypted data must not expose plaintext")
-        precondition(decrypted == plaintext, "AES-GCM round trip failed")
-
         let profileID = UUID()
         let scaleID = UUID()
         let retained = BodyMeasurement(
@@ -90,7 +82,7 @@ enum StorageSmoke {
         let storageDirectory = FileManager.default.temporaryDirectory
             .appending(path: "ScaleMe-StorageSmoke-\(UUID().uuidString)", directoryHint: .isDirectory)
         defer { try? FileManager.default.removeItem(at: storageDirectory) }
-        let repository = try LocalAppRepository(directoryURL: storageDirectory, cipher: cipher)
+        let repository = try LocalAppRepository(directoryURL: storageDirectory)
         var persistedConfiguration = configuration
         persistedConfiguration.profiles = [
             UserProfile(name: "甲", relation: "本人", referenceWeightKG: 61.2),
@@ -125,6 +117,18 @@ enum StorageSmoke {
             deletedMeasurementIDs: [removed.id]
         )
         try repository.saveArchive(persistedArchive)
+        let storedRecordData = try Data(
+            contentsOf: storageDirectory.appending(path: AppStorageLayout.dataFileName)
+        )
+        let storedRecordObject = try JSONSerialization.jsonObject(with: storedRecordData) as? [String: Any]
+        precondition(
+            storedRecordObject?["schemaVersion"] as? Int == RecordFileCodec.currentSchemaVersion,
+            "local records must use the versioned JSON format"
+        )
+        precondition(
+            storedRecordObject?["records"] is [[Any]],
+            "local records must remain directly decodable after backup restoration"
+        )
         let reloadedArchive = try repository.loadArchive()
         precondition(
             reloadedArchive == persistedArchive,
