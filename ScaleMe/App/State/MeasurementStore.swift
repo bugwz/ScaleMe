@@ -695,6 +695,78 @@ final class MeasurementStore: ObservableObject {
         persistArchive(markAsChanged: false)
     }
 
+    @discardableResult
+    func deleteLocalData(includeConfiguration: Bool) -> Bool {
+        guard let persistenceWriter else {
+            storageError = "无法初始化本地存储"
+            return false
+        }
+
+        do {
+            if includeConfiguration {
+                try persistenceWriter.deleteConfigurationAndArchive()
+                resetToFreshInstallState()
+            } else {
+                try persistenceWriter.deleteArchive()
+                measurements = []
+                deletedMeasurementIDs = []
+                archiveUpdatedAt = .distantPast
+                latestHealthShareCandidate = nil
+            }
+            storageError = nil
+            return true
+        } catch {
+            storageError = error.localizedDescription
+            return false
+        }
+    }
+
+    private func resetToFreshInstallState() {
+        let defaults = AppConfiguration.standard
+        isApplyingExternalState = true
+        simulationDataLoadGeneration += 1
+        simulationDataLoadTask?.cancel()
+        simulationDataLoadTask = nil
+        isSimulationDataLoading = false
+        isSimulationHistoryLoaded = false
+        configurationBeforeSimulation = nil
+
+        profiles = defaults.profiles
+        selectedProfileID = Self.placeholderProfileID
+        pairedScales = defaults.pairedScales
+        unit = defaults.unit
+        languageSelection = defaults.languageSelection
+        appLanguage = defaults.languageSelection.resolvedLanguage
+        appearance = defaults.appearance
+        mergeFrequentMeasurements = defaults.mergeFrequentMeasurements
+        isSimulationEnabled = false
+        appleHealthProfileID = nil
+        appleHealthDeviceIDs = []
+        customCommunicationRules = []
+        dashboardMetricOrder = defaults.dashboardMetricOrder
+        dashboardVisibleMetrics = defaults.dashboardVisibleMetrics
+        widgetProfileID = nil
+        widgetTimeRange = defaults.widgetTimeRange
+        widgetDisplayStyle = defaults.widgetDisplayStyle
+        measurements = []
+        deletedMeasurementIDs = []
+        archiveUpdatedAt = .distantPast
+        latestHealthShareCandidate = nil
+
+        simulationData = SimulationDataSnapshot.makeMetadata(
+            language: appLanguage,
+            launchDay: simulationLaunchDay,
+            calendar: simulationCalendar
+        )
+        simulationSelectedProfileID = simulationData.selectedProfileID
+        simulationAppleHealthProfileID = nil
+        simulationAppleHealthDeviceIDs = []
+        simulationDeletedMeasurementIDs = []
+        simulationArchiveUpdatedAt = .distantPast
+        simulationCommunicationRuleImportSequence = SimulationCommunicationRuleImportSequence()
+        isApplyingExternalState = false
+    }
+
     private func applySimulation(configuration: AppConfiguration) {
         guard !configuration.profiles.isEmpty else { return }
         isApplyingExternalState = true

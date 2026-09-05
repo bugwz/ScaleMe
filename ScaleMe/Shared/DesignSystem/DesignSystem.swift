@@ -801,6 +801,7 @@ struct AppDropdownMenuLayer<Option: Hashable>: View {
 }
 
 struct MintActionButtonStyle: ButtonStyle {
+    @Environment(\.isEnabled) private var isEnabled
     var isDestructive = false
 
     func makeBody(configuration: Configuration) -> some View {
@@ -819,18 +820,41 @@ struct MintActionButtonStyle: ButtonStyle {
                         .stroke(AppColor.rose.opacity(0.20))
                 }
             }
+            .opacity(isEnabled ? 1 : 0.48)
             .scaleEffect(configuration.isPressed ? 0.985 : 1)
             .animation(.easeOut(duration: 0.12), value: configuration.isPressed)
     }
 }
 
 struct DestructiveConfirmationOverlay: View {
+    @Environment(\.appLanguage) private var language
     let icon: String
     let title: String
     let message: String
     let confirmTitle: String
+    let countdownSeconds: Int
     let onCancel: () -> Void
     let onConfirm: () -> Void
+    @State private var remainingSeconds: Int
+
+    init(
+        icon: String,
+        title: String,
+        message: String,
+        confirmTitle: String,
+        countdownSeconds: Int = 0,
+        onCancel: @escaping () -> Void,
+        onConfirm: @escaping () -> Void
+    ) {
+        self.icon = icon
+        self.title = title
+        self.message = message
+        self.confirmTitle = confirmTitle
+        self.countdownSeconds = countdownSeconds
+        self.onCancel = onCancel
+        self.onConfirm = onConfirm
+        _remainingSeconds = State(initialValue: countdownSeconds)
+    }
 
     var body: some View {
         ZStack {
@@ -863,12 +887,22 @@ struct DestructiveConfirmationOverlay: View {
 
                 VStack(spacing: 10) {
                     Button(role: .destructive, action: onConfirm) {
-                        AppLocalizedText(confirmTitle)
-                            .frame(maxWidth: .infinity)
-                            .frame(minHeight: 46)
-                            .contentShape(Rectangle())
+                        Group {
+                            if remainingSeconds > 0 {
+                                HStack(spacing: 6) {
+                                    AppLocalizedText(confirmTitle)
+                                    Text(language.format("剩余 %lld 秒", Int64(remainingSeconds)))
+                                }
+                            } else {
+                                AppLocalizedText(confirmTitle)
+                            }
+                        }
+                        .frame(maxWidth: .infinity)
+                        .frame(minHeight: 46)
+                        .contentShape(Rectangle())
                     }
                     .buttonStyle(MintActionButtonStyle(isDestructive: true))
+                    .disabled(remainingSeconds > 0)
 
                     Button(action: onCancel) {
                         Text("取消")
@@ -898,6 +932,17 @@ struct DestructiveConfirmationOverlay: View {
         }
         .accessibilityElement(children: .contain)
         .accessibilityAddTraits(.isModal)
+        .task(id: countdownSeconds) {
+            remainingSeconds = countdownSeconds
+            while remainingSeconds > 0 {
+                do {
+                    try await Task.sleep(for: .seconds(1))
+                } catch {
+                    return
+                }
+                remainingSeconds -= 1
+            }
+        }
     }
 }
 

@@ -55,6 +55,21 @@ struct LocalAppRepository {
             options: [.atomic, .completeFileProtection]
         )
     }
+
+    func deleteArchive() throws {
+        try removeFileIfPresent(named: AppStorageLayout.dataFileName)
+    }
+
+    func deleteConfigurationAndArchive() throws {
+        try removeFileIfPresent(named: AppStorageLayout.configurationFileName)
+        try removeFileIfPresent(named: AppStorageLayout.dataFileName)
+    }
+
+    private func removeFileIfPresent(named fileName: String) throws {
+        let url = directoryURL.appending(path: fileName)
+        guard fileManager.fileExists(atPath: url.path) else { return }
+        try fileManager.removeItem(at: url)
+    }
 }
 
 final class LocalPersistenceWriter {
@@ -76,5 +91,13 @@ final class LocalPersistenceWriter {
         guard revision > latestArchiveRevision else { return }
         latestArchiveRevision = revision
         try repository.saveArchive(archive)
+    }
+
+    func deleteArchive() throws {
+        try repository.deleteArchive()
+    }
+
+    func deleteConfigurationAndArchive() throws {
+        try repository.deleteConfigurationAndArchive()
     }
 }

@@ -153,6 +153,17 @@ struct LocalDataTransferSmoke {
         let importedArchive = try service.importRecords(from: recordFile)
         precondition(importedArchive == archive)
 
+        let combinedFile = try service.exportCombined(configuration: configuration, archive: archive)
+        let combinedJSON = String(decoding: combinedFile, as: UTF8.self)
+        assertOrderedKeys(in: combinedJSON, keys: ["config", "data"])
+        let combinedObject = try JSONSerialization.jsonObject(with: combinedFile) as? [String: Any]
+        precondition(combinedObject.map { Set($0.keys) } == ["config", "data"])
+        precondition(combinedObject?["config"] is [String: Any])
+        precondition(combinedObject?["data"] is [String: Any])
+        let importedBundle = try service.importCombined(from: combinedFile)
+        precondition(importedBundle.configuration == configuration)
+        precondition(importedBundle.archive == archive)
+
         do {
             _ = try service.importConfiguration(from: Data("{}".utf8))
             preconditionFailure("invalid configuration must be rejected")
@@ -175,6 +186,19 @@ struct LocalDataTransferSmoke {
             _ = try service.importRecords(from: JSONEncoder().encode(archive))
             preconditionFailure("unversioned data files must be rejected")
         } catch LocalDataTransferError.invalidRecordFile {
+        }
+
+        do {
+            _ = try service.importCombined(from: Data("{}".utf8))
+            preconditionFailure("combined file without config and data must be rejected")
+        } catch LocalDataTransferError.invalidCombinedFile {
+        }
+
+        do {
+            let invalidCombined = Data("{\"config\":{},\"data\":{}}".utf8)
+            _ = try service.importCombined(from: invalidCombined)
+            preconditionFailure("combined file with invalid nested documents must be rejected")
+        } catch LocalDataTransferError.invalidCombinedFile {
         }
 
         print("Local data transfer smoke tests passed")

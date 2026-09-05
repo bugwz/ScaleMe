@@ -1,6 +1,786 @@
 {
   "sourceLanguage" : "zh-Hans",
   "strings" : {
+    "请选择要删除的内容": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zu löschende Inhalte auswählen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select content to delete"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selecciona qué eliminar"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sélectionnez les éléments à supprimer"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "削除する内容を選択"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "삭제할 내용 선택"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selecione o conteúdo a eliminar"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Выберите, что удалить"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请选择要删除的内容"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "請選擇要刪除的內容"
+          }
+        }
+      }
+    },
+    "选择要永久删除的本地文件。": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wähle die lokalen Dateien aus, die dauerhaft gelöscht werden sollen."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select the local files to delete permanently."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selecciona los archivos locales que quieres eliminar permanentemente."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sélectionnez les fichiers locaux à supprimer définitivement."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完全に削除するローカルファイルを選択してください。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "영구적으로 삭제할 로컬 파일을 선택하세요."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selecione os ficheiros locais a eliminar permanentemente."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Выберите локальные файлы для безвозвратного удаления."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择要永久删除的本地文件。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "選擇要永久刪除的本機檔案。"
+          }
+        }
+      }
+    },
+    "剩余 %lld 秒": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "noch %lld Sek."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld sec remaining"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "quedan %lld s"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "encore %lld s"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "残り%lld秒"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld초 남음"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "faltam %lld s"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "осталось %lld с"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "剩余 %lld 秒"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "剩餘 %lld 秒"
+          }
+        }
+      }
+    },
+    "数据删除": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Daten löschen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Data deletion"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Borrar datos"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suppression des données"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "データ消去"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "데이터 정리"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Limpar dados"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Очистка данных"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "数据删除"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "資料刪除"
+          }
+        }
+      }
+    },
+    "删除所选内容": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ausgewählte Daten löschen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete selected data"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Borrar datos seleccionados"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Supprimer les données sélectionnées"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "選択したデータを消去"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "선택한 데이터 지우기"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eliminar dados selecionados"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Удалить выбранные данные"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除所选内容"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "刪除所選內容"
+          }
+        }
+      }
+    },
+    "删除本机保存的所有真实测量记录，保留成员、设备和设置。": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle echten Messwerte auf diesem Gerät löschen. Mitglieder, Geräte und Einstellungen bleiben erhalten."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete all real measurement records stored on this device. Members, devices, and settings are kept."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Borra todas las mediciones reales guardadas en este dispositivo. Se conservarán los miembros, dispositivos y ajustes."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Supprimez toutes les mesures réelles enregistrées sur cet appareil. Les membres, appareils et réglages sont conservés."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このデバイスに保存された実際の測定記録をすべて消去します。メンバー、機器、設定は保持されます。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이 기기에 저장된 실제 측정 기록을 모두 지웁니다. 구성원, 기기 및 설정은 유지됩니다."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elimine todas as medições reais guardadas neste dispositivo. Os membros, dispositivos e definições são mantidos."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Удалить все реальные измерения, сохранённые на этом устройстве. Участники, устройства и настройки сохранятся."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除本机保存的所有真实测量记录，保留成员、设备和设置。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "刪除本機儲存的所有真實測量記錄，保留成員、裝置和設定。"
+          }
+        }
+      }
+    },
+    "删除所有真实测量记录、成员、设备和设置，并恢复初始状态。": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle echten Messwerte, Mitglieder, Geräte und Einstellungen löschen und den Ausgangszustand wiederherstellen."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete all real measurement records, members, devices, and settings, and restore the initial state."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Borra todas las mediciones reales, miembros, dispositivos y ajustes, y restaura el estado inicial."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Supprimez toutes les mesures réelles, les membres, les appareils et les réglages, puis restaurez l’état initial."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "実際の測定記録、メンバー、機器、設定をすべて消去し、初期状態に戻します。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "실제 측정 기록, 구성원, 기기 및 설정을 모두 지우고 초기 상태로 복원합니다."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elimine todas as medições reais, membros, dispositivos e definições e restaure o estado inicial."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Удалить все реальные измерения, участников, устройства и настройки и восстановить исходное состояние."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除所有真实测量记录、成员、设备和设置，并恢复初始状态。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "刪除所有真實測量記錄、成員、裝置和設定，並回復初始狀態。"
+          }
+        }
+      }
+    },
+    "删除数据文件？": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Datendatei löschen?"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete data file?"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¿Borrar el archivo de datos?"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Supprimer le fichier de données ?"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "データファイルを消去しますか？"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "데이터 파일을 지울까요?"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eliminar o ficheiro de dados?"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Удалить файл данных?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除数据文件？"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "刪除資料檔案？"
+          }
+        }
+      }
+    },
+    "删除配置和数据文件？": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Konfigurations- und Datendatei löschen?"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete configuration and data files?"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¿Borrar los archivos de configuración y datos?"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Supprimer les fichiers de configuration et de données ?"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "設定ファイルとデータファイルを消去しますか？"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "구성 및 데이터 파일을 지울까요?"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eliminar os ficheiros de configuração e dados?"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Удалить файлы конфигурации и данных?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除配置和数据文件？"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "刪除設定和資料檔案？"
+          }
+        }
+      }
+    },
+    "所有真实测量记录将被永久删除，且无法恢复。成员、设备和设置不受影响。": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle echten Messwerte werden dauerhaft gelöscht und können nicht wiederhergestellt werden. Mitglieder, Geräte und Einstellungen bleiben unverändert."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All real measurement records will be permanently deleted and cannot be recovered. Members, devices, and settings are not affected."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Todas las mediciones reales se borrarán permanentemente y no podrán recuperarse. Los miembros, dispositivos y ajustes no se verán afectados."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toutes les mesures réelles seront définitivement supprimées et irrécupérables. Les membres, appareils et réglages ne seront pas affectés."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "実際の測定記録はすべて完全に消去され、復元できません。メンバー、機器、設定には影響しません。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "실제 측정 기록이 모두 영구적으로 삭제되며 복구할 수 없습니다. 구성원, 기기 및 설정에는 영향을 주지 않습니다."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Todas as medições reais serão eliminadas permanentemente e não poderão ser recuperadas. Os membros, dispositivos e definições não serão afetados."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Все реальные измерения будут удалены без возможности восстановления. Участники, устройства и настройки не изменятся."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "所有真实测量记录将被永久删除，且无法恢复。成员、设备和设置不受影响。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "所有真實測量記錄將被永久刪除，且無法復原。成員、裝置和設定不受影響。"
+          }
+        }
+      }
+    },
+    "所有真实测量记录、成员、设备和设置将被永久删除，且无法恢复。应用会退出模拟模式并恢复初始状态。": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle echten Messwerte, Mitglieder, Geräte und Einstellungen werden dauerhaft gelöscht und können nicht wiederhergestellt werden. Die App beendet den Simulationsmodus und kehrt zum Ausgangszustand zurück."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All real measurement records, members, devices, and settings will be permanently deleted and cannot be recovered. The app will exit simulation mode and return to its initial state."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Todas las mediciones reales, miembros, dispositivos y ajustes se borrarán permanentemente y no podrán recuperarse. La app saldrá del modo de simulación y volverá al estado inicial."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toutes les mesures réelles, les membres, les appareils et les réglages seront définitivement supprimés et irrécupérables. L’app quittera le mode simulation et retrouvera son état initial."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "実際の測定記録、メンバー、機器、設定はすべて完全に消去され、復元できません。シミュレーションモードを終了して初期状態に戻ります。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "실제 측정 기록, 구성원, 기기 및 설정이 모두 영구적으로 삭제되며 복구할 수 없습니다. 앱이 시뮬레이션 모드를 종료하고 초기 상태로 돌아갑니다."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Todas as medições reais, membros, dispositivos e definições serão eliminados permanentemente e não poderão ser recuperados. A app sairá do modo de simulação e voltará ao estado inicial."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Все реальные измерения, участники, устройства и настройки будут удалены без возможности восстановления. Приложение выйдет из режима симуляции и вернётся в исходное состояние."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "所有真实测量记录、成员、设备和设置将被永久删除，且无法恢复。应用会退出模拟模式并恢复初始状态。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "所有真實測量記錄、成員、裝置和設定將被永久刪除，且無法復原。應用程式會退出模擬模式並回復初始狀態。"
+          }
+        }
+      }
+    },
+    "确认删除": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Endgültig löschen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm deletion"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirmar borrado"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirmer la suppression"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "消去を確定"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "삭제 확인"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirmar eliminação"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Подтвердить удаление"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认删除"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "確認刪除"
+          }
+        }
+      }
+    },
     "%@ cm · %@ kg" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -716,67 +1496,67 @@
         }
       }
     },
-    "全界面展示可操作的模拟成员、设备和近一年记录；真实资料与测量数据不会被删除或替换。" : {
+    "在整个应用中使用模拟成员、设备和近一年记录，不影响真实数据。" : {
       "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "In der gesamten App interaktive simulierte Mitglieder, Geräte und Aufzeichnungen des letzten Jahres anzeigen. Echte Profile und Messungen werden nicht gelöscht oder ersetzt."
+            "value" : "Simulierte Mitglieder, Geräte und Jahresdaten appweit verwenden, ohne echte Daten zu ändern."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Show interactive simulated members, devices, and one year of records throughout the app. Real profiles and measurements are not deleted or replaced."
+            "value" : "Use simulated members, devices, and a year of records across the app without affecting real data."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Muestra en toda la app miembros, dispositivos y un año de registros simulados. Los perfiles y mediciones reales no se eliminan ni sustituyen."
+            "value" : "Usa miembros, dispositivos y un año de registros simulados en toda la app sin afectar a los datos reales."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Afficher dans toute l'app des membres, appareils et un an de mesures simulés. Les profils et mesures réels ne sont ni supprimés ni remplacés."
+            "value" : "Utilisez dans toute l’app des membres, appareils et un an de mesures simulés sans affecter les données réelles."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "アプリ全体に操作可能なメンバー、機器、過去1年分の記録を表示します。実際のプロフィールや測定データは削除・置換されません。"
+            "value" : "アプリ全体で模擬メンバー、機器、過去1年分の記録を使用できます。実際のデータには影響しません。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "앱 전체에 조작 가능한 시뮬레이션 구성원, 기기 및 최근 1년 기록을 표시합니다. 실제 프로필과 측정 데이터는 삭제되거나 대체되지 않습니다."
+            "value" : "앱 전체에서 시뮬레이션 구성원, 기기와 최근 1년 기록을 사용할 수 있으며 실제 데이터에는 영향을 주지 않습니다."
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Mostra em toda a app membros, dispositivos e um ano de registos simulados. Os perfis e medições reais não são eliminados nem substituídos."
+            "value" : "Use em toda a app membros, dispositivos e um ano de registos simulados sem afetar os dados reais."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Показывать во всем приложении интерактивных имитируемых участников, устройства и записи за год. Реальные профили и измерения не удаляются и не заменяются."
+            "value" : "Используйте во всём приложении тестовых участников, устройства и записи за год без влияния на реальные данные."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "全界面展示可操作的模拟成员、设备和近一年记录；真实资料与测量数据不会被删除或替换。"
+            "value" : "在整个应用中使用模拟成员、设备和近一年记录，不影响真实数据。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "在所有畫面顯示可操作的模擬成員、裝置和近一年記錄；真實資料與測量資料不會被刪除或取代。"
+            "value" : "在整個應用程式中使用模擬成員、裝置和近一年記錄，不影響真實資料。"
           }
         }
       }

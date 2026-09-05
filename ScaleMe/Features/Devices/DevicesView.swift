@@ -870,6 +870,11 @@ private struct DeviceScannerView: View {
 }
 
 private struct ScaleSettingsView: View {
+    private enum SettingsOperationMessagePlacement {
+        case hardwareUnit
+        case currentTime
+    }
+
     @EnvironmentObject private var store: MeasurementStore
     @EnvironmentObject private var bluetooth: BLEScaleManager
     @Environment(\.dismiss) private var dismiss
@@ -886,6 +891,7 @@ private struct ScaleSettingsView: View {
     @State private var nameDraft = ""
     @State private var isEditingName = false
     @State private var isNameFocused = false
+    @State private var settingsOperationMessagePlacement: SettingsOperationMessagePlacement?
 
     private var scale: PairedScale? { store.displayPairedScales.first { $0.id == scaleID } }
 
@@ -1220,6 +1226,7 @@ private struct ScaleSettingsView: View {
                     .disabled(bluetooth.settingsState != .ready)
 
                     Button {
+                        settingsOperationMessagePlacement = .hardwareUnit
                         bluetooth.configureHardwareUnit(selectedHardwareUnit)
                     } label: {
                         AppLocalizedText("设置")
@@ -1231,6 +1238,8 @@ private struct ScaleSettingsView: View {
                     }
                     .buttonStyle(.plain)
                     .disabled(bluetooth.settingsState != .ready)
+
+                    settingsOperationMessage(for: .hardwareUnit)
                 }
             } else {
                 SettingsValueRow(title: "设备显示单位", value: "未发现可写特征")
@@ -1244,6 +1253,7 @@ private struct ScaleSettingsView: View {
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(AppColor.ink)
                     Button {
+                        settingsOperationMessagePlacement = .currentTime
                         bluetooth.synchronizeScaleTime()
                     } label: {
                         AppLocalizedText("更新")
@@ -1255,19 +1265,11 @@ private struct ScaleSettingsView: View {
                     .background(AppColor.paleMint, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
                     .buttonStyle(.plain)
                     .disabled(bluetooth.settingsState != .ready)
+
+                    settingsOperationMessage(for: .currentTime)
                 }
             } else {
                 SettingsValueRow(title: "秤端时间同步", value: "未发现可写特征")
-            }
-
-            if let message = bluetooth.settingsOperationMessage {
-                Label(
-                    message,
-                    systemImage: bluetooth.settingsOperationSucceeded ? "checkmark.circle.fill" : "info.circle"
-                )
-                .font(.caption)
-                .foregroundStyle(bluetooth.settingsOperationSucceeded ? AppColor.mint : AppColor.secondary)
-                .fixedSize(horizontal: false, vertical: true)
             }
 
             if canReadDeviceHistory {
@@ -1275,6 +1277,9 @@ private struct ScaleSettingsView: View {
                 AppLocalizedText("拉取设备历史数据")
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(AppColor.ink)
+
+                historyActionButton
+
                 switch bluetooth.historyState {
                 case .reading(let received, let announced):
                     HStack(spacing: 10) {
@@ -1287,21 +1292,6 @@ private struct ScaleSettingsView: View {
                     Text(store.appLanguage.format("已读取 %lld 条记录，确认后将根据参考体重与已有趋势自动匹配成员。", Int64(measurements.count)))
                         .font(.caption)
                         .foregroundStyle(AppColor.ink)
-                    Button {
-                        bluetooth.importPendingHistory(into: store)
-                    } label: {
-                        Label {
-                            AppLocalizedText("确认导入")
-                        } icon: {
-                            Image(systemName: "square.and.arrow.down")
-                        }
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 8)
-                        .background(AppColor.mint, in: Capsule())
-                    }
-                    .buttonStyle(.plain)
                 case .imported(let summary):
                     Label(
                         store.appLanguage.format(
@@ -1314,19 +1304,16 @@ private struct ScaleSettingsView: View {
                     )
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(AppColor.mint)
-                    historyReadButton
                 case .clearCommandSent:
                     Label("清除命令已发送；请重新读取设备历史确认结果。", systemImage: "paperplane.circle.fill")
                         .font(.caption)
                         .foregroundStyle(AppColor.apricot)
-                    historyReadButton
                 case .failed(let message):
                     Label(message, systemImage: "exclamationmark.triangle.fill")
                         .font(.caption)
                         .foregroundStyle(AppColor.apricot)
-                    historyReadButton
                 case .ready, .unavailable:
-                    historyReadButton
+                    EmptyView()
                 }
 
                 if canClearDeviceHistory {
@@ -1347,23 +1334,60 @@ private struct ScaleSettingsView: View {
         }
     }
 
-    private var historyReadButton: some View {
+    @ViewBuilder
+    private func settingsOperationMessage(for placement: SettingsOperationMessagePlacement) -> some View {
+        if settingsOperationMessagePlacement == placement,
+           let message = bluetooth.settingsOperationMessage {
+            Label(
+                message,
+                systemImage: bluetooth.settingsOperationSucceeded ? "checkmark.circle.fill" : "info.circle"
+            )
+            .font(.caption)
+            .foregroundStyle(bluetooth.settingsOperationSucceeded ? AppColor.mint : AppColor.secondary)
+            .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    private var historyActionButton: some View {
         Button {
-            bluetooth.readDeviceHistory()
-        } label: {
-            Label {
-                AppLocalizedText("拉取")
-            } icon: {
-                Image(systemName: "arrow.down.circle")
+            if case .awaitingImport = bluetooth.historyState {
+                bluetooth.importPendingHistory(into: store)
+            } else {
+                bluetooth.readDeviceHistory()
             }
+        } label: {
+            AppLocalizedText(historyActionTitle)
                 .font(.caption.weight(.semibold))
-                .foregroundStyle(AppColor.mint)
+                .foregroundStyle(historyActionForegroundColor)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 10)
-                .background(AppColor.paleMint, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                .background(historyActionBackgroundColor, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
         }
         .buttonStyle(.plain)
-        .disabled(bluetooth.settingsState != .ready)
+        .disabled(bluetooth.settingsState != .ready || isReadingDeviceHistory)
+    }
+
+    private var historyActionTitle: String {
+        switch bluetooth.historyState {
+        case .reading: "拉取中"
+        case .awaitingImport: "导入本应用"
+        default: "拉取"
+        }
+    }
+
+    private var historyActionForegroundColor: Color {
+        if case .awaitingImport = bluetooth.historyState { return .white }
+        return AppColor.mint
+    }
+
+    private var historyActionBackgroundColor: Color {
+        if case .awaitingImport = bluetooth.historyState { return AppColor.mint }
+        return AppColor.paleMint
+    }
+
+    private var isReadingDeviceHistory: Bool {
+        if case .reading = bluetooth.historyState { return true }
+        return false
     }
 
     private func historyProgressText(received: Int, announced: Int?) -> String {

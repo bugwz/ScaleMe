@@ -214,8 +214,10 @@ struct DataManagementSettingsView: View {
     @State private var activeAlert: DataManagementAlert?
     @State private var pendingConfiguration: AppConfiguration?
     @State private var pendingRecords: MeasurementArchive?
-    @State private var selectedTransferFileKind: TransferFileKind = .configuration
-    @State private var expandedDropdown: TransferFileKind?
+    @State private var selectedTransferFileKind: TransferFileKind = .combined
+    @State private var selectedDeletionFileKind: DeletionFileKind? = .records
+    @State private var expandedDropdown: ExpandedDropdown?
+    @State private var pendingDeletionFileKind: DeletionFileKind?
     @State private var showsImporter = false
     @State private var showsExporter = false
     @State private var exportDocument = LocalTransferDocument()
@@ -233,6 +235,7 @@ struct DataManagementSettingsView: View {
 
                 localTransferPanel
                 simulationPanel
+                deletionPanel
             }
             .padding(.horizontal, 18)
             .padding(.top, 8)
@@ -242,7 +245,7 @@ struct DataManagementSettingsView: View {
         .navigationTitle(store.appLanguage.text(.dataManagement))
         .navigationBarTitleDisplayMode(.inline)
         .localizedNavigationBackButton()
-        .accessibilityHidden(expandedDropdown != nil)
+        .accessibilityHidden(expandedDropdown != nil || pendingDeletionFileKind != nil)
         .fileImporter(
             isPresented: $showsImporter,
             allowedContentTypes: [.json]
@@ -264,23 +267,57 @@ struct DataManagementSettingsView: View {
         }
         .overlayPreferenceValue(AppDropdownAnchorPreferenceKey.self) { anchor in
             GeometryReader { proxy in
-                if let anchor, expandedDropdown != nil {
-                    AppDropdownMenuLayer(
-                        anchorFrame: proxy[anchor],
-                        availableSize: proxy.size,
-                        options: TransferFileKind.allCases,
-                        isSelected: { $0 == selectedTransferFileKind },
-                        title: { $0.title },
-                        appearance: .compact,
-                        onSelect: { fileKind in
-                            selectedTransferFileKind = fileKind
-                            dismissDropdown()
-                        },
-                        onDismiss: dismissDropdown
-                    )
+                if let anchor {
+                    switch expandedDropdown {
+                    case .transfer:
+                        AppDropdownMenuLayer(
+                            anchorFrame: proxy[anchor],
+                            availableSize: proxy.size,
+                            options: TransferFileKind.allCases,
+                            isSelected: { $0 == selectedTransferFileKind },
+                            title: { $0.title },
+                            appearance: .compact,
+                            onSelect: { fileKind in
+                                selectedTransferFileKind = fileKind
+                                dismissDropdown()
+                            },
+                            onDismiss: dismissDropdown
+                        )
+                    case .deletion:
+                        AppDropdownMenuLayer(
+                            anchorFrame: proxy[anchor],
+                            availableSize: proxy.size,
+                            options: DeletionFileKind.allCases,
+                            isSelected: { $0 == selectedDeletionFileKind },
+                            title: { $0.title },
+                            appearance: .compact,
+                            onSelect: { fileKind in
+                                selectedDeletionFileKind = fileKind
+                                dismissDropdown()
+                            },
+                            onDismiss: dismissDropdown
+                        )
+                    case nil:
+                        EmptyView()
+                    }
                 }
             }
         }
+        .overlay {
+            if let pendingDeletionFileKind {
+                DestructiveConfirmationOverlay(
+                    icon: "trash.fill",
+                    title: pendingDeletionFileKind.confirmationTitle,
+                    message: pendingDeletionFileKind.confirmationMessage,
+                    confirmTitle: "确认删除",
+                    countdownSeconds: 10,
+                    onCancel: { self.pendingDeletionFileKind = nil },
+                    onConfirm: { delete(pendingDeletionFileKind) }
+                )
+                .transition(.opacity)
+            }
+        }
+        .interactiveDismissDisabled(pendingDeletionFileKind != nil)
         .onDisappear { expandedDropdown = nil }
     }
 
@@ -290,9 +327,9 @@ struct DataManagementSettingsView: View {
                 value: selectedTransferFileKind.title,
                 icon: selectedTransferFileKind.icon,
                 accessibilityLabel: "导入/导出",
-                isExpanded: expandedDropdown != nil,
+                isExpanded: expandedDropdown == .transfer,
                 appearance: .compact,
-                onToggle: toggleDropdown
+                onToggle: toggleTransferDropdown
             )
 
             Label(selectedTransferFileKind.detail, systemImage: selectedTransferFileKind.icon)
@@ -330,7 +367,7 @@ struct DataManagementSettingsView: View {
         SettingsPanel(title: "数据模拟", icon: "sparkles") {
             SettingsToggleRow(
                 title: "启用模拟数据",
-                detail: "全界面展示可操作的模拟成员、设备和近一年记录；真实资料与测量数据不会被删除或替换。",
+                detail: "在整个应用中使用模拟成员、设备和近一年记录，不影响真实数据。",
                 isOn: $store.isSimulationEnabled
             )
 
@@ -345,6 +382,44 @@ struct DataManagementSettingsView: View {
             }
         }
         .animation(.easeInOut(duration: 0.2), value: store.isSimulationEnabled)
+    }
+
+    private var deletionPanel: some View {
+        SettingsPanel(title: "数据删除", icon: "trash.fill") {
+            AppDropdownField(
+                value: selectedDeletionFileKind?.title ?? "请选择要删除的内容",
+                icon: selectedDeletionFileKind?.icon ?? "doc.badge.minus",
+                accessibilityLabel: "数据删除",
+                isExpanded: expandedDropdown == .deletion,
+                appearance: .compact,
+                onToggle: toggleDeletionDropdown
+            )
+
+            Label(
+                selectedDeletionFileKind?.detail ?? "选择要永久删除的本地文件。",
+                systemImage: selectedDeletionFileKind?.icon ?? "info.circle.fill"
+            )
+                .font(.caption)
+                .foregroundStyle(AppColor.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(12)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(AppColor.rose.opacity(0.08), in: RoundedRectangle(cornerRadius: 14))
+
+            Button {
+                guard let selectedDeletionFileKind else { return }
+                dismissDropdown()
+                pendingDeletionFileKind = selectedDeletionFileKind
+            } label: {
+                Label {
+                    AppLocalizedText("删除所选内容")
+                } icon: {
+                    Image(systemName: "trash")
+                }
+            }
+            .buttonStyle(MintActionButtonStyle(isDestructive: true))
+            .disabled(selectedDeletionFileKind == nil)
+        }
     }
 
     private func storageErrorBanner(_ message: String) -> some View {
@@ -390,6 +465,21 @@ struct DataManagementSettingsView: View {
         }
     }
 
+    private func exportCombined() {
+        do {
+            exportDocument = LocalTransferDocument(data: try transferService.exportCombined(
+                configuration: store.currentConfiguration,
+                archive: store.currentArchive
+            ))
+            exportContentType = .json
+            let kind = store.isSimulationEnabled ? "Simulation-Configuration-And-Data" : "Configuration-And-Data"
+            exportFilename = "ScaleMe-\(kind)-\(Int(Date.now.timeIntervalSince1970)).json"
+            showsExporter = true
+        } catch {
+            activeAlert = .message(title: "导出失败", message: error.localizedDescription)
+        }
+    }
+
     private func importFile() {
         showsImporter = true
     }
@@ -400,6 +490,8 @@ struct DataManagementSettingsView: View {
             exportConfiguration()
         case .records:
             exportRecords()
+        case .combined:
+            exportCombined()
         }
     }
 
@@ -409,13 +501,22 @@ struct DataManagementSettingsView: View {
             importConfiguration(result)
         case .records:
             importRecords(result)
+        case .combined:
+            importCombined(result)
         }
     }
 
-    private func toggleDropdown() {
+    private func toggleTransferDropdown() {
         KeyboardFocus.dismiss()
         withAnimation(.easeInOut(duration: 0.18)) {
-            expandedDropdown = expandedDropdown == nil ? selectedTransferFileKind : nil
+            expandedDropdown = expandedDropdown == .transfer ? nil : .transfer
+        }
+    }
+
+    private func toggleDeletionDropdown() {
+        KeyboardFocus.dismiss()
+        withAnimation(.easeInOut(duration: 0.18)) {
+            expandedDropdown = expandedDropdown == .deletion ? nil : .deletion
         }
     }
 
@@ -423,6 +524,12 @@ struct DataManagementSettingsView: View {
         withAnimation(.easeInOut(duration: 0.16)) {
             expandedDropdown = nil
         }
+    }
+
+    private func delete(_ fileKind: DeletionFileKind) {
+        pendingDeletionFileKind = nil
+        store.deleteLocalData(includeConfiguration: fileKind == .configurationAndRecords)
+        selectedDeletionFileKind = .records
     }
 
     private func importConfiguration(_ result: Result<URL, Error>) {
@@ -439,6 +546,17 @@ struct DataManagementSettingsView: View {
             let archive = try transferService.importRecords(from: importedData(from: result))
             pendingRecords = archive
             activeAlert = .recordImport(count: archive.measurements.count)
+        } catch {
+            activeAlert = .message(title: "导入失败", message: error.localizedDescription)
+        }
+    }
+
+    private func importCombined(_ result: Result<URL, Error>) {
+        do {
+            let bundle = try transferService.importCombined(from: importedData(from: result))
+            pendingConfiguration = bundle.configuration
+            pendingRecords = bundle.archive
+            activeAlert = .combinedImport(count: bundle.archive.measurements.count)
         } catch {
             activeAlert = .message(title: "导入失败", message: error.localizedDescription)
         }
@@ -486,6 +604,26 @@ struct DataManagementSettingsView: View {
                     pendingRecords = nil
                 }
             )
+        case .combinedImport(let count):
+            Alert(
+                title: Text("导入配置和数据文件？"),
+                message: Text(store.appLanguage.format(
+                    "配置将替换本机配置，并把文件中的 %lld 条记录与本机记录合并。重复记录不会重复保存。",
+                    Int64(count)
+                )),
+                primaryButton: .destructive(Text("导入")) {
+                    guard let pendingConfiguration, let pendingRecords else { return }
+                    let mergedArchive = store.currentArchive.merging(pendingRecords)
+                    store.apply(configuration: pendingConfiguration)
+                    store.apply(archive: mergedArchive)
+                    self.pendingConfiguration = nil
+                    self.pendingRecords = nil
+                },
+                secondaryButton: .cancel {
+                    pendingConfiguration = nil
+                    pendingRecords = nil
+                }
+            )
         case .message(let title, let message):
             Alert(
                 title: Text(store.appLanguage.text(title)),
@@ -498,12 +636,14 @@ struct DataManagementSettingsView: View {
     private enum DataManagementAlert: Identifiable {
         case configurationImport
         case recordImport(count: Int)
+        case combinedImport(count: Int)
         case message(title: String, message: String)
 
         var id: String {
             switch self {
             case .configurationImport: "configuration-import"
             case .recordImport: "record-import"
+            case .combinedImport: "combined-import"
             case .message(let title, let message): "message-\(title)-\(message)"
             }
         }
@@ -512,11 +652,13 @@ struct DataManagementSettingsView: View {
     private enum TransferFileKind: CaseIterable, Hashable {
         case configuration
         case records
+        case combined
 
         var title: String {
             switch self {
             case .configuration: "配置文件"
             case .records: "数据文件"
+            case .combined: "配置和数据文件"
             }
         }
 
@@ -524,6 +666,7 @@ struct DataManagementSettingsView: View {
             switch self {
             case .configuration: "成员、设备、显示单位和通信协议。"
             case .records: "包含称重和身体成分记录的版本化 JSON 文件。"
+            case .combined: "一个 JSON 文件同时包含完整配置和测量记录。"
             }
         }
 
@@ -531,6 +674,52 @@ struct DataManagementSettingsView: View {
             switch self {
             case .configuration: "gearshape.2.fill"
             case .records: "waveform.path.ecg"
+            case .combined: "archivebox.fill"
+            }
+        }
+    }
+
+    private enum ExpandedDropdown {
+        case transfer
+        case deletion
+    }
+
+    private enum DeletionFileKind: CaseIterable, Hashable {
+        case records
+        case configurationAndRecords
+
+        var title: String {
+            switch self {
+            case .records: "数据文件"
+            case .configurationAndRecords: "配置和数据文件"
+            }
+        }
+
+        var detail: String {
+            switch self {
+            case .records: "删除本机保存的所有真实测量记录，保留成员、设备和设置。"
+            case .configurationAndRecords: "删除所有真实测量记录、成员、设备和设置，并恢复初始状态。"
+            }
+        }
+
+        var confirmationTitle: String {
+            switch self {
+            case .records: "删除数据文件？"
+            case .configurationAndRecords: "删除配置和数据文件？"
+            }
+        }
+
+        var confirmationMessage: String {
+            switch self {
+            case .records: "所有真实测量记录将被永久删除，且无法恢复。成员、设备和设置不受影响。"
+            case .configurationAndRecords: "所有真实测量记录、成员、设备和设置将被永久删除，且无法恢复。应用会退出模拟模式并恢复初始状态。"
+            }
+        }
+
+        var icon: String {
+            switch self {
+            case .records: "waveform.path.ecg"
+            case .configurationAndRecords: "archivebox.fill"
             }
         }
     }

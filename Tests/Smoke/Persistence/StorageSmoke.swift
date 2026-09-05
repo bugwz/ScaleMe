@@ -134,6 +134,22 @@ enum StorageSmoke {
             reloadedArchive == persistedArchive,
             "weight, body-composition, manual, device-attributed, and deleted records must survive repository reload"
         )
+
+        try repository.deleteArchive()
+        let archiveAfterDataClear = try repository.loadArchive()
+        let configurationAfterDataClear = try repository.loadConfiguration()
+        precondition(archiveAfterDataClear == nil, "deleting data must remove the data file")
+        precondition(
+            configurationAfterDataClear == persistedConfiguration,
+            "deleting data must preserve the configuration file"
+        )
+
+        try repository.saveArchive(persistedArchive)
+        try repository.deleteConfigurationAndArchive()
+        let configurationAfterFullClear = try repository.loadConfiguration()
+        let archiveAfterFullClear = try repository.loadArchive()
+        precondition(configurationAfterFullClear == nil, "full deletion must remove the configuration file")
+        precondition(archiveAfterFullClear == nil, "full deletion must remove the data file")
         print("Storage smoke tests passed")
     }
 }

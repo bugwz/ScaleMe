@@ -3484,7 +3484,6 @@
       }
     },
     "导入" : {
-      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -3933,6 +3932,9 @@
           }
         }
       }
+    },
+    "导入配置和数据文件？" : {
+
     },
     "导出" : {
 
