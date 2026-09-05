@@ -641,7 +641,7 @@ struct MeasureView: View {
                             Text(measurement.date, format: .dateTime.year().month().day().hour().minute())
                                 .font(.caption).foregroundStyle(AppColor.secondary)
                         } else {
-                            Text("--")
+                            Text(verbatim: "--")
                                 .font(.caption).foregroundStyle(AppColor.secondary)
                         }
                     }
@@ -1147,7 +1147,7 @@ private struct ManualNumericInputField: View {
                     .foregroundStyle(AppColor.ink)
                     .lineLimit(1)
                 if isRequired {
-                    Text("*")
+                    Text(verbatim: "*")
                         .font(.caption.bold())
                         .foregroundStyle(AppColor.rose)
                 }

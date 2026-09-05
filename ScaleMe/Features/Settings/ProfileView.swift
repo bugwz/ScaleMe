@@ -1170,7 +1170,7 @@ private struct MemberHeightInput: View {
                 showsDoneAccessory: true
             )
             .frame(minHeight: 24)
-            Text("cm")
+            Text(verbatim: "cm")
                 .font(.subheadline.weight(.semibold))
                 .foregroundStyle(AppColor.secondary)
         }
@@ -1194,7 +1194,7 @@ private struct MemberWeightInput: View {
                 showsDoneAccessory: true
             )
             .frame(minHeight: 24)
-            Text("kg")
+            Text(verbatim: "kg")
                 .font(.subheadline.weight(.semibold))
                 .foregroundStyle(AppColor.secondary)
         }

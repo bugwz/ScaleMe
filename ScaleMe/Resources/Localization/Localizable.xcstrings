@@ -1,203 +1,8 @@
 {
   "sourceLanguage" : "zh-Hans",
   "strings" : {
-    "--" : {
-
-    },
-    "“内置”表示解析器已实现；具体设备是否可用仍以实机、固件和已捕获数据验证为准。" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "„Integriert“ heißt: Parser vorhanden. Kompatibilität muss mit Gerätedaten und echter Hardware geprüft werden."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Built-in means the parser is ready. Hardware compatibility still needs device testing."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Integrado significa que el analizador está listo. La compatibilidad requiere probar el dispositivo."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Intégré signifie que l’analyseur est prêt. La compatibilité doit être testée sur l’appareil."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "内蔵は解析器が利用できる状態です。互換性は実機で確認が必要です。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "내장은 파서가 준비된 상태입니다. 호환성은 실제 기기에서 확인해야 합니다."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Integrado indica que o analisador está pronto. A compatibilidade requer testes no dispositivo."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Встроенный означает, что анализатор готов. Совместимость нужно проверить на устройстве."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "“内置”表示解析器已实现；具体设备是否可用仍以实机、固件和已捕获数据验证为准。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "“内置”表示解析器已实现；具体设备是否可用仍以实机、固件和已捕获数据验证为准。"
-          }
-        }
-      }
-    },
-    "*" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "*"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "*"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "*"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "*"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "*"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "*"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "*"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "*"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "*"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "*"
-          }
-        }
-      }
-    },
-    "%" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%"
-          }
-        }
-      }
-    },
     "%@ %@" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -249,7 +54,7 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "%1$@ %2$@"
           }
         },
@@ -262,6 +67,7 @@
       }
     },
     "%@s" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -321,75 +127,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@s"
-          }
-        }
-      }
-    },
-    "cm" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "cm"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "cm"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "cm"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "cm"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "cm"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "cm"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "cm"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "cm"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "cm"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "cm"
           }
         }
       }
     },
     "iOS 不提供外设的真实蓝牙地址；该地址用于生成 C3。协议解析已通过抓包夹具验证，仍需在真实设备上验证完整测量会话。" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -453,10 +196,8 @@
         }
       }
     },
-    "kg" : {
-
-    },
     "上移" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -521,6 +262,7 @@
       }
     },
     "下移" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -650,6 +392,7 @@
       }
     },
     "体脂及相关指标是基于生物电阻抗和个人资料的消费级估算值，仅用于日常趋势参考，不构成医疗诊断。" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -714,6 +457,7 @@
       }
     },
     "体脂等身体成分为消费级估算，仅用于观察长期趋势。" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -778,6 +522,7 @@
       }
     },
     "体重" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -842,6 +587,7 @@
       }
     },
     "体重单位" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -906,6 +652,7 @@
       }
     },
     "保存" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -970,6 +717,7 @@
       }
     },
     "保存测量数据" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1034,7 +782,7 @@
       }
     },
     "保存设备名称" : {
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1099,6 +847,7 @@
       }
     },
     "健康指标" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1228,6 +977,7 @@
       }
     },
     "全部测量记录" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1422,6 +1172,7 @@
       }
     },
     "关闭全屏趋势图" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1486,6 +1237,7 @@
       }
     },
     "关闭图表显示选项" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1550,6 +1302,7 @@
       }
     },
     "关闭展示类别列表" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1614,6 +1367,7 @@
       }
     },
     "关闭时间范围列表" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1678,6 +1432,7 @@
       }
     },
     "内置协议" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1742,6 +1497,7 @@
       }
     },
     "最近体重" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1806,6 +1562,7 @@
       }
     },
     "出生日期" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1865,76 +1622,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "出生日期"
-          }
-        }
-      }
-    },
-    "分享示例 JSON" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Share example JSON"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Share example JSON"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Share example JSON"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Share example JSON"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Share example JSON"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Share example JSON"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Share example JSON"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Share example JSON"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "分享示例 JSON"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "分享示例 JSON"
           }
         }
       }
     },
     "切换到趋势页面" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1999,6 +1692,7 @@
       }
     },
     "删除成员" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -2063,6 +1757,7 @@
       }
     },
     "删除成员不会自动删除其历史测量记录。" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -2126,72 +1821,8 @@
         }
       }
     },
-    "删除正在使用的规则后，相关设备会恢复为自动识别。社区规则不是官方兼容性承诺。" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Beim Löschen einer aktiven Regel wechseln Geräte zur automatischen Erkennung. Community-Regeln sind keine offizielle Kompatibilitätszusage."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Deleting an active rule returns devices to auto-detection. Community rules are not official compatibility claims."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Al borrar una regla activa, los dispositivos vuelven a la detección automática. Las reglas comunitarias no garantizan compatibilidad oficial."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Supprimer une règle active rétablit la détection automatique. Les règles communautaires ne garantissent pas la compatibilité officielle."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "有効なルールを削除すると自動検出に戻ります。コミュニティルールは公式互換性を保証しません。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "활성 규칙을 삭제하면 기기가 자동 검색으로 돌아갑니다. 커뮤니티 규칙은 공식 호환성을 보장하지 않습니다."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ao eliminar uma regra ativa, os dispositivos voltam à deteção automática. As regras da comunidade não garantem compatibilidade oficial."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Удаление активного правила возвращает устройства к автоопределению. Правила сообщества не гарантируют официальную совместимость."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "删除正在使用的规则后，相关设备会恢复为自动识别。社区规则不是官方兼容性承诺。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "删除正在使用的规则后，相关设备会恢复为自动识别。社区规则不是官方兼容性承诺。"
-          }
-        }
-      }
-    },
     "删除设备" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -2256,6 +1887,7 @@
       }
     },
     "删除设备不会删除该设备历史记录的健康测量数据。" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -2319,73 +1951,8 @@
         }
       }
     },
-    "协议匹配" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Protocol matching"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Protocol matching"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Protocol matching"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Protocol matching"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Protocol matching"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Protocol matching"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Protocol matching"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Protocol matching"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "协议匹配"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "协议匹配"
-          }
-        }
-      }
-    },
     "协议详情" : {
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -2445,76 +2012,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "协议详情"
-          }
-        }
-      }
-    },
-    "单位写入支持小米二代 0x1542 可写特征。ATT 交互响应会实时记录在下方诊断日志中。" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Unit writing supports the writable 0x1542 characteristic on Xiaomi Scale 2. ATT responses are recorded in the diagnostic log below."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Unit writing supports the writable 0x1542 characteristic on Xiaomi Scale 2. ATT responses are recorded in the diagnostic log below."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Unit writing supports the writable 0x1542 characteristic on Xiaomi Scale 2. ATT responses are recorded in the diagnostic log below."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Unit writing supports the writable 0x1542 characteristic on Xiaomi Scale 2. ATT responses are recorded in the diagnostic log below."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Unit writing supports the writable 0x1542 characteristic on Xiaomi Scale 2. ATT responses are recorded in the diagnostic log below."
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Unit writing supports the writable 0x1542 characteristic on Xiaomi Scale 2. ATT responses are recorded in the diagnostic log below."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Unit writing supports the writable 0x1542 characteristic on Xiaomi Scale 2. ATT responses are recorded in the diagnostic log below."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Unit writing supports the writable 0x1542 characteristic on Xiaomi Scale 2. ATT responses are recorded in the diagnostic log below."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "单位写入支持小米二代 0x1542 可写特征。ATT 交互响应会实时记录在下方诊断日志中。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "单位写入支持小米二代 0x1542 可写特征。ATT 交互响应会实时记录在下方诊断日志中。"
           }
         }
       }
     },
     "取消" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -2579,7 +2082,7 @@
       }
     },
     "可以换一个姓名或角色关键词。" : {
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -2643,72 +2146,8 @@
         }
       }
     },
-    "可粘贴 JSON，或从可信的 HTTPS 地址拉取。" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Paste JSON or fetch it from a trusted HTTPS URL."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Paste JSON or fetch it from a trusted HTTPS URL."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Paste JSON or fetch it from a trusted HTTPS URL."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Paste JSON or fetch it from a trusted HTTPS URL."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Paste JSON or fetch it from a trusted HTTPS URL."
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Paste JSON or fetch it from a trusted HTTPS URL."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Paste JSON or fetch it from a trusted HTTPS URL."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Paste JSON or fetch it from a trusted HTTPS URL."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "可粘贴 JSON，或从可信的 HTTPS 地址拉取。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "可粘贴 JSON，或从可信的 HTTPS 地址拉取。"
-          }
-        }
-      }
-    },
     "合并导入" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -2772,72 +2211,8 @@
         }
       }
     },
-    "同步当前手机时间到秤端" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sync phone time to scale"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sync phone time to scale"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sync phone time to scale"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sync phone time to scale"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sync phone time to scale"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sync phone time to scale"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sync phone time to scale"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sync phone time to scale"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "同步当前手机时间到秤端"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "同步当前手机时间到秤端"
-          }
-        }
-      }
-    },
     "图表下界" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -2902,6 +2277,7 @@
       }
     },
     "图表显示" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -2965,72 +2341,8 @@
         }
       }
     },
-    "地址不可用" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Invalid address"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Invalid address"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Invalid address"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Invalid address"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Invalid address"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Invalid address"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Invalid address"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Invalid address"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "地址不可用"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "地址不可用"
-          }
-        }
-      }
-    },
     "外部协议" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -3090,201 +2402,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "外部协议"
-          }
-        }
-      }
-    },
-    "外部规则只能使用声明式 decoder" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "External rules may use only the declarative decoder"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "External rules may use only the declarative decoder"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "External rules may use only the declarative decoder"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "External rules may use only the declarative decoder"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "External rules may use only the declarative decoder"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "External rules may use only the declarative decoder"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "External rules may use only the declarative decoder"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "External rules may use only the declarative decoder"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "外部规则只能使用声明式 decoder"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "外部规则只能使用声明式 decoder"
-          }
-        }
-      }
-    },
-    "外部规则是受限的声明式协议：不能执行脚本；GATT 写入只能访问规则声明且设备实际公开的特征。破坏性操作必须单独声明并由用户确认。单个文件最大 512 KB。" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Externe Regeln sind eingeschränkte deklarative Protokolle: keine Skriptausführung; GATT-Schreibzugriffe gelten nur für deklarierte, tatsächlich verfügbare Merkmale. Destruktive Aktionen müssen separat deklariert und bestätigt werden. Maximal 512 KB pro Datei."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "External rules are restricted declarative protocols: they cannot run scripts, and GATT writes can only access declared characteristics actually exposed by the device. Destructive operations require a separate declaration and user confirmation. Maximum file size is 512 KB."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Las reglas externas son protocolos declarativos restringidos: no ejecutan scripts y las escrituras GATT solo acceden a características declaradas y disponibles. Las operaciones destructivas requieren declaración separada y confirmación. Máximo 512 KB por archivo."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Les règles externes sont des protocoles déclaratifs limités : aucun script, et les écritures GATT n’accèdent qu’aux caractéristiques déclarées réellement exposées. Les opérations destructives exigent une déclaration séparée et une confirmation. Taille maximale : 512 Ko."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "外部ルールは制限付き宣言型プロトコルです。スクリプトは実行できず、GATT 書き込みは宣言済みでデバイスが実際に公開する特性だけにアクセスします。破壊的操作は別途宣言と確認が必要です。1ファイル最大512 KBです。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "외부 규칙은 제한된 선언형 프로토콜입니다. 스크립트를 실행할 수 없고 GATT 쓰기는 선언되었으며 기기가 실제로 공개한 특성만 사용합니다. 파괴적 작업은 별도 선언과 확인이 필요합니다. 파일당 최대 512KB입니다."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "As regras externas são protocolos declarativos restritos: não executam scripts e as escritas GATT só acedem a características declaradas e realmente expostas. Operações destrutivas exigem declaração separada e confirmação. Máximo de 512 KB por ficheiro."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Внешние правила — ограниченные декларативные протоколы: они не запускают скрипты, а запись GATT доступна только для заявленных характеристик устройства. Необратимые операции требуют отдельного объявления и подтверждения. Размер файла — до 512 КБ."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "外部规则是受限的声明式协议：不能执行脚本；GATT 写入只能访问规则声明且设备实际公开的特征。破坏性操作必须单独声明并由用户确认。单个文件最大 512 KB。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "外部規則是受限的宣告式協定：不能執行腳本；GATT 寫入只能存取規則宣告且裝置實際公開的特徵。破壞性操作必須單獨宣告並由使用者確認。單一檔案最大 512 KB。"
-          }
-        }
-      }
-    },
-    "外部规则是受限的声明式字节映射，不能执行脚本，也不能主动写入体重秤。单个文件最大 512 KB。" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "External rules are restricted declarative byte mappings. They cannot run scripts or write to a scale. Maximum file size is 512 KB."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "External rules are restricted declarative byte mappings. They cannot run scripts or write to a scale. Maximum file size is 512 KB."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "External rules are restricted declarative byte mappings. They cannot run scripts or write to a scale. Maximum file size is 512 KB."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "External rules are restricted declarative byte mappings. They cannot run scripts or write to a scale. Maximum file size is 512 KB."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "External rules are restricted declarative byte mappings. They cannot run scripts or write to a scale. Maximum file size is 512 KB."
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "External rules are restricted declarative byte mappings. They cannot run scripts or write to a scale. Maximum file size is 512 KB."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "External rules are restricted declarative byte mappings. They cannot run scripts or write to a scale. Maximum file size is 512 KB."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "External rules are restricted declarative byte mappings. They cannot run scripts or write to a scale. Maximum file size is 512 KB."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "外部规则是受限的声明式字节映射，不能执行脚本，也不能主动写入体重秤。单个文件最大 512 KB。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "外部规则是受限的声明式字节映射，不能执行脚本，也不能主动写入体重秤。单个文件最大 512 KB。"
           }
         }
       }
@@ -3354,72 +2471,8 @@
         }
       }
     },
-    "安全提醒" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Safety notice"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Safety notice"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Safety notice"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Safety notice"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Safety notice"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Safety notice"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Safety notice"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Safety notice"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "安全提醒"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "安全提醒"
-          }
-        }
-      }
-    },
     "完成" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -3484,6 +2537,7 @@
       }
     },
     "导入" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -3543,141 +2597,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "导入"
-          }
-        }
-      }
-    },
-    "导入 JSON" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Import JSON"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Import JSON"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Import JSON"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Import JSON"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Import JSON"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Import JSON"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Import JSON"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Import JSON"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "导入 JSON"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "导入 JSON"
-          }
-        }
-      }
-    },
-    "导入完成" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Import complete"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Import complete"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Import complete"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Import complete"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Import complete"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Import complete"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Import complete"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Import complete"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "导入完成"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "导入完成"
           }
         }
       }
     },
     "导入并替换" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -3742,6 +2667,7 @@
       }
     },
     "导入数据文件？" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -3806,6 +2732,7 @@
       }
     },
     "导入的成员、设备、显示单位和通信协议将替换本机配置。测量记录不受影响。" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -3870,6 +2797,7 @@
       }
     },
     "导入配置？" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -3939,72 +2867,8 @@
     "导出" : {
 
     },
-    "尚无外部规则" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No external rules"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No external rules"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No external rules"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No external rules"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No external rules"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No external rules"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No external rules"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No external rules"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "尚无外部规则"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "尚无外部规则"
-          }
-        }
-      }
-    },
     "展示类别" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -4068,72 +2932,8 @@
         }
       }
     },
-    "已校验并保存 %lld 条社区规则。请在具体设备的“通信协议”中选择。" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Validated and saved %lld community rules. Select one under Protocol Matching for a specific device."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Validated and saved %lld community rules. Select one under Protocol Matching for a specific device."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Validated and saved %lld community rules. Select one under Protocol Matching for a specific device."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Validated and saved %lld community rules. Select one under Protocol Matching for a specific device."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Validated and saved %lld community rules. Select one under Protocol Matching for a specific device."
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Validated and saved %lld community rules. Select one under Protocol Matching for a specific device."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Validated and saved %lld community rules. Select one under Protocol Matching for a specific device."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Validated and saved %lld community rules. Select one under Protocol Matching for a specific device."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已校验并保存 %lld 条社区规则。请在具体设备的“通信协议”中选择。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已校验并保存 %lld 条社区规则。请在具体设备的“通訊協定”中選擇。"
-          }
-        }
-      }
-    },
     "应用时间范围" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -4193,71 +2993,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "套用時間範圍"
-          }
-        }
-      }
-    },
-    "开发工具" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Developer tools"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Developer tools"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Developer tools"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Developer tools"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Developer tools"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Developer tools"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Developer tools"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Developer tools"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "开发工具"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "开发工具"
           }
         }
       }
@@ -4328,7 +3063,7 @@
       }
     },
     "开启同步后仍需至少选择一台设备，新的测量才会写入 Apple 健康。" : {
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -4393,6 +3128,7 @@
       }
     },
     "开启实时数据抓包" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -4457,6 +3193,7 @@
       }
     },
     "开始日期" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -4521,7 +3258,7 @@
       }
     },
     "开始测量" : {
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -4586,6 +3323,7 @@
       }
     },
     "当前筛选条件下没有记录" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -4650,6 +3388,7 @@
       }
     },
     "成员管理" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -4714,6 +3453,7 @@
       }
     },
     "我的设备" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -4778,6 +3518,7 @@
       }
     },
     "手动录入" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -4842,6 +3583,7 @@
       }
     },
     "手动录入数据" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -4906,6 +3648,7 @@
       }
     },
     "打开手动测量数据输入表单" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -4965,142 +3708,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "打开手动测量数据输入表单"
-          }
-        }
-      }
-    },
-    "抓包与诊断日志" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Capture and diagnostic log"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Capture and diagnostic log"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Capture and diagnostic log"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Capture and diagnostic log"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Capture and diagnostic log"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Capture and diagnostic log"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Capture and diagnostic log"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Capture and diagnostic log"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "抓包与诊断日志"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "抓包与诊断日志"
-          }
-        }
-      }
-    },
-    "拉取并校验规则" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fetch and validate rules"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fetch and validate rules"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fetch and validate rules"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fetch and validate rules"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fetch and validate rules"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fetch and validate rules"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fetch and validate rules"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fetch and validate rules"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "拉取并校验规则"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "拉取并校验规则"
           }
         }
       }
     },
     "推荐识别" : {
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -5165,7 +3778,7 @@
       }
     },
     "操作受超时、响应字节数和最大记录数限制；清除命令不会自动运行。" : {
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -5230,6 +3843,7 @@
       }
     },
     "数据呈现" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -5294,6 +3908,7 @@
       }
     },
     "数据默认保存在本机" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -5358,6 +3973,7 @@
       }
     },
     "日期" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -5422,6 +4038,7 @@
       }
     },
     "暂无完整趋势" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -5486,6 +4103,7 @@
       }
     },
     "暂未识别到体重秤" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -5550,6 +4168,7 @@
       }
     },
     "未找到匹配的内置协议" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -5614,6 +4233,7 @@
       }
     },
     "本地存储异常" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -5678,6 +4298,7 @@
       }
     },
     "本应用是一款注重隐私的原生 iOS 体重与身体趋势应用，帮助你连接蓝牙体脂秤、管理个人记录，并从长期变化中理解身体的方向。" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -5742,6 +4363,7 @@
       }
     },
     "本次测量" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -5806,6 +4428,7 @@
       }
     },
     "查看全部测量记录" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -5865,76 +4488,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "查看全部测量记录"
-          }
-        }
-      }
-    },
-    "查看安全提醒" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "View safety notice"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "View safety notice"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "View safety notice"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "View safety notice"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "View safety notice"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "View safety notice"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "View safety notice"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "View safety notice"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "查看安全提醒"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "查看安全提醒"
           }
         }
       }
     },
     "查看近期趋势" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -5994,142 +4553,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "查看近期趋势"
-          }
-        }
-      }
-    },
-    "查看配置格式与示例" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "View format and example"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "View format and example"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "View format and example"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "View format and example"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "View format and example"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "View format and example"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "View format and example"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "View format and example"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "查看配置格式与示例"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "查看配置格式与示例"
-          }
-        }
-      }
-    },
-    "格式版本 1" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Format version 1"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Format version 1"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Format version 1"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Format version 1"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Format version 1"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Format version 1"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Format version 1"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Format version 1"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "格式版本 1"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "格式版本 1"
           }
         }
       }
     },
     "模拟数据不会写入 Apple 健康；这里的同步设置仅用于本次运行中的预览。" : {
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -6194,6 +4623,7 @@
       }
     },
     "模拟模式下的修改仅保留到本次运行结束；下次启动会恢复预设数据。" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -6258,6 +4688,7 @@
       }
     },
     "横轴位置" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -6322,6 +4753,7 @@
       }
     },
     "横轴范围" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -6386,7 +4818,7 @@
       }
     },
     "没有找到匹配的成员" : {
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -6451,6 +4883,7 @@
       }
     },
     "测量记录" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -6515,6 +4948,7 @@
       }
     },
     "测量详情" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -6579,6 +5013,7 @@
       }
     },
     "消费级体脂秤的身体成分结果是估算值，会受到水分、进食、运动和接触状态影响，仅用于日常趋势参考，不构成医疗诊断、治疗建议或临床结论。" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -6643,6 +5078,7 @@
       }
     },
     "添加家庭成员" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -6707,6 +5143,7 @@
       }
     },
     "添加设备" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -6771,7 +5208,7 @@
       }
     },
     "添加设备后，测量页会自动接收并关联这些设备上报的健康数据。" : {
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -6836,6 +5273,7 @@
       }
     },
     "清除命令已发送；请重新读取设备历史确认结果。" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -6900,6 +5338,7 @@
       }
     },
     "清除搜索" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -6964,6 +5403,7 @@
       }
     },
     "清除设备历史" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -7027,397 +5467,8 @@
         }
       }
     },
-    "点击导入后会检查地址、网络资源与协议格式；校验通过才会保存。" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Beim Import werden Adresse, Netzwerkressource und Protokollformat geprüft. Gespeichert wird nur nach erfolgreicher Validierung."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Import checks the address, network resource, and protocol format. It saves only after validation succeeds."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "La importación comprueba la dirección, el recurso de red y el formato del protocolo. Solo se guarda si la validación es correcta."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "L’importation vérifie l’adresse, la ressource réseau et le format du protocole. L’enregistrement n’a lieu qu’après validation."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "読み込み時にアドレス、ネットワークリソース、プロトコル形式を確認し、検証に成功した場合のみ保存します。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "가져오기는 주소, 네트워크 리소스 및 프로토콜 형식을 검사하며 검증에 성공한 경우에만 저장합니다."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "A importação verifica o endereço, o recurso de rede e o formato do protocolo. Só guarda após uma validação bem-sucedida."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "При импорте проверяются адрес, сетевой ресурс и формат протокола. Сохранение выполняется только после успешной проверки."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "点击导入后会检查地址、网络资源与协议格式；校验通过才会保存。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "點按匯入後會檢查位址、網路資源與通訊協定格式；驗證通過後才會儲存。"
-          }
-        }
-      }
-    },
-    "知道了" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Got it"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Got it"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Got it"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Got it"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Got it"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Got it"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Got it"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Got it"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "知道了"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "知道了"
-          }
-        }
-      }
-    },
-    "确认导入" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Import bestätigen"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Confirm import"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Confirmar importación"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Confirmer l’importation"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "読み込みを確認"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "가져오기 확인"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Confirmar importação"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Подтвердить импорт"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "确认导入"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "確認匯入"
-          }
-        }
-      }
-    },
-    "示例：FFB0 服务的 FFB2 通知，体重位于第 3、4 字节。" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Example: an FFB2 notification from the FFB0 service, with weight in bytes 3 and 4."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Example: an FFB2 notification from the FFB0 service, with weight in bytes 3 and 4."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Example: an FFB2 notification from the FFB0 service, with weight in bytes 3 and 4."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Example: an FFB2 notification from the FFB0 service, with weight in bytes 3 and 4."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Example: an FFB2 notification from the FFB0 service, with weight in bytes 3 and 4."
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Example: an FFB2 notification from the FFB0 service, with weight in bytes 3 and 4."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Example: an FFB2 notification from the FFB0 service, with weight in bytes 3 and 4."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Example: an FFB2 notification from the FFB0 service, with weight in bytes 3 and 4."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "示例：FFB0 服务的 FFB2 通知，体重位于第 3、4 字节。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "示例：FFB0 服务的 FFB2 通知，体重位于第 3、4 字节。"
-          }
-        }
-      }
-    },
-    "示例非标准体重秤" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Example non-standard scale"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Example non-standard scale"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Example non-standard scale"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Example non-standard scale"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Example non-standard scale"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Example non-standard scale"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Example non-standard scale"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Example non-standard scale"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "示例非标准体重秤"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "示例非标准体重秤"
-          }
-        }
-      }
-    },
-    "秤端显示单位" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Scale display unit"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Scale display unit"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Scale display unit"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Scale display unit"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Scale display unit"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Scale display unit"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Scale display unit"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Scale display unit"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "秤端显示单位"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "秤端显示单位"
-          }
-        }
-      }
-    },
     "等待广播包或交互事件..." : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -7477,141 +5528,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "等待广播包或交互事件..."
-          }
-        }
-      }
-    },
-    "粘贴 JSON 规则" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Paste JSON rules"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Paste JSON rules"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Paste JSON rules"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Paste JSON rules"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Paste JSON rules"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Paste JSON rules"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Paste JSON rules"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Paste JSON rules"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "粘贴 JSON 规则"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "粘贴 JSON 规则"
-          }
-        }
-      }
-    },
-    "粘贴完整的 ScaleMe 通信协议文件。示例可直接修改。" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Füge eine vollständige ScaleMe-Kommunikationsprotokolldatei ein. Das Beispiel kann direkt bearbeitet werden."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Paste a complete ScaleMe communication protocol file. You can edit the example directly."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pega un archivo completo de protocolo de comunicación de ScaleMe. Puedes editar el ejemplo directamente."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Collez un fichier complet de protocole de communication ScaleMe. Vous pouvez modifier l’exemple directement."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ScaleMe の完全な通信プロトコルファイルを貼り付けます。サンプルは直接編集できます。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "완전한 ScaleMe 통신 프로토콜 파일을 붙여 넣으세요. 예시는 바로 수정할 수 있습니다."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cole um ficheiro completo de protocolo de comunicação do ScaleMe. Pode editar o exemplo diretamente."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Вставьте полный файл протокола связи ScaleMe. Пример можно редактировать напрямую."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "粘贴完整的 ScaleMe 通信协议文件。示例可直接修改。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "貼上完整的 ScaleMe 通訊協定檔案。範例可直接修改。"
           }
         }
       }
     },
     "结束日期" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -7676,6 +5598,7 @@
       }
     },
     "编辑健康指标显示与排序" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -7740,6 +5663,7 @@
       }
     },
     "自动计算与隐私说明" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -7803,72 +5727,8 @@
         }
       }
     },
-    "自动识别模式优先遵循 Bluetooth SIG 标准服务及已知小米通信规范。" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Automatic detection prioritizes Bluetooth SIG standard services and known Xiaomi protocols."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Automatic detection prioritizes Bluetooth SIG standard services and known Xiaomi protocols."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Automatic detection prioritizes Bluetooth SIG standard services and known Xiaomi protocols."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Automatic detection prioritizes Bluetooth SIG standard services and known Xiaomi protocols."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Automatic detection prioritizes Bluetooth SIG standard services and known Xiaomi protocols."
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Automatic detection prioritizes Bluetooth SIG standard services and known Xiaomi protocols."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Automatic detection prioritizes Bluetooth SIG standard services and known Xiaomi protocols."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Automatic detection prioritizes Bluetooth SIG standard services and known Xiaomi protocols."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "自动识别模式优先遵循 Bluetooth SIG 标准服务及已知小米通信规范。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "自动识别模式优先遵循 Bluetooth SIG 标准服务及已知小米通信规范。"
-          }
-        }
-      }
-    },
     "自定义范围" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -7933,6 +5793,7 @@
       }
     },
     "若体重秤或第三方设备显示了具体数据，可在此补充录入：" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -7996,203 +5857,8 @@
         }
       }
     },
-    "规则 ID 需为 3 至 128 位 ASCII 标识符" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Rule ID must be a 3–128 character ASCII identifier"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Rule ID must be a 3–128 character ASCII identifier"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Rule ID must be a 3–128 character ASCII identifier"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Rule ID must be a 3–128 character ASCII identifier"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Rule ID must be a 3–128 character ASCII identifier"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Rule ID must be a 3–128 character ASCII identifier"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Rule ID must be a 3–128 character ASCII identifier"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Rule ID must be a 3–128 character ASCII identifier"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "规则 ID 需为 3 至 128 位 ASCII 标识符"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "规则 ID 需为 3 至 128 位 ASCII 标识符"
-          }
-        }
-      }
-    },
-    "规则先匹配传输方式、服务/特征 UUID、长度和可选帧前缀，再按无符号整数字段读取体重及可选身体成分。offset 从 0 开始，length 支持 1 至 8 字节。scale 和 add 的计算顺序为 raw × scale + add。" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Rules first match transport, service/characteristic UUIDs, length, and an optional frame prefix. Weight and optional body composition fields are then read as unsigned integers. Offset starts at 0, length supports 1 to 8 bytes, and values use raw × scale + add."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Rules first match transport, service/characteristic UUIDs, length, and an optional frame prefix. Weight and optional body composition fields are then read as unsigned integers. Offset starts at 0, length supports 1 to 8 bytes, and values use raw × scale + add."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Rules first match transport, service/characteristic UUIDs, length, and an optional frame prefix. Weight and optional body composition fields are then read as unsigned integers. Offset starts at 0, length supports 1 to 8 bytes, and values use raw × scale + add."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Rules first match transport, service/characteristic UUIDs, length, and an optional frame prefix. Weight and optional body composition fields are then read as unsigned integers. Offset starts at 0, length supports 1 to 8 bytes, and values use raw × scale + add."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Rules first match transport, service/characteristic UUIDs, length, and an optional frame prefix. Weight and optional body composition fields are then read as unsigned integers. Offset starts at 0, length supports 1 to 8 bytes, and values use raw × scale + add."
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Rules first match transport, service/characteristic UUIDs, length, and an optional frame prefix. Weight and optional body composition fields are then read as unsigned integers. Offset starts at 0, length supports 1 to 8 bytes, and values use raw × scale + add."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Rules first match transport, service/characteristic UUIDs, length, and an optional frame prefix. Weight and optional body composition fields are then read as unsigned integers. Offset starts at 0, length supports 1 to 8 bytes, and values use raw × scale + add."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Rules first match transport, service/characteristic UUIDs, length, and an optional frame prefix. Weight and optional body composition fields are then read as unsigned integers. Offset starts at 0, length supports 1 to 8 bytes, and values use raw × scale + add."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "规则先匹配传输方式、服务/特征 UUID、长度和可选帧前缀，再按无符号整数字段读取体重及可选身体成分。offset 从 0 开始，length 支持 1 至 8 字节。scale 和 add 的计算顺序为 raw × scale + add。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "规则先匹配传输方式、服务/特征 UUID、长度和可选帧前缀，再按无符号整数字段读取体重及可选身体成分。offset 从 0 开始，length 支持 1 至 8 字节。scale 和 add 的计算顺序为 raw × scale + add。"
-          }
-        }
-      }
-    },
-    "规则配置格式" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Rule format"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Rule format"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Rule format"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Rule format"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Rule format"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Rule format"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Rule format"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Rule format"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "规则配置格式"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "规则配置格式"
-          }
-        }
-      }
-    },
     "解析香山 IF2121A 的 33CC 实时重量、稳定状态、检测阶段及 40 字节分片最终结果；未确认的身体成分字段不会入库。" : {
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -8257,6 +5923,7 @@
       }
     },
     "认证材料已在本机安全保存" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -8321,6 +5988,7 @@
       }
     },
     "记录原始广播与 ATT 读写明文" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -8385,6 +6053,7 @@
       }
     },
     "记录成员" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -8452,6 +6121,7 @@
 
     },
     "设备管理" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -8516,7 +6186,7 @@
       }
     },
     "该协议资料参考 %@ 项目。" : {
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -8581,7 +6251,7 @@
       }
     },
     "该规则尚未通过硬件验证，结果仅供协议调试和趋势参考。" : {
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -8646,6 +6316,7 @@
       }
     },
     "请先踩亮体重秤。如果名称较普通，可在下方展开附近设备查找。" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -8712,332 +6383,8 @@
     "请求 Apple 健康权限" : {
 
     },
-    "请确保地板、秤面和脚底干燥。孕期、植入心脏起搏器或其他医疗设备时，请勿依赖生物电阻抗体脂结果，并遵循设备厂商及医生建议。" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Keep the floor, scale surface, and your feet dry. During pregnancy or when using a pacemaker or other medical device, do not rely on bioimpedance body-fat results; follow the manufacturer’s and your doctor’s advice."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Keep the floor, scale surface, and your feet dry. During pregnancy or when using a pacemaker or other medical device, do not rely on bioimpedance body-fat results; follow the manufacturer’s and your doctor’s advice."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Keep the floor, scale surface, and your feet dry. During pregnancy or when using a pacemaker or other medical device, do not rely on bioimpedance body-fat results; follow the manufacturer’s and your doctor’s advice."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Keep the floor, scale surface, and your feet dry. During pregnancy or when using a pacemaker or other medical device, do not rely on bioimpedance body-fat results; follow the manufacturer’s and your doctor’s advice."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Keep the floor, scale surface, and your feet dry. During pregnancy or when using a pacemaker or other medical device, do not rely on bioimpedance body-fat results; follow the manufacturer’s and your doctor’s advice."
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Keep the floor, scale surface, and your feet dry. During pregnancy or when using a pacemaker or other medical device, do not rely on bioimpedance body-fat results; follow the manufacturer’s and your doctor’s advice."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Keep the floor, scale surface, and your feet dry. During pregnancy or when using a pacemaker or other medical device, do not rely on bioimpedance body-fat results; follow the manufacturer’s and your doctor’s advice."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Keep the floor, scale surface, and your feet dry. During pregnancy or when using a pacemaker or other medical device, do not rely on bioimpedance body-fat results; follow the manufacturer’s and your doctor’s advice."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "请确保地板、秤面和脚底干燥。孕期、植入心脏起搏器或其他医疗设备时，请勿依赖生物电阻抗体脂结果，并遵循设备厂商及医生建议。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "请确保地板、秤面和脚底干燥。孕期、植入心脏起搏器或其他医疗设备时，请勿依赖生物电阻抗体脂结果，并遵循设备厂商及医生建议。"
-          }
-        }
-      }
-    },
-    "请踩亮或唤醒体重秤，并保持手机处于蓝牙接收范围内。" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Wake the scale and keep your phone within Bluetooth range."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Wake the scale and keep your phone within Bluetooth range."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Wake the scale and keep your phone within Bluetooth range."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Wake the scale and keep your phone within Bluetooth range."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Wake the scale and keep your phone within Bluetooth range."
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Wake the scale and keep your phone within Bluetooth range."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Wake the scale and keep your phone within Bluetooth range."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Wake the scale and keep your phone within Bluetooth range."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "请踩亮或唤醒体重秤，并保持手机处于蓝牙接收范围内。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "请踩亮或唤醒体重秤，并保持手机处于蓝牙接收范围内。"
-          }
-        }
-      }
-    },
-    "读取完成前不会保存数据；确认导入后会向设备回执“最近历史已收到”。当前没有经过验证的清空全部历史命令。" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vor Abschluss wird nichts gespeichert. Nach dem Import wird dem Gerät der Empfang des letzten Verlaufs bestätigt. Es gibt derzeit keinen verifizierten Befehl zum Löschen des gesamten Verlaufs."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nothing is saved before reading completes. After import, the device is told that recent history was received. There is currently no verified command to clear all history."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No se guarda nada antes de finalizar la lectura. Tras importar, se confirma al dispositivo la recepción del historial reciente. No hay un comando verificado para borrar todo el historial."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Rien n’est enregistré avant la fin de la lecture. Après l’importation, la réception de l’historique récent est confirmée à l’appareil. Aucune commande d’effacement total n’est actuellement vérifiée."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "読み取り完了前は保存されません。読み込み確認後、最近の履歴を受信したことをデバイスへ通知します。全履歴を消去する検証済みコマンドはありません。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "읽기가 끝나기 전에는 저장하지 않습니다. 가져오기 확인 후 최근 기록을 받았음을 기기에 알립니다. 전체 기록을 지우는 검증된 명령은 현재 없습니다."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nada é guardado antes de terminar a leitura. Após a importação, o dispositivo recebe a confirmação do histórico recente. Não existe atualmente um comando verificado para limpar todo o histórico."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "До завершения чтения данные не сохраняются. После импорта устройство получает подтверждение недавней истории. Проверенной команды очистки всей истории пока нет."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "读取完成前不会保存数据；确认导入后会向设备回执“最近历史已收到”。当前没有经过验证的清空全部历史命令。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "讀取完成前不會儲存資料；確認匯入後會向裝置回覆「最近歷史已收到」。目前沒有經過驗證的清空全部歷史命令。"
-          }
-        }
-      }
-    },
-    "读取完成前不会保存数据。清除操作只会在二次确认后发送，结果需通过重新读取验证。" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vor Abschluss wird nichts gespeichert. Eine Löschaktion wird erst nach einer zweiten Bestätigung gesendet und muss durch erneutes Lesen geprüft werden."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nothing is saved before reading completes. A clear operation is sent only after a second confirmation and must be verified by reading again."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No se guarda nada antes de finalizar la lectura. El borrado solo se envía tras una segunda confirmación y debe verificarse volviendo a leer."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Rien n’est enregistré avant la fin de la lecture. L’effacement n’est envoyé qu’après une seconde confirmation et doit être vérifié par une nouvelle lecture."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "読み取り完了前は保存されません。消去操作は再確認後にのみ送信され、再読み取りによる検証が必要です。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "읽기가 끝나기 전에는 저장하지 않습니다. 지우기 작업은 재확인 후에만 전송되며 다시 읽어 검증해야 합니다."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nada é guardado antes de terminar a leitura. A limpeza só é enviada após uma segunda confirmação e deve ser verificada com nova leitura."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "До завершения чтения данные не сохраняются. Очистка отправляется только после повторного подтверждения и проверяется повторным чтением."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "读取完成前不会保存数据。清除操作只会在二次确认后发送，结果需通过重新读取验证。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "讀取完成前不會儲存資料。清除操作只會在二次確認後傳送，結果需透過重新讀取驗證。"
-          }
-        }
-      }
-    },
-    "读取秤内历史" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Waagenverlauf lesen"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Read scale history"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Leer historial de la báscula"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Lire l’historique de la balance"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "体重計の履歴を読み取る"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "체중계 기록 읽기"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ler histórico da balança"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Прочитать историю весов"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "读取秤内历史"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "讀取秤內歷史"
-          }
-        }
-      }
-    },
     "资料仅用于日常指标估算。生物电阻抗与推导结果不具备医疗诊断用途。" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -9102,6 +6449,7 @@
       }
     },
     "身体成分指标为消费级估算值，仅用于长期趋势参考，不构成医疗诊断。" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -9166,6 +6514,7 @@
       }
     },
     "返回时间范围列表" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -9230,6 +6579,7 @@
       }
     },
     "还没有绑定设备" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -9296,72 +6646,8 @@
     "连接状态" : {
 
     },
-    "适用于已有实测帧夹具的 AFU-WL-TZ-A1 / FG2313UWB-D。" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "For AFU-WL-TZ-A1 / FG2313UWB-D devices backed by captured frame fixtures."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "For AFU-WL-TZ-A1 / FG2313UWB-D devices backed by captured frame fixtures."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "For AFU-WL-TZ-A1 / FG2313UWB-D devices backed by captured frame fixtures."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "For AFU-WL-TZ-A1 / FG2313UWB-D devices backed by captured frame fixtures."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "For AFU-WL-TZ-A1 / FG2313UWB-D devices backed by captured frame fixtures."
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "For AFU-WL-TZ-A1 / FG2313UWB-D devices backed by captured frame fixtures."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "For AFU-WL-TZ-A1 / FG2313UWB-D devices backed by captured frame fixtures."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "For AFU-WL-TZ-A1 / FG2313UWB-D devices backed by captured frame fixtures."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "适用于已有实测帧夹具的 AFU-WL-TZ-A1 / FG2313UWB-D。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "适用于已有实测帧夹具的 AFU-WL-TZ-A1 / FG2313UWB-D。"
-          }
-        }
-      }
-    },
     "选中位置" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -9426,6 +6712,7 @@
       }
     },
     "采集未开启。开关开启后使用称重，将记录底层交互数据。" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -9490,6 +6777,7 @@
       }
     },
     "重新扫描" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -9553,137 +6841,8 @@
         }
       }
     },
-    "重新连接检测" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Reconnect and inspect"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Reconnect and inspect"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Reconnect and inspect"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Reconnect and inspect"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Reconnect and inspect"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Reconnect and inspect"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Reconnect and inspect"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Reconnect and inspect"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "重新连接检测"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "重新连接检测"
-          }
-        }
-      }
-    },
-    "重试扫描" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nochmals versuchen"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Try again"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Reintentar"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Réessayer"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "もう一度試す"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "다시 시도"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tentar novamente"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Повторить"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "重试扫描"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "重試掃描"
-          }
-        }
-      }
-    },
     "长按后上下拖动可调整顺序" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -9748,6 +6907,7 @@
       }
     },
     "阻抗通道名称和频率尚未获得厂商定义，因此仅保留原始读数，不据此声称具体频率。" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -9812,6 +6972,7 @@
       }
     },
     "需提供秤的蓝牙地址，以及各 32 位十六进制的 CAK、C1 和 C2。认证材料仅保存到本机 Keychain，不写入配置文件或诊断日志。" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {

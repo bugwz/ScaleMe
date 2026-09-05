@@ -49,7 +49,7 @@ struct LocalizationSmoke {
             "自动选择", "等待任一已关联设备", "切换测量设备，当前为 %@", "点击选择本次测量使用的体重秤或体脂秤",
             "手动录入数据", "模拟数据模式", "本次测量", "详情", "数据默认保存在本机",
             "手动录入", "生物电阻抗", "保存测量数据", "趋势", "类别", "时间",
-            "来源设备", "全部设备", "测量记录", "添加设备", "请先添加成员，再添加设备", "正在扫描周围设备",
+            "来源设备", "全部设备", "测量记录", "添加设备", "请先添加成员，再添加设备", "正在扫描附近的设备…",
             "正在演示设备发现流程。这里显示的都是预设内容，不会搜索、连接或操作附近的真实设备。",
             "模拟一次测量",
             "身体成分指标为消费级估算值，仅用于长期趋势参考，不构成医疗诊断。",
@@ -57,7 +57,7 @@ struct LocalizationSmoke {
             "按时间跨度合并为日、周或月均值", "保留每次测量及其真实时间位置",
             "横轴从首条数据延伸至末条数据", "横轴覆盖所选区间，包括无数据时段",
             "自定义时间", "时间范围", "全选", "已选择", "已选择 %lld 项",
-            "演示扫描并关联预设模拟设备", "正在载入预设模拟设备",
+            "演示扫描并关联预设模拟设备", "正在扫描模拟设备…", "正在载入预设模拟设备",
             "扫描并关联附近的体重秤或体脂秤", "暂未发现设备，请唤醒体重秤并靠近手机",
             "客厅智能体脂秤", "旅行便携体重秤", "附近的健康设备", "模拟设备", "协议待验证",
             "其他附近蓝牙设备（%lld）", "关联", "已绑定", "已匹配", "未匹配",
@@ -87,8 +87,8 @@ struct LocalizationSmoke {
             "阻抗通道 1", "阻抗通道 2",
             "体脂及相关指标是基于生物电阻抗和个人资料的消费级估算值，仅用于日常趋势参考，不构成医疗诊断。",
             "阻抗通道名称和频率尚未获得厂商定义，因此仅保留原始读数，不据此声称具体频率。",
-            "正在扫描模拟设备", "已发现模拟设备", "设备管理", "连接状态",
-            "未连接", "连接中", "已链接", "刷新",
+            "正在扫描模拟设备…", "已发现模拟设备", "设备管理", "连接状态",
+            "未连接", "连接中", "已连接", "刷新",
             "秤端设置", "数据抓包", "成员管理", "添加成员",
             "编辑成员", "人物形象", "成员信息", "出生日期",
             "导入/导出", "导入", "导出", "数据模拟",
@@ -108,7 +108,7 @@ struct LocalizationSmoke {
             "配置将替换本机配置，并把文件中的 %lld 条记录与本机记录合并。重复记录不会重复保存。",
             "配置文件格式无效", "数据文件格式无效", "配置和数据文件格式无效",
             "协议详情",
-            "规则配置格式", "关于应用", "可执行", "实验性", "协议骨架", "平台不支持",
+            "关于应用", "可执行", "实验性", "协议骨架", "平台不支持",
             "实现状态", "支持型号", "运行要求", "协议信息", "协议特征", "传输特征", "备用特征", "订阅特征", "写入特征",
             "需要成员资料", "需要时间同步", "需要系统配对", "需要用户同意码",
             "需要设备绑定密钥", "需要加密会话", "需要厂商应用预注册", "需要多帧状态机",
@@ -209,6 +209,25 @@ struct LocalizationSmoke {
             let displayNameLocalizations = displayName["localizations"] as? [String: Any]
         else {
             preconditionFailure("InfoPlist.xcstrings must localize CFBundleDisplayName")
+        }
+        for (key, rawEntry) in infoStrings {
+            guard
+                let entry = rawEntry as? [String: Any],
+                let localizations = entry["localizations"] as? [String: Any]
+            else {
+                preconditionFailure("InfoPlist.xcstrings entry has no localizations: \(key)")
+            }
+            for language in AppLanguage.allCases {
+                guard
+                    let localization = localizations[language.rawValue] as? [String: Any],
+                    let stringUnit = localization["stringUnit"] as? [String: Any],
+                    stringUnit["state"] as? String == "translated",
+                    let value = stringUnit["value"] as? String,
+                    !value.isEmpty
+                else {
+                    preconditionFailure("\(language.rawValue) is missing from InfoPlist entry: \(key)")
+                }
+            }
         }
         precondition(
             AppLanguage.allCases.allSatisfy { displayNameLocalizations[$0.rawValue] != nil },

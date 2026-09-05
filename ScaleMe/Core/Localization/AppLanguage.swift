@@ -150,33 +150,35 @@ enum AppLanguageSelection: String, CaseIterable, Codable, Identifiable {
     }
 }
 
-enum AppText: String, CaseIterable {
-    case productName = "app.product.name"
-    case tagline = "app.product.tagline"
-    case home = "navigation.home"
-    case measure = "navigation.measure"
-    case trends = "navigation.trends"
-    case devices = "navigation.devices"
-    case settings = "navigation.settings"
-    case currentPage = "accessibility.current-page"
-    case back = "navigation.back"
-    case language = "settings.language.title"
-    case followSystem = "settings.follow-system"
-    case appearance = "settings.appearance.title"
-    case lightAppearance = "settings.appearance.light"
-    case darkAppearance = "settings.appearance.dark"
-    case userInformation = "settings.user-information"
-    case appSettings = "settings.app-settings"
-    case displaySettings = "settings.display.title"
-    case dataManagement = "settings.data-management.title"
-    case dataSharing = "settings.data-sharing.title"
-    case communicationProtocol = "settings.communication.title"
-    case about = "settings.about.title"
-    case privacyPolicy = "settings.privacy.title"
-    case privacyPolicyDetail = "settings.privacy.detail"
-    case privacyPolicyRevision = "settings.privacy.revision"
-    case privacyPolicySummary = "settings.privacy.summary"
-    case privacyPolicyBody = "settings.privacy.body"
+enum AppText: CaseIterable {
+    case productName
+    case tagline
+    case home
+    case measure
+    case trends
+    case devices
+    case settings
+    case currentPage
+    case back
+    case language
+    case followSystem
+    case appearance
+    case lightAppearance
+    case darkAppearance
+    case userInformation
+    case appSettings
+    case displaySettings
+    case dataManagement
+    case dataSharing
+    case communicationProtocol
+    case about
+    case privacyPolicy
+    case privacyPolicyDetail
+    case privacyPolicyRevision
+    case privacyPolicySummary
+    case privacyPolicyBody
+
+    var rawValue: String { defaultValue }
 
     var defaultValue: String {
         switch self {

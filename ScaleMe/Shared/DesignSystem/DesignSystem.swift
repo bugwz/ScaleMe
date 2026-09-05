@@ -976,7 +976,7 @@ struct BodyFatRateIcon: View {
                 .scaledToFit()
                 .frame(width: size * 0.78, height: size)
 
-            Text("%")
+            Text(verbatim: "%")
                 .font(.system(size: max(5, size * 0.30), weight: .black, design: .rounded))
                 .foregroundStyle(.white)
                 .offset(y: size * 0.08)

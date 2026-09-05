@@ -50,7 +50,7 @@ struct DeviceDiagnosticEvent: Identifiable, Equatable, Sendable {
         case write = "写入"
         case acknowledgement = "回执"
         case read = "读取"
-        case received = "返回"
+        case received = "响应"
         case error = "错误"
     }
 
