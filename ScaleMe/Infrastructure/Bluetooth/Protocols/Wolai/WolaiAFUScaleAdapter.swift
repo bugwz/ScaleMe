@@ -21,6 +21,10 @@ enum WolaiAFUScaleAdapter {
         makeWriteFrame(payload: [0x04, 0xD6] + Array(repeating: 0, count: 14))
     }
 
+    static func makeHistoryAcknowledgement() -> Data {
+        makeWriteFrame(payload: [0x04, 0xD8] + Array(repeating: 0, count: 14))
+    }
+
     static func matchesIdentity(name: String, advertisedServiceUUIDs: Set<String>) -> Bool {
         let normalizedName = name.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
         return normalizedName == "AFU-WL-TZ-A1"

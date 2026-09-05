@@ -578,6 +578,16 @@ final class MeasurementStore: ObservableObject {
         pairedScales[index].name = trimmed
     }
 
+    func setAutomaticHistoryImportEnabled(_ isEnabled: Bool, for scaleID: UUID) {
+        if isSimulationEnabled {
+            guard let index = simulationData.pairedScales.firstIndex(where: { $0.id == scaleID }) else { return }
+            simulationData.pairedScales[index].automaticallyImportsHistory = isEnabled
+            return
+        }
+        guard let index = pairedScales.firstIndex(where: { $0.id == scaleID }) else { return }
+        pairedScales[index].automaticallyImportsHistory = isEnabled
+    }
+
     var communicationRules: [CommunicationRule] {
         CommunicationRuleCatalog.rules(custom: customCommunicationRules)
     }
@@ -592,24 +602,7 @@ final class MeasurementStore: ObservableObject {
             return selectedRule
         }
 
-        let ruleID: String?
-        switch ScaleDiscoveryCompatibility(rawValue: scale.compatibility) {
-        case .bluetoothSIG: ruleID = CommunicationRuleCatalog.bluetoothSIGWeightID
-        case .xiaomiAdvertisement: ruleID = CommunicationRuleCatalog.xiaomiLegacyID
-        case .wolaiAFU: ruleID = CommunicationRuleCatalog.wolaiAFUID
-        case .qnAABBBroadcast: ruleID = CommunicationRuleCatalog.qnAABBID
-        case .aaaSeriesBroadcast: ruleID = CommunicationRuleCatalog.aaaSeriesID
-        case .sinocareBroadcast: ruleID = CommunicationRuleCatalog.sinocareID
-        case .scaleupBroadcast: ruleID = CommunicationRuleCatalog.scaleupID
-        case .okokBroadcast: ruleID = CommunicationRuleCatalog.okokID
-        case .etekcityFit8SBroadcast: ruleID = CommunicationRuleCatalog.etekcityFit8SID
-        case .eufyC20Broadcast: ruleID = CommunicationRuleCatalog.eufyC20ID
-        case .yunmaiXBroadcast: ruleID = CommunicationRuleCatalog.yunmaiXID
-        case .silvergear108Broadcast: ruleID = CommunicationRuleCatalog.silvergear108ID
-        case .xiaomiMiScale2Advertisement: ruleID = CommunicationRuleCatalog.xiaomiMiScale2ID
-        case .huaweiHagridAuthorizationRequired: ruleID = CommunicationRuleCatalog.huaweiHagridID
-        case .unverified, nil: ruleID = nil
-        }
+        let ruleID = CommunicationRuleCatalog.automaticRuleID(for: scale.compatibility)
         guard let ruleID else { return nil }
         return communicationRules.first { $0.id == ruleID }
     }

@@ -325,6 +325,47 @@ enum ParserSmoke {
             WolaiAFUScaleAdapter.makeFinalAcknowledgement()
                 == hexData("AC2704D60000000000000000000000000000DFB9")
         )
+        precondition(
+            WolaiAFUScaleAdapter.makeHistoryAcknowledgement()
+                == hexData("AC2704D80000000000000000000000000000DFBB")
+        )
+
+        let wolaiHistoryNow = Date(timeIntervalSince1970: TimeInterval(0x5E12A3A5 + 60))
+        let wolaiHistoryFixtures = [
+            ("AC29015E0D5DA58068C35001F40258000029D819", 0x5E0D5DA5, 50.0, 500.0, 600.0),
+            ("AC29015E0EAF258068EA6001FE0262000029D817", 0x5E0EAF25, 60.0, 510.0, 610.0),
+            ("AC29015E1000A5806911700208026C000029D817", 0x5E1000A5, 70.0, 520.0, 620.0),
+            ("AC29015E1152258069388002120276000029D815", 0x5E115225, 80.0, 530.0, 630.0)
+        ]
+        var wolaiHistorySession = WolaiAFUScaleHistorySession()
+        let ignoredWolaiLiveFrame = try wolaiHistorySession.consume(hexData(
+            "AC298068D6D8020005400064000000000029D51F"
+        ), now: wolaiHistoryNow)
+        precondition(ignoredWolaiLiveFrame == nil)
+        for (fixture, timestamp, weightKG, primaryImpedance, secondaryImpedance) in wolaiHistoryFixtures {
+            let measurement = try WolaiAFUScaleHistoryProtocol.parseRecord(
+                hexData(fixture),
+                now: wolaiHistoryNow
+            )
+            precondition(measurement.date == Date(timeIntervalSince1970: TimeInterval(timestamp)))
+            precondition(abs(measurement.weightKG - weightKG) < 0.000_01)
+            precondition(measurement.impedanceOhm == primaryImpedance)
+            precondition(measurement.secondaryImpedanceOhm == secondaryImpedance)
+            precondition(measurement.source == .wolaiAFU)
+            precondition(measurement.isStable)
+            let consumedHistory = try wolaiHistorySession.consume(hexData(fixture), now: wolaiHistoryNow)
+            precondition(consumedHistory != nil)
+        }
+        precondition(wolaiHistorySession.completedMeasurements().count == 4)
+
+        do {
+            var invalidWolaiHistory = hexData(wolaiHistoryFixtures[0].0)
+            invalidWolaiHistory[invalidWolaiHistory.index(before: invalidWolaiHistory.endIndex)] ^= 0x01
+            _ = try WolaiAFUScaleHistoryProtocol.parseRecord(invalidWolaiHistory, now: wolaiHistoryNow)
+            preconditionFailure("Wolai 历史帧校验错误必须被拒绝")
+        } catch ScalePayloadError.unsupported {
+            // Expected.
+        }
 
         let enriched = BodyCompositionEstimator.enriching(
             latestCapture.measurement,

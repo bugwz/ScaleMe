@@ -1278,6 +1278,23 @@ private struct ScaleSettingsView: View {
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(AppColor.ink)
 
+                SettingsSwitch(
+                    title: "自动拉取历史数据",
+                    detail: "设备连接后自动读取并合并秤端历史记录。",
+                    isOn: Binding(
+                        get: { scale?.isAutomaticHistoryImportEnabled == true },
+                        set: { isEnabled in
+                            store.setAutomaticHistoryImportEnabled(isEnabled, for: scaleID)
+                            if !store.isSimulationEnabled {
+                                bluetooth.updatePairedScales(
+                                    store.pairedScales,
+                                    communicationRules: store.communicationRules
+                                )
+                            }
+                        }
+                    )
+                )
+
                 historyActionButton
 
                 switch bluetooth.historyState {
@@ -1288,6 +1305,10 @@ private struct ScaleSettingsView: View {
                             .font(.caption)
                             .foregroundStyle(AppColor.secondary)
                     }
+                case .empty:
+                    Label("设备中没有待同步的历史记录", systemImage: "checkmark.circle")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(AppColor.mint)
                 case .awaitingImport(let measurements):
                     Text(store.appLanguage.format("已读取 %lld 条记录，确认后将根据参考体重与已有趋势自动匹配成员。", Int64(measurements.count)))
                         .font(.caption)
@@ -1400,18 +1421,18 @@ private struct ScaleSettingsView: View {
     private var canReadDeviceHistory: Bool {
         guard let scale else { return false }
         return bluetooth.settingsSnapshot.hasHistoryChannel
-            || store.communicationRule(for: scale)?.capabilities.contains(.historyRead) == true
+            || store.effectiveCommunicationRule(for: scale)?.capabilities.contains(.historyRead) == true
     }
 
     private var canClearDeviceHistory: Bool {
         guard let scale else { return false }
-        return store.communicationRule(for: scale)?.operations?.historyClear?.destructive == true
+        return store.effectiveCommunicationRule(for: scale)?.operations?.historyClear?.destructive == true
     }
 
     @ViewBuilder
     private var protocolPanel: some View {
         if let scale {
-            SettingsPanel(title: "settings.communication.title", icon: "point.3.connected.trianglepath.dotted") {
+            SettingsPanel(title: "通信设置", icon: "point.3.connected.trianglepath.dotted") {
                 VStack(alignment: .leading, spacing: 10) {
                     Text(store.appLanguage.text(.communicationProtocol))
                         .font(.subheadline.weight(.semibold))

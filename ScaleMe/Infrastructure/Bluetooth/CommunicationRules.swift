@@ -314,6 +314,26 @@ enum CommunicationRuleCatalog {
     static let xiaomiMiScale2ID = "protocol.builtin.xiaomi-181d"
     static let silvergear108ID = "protocol.builtin.silvergear-108"
 
+    static func automaticRuleID(for compatibility: String) -> String? {
+        switch ScaleDiscoveryCompatibility(rawValue: compatibility) {
+        case .bluetoothSIG: bluetoothSIGWeightID
+        case .xiaomiAdvertisement: xiaomiLegacyID
+        case .wolaiAFU: wolaiAFUID
+        case .qnAABBBroadcast: qnAABBID
+        case .aaaSeriesBroadcast: aaaSeriesID
+        case .sinocareBroadcast: sinocareID
+        case .scaleupBroadcast: scaleupID
+        case .okokBroadcast: okokID
+        case .etekcityFit8SBroadcast: etekcityFit8SID
+        case .eufyC20Broadcast: eufyC20ID
+        case .yunmaiXBroadcast: yunmaiXID
+        case .silvergear108Broadcast: silvergear108ID
+        case .xiaomiMiScale2Advertisement: xiaomiMiScale2ID
+        case .huaweiHagridAuthorizationRequired: huaweiHagridID
+        case .unverified, nil: nil
+        }
+    }
+
     private static let implemented: [CommunicationRule] = [
         CommunicationRule(
             id: bluetoothSIGWeightID,
@@ -421,13 +441,56 @@ enum CommunicationRuleCatalog {
         CommunicationRule(
             id: wolaiAFUID,
             name: "Wolai AFU",
-            version: 1,
-            summary: "适用于已有数据样本的 AFU-WL-TZ-A1 / FG2313UWB-D。",
+            version: 2,
+            summary: "解析 AFU-WL-TZ-A1 / FG2313UWB-D 的实时测量及秤端历史记录；历史时间、体重、双阻抗与逐条确认流程已通过真机抓包和应用记录交叉验证。",
             origin: .builtIn,
             match: .init(transport: .characteristicNotification, serviceUUID: WolaiAFUScaleAdapter.serviceUUID, characteristicUUID: WolaiAFUScaleAdapter.measurementCharacteristicUUID, minimumLength: 20, maximumLength: 20),
             decoder: nil,
             builtInParser: "wolaiAFU",
-            verification: .fixtureValidated
+            verification: .fixtureValidated,
+            operations: CommunicationRuleOperations(
+                historyRead: CommunicationGATTOperation(
+                    capability: .historyRead,
+                    subscriptions: [
+                        .init(
+                            serviceUUID: WolaiAFUScaleAdapter.serviceUUID,
+                            characteristicUUID: WolaiAFUScaleAdapter.measurementCharacteristicUUID
+                        )
+                    ],
+                    commands: [
+                        CommunicationCommand(
+                            target: .init(
+                                serviceUUID: WolaiAFUScaleAdapter.serviceUUID,
+                                characteristicUUID: WolaiAFUScaleAdapter.controlCharacteristicUUID
+                            ),
+                            payloadHexTemplate: "{{wolaiTimeInitialization}}"
+                        )
+                    ],
+                    acknowledgementCommands: [
+                        CommunicationCommand(
+                            target: .init(
+                                serviceUUID: WolaiAFUScaleAdapter.serviceUUID,
+                                characteristicUUID: WolaiAFUScaleAdapter.controlCharacteristicUUID
+                            ),
+                            payloadHexTemplate: "AC2704D80000000000000000000000000000DFBB"
+                        )
+                    ],
+                    historyResponse: CommunicationHistoryResponse(
+                        recordMatcher: .init(
+                            target: .init(
+                                serviceUUID: WolaiAFUScaleAdapter.serviceUUID,
+                                characteristicUUID: WolaiAFUScaleAdapter.measurementCharacteristicUUID
+                            ),
+                            minimumLength: 20,
+                            maximumLength: 20,
+                            prefixHex: "AC2901"
+                        ),
+                        builtInParser: "wolaiHistory20"
+                    ),
+                    timeoutSeconds: 10
+                )
+            ),
+            requirements: [.timeSynchronization, .historyStateMachine, .multiFrameSession]
         ),
         CommunicationRule(
             id: qnAABBID,
@@ -760,7 +823,14 @@ enum CommunicationRuleCodec {
     }
 
     static func normalizeUUID(_ value: String) -> String {
-        value.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
+        let uppercase = value.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
+        let bluetoothBaseSuffix = "-0000-1000-8000-00805F9B34FB"
+        guard uppercase.hasSuffix(bluetoothBaseSuffix) else { return uppercase }
+        let assignedNumber = String(uppercase.dropLast(bluetoothBaseSuffix.count))
+        guard assignedNumber.count == 8 else { return uppercase }
+        return assignedNumber.hasPrefix("0000")
+            ? String(assignedNumber.dropFirst(4))
+            : assignedNumber
     }
 
     private static func normalize(_ operations: CommunicationRuleOperations) -> CommunicationRuleOperations {
@@ -791,7 +861,11 @@ enum CommunicationRuleCodec {
         result.historyResponse = result.historyResponse.map { response in
             var value = response
             value.recordMatcher.target = normalize(response.recordMatcher.target)
-            value.completionMatcher.target = normalize(response.completionMatcher.target)
+            value.completionMatcher = response.completionMatcher.map { matcher in
+                var normalized = matcher
+                normalized.target = normalize(matcher.target)
+                return normalized
+            }
             return value
         }
         return result

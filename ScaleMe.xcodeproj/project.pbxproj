@@ -376,8 +376,8 @@
 				INFOPLIST_KEY_CFBundleDisplayName = "观我";
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "观我需要蓝牙来发现并读取您主动使用的体重体脂秤。";
 				INFOPLIST_KEY_NSBluetoothPeripheralUsageDescription = "观我需要蓝牙连接体重体脂秤。";
-				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "观我仅在您同意后，将体重和明确记录的体脂率写入 Apple 健康。";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "观我仅在您同意后，从 Apple 健康读取体重和体脂率并导入本人档案。";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "观我仅在您同意后，将体重和明确记录的体脂率写入 Apple 健康。";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -411,8 +411,8 @@
 				INFOPLIST_KEY_CFBundleDisplayName = "观我";
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "观我需要蓝牙来发现并读取您主动使用的体重体脂秤。";
 				INFOPLIST_KEY_NSBluetoothPeripheralUsageDescription = "观我需要蓝牙连接体重体脂秤。";
-				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "观我仅在您同意后，将体重和明确记录的体脂率写入 Apple 健康。";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "观我仅在您同意后，从 Apple 健康读取体重和体脂率并导入本人档案。";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "观我仅在您同意后，将体重和明确记录的体脂率写入 Apple 健康。";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

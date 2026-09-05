@@ -64,7 +64,8 @@ enum StorageSmoke {
             id: scaleID,
             name: "浴室秤",
             modelName: "Test Scale",
-            compatibility: "Bluetooth SIG 标准"
+            compatibility: "Bluetooth SIG 标准",
+            automaticallyImportsHistory: true
         )
         let configuration = AppConfiguration(
             profiles: [profile],
@@ -77,6 +78,14 @@ enum StorageSmoke {
         let configurationData = try JSONEncoder().encode(configuration)
         let decoded = try JSONDecoder().decode(AppConfiguration.self, from: configurationData)
         precondition(decoded == configuration, "multi-profile and paired-device configuration round trip failed")
+        precondition(decoded.pairedScales[0].isAutomaticHistoryImportEnabled)
+        var legacyObject = try JSONSerialization.jsonObject(with: configurationData) as? [String: Any]
+        var legacyScales = legacyObject?["pairedScales"] as? [[String: Any]] ?? []
+        legacyScales[0].removeValue(forKey: "automaticallyImportsHistory")
+        legacyObject?["pairedScales"] = legacyScales
+        let legacyData = try JSONSerialization.data(withJSONObject: legacyObject ?? [:])
+        let legacyDecoded = try JSONDecoder().decode(AppConfiguration.self, from: legacyData)
+        precondition(!legacyDecoded.pairedScales[0].isAutomaticHistoryImportEnabled)
         precondition(decoded.profiles[0].avatar == .senior, "member avatar selection must survive configuration round trip")
         precondition(decoded.isSimulationEnabled, "simulation preference must survive configuration round trip")
         precondition(decoded.languageSelection == .system, "language should follow the system by default")

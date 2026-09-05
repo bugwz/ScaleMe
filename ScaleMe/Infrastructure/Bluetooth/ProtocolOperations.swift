@@ -36,7 +36,7 @@ enum CommunicationRecordFraming: String, Codable, Hashable {
 
 struct CommunicationHistoryResponse: Codable, Equatable, Hashable {
     var recordMatcher: CommunicationResponseMatcher
-    var completionMatcher: CommunicationResponseMatcher
+    var completionMatcher: CommunicationResponseMatcher? = nil
     var framing: CommunicationRecordFraming = .notification
     var recordLength: Int? = nil
     var decoder: CommunicationRuleDecoder? = nil
@@ -62,7 +62,11 @@ struct CommunicationRuleOperations: Codable, Equatable, Hashable {
 }
 
 enum CommunicationPayloadTemplate {
-    private static let allowedPlaceholders = ["{{sessionToken16BE}}", "{{currentTimeBLE}}"]
+    private static let allowedPlaceholders = [
+        "{{sessionToken16BE}}",
+        "{{currentTimeBLE}}",
+        "{{wolaiTimeInitialization}}"
+    ]
     private static let responsePattern = try? NSRegularExpression(pattern: #"\{\{response:(\d+):(\d+)\}\}"#)
 
     static func render(
@@ -79,6 +83,10 @@ enum CommunicationPayloadTemplate {
         value = value.replacingOccurrences(
             of: "{{currentTimeBLE}}",
             with: BluetoothCurrentTimeProtocol.payload(for: now).map { String(format: "%02X", $0) }.joined()
+        )
+        value = value.replacingOccurrences(
+            of: "{{wolaiTimeInitialization}}",
+            with: WolaiAFUScaleAdapter.makeTimeInitialization(at: now).map { String(format: "%02X", $0) }.joined()
         )
         value = try replacingResponseFields(in: value) { offset, length in
             guard let response, offset >= 0, length > 0, length <= 8,
@@ -97,6 +105,7 @@ enum CommunicationPayloadTemplate {
         var value = template
         value = value.replacingOccurrences(of: allowedPlaceholders[0], with: "0000")
         value = value.replacingOccurrences(of: allowedPlaceholders[1], with: String(repeating: "00", count: 10))
+        value = value.replacingOccurrences(of: allowedPlaceholders[2], with: String(repeating: "00", count: 20))
         value = try replacingResponseFields(in: value) { offset, length in
             guard (0...4_095).contains(offset), (1...8).contains(length), offset + length <= 4_096 else {
                 throw CommunicationRuleError.invalidDocument("命令引用的响应字段范围无效")
@@ -182,7 +191,11 @@ enum CommunicationOperationValidator {
         }
         if let response = operation.historyResponse {
             try validate(response.recordMatcher)
-            try validate(response.completionMatcher)
+            if let completionMatcher = response.completionMatcher {
+                try validate(completionMatcher)
+            } else if response.builtInParser == nil {
+                throw CommunicationRuleError.invalidDocument("声明式历史响应必须提供结束匹配规则")
+            }
             if response.framing == .fixedLength {
                 guard let length = response.recordLength, (1...512).contains(length) else {
                     throw CommunicationRuleError.invalidDocument("固定长度历史帧必须声明 1 至 512 字节的 recordLength")
@@ -264,7 +277,8 @@ struct DeclarativeHistoryOperationSession {
             serviceUUID: CommunicationRuleCodec.normalizeUUID(serviceUUID),
             characteristicUUID: CommunicationRuleCodec.normalizeUUID(characteristicUUID)
         )
-        if matches(data, matcher: response.completionMatcher, target: target) {
+        if let completionMatcher = response.completionMatcher,
+           matches(data, matcher: completionMatcher, target: target) {
             if response.framing == .fixedLength, !buffer.isEmpty {
                 throw CommunicationRuleError.invalidDocument("历史传输结束时仍有不完整记录")
             }

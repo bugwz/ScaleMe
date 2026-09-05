@@ -88,6 +88,7 @@ enum ConfigurationFileCodec {
         if let communicationRuleID = scale.communicationRuleID {
             pairs.append(("communicationRuleID", .string(communicationRuleID)))
         }
+        pairs.append(("automaticallyImportsHistory", .bool(scale.isAutomaticHistoryImportEnabled)))
         pairs.append(("addedAt", .number(numberString(scale.addedAt.timeIntervalSinceReferenceDate))))
         return .object(pairs)
     }

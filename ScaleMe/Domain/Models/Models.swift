@@ -327,7 +327,12 @@ struct PairedScale: Identifiable, Codable, Equatable, Hashable {
     var modelName: String
     var compatibility: String
     var communicationRuleID: String? = nil
+    var automaticallyImportsHistory: Bool? = nil
     var addedAt = Date.now
+
+    var isAutomaticHistoryImportEnabled: Bool {
+        automaticallyImportsHistory == true
+    }
 }
 
 struct AppConfiguration: Codable, Equatable {

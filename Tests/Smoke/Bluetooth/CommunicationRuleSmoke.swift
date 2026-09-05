@@ -57,6 +57,14 @@ struct CommunicationRuleSmoke {
         expect(rules[0].origin == .custom, "file imports should always be identified as local imports")
         expect(rules[0].sourceURL == nil, "file imports should not retain a remote source URL")
         expect(rules[0].match.serviceUUID == "FFF0", "UUID should normalize")
+        expect(
+            CommunicationRuleCodec.normalizeUUID("0000ffb1-0000-1000-8000-00805f9b34fb") == "FFB1",
+            "16-bit Bluetooth Base UUIDs should normalize to the rule identifier"
+        )
+        expect(
+            CommunicationRuleCodec.normalizeUUID("12345678-0000-1000-8000-00805f9b34fb") == "12345678",
+            "32-bit Bluetooth Base UUIDs should normalize to the assigned number"
+        )
         expect(rules[0].effectiveVerification == .unverified, "external rules cannot claim hardware validation")
         expect(
             SimulationCommunicationRuleCatalog.initialRules.count == 2,
@@ -104,6 +112,18 @@ struct CommunicationRuleSmoke {
                 .capabilities.contains(.historyRead) == false,
             "Xiaomi 181B advertising support must not claim unverified GATT history support"
         )
+        let wolaiRule = CommunicationRuleCatalog.builtIn.first {
+            $0.id == CommunicationRuleCatalog.wolaiAFUID
+        }
+        expect(
+            CommunicationRuleCatalog.automaticRuleID(
+                for: ScaleDiscoveryCompatibility.wolaiAFU.rawValue
+            ) == CommunicationRuleCatalog.wolaiAFUID
+                &&
+            wolaiRule?.capabilities.contains(.historyRead) == true
+                && wolaiRule?.operations?.historyRead?.historyResponse?.builtInParser == "wolaiHistory20",
+            "automatic Wolai AFU selection should expose the captured history operation"
+        )
 
         let rendered = try CommunicationPayloadTemplate.render(
             "01FFFF{{sessionToken16BE}}",
@@ -116,6 +136,16 @@ struct CommunicationRuleSmoke {
             response: Data([0xAA, 0x12, 0x34])
         )
         expect(responseRendered == Data([0x03, 0x12, 0x34]), "completion commands should reference bounded response fields")
+        let wolaiTime = Date(timeIntervalSince1970: TimeInterval(0x5E0C0C25))
+        let wolaiHistoryRequest = try CommunicationPayloadTemplate.render(
+            "{{wolaiTimeInitialization}}",
+            sessionToken: 0,
+            now: wolaiTime
+        )
+        expect(
+            wolaiHistoryRequest == WolaiAFUScaleAdapter.makeTimeInitialization(at: wolaiTime),
+            "Wolai history time template should render a checksummed request"
+        )
 
         let historyTarget = CommunicationGATTTarget(serviceUUID: "FFF0", characteristicUUID: "FFF2")
         let byte = { (offset: Int) in

@@ -35,10 +35,16 @@ enum ScaleHistoryState: Equatable {
     case unavailable
     case ready
     case reading(received: Int, announced: Int?)
+    case empty
     case awaitingImport([BodyMeasurement])
     case imported(DeviceHistoryImportSummary)
     case clearCommandSent
     case failed(String)
+}
+
+struct AutomaticallyRetrievedHistory: Identifiable, Equatable {
+    let id = UUID()
+    var measurements: [BodyMeasurement]
 }
 
 struct DeviceDiagnosticEvent: Identifiable, Equatable, Sendable {
@@ -103,6 +109,7 @@ enum ScaleDeviceSettingsState: Equatable {
 @MainActor
 final class BLEScaleManager: NSObject, ObservableObject {
     private enum ScanPurpose { case adding, measuring, configuring(UUID) }
+    private enum HistoryRequestOrigin: Equatable { case manual, automatic }
     private enum SettingsOperation {
         case unit(XiaomiScaleHardwareUnit)
         case currentTime
@@ -151,6 +158,7 @@ final class BLEScaleManager: NSObject, ObservableObject {
     @Published private(set) var settingsOperationMessage: String?
     @Published private(set) var settingsOperationSucceeded = false
     @Published private(set) var historyState: ScaleHistoryState = .unavailable
+    @Published private(set) var automaticallyRetrievedHistory: AutomaticallyRetrievedHistory?
     @Published private(set) var isDeviceDiagnosticCaptureEnabled = false
     @Published private(set) var deviceDiagnosticEvents: [DeviceDiagnosticEvent] = []
 
@@ -170,6 +178,7 @@ final class BLEScaleManager: NSObject, ObservableObject {
     private var pairedScaleModelNames: [UUID: String] = [:]
     private var pairedScaleCompatibilities: [UUID: String] = [:]
     private var pairedScaleRuleIDs: [UUID: String] = [:]
+    private var automaticHistoryScaleIDs = Set<UUID>()
     private var communicationRulesByID: [String: CommunicationRule] = [:]
     private var measurementScaleID: UUID?
     private var activeScaleID: UUID?
@@ -181,6 +190,10 @@ final class BLEScaleManager: NSObject, ObservableObject {
     private var settingsHistoryCharacteristic: CBCharacteristic?
     private var xiaomiHistorySession: XiaomiScaleHistorySession?
     private var xiaomiHistoryCursor: Data?
+    private var xiaomiHistoryRequestOrigin: HistoryRequestOrigin?
+    private var wolaiHistorySession: WolaiAFUScaleHistorySession?
+    private var wolaiHistoryRequestOrigin: HistoryRequestOrigin?
+    private var didStartWolaiHistoryRequest = false
     private var declarativeHistorySession: DeclarativeHistoryOperationSession?
     private var activeHistoryOperation: CommunicationGATTOperation?
     private var activeHistorySessionToken: UInt16?
@@ -188,6 +201,7 @@ final class BLEScaleManager: NSObject, ObservableObject {
     private var pendingHistorySubscriptions = Set<String>()
     private var settingsCharacteristicsByTarget: [String: CBCharacteristic] = [:]
     private var historyTimeoutTask: Task<Void, Never>?
+    private var pendingAutomaticHistoryImportID: UUID?
     private var pendingSettingsServiceIDs: Set<ObjectIdentifier> = []
     private var pendingSettingsOperation: SettingsOperation?
     private var deviceDiagnosticCaptureStartedAt: Date?
@@ -196,6 +210,7 @@ final class BLEScaleManager: NSObject, ObservableObject {
     private var didCompleteWolaiFinal = false
     private var didInitializeWolaiSession = false
     private var wolaiControlCharacteristic: CBCharacteristic?
+    private var wolaiMeasurementCharacteristic: CBCharacteristic?
     private var senssunIF2121ResultAccumulator = SenssunIF2121ScaleParser.FrameAccumulator()
     private var senssunIF2121StableWeightKG: Double?
     private var huaweiHagridDeviceIDs = Set<UUID>()
@@ -264,6 +279,9 @@ final class BLEScaleManager: NSObject, ObservableObject {
         pairedScaleRuleIDs = Dictionary(uniqueKeysWithValues: scales.compactMap { scale in
             scale.communicationRuleID.map { (scale.id, $0) }
         })
+        automaticHistoryScaleIDs = Set(
+            scales.lazy.filter(\.isAutomaticHistoryImportEnabled).map(\.id)
+        )
         measurementScaleID = selectedScaleID.flatMap { pairedScaleIDs.contains($0) ? $0 : nil }
         scanPurpose = .measuring
         liveWeightKG = nil
@@ -304,6 +322,9 @@ final class BLEScaleManager: NSObject, ObservableObject {
         pairedScaleRuleIDs = Dictionary(uniqueKeysWithValues: scales.compactMap { scale in
             scale.communicationRuleID.map { (scale.id, $0) }
         })
+        automaticHistoryScaleIDs = Set(
+            scales.lazy.filter(\.isAutomaticHistoryImportEnabled).map(\.id)
+        )
         communicationRulesByID = Dictionary(uniqueKeysWithValues: communicationRules.map { ($0.id, $0) })
         if let activeScaleID, let scale = scales.first(where: { $0.id == activeScaleID }) {
             activeScaleName = scale.name
@@ -317,6 +338,11 @@ final class BLEScaleManager: NSObject, ObservableObject {
     private func historyOperation(for deviceID: UUID) -> CommunicationGATTOperation? {
         if pairedScaleRuleIDs[deviceID] != nil {
             return selectedRule(for: deviceID)?.operations?.historyRead
+        }
+        if let compatibility = pairedScaleCompatibilities[deviceID],
+           let ruleID = CommunicationRuleCatalog.automaticRuleID(for: compatibility),
+           let operation = communicationRulesByID[ruleID]?.operations?.historyRead {
+            return operation
         }
         guard pairedScaleModelNames[deviceID]?
             .trimmingCharacters(in: .whitespacesAndNewlines)
@@ -454,6 +480,10 @@ final class BLEScaleManager: NSObject, ObservableObject {
         settingsHistoryCharacteristic = nil
         xiaomiHistorySession = nil
         xiaomiHistoryCursor = nil
+        xiaomiHistoryRequestOrigin = nil
+        wolaiHistorySession = nil
+        wolaiHistoryRequestOrigin = nil
+        didStartWolaiHistoryRequest = false
         declarativeHistorySession = nil
         activeHistoryOperation = nil
         activeHistorySessionToken = nil
@@ -600,8 +630,171 @@ final class BLEScaleManager: NSObject, ObservableObject {
             readDeclarativeHistory(operation)
         } else if operation.historyResponse?.builtInParser == "xiaomiHistory10" {
             readXiaomiHistory()
+        } else if operation.historyResponse?.builtInParser == "wolaiHistory20" {
+            readWolaiHistory(operation)
         } else {
             historyState = .failed("当前协议的历史解析器尚未实现")
+        }
+    }
+
+    private func readWolaiHistory(_ operation: CommunicationGATTOperation) {
+        guard let connected,
+              connected.identifier == settingsScaleID,
+              let control = wolaiControlCharacteristic,
+              let measurement = wolaiMeasurementCharacteristic,
+              control.properties.contains(.write) || control.properties.contains(.writeWithoutResponse),
+              measurement.properties.contains(.notify) || measurement.properties.contains(.indicate) else {
+            historyState = .failed("当前连接未发现可读写的 Wolai AFU 历史通道")
+            return
+        }
+        wolaiHistorySession = WolaiAFUScaleHistorySession(
+            maximumBytes: operation.maximumResponseBytes,
+            maximumRecords: operation.maximumRecords
+        )
+        wolaiHistoryRequestOrigin = .manual
+        xiaomiHistorySession = nil
+        xiaomiHistoryCursor = nil
+        declarativeHistorySession = nil
+        activeHistoryOperation = nil
+        activeHistorySessionToken = nil
+        activeHistoryCompletionResponse = nil
+        pendingHistorySubscriptions.removeAll()
+        didStartWolaiHistoryRequest = false
+        historyState = .reading(received: 0, announced: nil)
+        armWolaiHistoryTimeout(seconds: operation.timeoutSeconds)
+        if measurement.isNotifying {
+            sendWolaiHistoryRequest(on: connected, characteristic: control)
+        } else {
+            connected.setNotifyValue(true, for: measurement)
+        }
+    }
+
+    private func startAutomaticWolaiHistoryIfNeeded(on peripheral: CBPeripheral) -> Bool {
+        guard automaticHistoryScaleIDs.contains(peripheral.identifier),
+              wolaiHistorySession == nil,
+              let operation = historyOperation(for: peripheral.identifier),
+              operation.historyResponse?.builtInParser == "wolaiHistory20",
+              let control = wolaiControlCharacteristic,
+              let measurement = wolaiMeasurementCharacteristic,
+              measurement.isNotifying else { return false }
+        wolaiHistorySession = WolaiAFUScaleHistorySession(
+            maximumBytes: operation.maximumResponseBytes,
+            maximumRecords: operation.maximumRecords
+        )
+        wolaiHistoryRequestOrigin = .automatic
+        didInitializeWolaiSession = true
+        didStartWolaiHistoryRequest = false
+        armWolaiHistoryTimeout(seconds: operation.timeoutSeconds)
+        sendWolaiHistoryRequest(on: peripheral, characteristic: control)
+        return true
+    }
+
+    private func sendWolaiHistoryRequest(on peripheral: CBPeripheral, characteristic: CBCharacteristic) {
+        guard wolaiHistorySession != nil, !didStartWolaiHistoryRequest else { return }
+        didStartWolaiHistoryRequest = true
+        let command = WolaiAFUScaleAdapter.makeTimeInitialization(at: .now)
+        let type: CBCharacteristicWriteType = characteristic.properties.contains(.write)
+            ? .withResponse
+            : .withoutResponse
+        captureCharacteristicEvent(
+            direction: .write,
+            characteristic: characteristic,
+            payload: command,
+            summary: "Wolai AFU 历史读取校时命令"
+        )
+        peripheral.writeValue(command, for: characteristic, type: type)
+        if type == .withoutResponse {
+            armWolaiHistoryQuietCompletion(after: 2, peripheral: peripheral)
+        }
+    }
+
+    private func armWolaiHistoryTimeout(seconds: Double) {
+        let origin = wolaiHistoryRequestOrigin
+        historyTimeoutTask?.cancel()
+        historyTimeoutTask = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(seconds))
+            guard !Task.isCancelled, let self,
+                  self.wolaiHistorySession != nil,
+                  self.wolaiHistoryRequestOrigin == origin else { return }
+            self.wolaiHistorySession = nil
+            self.wolaiHistoryRequestOrigin = nil
+            self.didStartWolaiHistoryRequest = false
+            if origin == .manual {
+                self.historyState = .failed("读取历史超时，请唤醒秤后重试")
+            }
+        }
+    }
+
+    private func consumeWolaiHistory(
+        _ data: Data,
+        peripheral: CBPeripheral,
+        characteristic: CBCharacteristic
+    ) -> Bool {
+        guard var session = wolaiHistorySession else { return false }
+        do {
+            guard try session.consume(data) != nil else {
+                wolaiHistorySession = session
+                return false
+            }
+            wolaiHistorySession = session
+            if wolaiHistoryRequestOrigin == .manual {
+                historyState = .reading(received: session.measurements.count, announced: nil)
+            }
+            if let control = wolaiControlCharacteristic {
+                let acknowledgement = WolaiAFUScaleAdapter.makeHistoryAcknowledgement()
+                let type: CBCharacteristicWriteType = control.properties.contains(.write)
+                    ? .withResponse
+                    : .withoutResponse
+                captureCharacteristicEvent(
+                    direction: .write,
+                    characteristic: control,
+                    payload: acknowledgement,
+                    summary: "确认 Wolai AFU 历史记录"
+                )
+                peripheral.writeValue(acknowledgement, for: control, type: type)
+            }
+            armWolaiHistoryQuietCompletion(after: 1, peripheral: peripheral)
+        } catch {
+            historyTimeoutTask?.cancel()
+            wolaiHistorySession = nil
+            let origin = wolaiHistoryRequestOrigin
+            wolaiHistoryRequestOrigin = nil
+            didStartWolaiHistoryRequest = false
+            if origin == .manual {
+                historyState = .failed("Wolai AFU 历史数据格式无效或超过安全上限")
+            }
+        }
+        return true
+    }
+
+    private func armWolaiHistoryQuietCompletion(after seconds: Double, peripheral: CBPeripheral) {
+        let origin = wolaiHistoryRequestOrigin
+        historyTimeoutTask?.cancel()
+        historyTimeoutTask = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(seconds))
+            guard !Task.isCancelled, let self,
+                  self.wolaiHistoryRequestOrigin == origin,
+                  let completed = self.wolaiHistorySession?.completedMeasurements() else { return }
+            self.wolaiHistorySession = nil
+            self.wolaiHistoryRequestOrigin = nil
+            self.didStartWolaiHistoryRequest = false
+            guard !completed.isEmpty else {
+                if origin == .manual {
+                    self.historyState = .empty
+                }
+                return
+            }
+            let attributed = completed.map { value -> BodyMeasurement in
+                var result = value
+                result.deviceID = peripheral.identifier
+                result.deviceName = self.pairedScaleNames[peripheral.identifier] ?? peripheral.name
+                return result
+            }
+            if origin == .automatic {
+                self.automaticallyRetrievedHistory = AutomaticallyRetrievedHistory(measurements: attributed)
+            } else {
+                self.historyState = .awaitingImport(attributed)
+            }
         }
     }
 
@@ -621,20 +814,14 @@ final class BLEScaleManager: NSObject, ObservableObject {
         let cursor = XiaomiScaleHistoryProtocol.capturedQueryCursor
         xiaomiHistorySession = XiaomiScaleHistorySession(cursor: cursor)
         xiaomiHistoryCursor = cursor
+        xiaomiHistoryRequestOrigin = .manual
         declarativeHistorySession = nil
         activeHistoryOperation = nil
         activeHistorySessionToken = nil
         activeHistoryCompletionResponse = nil
         pendingHistorySubscriptions.removeAll()
         historyState = .reading(received: 0, announced: nil)
-        historyTimeoutTask?.cancel()
-        historyTimeoutTask = Task { [weak self] in
-            try? await Task.sleep(for: .seconds(20))
-            guard !Task.isCancelled, let self, case .reading = self.historyState else { return }
-            self.xiaomiHistorySession = nil
-            self.xiaomiHistoryCursor = nil
-            self.historyState = .failed("读取历史超时，请唤醒秤后重试")
-        }
+        armXiaomiHistoryTimeout()
         if characteristic.isNotifying {
             sendXiaomiHistoryRequest(on: connected, characteristic: characteristic)
         } else {
@@ -660,6 +847,22 @@ final class BLEScaleManager: NSObject, ObservableObject {
         }
         xiaomiHistoryCursor = nil
         historyState = .imported(summary)
+    }
+
+    func finishAutomaticHistoryImport(_ batchID: UUID, summary: DeviceHistoryImportSummary) {
+        guard pendingAutomaticHistoryImportID == batchID else { return }
+        pendingAutomaticHistoryImportID = nil
+        if summary.unmatchedCount == 0,
+           let connected,
+           let characteristic = settingsHistoryCharacteristic,
+           let cursor = xiaomiHistoryCursor {
+            writeHistoryCommand(
+                XiaomiScaleHistoryProtocol.acknowledge(since: cursor),
+                on: connected,
+                characteristic: characteristic
+            )
+        }
+        xiaomiHistoryCursor = nil
     }
 
     func clearDeviceHistory() {
@@ -768,29 +971,76 @@ final class BLEScaleManager: NSObject, ObservableObject {
         writeHistoryCommand(XiaomiScaleHistoryProtocol.query(since: cursor), on: peripheral, characteristic: characteristic)
     }
 
+    private func startAutomaticXiaomiHistoryIfNeeded(on peripheral: CBPeripheral) -> Bool {
+        guard automaticHistoryScaleIDs.contains(peripheral.identifier),
+              xiaomiHistorySession == nil,
+              let operation = historyOperation(for: peripheral.identifier),
+              operation.historyResponse?.builtInParser == "xiaomiHistory10",
+              let characteristic = settingsHistoryCharacteristic,
+              characteristic.service?.uuid == Self.weightService,
+              characteristic.isNotifying,
+              characteristic.properties.contains(.write) || characteristic.properties.contains(.writeWithoutResponse) else {
+            return false
+        }
+        let cursor = XiaomiScaleHistoryProtocol.capturedQueryCursor
+        xiaomiHistorySession = XiaomiScaleHistorySession(
+            cursor: cursor,
+            maximumBytes: operation.maximumResponseBytes,
+            maximumRecords: operation.maximumRecords
+        )
+        xiaomiHistoryCursor = cursor
+        xiaomiHistoryRequestOrigin = .automatic
+        armXiaomiHistoryTimeout(seconds: operation.timeoutSeconds)
+        sendXiaomiHistoryRequest(on: peripheral, characteristic: characteristic)
+        return true
+    }
+
+    private func armXiaomiHistoryTimeout(seconds: Double = 20) {
+        let origin = xiaomiHistoryRequestOrigin
+        historyTimeoutTask?.cancel()
+        historyTimeoutTask = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(seconds))
+            guard !Task.isCancelled, let self,
+                  self.xiaomiHistorySession != nil,
+                  self.xiaomiHistoryRequestOrigin == origin else { return }
+            self.xiaomiHistorySession = nil
+            self.xiaomiHistoryCursor = nil
+            self.xiaomiHistoryRequestOrigin = nil
+            if origin == .manual {
+                self.historyState = .failed("读取历史超时，请唤醒秤后重试")
+            }
+        }
+    }
+
     private func writeHistoryCommand(_ data: Data, on peripheral: CBPeripheral, characteristic: CBCharacteristic) {
         let type: CBCharacteristicWriteType = characteristic.properties.contains(.write) ? .withResponse : .withoutResponse
         captureCharacteristicEvent(direction: .write, characteristic: characteristic, payload: data, summary: "历史操作命令")
         peripheral.writeValue(data, for: characteristic, type: type)
     }
 
-    private func consumeXiaomiHistory(_ data: Data, peripheral: CBPeripheral, characteristic: CBCharacteristic) {
-        guard var session = xiaomiHistorySession else { return }
+    private func consumeXiaomiHistory(_ data: Data, peripheral: CBPeripheral, characteristic: CBCharacteristic) -> Bool {
+        guard var session = xiaomiHistorySession else { return false }
         do {
             guard let event = try session.consume(data) else {
                 xiaomiHistorySession = session
-                return
+                return true
             }
             xiaomiHistorySession = session
             switch event {
             case .readyToTransfer(let announced):
-                historyState = .reading(received: 0, announced: announced)
+                if xiaomiHistoryRequestOrigin == .manual {
+                    historyState = .reading(received: 0, announced: announced)
+                }
                 writeHistoryCommand(XiaomiScaleHistoryProtocol.startTransfer, on: peripheral, characteristic: characteristic)
             case .progress(let received, let announced):
-                historyState = .reading(received: received, announced: announced)
+                if xiaomiHistoryRequestOrigin == .manual {
+                    historyState = .reading(received: received, announced: announced)
+                }
             case .completed(let measurements):
                 historyTimeoutTask?.cancel()
                 xiaomiHistorySession = nil
+                let origin = xiaomiHistoryRequestOrigin
+                xiaomiHistoryRequestOrigin = nil
                 writeHistoryCommand(XiaomiScaleHistoryProtocol.stop, on: peripheral, characteristic: characteristic)
                 let attributed = measurements.map { value -> BodyMeasurement in
                     var result = value
@@ -798,14 +1048,36 @@ final class BLEScaleManager: NSObject, ObservableObject {
                     result.deviceName = pairedScaleNames[peripheral.identifier] ?? peripheral.name
                     return result
                 }
-                historyState = .awaitingImport(attributed)
+                if origin == .automatic {
+                    guard !attributed.isEmpty else {
+                        if let cursor = xiaomiHistoryCursor {
+                            writeHistoryCommand(
+                                XiaomiScaleHistoryProtocol.acknowledge(since: cursor),
+                                on: peripheral,
+                                characteristic: characteristic
+                            )
+                        }
+                        xiaomiHistoryCursor = nil
+                        return true
+                    }
+                    let batch = AutomaticallyRetrievedHistory(measurements: attributed)
+                    pendingAutomaticHistoryImportID = batch.id
+                    automaticallyRetrievedHistory = batch
+                } else {
+                    historyState = attributed.isEmpty ? .empty : .awaitingImport(attributed)
+                }
             }
         } catch {
             historyTimeoutTask?.cancel()
             xiaomiHistorySession = nil
             xiaomiHistoryCursor = nil
-            historyState = .failed("历史数据格式无效或超过安全上限")
+            let origin = xiaomiHistoryRequestOrigin
+            xiaomiHistoryRequestOrigin = nil
+            if origin == .manual {
+                historyState = .failed("历史数据格式无效或超过安全上限")
+            }
         }
+        return true
     }
 
     private func consumeDeclarativeHistory(
@@ -821,7 +1093,8 @@ final class BLEScaleManager: NSObject, ObservableObject {
             serviceUUID: CommunicationRuleCodec.normalizeUUID(serviceUUID),
             characteristicUUID: CommunicationRuleCodec.normalizeUUID(characteristic.uuid.uuidString)
         )
-        guard target == response.recordMatcher.target || target == response.completionMatcher.target else { return false }
+        guard target == response.recordMatcher.target
+            || response.completionMatcher.map({ target == $0.target }) == true else { return false }
         do {
             let event = try session.consume(
                 data,
@@ -1065,10 +1338,23 @@ final class BLEScaleManager: NSObject, ObservableObject {
         senssunIF2121StableWeightKG = nil
     }
 
+    private func resetXiaomiHistorySession() {
+        settingsHistoryCharacteristic = nil
+        xiaomiHistorySession = nil
+        xiaomiHistoryCursor = nil
+        xiaomiHistoryRequestOrigin = nil
+        historyTimeoutTask?.cancel()
+    }
+
     private func resetWolaiSession() {
         didCompleteWolaiFinal = false
         didInitializeWolaiSession = false
         wolaiControlCharacteristic = nil
+        wolaiMeasurementCharacteristic = nil
+        wolaiHistorySession = nil
+        wolaiHistoryRequestOrigin = nil
+        didStartWolaiHistoryRequest = false
+        historyTimeoutTask?.cancel()
     }
 
     private func isWolaiMeasurement(_ characteristic: CBCharacteristic) -> Bool {
@@ -1331,7 +1617,8 @@ final class BLEScaleManager: NSObject, ObservableObject {
               connected == nil,
               let scale = scales.first(where: {
                   isMonitoredScale($0.id)
-                      && ($0.compatibility == ScaleDiscoveryCompatibility.bluetoothSIG.rawValue
+                      && (automaticHistoryScaleIDs.contains($0.id)
+                          || $0.compatibility == ScaleDiscoveryCompatibility.bluetoothSIG.rawValue
                           || $0.compatibility == ScaleDiscoveryCompatibility.wolaiAFU.rawValue
                           || selectedRule(for: $0.id)?.match.transport == .characteristicNotification)
               }) else { return }
@@ -1581,12 +1868,13 @@ extension BLEScaleManager: CBCentralManagerDelegate {
             if case .measuring = scanPurpose,
                isMonitoredScale(peripheral.identifier),
                connected?.identifier != peripheral.identifier,
-               (item.isVerifiedCompatible
-                    || selectedRule(for: peripheral.identifier)?.match.transport == .characteristicNotification),
-               broadcastMatch == nil,
-               serviceDataMatch == nil,
-               (!hasVerifiedXiaomiPayload
-                    || selectedRule(for: peripheral.identifier)?.match.transport == .characteristicNotification) {
+               automaticHistoryScaleIDs.contains(peripheral.identifier)
+                    || (item.isVerifiedCompatible
+                        || selectedRule(for: peripheral.identifier)?.match.transport == .characteristicNotification)
+                        && broadcastMatch == nil
+                        && serviceDataMatch == nil
+                        && (!hasVerifiedXiaomiPayload
+                            || selectedRule(for: peripheral.identifier)?.match.transport == .characteristicNotification) {
                 connect(item)
             }
         }
@@ -1604,6 +1892,9 @@ extension BLEScaleManager: CBCentralManagerDelegate {
                 huaweiHagridNotificationAccumulators.removeAll()
             }
             state = .connected(peripheral.name ?? "体重秤")
+            if historyOperation(for: peripheral.identifier)?.historyResponse?.builtInParser == "xiaomiHistory10" {
+                resetXiaomiHistorySession()
+            }
             if isWolaiAFUSelected(for: peripheral.identifier) {
                 resetWolaiSession()
             }
@@ -1680,6 +1971,9 @@ extension BLEScaleManager: CBCentralManagerDelegate {
             }
             if isWolaiAFUSelected(for: peripheral.identifier) {
                 resetWolaiSession()
+            }
+            if historyOperation(for: peripheral.identifier)?.historyResponse?.builtInParser == "xiaomiHistory10" {
+                resetXiaomiHistorySession()
             }
             if let reconnectScale {
                 appendDiagnosticEvent(
@@ -1777,10 +2071,21 @@ extension BLEScaleManager: CBPeripheralDelegate {
                 )
                 let isSelectedNotificationTarget = selectedRule(for: peripheral.identifier)?
                     .notifyTargets?.contains(characteristicTarget) == true
+                let historyOperation = historyOperation(for: peripheral.identifier)
+                let isAutomaticXiaomiHistoryTarget = automaticHistoryScaleIDs.contains(peripheral.identifier)
+                    && historyOperation?.historyResponse?.builtInParser == "xiaomiHistory10"
+                    && historyOperation?.subscriptions.contains(where: {
+                        targetKey($0) == targetKey(characteristicTarget)
+                    }) == true
+                if isAutomaticXiaomiHistoryTarget {
+                    settingsHistoryCharacteristic = characteristic
+                }
                 let isWolaiService = service.uuid == Self.wolaiService
                     && isWolaiAFUSelected(for: peripheral.identifier)
                 if isWolaiService, characteristic.uuid == Self.wolaiControl {
                     wolaiControlCharacteristic = characteristic
+                } else if isWolaiService, characteristic.uuid == Self.wolaiMeasurement {
+                    wolaiMeasurementCharacteristic = characteristic
                 }
                 let isHuaweiMeasurementTarget = settingsScaleID == nil
                     && isHuaweiHagridSelected(for: peripheral.identifier)
@@ -1804,6 +2109,7 @@ extension BLEScaleManager: CBPeripheralDelegate {
                 if characteristic.uuid == Self.weightMeasurement
                     || characteristic.uuid == Self.bodyMeasurement
                     || isWolaiService && characteristic.uuid == Self.wolaiMeasurement
+                    || isAutomaticXiaomiHistoryTarget
                     || isSelectedNotificationTarget
                     || customRule(
                         for: peripheral.identifier,
@@ -1882,6 +2188,15 @@ extension BLEScaleManager: CBPeripheralDelegate {
         }
         guard let data = characteristic.value else { return }
         Task { @MainActor in
+            if isWolaiMeasurement(characteristic),
+               consumeWolaiHistory(data, peripheral: peripheral, characteristic: characteristic) {
+                return
+            }
+            if settingsScaleID != peripheral.identifier,
+               characteristic.uuid == Self.xiaomiHistory,
+               consumeXiaomiHistory(data, peripheral: peripheral, characteristic: characteristic) {
+                return
+            }
             if settingsScaleID == peripheral.identifier {
                 captureCharacteristicEvent(
                     direction: characteristic.isNotifying ? .notification : .received,
@@ -1929,7 +2244,7 @@ extension BLEScaleManager: CBPeripheralDelegate {
                     return
                 }
                 if characteristic.uuid == Self.xiaomiHistory {
-                    consumeXiaomiHistory(data, peripheral: peripheral, characteristic: characteristic)
+                    _ = consumeXiaomiHistory(data, peripheral: peripheral, characteristic: characteristic)
                     return
                 }
             }
@@ -2034,12 +2349,30 @@ extension BLEScaleManager: CBPeripheralDelegate {
 
     nonisolated func peripheral(_ peripheral: CBPeripheral, didUpdateNotificationStateFor characteristic: CBCharacteristic, error: Error?) {
         Task { @MainActor in
+            if characteristic.uuid == Self.xiaomiHistory,
+               error == nil,
+               characteristic.isNotifying {
+                if xiaomiHistorySession != nil {
+                    sendXiaomiHistoryRequest(on: peripheral, characteristic: characteristic)
+                } else {
+                    _ = startAutomaticXiaomiHistoryIfNeeded(on: peripheral)
+                }
+            }
+            if isWolaiAFUSelected(for: peripheral.identifier),
+               isWolaiMeasurement(characteristic),
+               error == nil,
+               characteristic.isNotifying {
+                if wolaiHistorySession != nil,
+                   let control = wolaiControlCharacteristic {
+                    sendWolaiHistoryRequest(on: peripheral, characteristic: control)
+                } else if !startAutomaticWolaiHistoryIfNeeded(on: peripheral),
+                          settingsScaleID != peripheral.identifier {
+                    initializeWolaiSessionIfReady(on: peripheral)
+                }
+            }
             if settingsScaleID != peripheral.identifier,
                isWolaiAFUSelected(for: peripheral.identifier),
                isWolaiMeasurement(characteristic) {
-                if error == nil, characteristic.isNotifying {
-                    initializeWolaiSessionIfReady(on: peripheral)
-                }
                 return
             }
             if settingsScaleID != peripheral.identifier,
@@ -2073,11 +2406,6 @@ extension BLEScaleManager: CBPeripheralDelegate {
                 ) {
                     sendHuaweiHagridRealtimeProbeIfReady(on: peripheral)
                 }
-                if characteristic.uuid == Self.xiaomiHistory,
-                   characteristic.isNotifying,
-                   case .reading = historyState {
-                    sendXiaomiHistoryRequest(on: peripheral, characteristic: characteristic)
-                }
                 if let service = characteristic.service {
                     let key = targetKey(.init(
                         serviceUUID: service.uuid.uuidString,
@@ -2095,6 +2423,31 @@ extension BLEScaleManager: CBPeripheralDelegate {
 
     nonisolated func peripheral(_ peripheral: CBPeripheral, didWriteValueFor characteristic: CBCharacteristic, error: Error?) {
         Task { @MainActor in
+            if characteristic.uuid == Self.wolaiControl,
+               wolaiHistorySession != nil {
+                if settingsScaleID == peripheral.identifier {
+                    captureCharacteristicEvent(
+                        direction: error == nil ? .acknowledgement : .error,
+                        characteristic: characteristic,
+                        summary: error.map { "Wolai AFU 历史命令写入失败：\($0.localizedDescription)" }
+                            ?? "Wolai AFU 历史命令 ATT 写入回执成功"
+                    )
+                }
+                if error != nil {
+                    historyTimeoutTask?.cancel()
+                    wolaiHistorySession = nil
+                    let origin = wolaiHistoryRequestOrigin
+                    wolaiHistoryRequestOrigin = nil
+                    didStartWolaiHistoryRequest = false
+                    if origin == .manual {
+                        historyState = .failed("Wolai AFU 历史命令写入失败")
+                    }
+                } else {
+                    let quietSeconds = wolaiHistorySession?.measurements.isEmpty == false ? 1.0 : 2.0
+                    armWolaiHistoryQuietCompletion(after: quietSeconds, peripheral: peripheral)
+                }
+                return
+            }
             guard settingsScaleID == peripheral.identifier else { return }
             if isDeviceDiagnosticCaptureEnabled,
                (HuaweiHagridProtocol.isRequestAuthenticationCharacteristic(characteristic.uuid.uuidString)

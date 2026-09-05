@@ -63,6 +63,10 @@ struct ScaleMeApp: App {
             .onReceive(bluetooth.$latestMeasurement.compactMap { $0 }) { measurement in
                 store.add(measurement)
             }
+            .onReceive(bluetooth.$automaticallyRetrievedHistory.compactMap { $0 }) { batch in
+                let summary = store.importDeviceHistory(batch.measurements)
+                bluetooth.finishAutomaticHistoryImport(batch.id, summary: summary)
+            }
             .onChange(of: store.configuration) {
                 bluetooth.updatePairedScales(store.pairedScales, communicationRules: store.communicationRules)
                 exportWidgetSnapshot()

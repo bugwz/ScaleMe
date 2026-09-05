@@ -16,7 +16,8 @@ struct LocalDataTransferSmoke {
             name: "浴室秤",
             modelName: "Fixture",
             compatibility: "fixture validated",
-            communicationRuleID: "protocol.builtin.sig-weight"
+            communicationRuleID: "protocol.builtin.sig-weight",
+            automaticallyImportsHistory: true
         )]
         configuration.unit = .jin
         configuration.languageSelection = .english
@@ -57,7 +58,7 @@ struct LocalDataTransferSmoke {
         assertOrderedKeys(
             in: configurationJSON,
             after: "\"pairedScales\"",
-            keys: ["id", "name", "modelName", "compatibility", "communicationRuleID", "addedAt"]
+            keys: ["id", "name", "modelName", "compatibility", "communicationRuleID", "automaticallyImportsHistory", "addedAt"]
         )
         let storedConfigurationJSON = String(
             decoding: try ConfigurationFileCodec.encode(configuration, prettyPrinted: false),
@@ -88,6 +89,7 @@ struct LocalDataTransferSmoke {
         let devices = configurationObject?["devices"] as? [String: Any]
         let pairedScales = devices?["pairedScales"] as? [[String: Any]]
         precondition(isHyphenatedUUID(pairedScales?.first?["id"] as? String))
+        precondition(pairedScales?.first?["automaticallyImportsHistory"] as? Bool == true)
         let measurementSettings = configurationObject?["measurement"] as? [String: Any]
         precondition(measurementSettings?["unit"] as? String == "jin")
         let appleHealth = configurationObject?["appleHealth"] as? [String: Any]
