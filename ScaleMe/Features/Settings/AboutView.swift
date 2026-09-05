@@ -8,14 +8,14 @@ struct AboutView: View {
             VStack(alignment: .leading, spacing: 18) {
                 brandHeader
 
-                SettingsPanel(title: "关于应用", icon: "sparkles") {
+                SettingsPanel(title: "关于应用", icon: "info.circle.fill") {
                     Text("本应用是一款注重隐私的原生 iOS 体重与身体趋势应用，帮助你连接蓝牙体脂秤、管理个人记录，并从长期变化中理解身体的方向。")
                         .font(.subheadline)
                         .foregroundStyle(AppColor.secondary)
                         .lineSpacing(4)
                 }
 
-                SettingsPanel(title: "设计原则", icon: "leaf.fill") {
+                SettingsPanel(title: "设计原则", icon: "checkmark.seal.fill") {
                     aboutRow(
                         icon: "lock.shield.fill",
                         title: "本地优先",
@@ -35,7 +35,7 @@ struct AboutView: View {
                     )
                 }
 
-                SettingsPanel(title: "重要说明", icon: "info.circle.fill") {
+                SettingsPanel(title: "重要说明", icon: "exclamationmark.triangle.fill") {
                     Text("消费级体脂秤的身体成分结果是估算值，会受到水分、进食、运动和接触状态影响，仅用于日常趋势参考，不构成医疗诊断、治疗建议或临床结论。")
                         .font(.caption)
                         .foregroundStyle(AppColor.secondary)

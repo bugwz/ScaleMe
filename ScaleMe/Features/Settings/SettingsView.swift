@@ -82,7 +82,7 @@ struct DisplaySettingsView: View {
     }
 
     private var interfaceDisplayPanel: some View {
-        SettingsPanel(title: "界面显示", icon: "textformat.size") {
+        SettingsPanel(title: "界面显示", icon: "paintpalette.fill") {
             VStack(alignment: .leading, spacing: 10) {
                 Text(store.appLanguage.text(.appearance))
                     .font(.subheadline.weight(.semibold))
@@ -116,7 +116,7 @@ struct DisplaySettingsView: View {
     }
 
     private var dataDisplayPanel: some View {
-        SettingsPanel(title: "数据显示", icon: "clock.arrow.2.circlepath") {
+        SettingsPanel(title: "数据显示", icon: "textformat.123") {
             VStack(alignment: .leading, spacing: 10) {
                 Text("体重单位")
                     .font(.subheadline.weight(.semibold))

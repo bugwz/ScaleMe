@@ -118,7 +118,7 @@ struct ProfileView: View {
                 NavigationLink {
                     DisplaySettingsView()
                 } label: {
-                    settingsRow(store.appLanguage.text(.displaySettings), icon: "slider.horizontal.3", color: AppColor.mint)
+                    settingsRow(store.appLanguage.text(.displaySettings), icon: "display", color: AppColor.mint)
                 }
                 SettingsSeparator().padding(.leading, 68)
                 NavigationLink {
@@ -142,7 +142,7 @@ struct ProfileView: View {
                 NavigationLink {
                     AboutView()
                 } label: {
-                    settingsRow(store.appLanguage.text(.about), icon: "leaf.fill", color: AppColor.mint)
+                    settingsRow(store.appLanguage.text(.about), icon: "info.circle.fill", color: AppColor.mint)
                 }
             }
             .padding(.horizontal, 14)

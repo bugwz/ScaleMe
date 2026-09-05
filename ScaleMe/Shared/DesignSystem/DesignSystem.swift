@@ -337,9 +337,14 @@ private final class NavigationControllerResolver: UIViewController {
     }
 }
 
+enum SettingsPanelIcon {
+    case system(String)
+    case asset(String)
+}
+
 struct SettingsPanel<Content: View>: View {
     let title: String
-    let icon: String
+    let icon: SettingsPanelIcon
     let headerValue: String?
     let headerActionTitle: String?
     let headerAction: (() -> Void)?
@@ -354,7 +359,23 @@ struct SettingsPanel<Content: View>: View {
         @ViewBuilder content: () -> Content
     ) {
         self.title = title
-        self.icon = icon
+        self.icon = .system(icon)
+        self.headerValue = headerValue
+        self.headerActionTitle = headerActionTitle
+        self.headerAction = headerAction
+        self.content = content()
+    }
+
+    init(
+        title: String,
+        assetIcon: String,
+        headerValue: String? = nil,
+        headerActionTitle: String? = nil,
+        headerAction: (() -> Void)? = nil,
+        @ViewBuilder content: () -> Content
+    ) {
+        self.title = title
+        self.icon = .asset(assetIcon)
         self.headerValue = headerValue
         self.headerActionTitle = headerActionTitle
         self.headerAction = headerAction
@@ -364,11 +385,23 @@ struct SettingsPanel<Content: View>: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             HStack(spacing: 8) {
-                Image(systemName: icon)
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(AppColor.mint)
-                    .frame(width: 26, height: 26)
-                    .background(AppColor.paleMint, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                switch icon {
+                case let .system(systemIcon):
+                    Image(systemName: systemIcon)
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(AppColor.mint)
+                        .frame(width: 26, height: 26)
+                        .background(AppColor.paleMint, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                case let .asset(assetName):
+                    Image(assetName)
+                        .renderingMode(.template)
+                        .resizable()
+                        .scaledToFit()
+                        .padding(6)
+                        .foregroundStyle(AppColor.mint)
+                        .frame(width: 26, height: 26)
+                        .background(AppColor.paleMint, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                }
                 AppLocalizedText(title)
                     .font(.headline)
                     .foregroundStyle(AppColor.ink)
