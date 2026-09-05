@@ -109,9 +109,6 @@ struct HistoryView: View {
             .mainPageTopInset()
             .pageBackground()
             .toolbar(.hidden, for: .navigationBar)
-            .onChange(of: store.displaySelectedProfileID) {
-                selectedDeviceID = nil
-            }
             .onChange(of: store.displayProfiles) {
                 if let profileID = selectedTrendProfileID,
                    !store.displayProfiles.contains(where: { $0.id == profileID }) {
@@ -315,10 +312,7 @@ struct HistoryView: View {
     private var trendProfileSelection: Binding<UUID> {
         Binding(
             get: { trendProfile.id },
-            set: {
-                selectedTrendProfileID = $0
-                selectedDeviceID = nil
-            }
+            set: { selectedTrendProfileID = $0 }
         )
     }
 
