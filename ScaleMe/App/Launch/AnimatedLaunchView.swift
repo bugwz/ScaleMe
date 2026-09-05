@@ -8,6 +8,7 @@ struct AnimatedLaunchView: View {
     @State private var isBodyVisible = false
     @State private var isMarkVisible = false
     @State private var isWordmarkVisible = false
+    @State private var isPulseVisible = false
     @State private var isPulseExpanded = false
     @State private var isFloating = false
 
@@ -59,11 +60,13 @@ struct AnimatedLaunchView: View {
                 .stroke(AppColor.mint.opacity(isPulseExpanded ? 0 : 0.20), lineWidth: 2)
                 .frame(width: 158, height: 158)
                 .scaleEffect(isPulseExpanded ? 1.55 : 0.84)
+                .opacity(isPulseVisible ? 1 : 0)
 
             Circle()
                 .stroke(AppColor.sky.opacity(isPulseExpanded ? 0 : 0.16), lineWidth: 10)
                 .frame(width: 144, height: 144)
                 .scaleEffect(isPulseExpanded ? 1.32 : 0.92)
+                .opacity(isPulseVisible ? 1 : 0)
 
             Circle()
                 .fill(AppColor.mint)
@@ -73,10 +76,9 @@ struct AnimatedLaunchView: View {
                         .stroke(.white, style: StrokeStyle(lineWidth: 13.8, lineCap: .round, lineJoin: .round))
                 }
                 .frame(width: 172, height: 172)
-                .scaleEffect(isBodyVisible ? 1 : 0.74)
-                .opacity(isBodyVisible ? 1 : 0)
+                .scaleEffect(isBodyVisible ? 1 : 0.5)
                 .shadow(color: AppColor.mint.opacity(0.18), radius: 28, y: 15)
-                .animation(.spring(response: 0.72, dampingFraction: 0.74), value: isBodyVisible)
+                .animation(.easeOut(duration: 0.62), value: isBodyVisible)
 
         }
         .offset(y: isFloating ? -5 : 3)
@@ -107,6 +109,7 @@ struct AnimatedLaunchView: View {
                 isBodyVisible = true
                 isMarkVisible = true
                 isWordmarkVisible = true
+                isPulseVisible = true
             }
             return
         }
@@ -121,6 +124,7 @@ struct AnimatedLaunchView: View {
         isWordmarkVisible = true
         try? await Task.sleep(for: .milliseconds(120))
 
+        isPulseVisible = true
         withAnimation(.easeOut(duration: 1.25).repeatForever(autoreverses: false)) {
             isPulseExpanded = true
         }
@@ -133,11 +137,11 @@ struct AnimatedLaunchView: View {
 private struct LaunchLogoMark: Shape {
     func path(in rect: CGRect) -> Path {
         var path = Path()
-        path.move(to: CGPoint(x: rect.minX + rect.width * 0.273, y: rect.minY + rect.height * 0.664))
-        path.addLine(to: CGPoint(x: rect.minX + rect.width * 0.352, y: rect.minY + rect.height * 0.352))
-        path.addLine(to: CGPoint(x: rect.minX + rect.width * 0.5, y: rect.minY + rect.height * 0.586))
-        path.addLine(to: CGPoint(x: rect.minX + rect.width * 0.648, y: rect.minY + rect.height * 0.352))
-        path.addLine(to: CGPoint(x: rect.minX + rect.width * 0.727, y: rect.minY + rect.height * 0.664))
+        path.move(to: CGPoint(x: rect.minX + rect.width * 0.21, y: rect.minY + rect.height * 0.71))
+        path.addLine(to: CGPoint(x: rect.minX + rect.width * 0.31, y: rect.minY + rect.height * 0.31))
+        path.addLine(to: CGPoint(x: rect.minX + rect.width * 0.5, y: rect.minY + rect.height * 0.61))
+        path.addLine(to: CGPoint(x: rect.minX + rect.width * 0.69, y: rect.minY + rect.height * 0.31))
+        path.addLine(to: CGPoint(x: rect.minX + rect.width * 0.79, y: rect.minY + rect.height * 0.71))
         return path
     }
 }
