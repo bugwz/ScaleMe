@@ -67,10 +67,11 @@ struct SimulationDataSnapshot {
         for specification in SimulationProfileSpecification.all {
             let localizedMember = copy.member(for: specification.avatar)
             profiles.append(simulationProfile(
-                id: random.uuid(), name: localizedMember.name, relation: localizedMember.relation,
+                id: random.uuid(), name: localizedMember.name, role: localizedMember.role,
                 heightCM: specification.heightCM, referenceWeightKG: specification.endWeightKG,
                 age: specification.age, sex: specification.sex,
-                avatar: specification.avatar, today: today, calendar: calendar
+                avatar: specification.avatar,
+                today: today, calendar: calendar
             ))
         }
         var snapshot = SimulationDataSnapshot(
@@ -96,7 +97,7 @@ struct SimulationDataSnapshot {
     private static func simulationProfile(
         id: UUID,
         name: String,
-        relation: String,
+        role: String,
         heightCM: Double,
         referenceWeightKG: Double,
         age: Int,
@@ -108,7 +109,7 @@ struct SimulationDataSnapshot {
         UserProfile(
             id: id,
             name: name,
-            relation: relation,
+            role: role,
             heightCM: heightCM,
             referenceWeightKG: referenceWeightKG,
             birthDate: calendar.date(byAdding: .year, value: -age, to: today) ?? today,
@@ -364,7 +365,7 @@ private struct SimulationProfileSpecification {
 
 private struct SimulationMemberCopy {
     let name: String
-    let relation: String
+    let role: String
 }
 
 private struct SimulationCopy {
@@ -465,11 +466,11 @@ private struct SimulationCopy {
         }
 
         members = Dictionary(uniqueKeysWithValues: zip(Self.roles, names).map { role, name in
-            (role, SimulationMemberCopy(name: name, relation: Self.relation(for: role)))
+            (role, SimulationMemberCopy(name: name, role: Self.role(for: role)))
         })
     }
 
-    private static func relation(for role: MemberAvatar) -> String {
+    private static func role(for role: MemberAvatar) -> String {
         switch role {
         case .father:
             "本人"

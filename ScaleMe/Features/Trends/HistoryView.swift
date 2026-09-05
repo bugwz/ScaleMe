@@ -306,7 +306,7 @@ struct HistoryView: View {
                 id: profile.id.uuidString,
                 value: profile.id,
                 title: profile.name,
-                subtitle: profile.relation,
+                subtitle: profile.role,
                 icon: .avatar(profile.avatar)
             )
         }

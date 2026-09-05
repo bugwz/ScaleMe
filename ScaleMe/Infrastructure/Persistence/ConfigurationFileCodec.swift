@@ -45,7 +45,11 @@ enum ConfigurationFileCodec {
                 optionalIDPair("profileID", configuration.appleHealthProfileID)
                     + [("deviceIDs", .array(configuration.appleHealthDeviceIDs
                         .sorted { $0.uuidString < $1.uuidString }
-                        .map { .string($0.uuidString) }))]
+                        .map { .string($0.uuidString) })),
+                        ("isImportEnabled", .bool(configuration.isAppleHealthImportEnabled)),
+                        ("readTypes", .array(configuration.appleHealthReadTypes
+                            .sorted { $0.rawValue < $1.rawValue }
+                            .map { .string($0.rawValue) }))]
             )),
             ("dashboard", .object([
                 ("metricOrder", .array(configuration.dashboardMetricOrder.map { .string($0.rawValue) })),
@@ -65,7 +69,7 @@ enum ConfigurationFileCodec {
         .object([
             ("id", .string(profile.id.uuidString)),
             ("name", .string(profile.name)),
-            ("relation", .string(profile.relation)),
+            ("role", .string(profile.role)),
             ("heightCM", .number(numberString(profile.heightCM))),
             ("referenceWeightKG", .number(numberString(profile.referenceWeightKG))),
             ("birthDate", .number(numberString(profile.birthDate.timeIntervalSinceReferenceDate))),
@@ -145,6 +149,8 @@ private struct ConfigurationDocument: Codable {
     struct AppleHealth: Codable {
         var profileID: UUID?
         var deviceIDs: Set<UUID>
+        var isImportEnabled: Bool
+        var readTypes: Set<AppleHealthDataType>
     }
 
     struct Dashboard: Codable {
@@ -169,6 +175,8 @@ private struct ConfigurationDocument: Codable {
             isSimulationEnabled: general.isSimulationEnabled,
             appleHealthProfileID: appleHealth.profileID,
             appleHealthDeviceIDs: appleHealth.deviceIDs,
+            isAppleHealthImportEnabled: appleHealth.isImportEnabled,
+            appleHealthReadTypes: appleHealth.readTypes,
             customCommunicationRules: communication.customRules,
             dashboardMetricOrder: dashboard.metricOrder,
             dashboardVisibleMetrics: dashboard.visibleMetrics,

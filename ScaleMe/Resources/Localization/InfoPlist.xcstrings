@@ -1,6 +1,7 @@
 {
   "sourceLanguage" : "zh-Hans",
   "strings" : {
+    "NSHealthShareUsageDescription" : {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"ScaleMe liest mit deiner Zustimmung Gewicht und Körperfett aus Apple Health und importiert sie in dein Profil."}},"en":{"stringUnit":{"state":"translated","value":"With your permission, ScaleMe reads weight and body fat from Apple Health and imports them into your profile."}},"es":{"stringUnit":{"state":"translated","value":"Con tu permiso, ScaleMe lee el peso y la grasa corporal de Apple Health y los importa en tu perfil."}},"fr":{"stringUnit":{"state":"translated","value":"Avec votre autorisation, ScaleMe lit le poids et la masse grasse dans Apple Santé et les importe dans votre profil."}},"ja":{"stringUnit":{"state":"translated","value":"許可された場合、ScaleMeはAppleヘルスケアから体重と体脂肪率を読み取り、本人プロフィールに読み込みます。"}},"ko":{"stringUnit":{"state":"translated","value":"사용자가 허용하면 ScaleMe가 Apple 건강에서 체중과 체지방률을 읽어 본인 프로필로 가져옵니다."}},"pt":{"stringUnit":{"state":"translated","value":"Com a sua permissão, o ScaleMe lê o peso e a gordura corporal da Saúde Apple e importa-os para o seu perfil."}},"ru":{"stringUnit":{"state":"translated","value":"С вашего разрешения ScaleMe читает вес и процент жира из Apple Здоровья и импортирует их в ваш профиль."}},"zh-Hans":{"stringUnit":{"state":"translated","value":"观我仅在您同意后，从 Apple 健康读取体重和体脂率并导入本人档案。"}},"zh-Hant":{"stringUnit":{"state":"translated","value":"觀我僅在您同意後，從 Apple 健康讀取體重和體脂率並匯入本人檔案。"}}}},
     "CFBundleDisplayName" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -157,13 +158,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "本应用仅在您同意后，将体重和明确记录的体脂率写入 Apple 健康。"
+            "value" : "观我仅在您同意后，将体重和明确记录的体脂率写入 Apple 健康。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "本應用僅在您同意後，將體重和明確記錄的體脂率寫入 Apple 健康。"
+            "value" : "觀我僅在您同意後，將體重和明確記錄的體脂率寫入 Apple 健康。"
           }
         }
       }

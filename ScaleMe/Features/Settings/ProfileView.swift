@@ -5,7 +5,7 @@ struct ProfileView: View {
     let scrollToTopRequest: Int
 
     private var firstSelfProfile: UserProfile? {
-        store.managedProfiles.first(where: { $0.relation == "本人" })
+        store.managedProfiles.first(where: { $0.role == "本人" })
             ?? store.managedProfiles.first
     }
 
@@ -174,7 +174,7 @@ struct ProfileView: View {
     private func memberRoleAndAge(_ profile: UserProfile) -> String {
         store.appLanguage.format(
             "%@ · %lld 岁",
-            store.appLanguage.text(profile.relation),
+            store.appLanguage.text(profile.role),
             profile.age
         )
     }
@@ -242,7 +242,7 @@ private struct MemberManagementView: View {
         guard !query.isEmpty else { return orderedProfiles }
         return orderedProfiles.filter {
             $0.name.localizedCaseInsensitiveContains(query)
-                || $0.relation.localizedCaseInsensitiveContains(query)
+                || $0.role.localizedCaseInsensitiveContains(query)
         }
     }
 
@@ -329,10 +329,10 @@ private struct MemberManagementView: View {
             autoScroller.stop()
         }
         .sheet(isPresented: $showAddMember) {
-            MemberEditorView(profile: nil)
+            MemberEditorView(profile: nil, isFirstMember: store.managedProfiles.isEmpty)
         }
         .sheet(item: $editingProfile) { profile in
-            MemberEditorView(profile: profile)
+            MemberEditorView(profile: profile, isFirstMember: false)
         }
     }
 
@@ -347,7 +347,7 @@ private struct MemberManagementView: View {
         [
             store.appLanguage.format(
                 "%@ · %lld 岁",
-                store.appLanguage.text(profile.relation),
+            store.appLanguage.text(profile.role),
                 profile.age
             ),
             "\(profile.heightCM.formatted(2)) cm"
@@ -663,7 +663,7 @@ private struct MemberScrollViewportHeightPreferenceKey: PreferenceKey {
 }
 
 private enum MemberEditorDropdown: Equatable {
-    case relation
+    case role
     case biologicalSex
 }
 
@@ -671,6 +671,7 @@ private struct MemberEditorView: View {
     @EnvironmentObject private var store: MeasurementStore
     @Environment(\.dismiss) private var dismiss
     private let isNew: Bool
+    private let isOwner: Bool
     @State private var draft: UserProfile
     @State private var heightText: String
     @State private var weightText: String
@@ -684,12 +685,15 @@ private struct MemberEditorView: View {
     @State private var confirmDelete = false
     @State private var expandedDropdown: MemberEditorDropdown?
 
-    private static let standardRoles = ["本人", "伴侣", "父母", "子女"]
+    private static let standardRoles = ["伴侣", "父母", "子女"]
     private var roles: [String] { Self.standardRoles + ["其他"] }
-
-    init(profile: UserProfile?) {
+    init(profile: UserProfile?, isFirstMember: Bool) {
         isNew = profile == nil
-        let initialDraft = profile ?? UserProfile(name: "", relation: "")
+        isOwner = profile?.role == "本人" || (profile == nil && isFirstMember)
+        let initialDraft = profile ?? UserProfile(
+            name: "",
+            role: isFirstMember ? "本人" : ""
+        )
         _draft = State(initialValue: initialDraft)
         _heightText = State(initialValue: profile == nil ? "" : initialDraft.heightCM.formatted(.number.precision(.fractionLength(0...2))))
         _weightText = State(initialValue: profile == nil ? "" : initialDraft.referenceWeightKG.formatted(.number.precision(.fractionLength(0...2))))
@@ -699,7 +703,11 @@ private struct MemberEditorView: View {
         _pendingBirthDate = State(initialValue: profile?.birthDate
             ?? Calendar.current.date(byAdding: .year, value: -30, to: .now)
             ?? .now)
-        _usesCustomRole = State(initialValue: !Self.standardRoles.contains(initialDraft.relation))
+        _usesCustomRole = State(
+            initialValue: !initialDraft.role.isEmpty
+                && initialDraft.role != "本人"
+                && !Self.standardRoles.contains(initialDraft.role)
+        )
     }
 
     var body: some View {
@@ -725,7 +733,8 @@ private struct MemberEditorView: View {
                         Button("保存") {
                             KeyboardFocus.dismiss()
                             draft.name = draft.name.trimmingCharacters(in: .whitespacesAndNewlines)
-                            draft.relation = draft.relation.trimmingCharacters(in: .whitespacesAndNewlines)
+                            draft.role = draft.role.trimmingCharacters(in: .whitespacesAndNewlines)
+                            if isOwner { draft.role = "本人" }
                             guard let heightCM = parsedHeight else { return }
                             guard let referenceWeightKG = parsedWeight else { return }
                             guard let selectedAvatar, let selectedSex, let selectedBirthDate else { return }
@@ -747,22 +756,22 @@ private struct MemberEditorView: View {
                     GeometryReader { proxy in
                         if let anchor, let expandedDropdown {
                             switch expandedDropdown {
-                            case .relation:
+                            case .role:
                                 AppDropdownMenuLayer(
                                     anchorFrame: proxy[anchor],
                                     availableSize: proxy.size,
                                     options: roles,
-                                    isSelected: { $0 == "其他" ? usesCustomRole : !usesCustomRole && $0 == draft.relation },
+                                    isSelected: { $0 == "其他" ? usesCustomRole : !usesCustomRole && $0 == draft.role },
                                     title: { $0 },
                                     appearance: .compact,
                                     onSelect: { relation in
                                         if relation == "其他" {
                                             usesCustomRole = true
-                                            draft.relation = ""
+                                            draft.role = ""
                                             isRoleFocused = true
                                         } else {
                                             usesCustomRole = false
-                                            draft.relation = relation
+                                            draft.role = relation
                                             isRoleFocused = false
                                         }
                                         dismissDropdown()
@@ -858,25 +867,41 @@ private struct MemberEditorView: View {
 
             VStack(alignment: .leading, spacing: 9) {
                 fieldLabel("角色")
-                if usesCustomRole {
+                if isOwner {
+                    HStack {
+                        Image(systemName: "person.crop.circle.fill")
+                            .foregroundStyle(AppColor.mint)
+                        AppLocalizedText("本人")
+                            .foregroundStyle(AppColor.ink)
+                        Spacer()
+                        Image(systemName: "lock.fill")
+                            .font(.caption)
+                            .foregroundStyle(AppColor.secondary)
+                    }
+                    .settingsInputSurface()
+                    AppLocalizedText("首位成员固定为本人，只能通过清除全部数据移除。")
+                        .font(.caption)
+                        .foregroundStyle(AppColor.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                } else if usesCustomRole {
                     AppEditableDropdownField(
-                        text: $draft.relation,
+                        text: $draft.role,
                         isFocused: $isRoleFocused,
                         placeholder: "输入角色",
                         icon: "person.2.fill",
                         accessibilityLabel: "角色",
-                        isExpanded: expandedDropdown == .relation,
+                        isExpanded: expandedDropdown == .role,
                         appearance: .compact,
-                        onToggle: { toggleDropdown(.relation) }
+                        onToggle: { toggleDropdown(.role) }
                     )
                 } else {
                     AppDropdownField(
-                        value: draft.relation,
+                        value: draft.role,
                         icon: "person.2.fill",
                         accessibilityLabel: "角色",
-                        isExpanded: expandedDropdown == .relation,
+                        isExpanded: expandedDropdown == .role,
                         appearance: .compact,
-                        onToggle: { toggleDropdown(.relation) }
+                        onToggle: { toggleDropdown(.role) }
                     )
                 }
             }
@@ -976,7 +1001,7 @@ private struct MemberEditorView: View {
 
     @ViewBuilder
     private var deletePanel: some View {
-        if !isNew, store.managedProfiles.count > 1 {
+        if !isNew, draft.role != "本人", store.managedProfiles.count > 1 {
             Button(role: .destructive, action: showDeleteConfirmation) {
                 Label("删除成员", systemImage: "trash")
                     .font(.subheadline.weight(.semibold))
@@ -997,7 +1022,8 @@ private struct MemberEditorView: View {
 
     private var canSave: Bool {
         !draft.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-            && !draft.relation.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            && !draft.role.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            && (isOwner || draft.role != "本人")
             && selectedAvatar != nil
             && selectedSex != nil
             && selectedBirthDate != nil

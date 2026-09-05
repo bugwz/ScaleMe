@@ -4,7 +4,7 @@ import Foundation
 struct LocalDataTransferSmoke {
     static func main() throws {
         var configuration = AppConfiguration.standard
-        configuration.profiles = [UserProfile(name: "测试成员", relation: "本人")]
+        configuration.profiles = [UserProfile(name: "测试成员", role: "本人")]
         guard let deviceID = UUID(uuidString: "ABBA7280-8FDE-4A55-8D87-FA9BFE003F67") else {
             preconditionFailure("invalid fixture UUID")
         }
@@ -25,6 +25,8 @@ struct LocalDataTransferSmoke {
         configuration.isSimulationEnabled = true
         configuration.appleHealthProfileID = configuration.profiles[0].id
         configuration.appleHealthDeviceIDs = [deviceID]
+        configuration.isAppleHealthImportEnabled = true
+        configuration.appleHealthReadTypes = [.bodyMass]
         guard let communicationRule = CommunicationRuleCatalog.builtIn.first else {
             preconditionFailure("missing communication rule fixture")
         }
@@ -50,7 +52,7 @@ struct LocalDataTransferSmoke {
         assertOrderedKeys(
             in: configurationJSON,
             after: "\"profiles\"",
-            keys: ["id", "name", "relation", "heightCM", "referenceWeightKG", "birthDate", "biologicalSex", "avatar"]
+            keys: ["id", "name", "role", "heightCM", "referenceWeightKG", "birthDate", "biologicalSex", "avatar"]
         )
         assertOrderedKeys(
             in: configurationJSON,
@@ -81,12 +83,16 @@ struct LocalDataTransferSmoke {
         precondition(members?["selectedProfileID"] == nil)
         precondition(isHyphenatedUUID(profiles?.first?["id"] as? String))
         precondition(profiles?.first?["biologicalSex"] as? String == "female")
+        precondition(profiles?.first?["role"] as? String == "本人")
         precondition(profiles?.first?["referenceWeightKG"] as? Double == 63.4)
         let devices = configurationObject?["devices"] as? [String: Any]
         let pairedScales = devices?["pairedScales"] as? [[String: Any]]
         precondition(isHyphenatedUUID(pairedScales?.first?["id"] as? String))
         let measurementSettings = configurationObject?["measurement"] as? [String: Any]
         precondition(measurementSettings?["unit"] as? String == "jin")
+        let appleHealth = configurationObject?["appleHealth"] as? [String: Any]
+        precondition(appleHealth?["isImportEnabled"] as? Bool == true)
+        precondition(appleHealth?["readTypes"] as? [String] == [AppleHealthDataType.bodyMass.rawValue])
         let importedConfiguration = try service.importConfiguration(from: configurationData)
         precondition(importedConfiguration == configuration)
 

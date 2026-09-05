@@ -1,6 +1,16 @@
 {
   "sourceLanguage" : "zh-Hans",
   "strings" : {
+    "请求 Apple 健康权限" : {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Apple-Health-Zugriff anfordern"}},"en":{"stringUnit":{"state":"translated","value":"Request Apple Health access"}},"es":{"stringUnit":{"state":"translated","value":"Solicitar acceso a Apple Health"}},"fr":{"stringUnit":{"state":"translated","value":"Demander l’accès à Apple Santé"}},"ja":{"stringUnit":{"state":"translated","value":"Appleヘルスケアへのアクセスを要求"}},"ko":{"stringUnit":{"state":"translated","value":"Apple 건강 접근 권한 요청"}},"pt":{"stringUnit":{"state":"translated","value":"Pedir acesso à Saúde Apple"}},"ru":{"stringUnit":{"state":"translated","value":"Запросить доступ к Apple Здоровью"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"请求 Apple 健康权限"}},"zh-Hant":{"stringUnit":{"state":"translated","value":"要求 Apple 健康權限"}}}},
+    "共享到 Apple 健康的记录仅包含所选用户由所选设备产生的新稳定测量。" : {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Mit Apple Health geteilte Einträge enthalten nur neue stabile Messungen des ausgewählten Benutzers von den ausgewählten Geräten."}},"en":{"stringUnit":{"state":"translated","value":"Records shared with Apple Health include only new stable measurements for the selected user from the selected devices."}},"es":{"stringUnit":{"state":"translated","value":"Los registros compartidos con Apple Health solo incluyen nuevas mediciones estables del usuario seleccionado procedentes de los dispositivos seleccionados."}},"fr":{"stringUnit":{"state":"translated","value":"Les données partagées avec Apple Santé comprennent uniquement les nouvelles mesures stables de l’utilisateur sélectionné provenant des appareils sélectionnés."}},"ja":{"stringUnit":{"state":"translated","value":"Appleヘルスケアに共有する記録には、選択したユーザーについて選択したデバイスで得られた新しい安定測定のみが含まれます。"}},"ko":{"stringUnit":{"state":"translated","value":"Apple 건강에 공유되는 기록에는 선택한 사용자의 선택한 기기에서 생성된 새로운 안정 측정값만 포함됩니다."}},"pt":{"stringUnit":{"state":"translated","value":"Os registos partilhados com a Saúde Apple incluem apenas novas medições estáveis do utilizador selecionado provenientes dos dispositivos selecionados."}},"ru":{"stringUnit":{"state":"translated","value":"Записи, передаваемые в Apple Здоровье, содержат только новые стабильные измерения выбранного пользователя с выбранных устройств."}},"zh-Hans":{"stringUnit":{"state":"translated","value":"共享到 Apple 健康的记录仅包含所选用户由所选设备产生的新稳定测量。"}},"zh-Hant":{"stringUnit":{"state":"translated","value":"共享到 Apple 健康的記錄僅包含所選使用者由所選裝置產生的新穩定測量。"}}}},
+    "从 Apple 健康获取的记录会标记为 Apple 健康，并归入本人档案。" : {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Aus Apple Health abgerufene Einträge werden als Apple Health markiert und deinem Profil zugeordnet."}},"en":{"stringUnit":{"state":"translated","value":"Records retrieved from Apple Health are labeled Apple Health and added to your profile."}},"es":{"stringUnit":{"state":"translated","value":"Los registros obtenidos de Apple Health se etiquetan como Apple Health y se añaden a tu perfil."}},"fr":{"stringUnit":{"state":"translated","value":"Les données obtenues depuis Apple Santé sont identifiées comme Apple Santé et ajoutées à votre profil."}},"ja":{"stringUnit":{"state":"translated","value":"Appleヘルスケアから取得した記録はAppleヘルスケア由来と表示され、本人プロフィールに追加されます。"}},"ko":{"stringUnit":{"state":"translated","value":"Apple 건강에서 가져온 기록은 Apple 건강으로 표시되어 본인 프로필에 추가됩니다."}},"pt":{"stringUnit":{"state":"translated","value":"Os registos obtidos da Saúde Apple são identificados como Saúde Apple e adicionados ao seu perfil."}},"ru":{"stringUnit":{"state":"translated","value":"Полученные из Apple Здоровья записи помечаются как Apple Здоровье и добавляются в ваш профиль."}},"zh-Hans":{"stringUnit":{"state":"translated","value":"从 Apple 健康获取的记录会标记为 Apple 健康，并归入本人档案。"}},"zh-Hant":{"stringUnit":{"state":"translated","value":"從 Apple 健康取得的記錄會標記為 Apple 健康，並歸入本人檔案。"}}}},
+    "点击下方按钮，由系统显示读写权限确认。" : {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Tippe unten, um die Lese- und Schreibfreigabe des Systems anzuzeigen."}},"en":{"stringUnit":{"state":"translated","value":"Tap the button below to review read and write access in the system dialog."}},"es":{"stringUnit":{"state":"translated","value":"Toca el botón inferior para revisar el acceso de lectura y escritura en el cuadro del sistema."}},"fr":{"stringUnit":{"state":"translated","value":"Touchez le bouton ci-dessous pour vérifier les accès en lecture et en écriture dans la fenêtre système."}},"ja":{"stringUnit":{"state":"translated","value":"下のボタンをタップして、システム画面で読み出しと書き込みのアクセスを確認してください。"}},"ko":{"stringUnit":{"state":"translated","value":"아래 버튼을 탭하여 시스템 화면에서 읽기 및 쓰기 접근을 확인하세요."}},"pt":{"stringUnit":{"state":"translated","value":"Toque no botão abaixo para rever o acesso de leitura e escrita no diálogo do sistema."}},"ru":{"stringUnit":{"state":"translated","value":"Нажмите кнопку ниже, чтобы проверить доступ на чтение и запись в системном окне."}},"zh-Hans":{"stringUnit":{"state":"translated","value":"点击下方按钮，由系统显示读写权限确认。"}},"zh-Hant":{"stringUnit":{"state":"translated","value":"點擊下方按鈕，由系統顯示讀寫權限確認。"}}}},
+    "共享数据给 Apple 健康" : {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Daten mit Apple Health teilen"}},"en":{"stringUnit":{"state":"translated","value":"Share data with Apple Health"}},"es":{"stringUnit":{"state":"translated","value":"Compartir datos con Apple Health"}},"fr":{"stringUnit":{"state":"translated","value":"Partager les données avec Apple Santé"}},"ja":{"stringUnit":{"state":"translated","value":"Appleヘルスケアにデータを共有"}},"ko":{"stringUnit":{"state":"translated","value":"Apple 건강에 데이터 공유"}},"pt":{"stringUnit":{"state":"translated","value":"Partilhar dados com a Saúde Apple"}},"ru":{"stringUnit":{"state":"translated","value":"Передавать данные в Apple Здоровье"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"共享数据给 Apple 健康"}},"zh-Hant":{"stringUnit":{"state":"translated","value":"共享資料給 Apple 健康"}}}},
+    "从 Apple 健康获取数据" : {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Daten aus Apple Health abrufen"}},"en":{"stringUnit":{"state":"translated","value":"Get data from Apple Health"}},"es":{"stringUnit":{"state":"translated","value":"Obtener datos de Apple Health"}},"fr":{"stringUnit":{"state":"translated","value":"Obtenir les données d’Apple Santé"}},"ja":{"stringUnit":{"state":"translated","value":"Appleヘルスケアからデータを取得"}},"ko":{"stringUnit":{"state":"translated","value":"Apple 건강에서 데이터 가져오기"}},"pt":{"stringUnit":{"state":"translated","value":"Obter dados da Saúde Apple"}},"ru":{"stringUnit":{"state":"translated","value":"Получать данные из Apple Здоровья"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"从 Apple 健康获取数据"}},"zh-Hant":{"stringUnit":{"state":"translated","value":"從 Apple 健康取得資料"}}}},
+    "选择数据类型" : {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Datentypen auswählen"}},"en":{"stringUnit":{"state":"translated","value":"Select data types"}},"es":{"stringUnit":{"state":"translated","value":"Seleccionar tipos de datos"}},"fr":{"stringUnit":{"state":"translated","value":"Sélectionner les types de données"}},"ja":{"stringUnit":{"state":"translated","value":"データタイプを選択"}},"ko":{"stringUnit":{"state":"translated","value":"데이터 유형 선택"}},"pt":{"stringUnit":{"state":"translated","value":"Selecionar tipos de dados"}},"ru":{"stringUnit":{"state":"translated","value":"Выбрать типы данных"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"选择数据类型"}},"zh-Hant":{"stringUnit":{"state":"translated","value":"選擇資料類型"}}}},
+    "正在从 Apple 健康获取数据" : {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Daten werden aus Apple Health abgerufen"}},"en":{"stringUnit":{"state":"translated","value":"Getting data from Apple Health"}},"es":{"stringUnit":{"state":"translated","value":"Obteniendo datos de Apple Health"}},"fr":{"stringUnit":{"state":"translated","value":"Obtention des données d’Apple Santé"}},"ja":{"stringUnit":{"state":"translated","value":"Appleヘルスケアからデータを取得中"}},"ko":{"stringUnit":{"state":"translated","value":"Apple 건강에서 데이터 가져오는 중"}},"pt":{"stringUnit":{"state":"translated","value":"A obter dados da Saúde Apple"}},"ru":{"stringUnit":{"state":"translated","value":"Получение данных из Apple Здоровья"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"正在从 Apple 健康获取数据"}},"zh-Hant":{"stringUnit":{"state":"translated","value":"正在從 Apple 健康取得資料"}}}},
+    "最近一次获取失败" : {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Letzter Abruf fehlgeschlagen"}},"en":{"stringUnit":{"state":"translated","value":"Most recent import failed"}},"es":{"stringUnit":{"state":"translated","value":"La última obtención falló"}},"fr":{"stringUnit":{"state":"translated","value":"Échec de la dernière récupération"}},"ja":{"stringUnit":{"state":"translated","value":"前回の取得に失敗しました"}},"ko":{"stringUnit":{"state":"translated","value":"최근 가져오기 실패"}},"pt":{"stringUnit":{"state":"translated","value":"A obtenção mais recente falhou"}},"ru":{"stringUnit":{"state":"translated","value":"Последнее получение не удалось"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"最近一次获取失败"}},"zh-Hant":{"stringUnit":{"state":"translated","value":"最近一次取得失敗"}}}},
+    "首位成员固定为本人，只能通过清除全部数据移除。" : {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Das erste Mitglied bist immer du und kann nur durch Löschen aller Daten entfernt werden."}},"en":{"stringUnit":{"state":"translated","value":"The first member is always you and can only be removed by clearing all data."}},"es":{"stringUnit":{"state":"translated","value":"El primer miembro siempre eres tú y solo se puede eliminar borrando todos los datos."}},"fr":{"stringUnit":{"state":"translated","value":"Le premier membre est toujours vous et ne peut être supprimé qu’en effaçant toutes les données."}},"ja":{"stringUnit":{"state":"translated","value":"最初のメンバーは常に本人で、全データを消去した場合のみ削除できます。"}},"ko":{"stringUnit":{"state":"translated","value":"첫 번째 구성원은 항상 본인이며 모든 데이터를 지워야만 삭제할 수 있습니다."}},"pt":{"stringUnit":{"state":"translated","value":"O primeiro membro é sempre o utilizador e só pode ser removido ao apagar todos os dados."}},"ru":{"stringUnit":{"state":"translated","value":"Первый участник всегда является вами и удаляется только при очистке всех данных."}},"zh-Hans":{"stringUnit":{"state":"translated","value":"首位成员固定为本人，只能通过清除全部数据移除。"}},"zh-Hant":{"stringUnit":{"state":"translated","value":"首位成員固定為本人，只能透過清除全部資料移除。"}}}},
     "请选择要删除的内容": {
       "extractionState": "manual",
       "localizations": {
@@ -1236,71 +1246,6 @@
         }
       }
     },
-    "仅勾选你确认数据可靠的设备。未选择的设备、无法关联设备的数据和手动记录不会写入 Apple 健康。" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nur vertrauenswürdige Geräte auswählen. Andere und manuelle Daten werden nicht in Apple Health gespeichert."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Select trusted devices. Other and manual data is not written to Apple Health."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Selecciona dispositivos fiables. Los datos restantes y las entradas manuales no se escriben en Apple Salud."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sélectionnez les appareils fiables. Les autres données et saisies manuelles ne sont pas envoyées à Apple Santé."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "信頼できるデバイスを選択してください。それ以外のデータと手入力はAppleヘルスケアに保存されません。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "신뢰할 수 있는 기기만 선택하세요. 그 외 데이터와 수동 기록은 Apple 건강에 저장되지 않습니다."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Selecione dispositivos fiáveis. Os restantes dados e registos manuais não são enviados para a Saúde Apple."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Выбирайте надёжные устройства. Остальные данные и записи вручную не передаются в Apple Здоровье."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "仅勾选你确认数据可靠的设备。未选择的设备、无法关联设备的数据和手动记录不会写入 Apple 健康。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "僅勾選你確認資料可靠的裝置。未選擇的裝置、無法關聯裝置的資料和手動記錄不會寫入 Apple 健康。"
-          }
-        }
-      }
-    },
     "仅在长期高强度训练时开启，用于调整身体成分估算参数。" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2406,132 +2351,67 @@
         }
       }
     },
-    "同步用户" : {
+    "选择设备" : {
       "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Synchronisierte Person"
+            "value" : "Geräte auswählen"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sync person"
+            "value" : "Select devices"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Usuario de sincronización"
+            "value" : "Seleccionar dispositivos"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Utilisateur synchronisé"
+            "value" : "Sélectionner les appareils"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "同期するユーザー"
+            "value" : "デバイスを選択"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "동기화 사용자"
+            "value" : "기기 선택"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Utilizador sincronizado"
+            "value" : "Selecionar dispositivos"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Профиль синхронизации"
+            "value" : "Выбрать устройства"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "同步用户"
+            "value" : "选择设备"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "同步使用者"
-          }
-        }
-      }
-    },
-    "同步设备" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Synchronisierte Geräte"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sync devices"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dispositivos sincronizados"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Appareils synchronisés"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "同期するデバイス"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "동기화 기기"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dispositivos sincronizados"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Устройства синхронизации"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "同步设备"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "同步裝置"
+            "value" : "選擇裝置"
           }
         }
       }
@@ -3117,136 +2997,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已選擇 %lld 台裝置"
-          }
-        }
-      }
-    },
-    "开启同步后，由系统显示权限确认。" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nach dem Aktivieren zeigt das System die Berechtigungsabfrage an."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "After sharing is enabled, the system displays the permission prompt."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tras activar el uso compartido, el sistema mostrará la solicitud de permiso."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Après activation du partage, le système affiche la demande d’autorisation."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "共有をオンにすると、システムが許可確認を表示します。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "공유를 켜면 시스템이 권한 확인을 표시합니다."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Depois de ativar a partilha, o sistema apresenta o pedido de permissão."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "После включения система покажет запрос разрешения."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "开启同步后，由系统显示权限确认。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "開啟同步後，由系統顯示權限確認。"
-          }
-        }
-      }
-    },
-    "开启时会请求 Apple 健康写入权限；关闭后本应用不会继续写入新数据。" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Beim Aktivieren wird die Schreibberechtigung für Apple Health angefordert. Nach dem Deaktivieren schreibt ScaleMe keine neuen Daten mehr."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Enabling requests permission to write to Apple Health. After you turn it off, ScaleMe will stop writing new data."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Al activarlo se solicitará permiso para escribir en Apple Salud. Al desactivarlo, ScaleMe dejará de escribir datos nuevos."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "L’activation demande l’autorisation d’écrire dans Apple Santé. Une fois désactivé, ScaleMe n’écrit plus de nouvelles données."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "オンにするとAppleヘルスケアへの書き込み許可を求めます。オフにすると、ScaleMeは新しいデータを書き込みません。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "켜면 Apple 건강 쓰기 권한을 요청합니다. 끄면 ScaleMe가 새 데이터를 더 이상 기록하지 않습니다."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ao ativar, será pedida permissão para escrever na Saúde Apple. Depois de desativar, o ScaleMe deixa de escrever novos dados."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "При включении запрашивается разрешение на запись в Apple Здоровье. После отключения ScaleMe перестанет записывать новые данные."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "开启时会请求 Apple 健康写入权限；关闭后本应用不会继续写入新数据。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "開啟時會要求 Apple 健康寫入權限；關閉後本應用不會繼續寫入新資料。"
           }
         }
       }
@@ -4817,49 +4567,49 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ScaleMe kann die von Ihnen erlaubten Gesundheitsdatentypen schreiben."
+            "value" : "Diese App kann die von Ihnen erlaubten Gesundheitsdatentypen schreiben."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ScaleMe can write the health data types you allow."
+            "value" : "This app can write the health data types you allow."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ScaleMe puede escribir los tipos de datos de Salud que permitas."
+            "value" : "Esta aplicación puede escribir los tipos de datos de Salud que permitas."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ScaleMe peut écrire les types de données de Santé que vous autorisez."
+            "value" : "Cette application peut écrire les types de données de Santé que vous autorisez."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ScaleMeは許可されたヘルスケアデータの種類を書き込めます。"
+            "value" : "本アプリは許可されたヘルスケアデータの種類を書き込めます。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ScaleMe는 허용한 건강 데이터 유형을 기록할 수 있습니다."
+            "value" : "이 앱은 허용한 건강 데이터 유형을 기록할 수 있습니다."
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "O ScaleMe pode escrever os tipos de dados de Saúde que permitir."
+            "value" : "Esta aplicação pode escrever os tipos de dados de Saúde que permitir."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ScaleMe может записывать разрешенные вами типы данных Здоровья."
+            "value" : "Приложение может записывать разрешенные вами типы данных Здоровья."
           }
         },
         "zh-Hans" : {
@@ -5012,49 +4762,49 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Erlauben Sie ScaleMe das Schreiben in den Gesundheitseinstellungen des Systems."
+            "value" : "Erlauben Sie dieser App das Schreiben in den Gesundheitseinstellungen des Systems."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Allow ScaleMe to write in the system Health permission settings."
+            "value" : "Allow this app to write in the system Health permission settings."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Permite que ScaleMe escriba desde los ajustes de permisos de Salud del sistema."
+            "value" : "Permite que esta aplicación escriba desde los ajustes de permisos de Salud del sistema."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Autorisez ScaleMe à écrire dans les réglages d’autorisation Santé du système."
+            "value" : "Autorisez cette application à écrire dans les réglages d’autorisation Santé du système."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "システムのヘルスケア権限設定でScaleMeの書き込みを許可してください。"
+            "value" : "システムのヘルスケア権限設定で本アプリの書き込みを許可してください。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "시스템 건강 권한 설정에서 ScaleMe의 쓰기를 허용하세요."
+            "value" : "시스템 건강 권한 설정에서 이 앱의 쓰기를 허용하세요."
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Permita que o ScaleMe escreva nas definições de permissões de Saúde do sistema."
+            "value" : "Permita que esta aplicação escreva nas definições de permissões de Saúde do sistema."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Разрешите ScaleMe запись в системных настройках доступа к Здоровью."
+            "value" : "Разрешите приложению запись в системных настройках доступа к Здоровью."
           }
         },
         "zh-Hans" : {

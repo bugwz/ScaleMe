@@ -4328,6 +4328,7 @@
       }
     },
     "开启同步后仍需至少选择一台设备，新的测量才会写入 Apple 健康。" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -5676,70 +5677,6 @@
         }
       }
     },
-    "本应用不会读取 Apple 健康数据。开启后仅共享所选成员的新测量，不补传历史记录；估算的身体成分不会写入。" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ScaleMe liest keine Daten aus Apple Health. Nach dem Aktivieren werden nur neue Messungen der ausgewählten Person geteilt; frühere Datensätze und geschätzte Körperzusammensetzung werden nicht geschrieben."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ScaleMe does not read Apple Health data. Once enabled, only new measurements for the selected person are shared; history is not backfilled, and estimated body composition is not written."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ScaleMe no lee datos de Apple Salud. Al activarlo, solo se comparten nuevas mediciones del miembro seleccionado; no se envía el historial ni la composición corporal estimada."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ScaleMe ne lit pas les données d’Apple Santé. Une fois activé, seules les nouvelles mesures du membre sélectionné sont partagées ; l’historique et la composition corporelle estimée ne sont pas écrits."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ScaleMeはAppleヘルスケアのデータを読み取りません。有効にすると選択したメンバーの新しい測定値のみを共有し、履歴や推定された身体組成は書き込みません。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ScaleMe는 Apple 건강 데이터를 읽지 않습니다. 켜면 선택한 구성원의 새 측정값만 공유하며, 이전 기록이나 추정 신체 구성은 기록하지 않습니다."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "O ScaleMe não lê dados da Saúde Apple. Depois de ativado, apenas são partilhadas novas medições do membro selecionado; o histórico e a composição corporal estimada não são escritos."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ScaleMe не читает данные Apple Здоровье. После включения передаются только новые измерения выбранного профиля; история и расчетный состав тела не записываются."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "本应用不会读取 Apple 健康数据。开启后仅共享所选成员的新测量，不补传历史记录；估算的身体成分不会写入。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "本應用不會讀取 Apple 健康資料。開啟後僅共享所選成員的新測量，不補傳歷史記錄；估算的身體成分不會寫入。"
-          }
-        }
-      }
-    },
     "本应用是一款注重隐私的原生 iOS 体重与身体趋势应用，帮助你连接蓝牙体脂秤、管理个人记录，并从长期变化中理解身体的方向。" : {
       "localizations" : {
         "de" : {
@@ -6192,6 +6129,7 @@
       }
     },
     "模拟数据不会写入 Apple 健康；这里的同步设置仅用于本次运行中的预览。" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -8707,9 +8645,6 @@
         }
       }
     },
-    "请先在设备页关联体重秤，再选择允许同步的来源。" : {
-
-    },
     "请先踩亮体重秤。如果名称较普通，可在下方展开附近设备查找。" : {
       "localizations" : {
         "de" : {
@@ -8773,6 +8708,9 @@
           }
         }
       }
+    },
+    "请求 Apple 健康权限" : {
+
     },
     "请确保地板、秤面和脚底干燥。孕期、植入心脏起搏器或其他医疗设备时，请勿依赖生物电阻抗体脂结果，并遵循设备厂商及医生建议。" : {
       "extractionState" : "stale",

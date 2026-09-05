@@ -14,7 +14,7 @@ struct LocalizationSmoke {
             precondition(!language.text(.settings).isEmpty)
         }
 
-        let profile = UserProfile()
+        let profile = UserProfile(role: "本人")
         let healthDeviceID = UUID()
         let configuration = AppConfiguration(
             profiles: [profile],
@@ -25,6 +25,8 @@ struct LocalizationSmoke {
             mergeFrequentMeasurements: false,
             appleHealthProfileID: profile.id,
             appleHealthDeviceIDs: [healthDeviceID],
+            isAppleHealthImportEnabled: true,
+            appleHealthReadTypes: [.bodyMass],
             customCommunicationRules: []
         )
         let encoded = try JSONEncoder().encode(configuration)
@@ -34,6 +36,8 @@ struct LocalizationSmoke {
         precondition(decoded.appearance == .dark)
         precondition(decoded.appleHealthProfileID == profile.id)
         precondition(decoded.appleHealthDeviceIDs == [healthDeviceID])
+        precondition(decoded.isAppleHealthImportEnabled)
+        precondition(decoded.appleHealthReadTypes == [.bodyMass])
         precondition(AppLanguage.matchingSystemLanguage(preferredLanguages: ["ar-SA"]) == .english)
         precondition(AppLanguage.matchingSystemLanguage(preferredLanguages: ["zh-TW"]) == .traditionalChinese)
         precondition(AppLanguageSelection.system.resolvedLanguage == AppLanguage.systemDefault)
@@ -69,6 +73,12 @@ struct LocalizationSmoke {
             "%@趋势", "%@ · %lld 次测量", "%lld 次测量均值",
             "版本 %@（%@）", "版本 %@", "版本信息暂不可用", "蓝牙秤", "自动识别",
             "本人", "伴侣", "父母", "子女", "其他", "女", "男",
+            "共享数据给 Apple 健康", "从 Apple 健康获取数据", "选择用户", "选择设备", "选择数据类型",
+            "正在从 Apple 健康获取数据", "最近一次获取失败",
+            "请求 Apple 健康权限", "点击下方按钮，由系统显示读写权限确认。",
+            "共享到 Apple 健康的记录仅包含所选用户由所选设备产生的新稳定测量。",
+            "从 Apple 健康获取的记录会标记为 Apple 健康，并归入本人档案。",
+            "首位成员固定为本人，只能通过清除全部数据移除。",
             "偏低", "标准", "偏高", "级", "小米体重秤", "标准蓝牙体重秤",
             "手动记录", "示例数据", "示例用户", "最终值",
             "测量详情", "基础指标", "身体成分估算", "设备原始数据",
@@ -214,9 +224,15 @@ struct LocalizationSmoke {
             AppLanguage.allCases.allSatisfy { healthUpdateLocalizations[$0.rawValue] != nil },
             "every supported language needs a localized HealthKit write permission"
         )
+        guard
+            let healthReadDescription = infoStrings["NSHealthShareUsageDescription"] as? [String: Any],
+            let healthReadLocalizations = healthReadDescription["localizations"] as? [String: Any]
+        else {
+            preconditionFailure("InfoPlist.xcstrings must localize HealthKit read permission")
+        }
         precondition(
-            infoStrings["NSHealthShareUsageDescription"] == nil,
-            "write-only Apple Health integration must not declare read access"
+            AppLanguage.allCases.allSatisfy { healthReadLocalizations[$0.rawValue] != nil },
+            "every supported language needs a localized HealthKit read permission"
         )
 
         if let appBundlePath = CommandLine.arguments.dropFirst().first {

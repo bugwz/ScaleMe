@@ -3,6 +3,10 @@ import Foundation
 @main
 enum StorageSmoke {
     static func main() throws {
+        precondition(AppConfiguration.standard.appleHealthProfileID == nil)
+        precondition(AppConfiguration.standard.appleHealthDeviceIDs.isEmpty)
+        precondition(!AppConfiguration.standard.isAppleHealthImportEnabled)
+
         let profileID = UUID()
         let scaleID = UUID()
         let retained = BodyMeasurement(
@@ -55,7 +59,7 @@ enum StorageSmoke {
         precondition(conflictMerged.measurements == [conflictRecord], "conflict tombstones must win across all archive versions")
         precondition(conflictMerged.merging(conflictVersion) == conflictMerged, "archive merging must be idempotent")
 
-        let profile = UserProfile(name: "测试成员", relation: "本人", avatar: .senior)
+        let profile = UserProfile(name: "测试成员", role: "本人", avatar: .senior)
         let scale = PairedScale(
             id: scaleID,
             name: "浴室秤",
@@ -85,15 +89,15 @@ enum StorageSmoke {
         let repository = try LocalAppRepository(directoryURL: storageDirectory)
         var persistedConfiguration = configuration
         persistedConfiguration.profiles = [
-            UserProfile(name: "甲", relation: "本人", referenceWeightKG: 61.2),
-            UserProfile(name: "乙", relation: "本人", referenceWeightKG: 78.6)
+            UserProfile(name: "甲", role: "本人", referenceWeightKG: 61.2),
+            UserProfile(name: "乙", role: "伴侣", referenceWeightKG: 78.6)
         ]
         persistedConfiguration.isSimulationEnabled = false
         try repository.saveConfiguration(persistedConfiguration)
         let reloadedConfiguration = try repository.loadConfiguration()
         precondition(
             reloadedConfiguration == persistedConfiguration,
-            "member edits, ordering, duplicate self roles, and device settings must survive repository reload"
+            "member identity, edits, ordering, and device settings must survive repository reload"
         )
 
         let manualMeasurement = BodyMeasurement(

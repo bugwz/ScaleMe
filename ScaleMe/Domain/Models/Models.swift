@@ -78,6 +78,7 @@ enum MeasurementSource: String, Codable {
     case communityProtocol
     case customProtocol
     case manual
+    case appleHealth
     case demo
 
     var localizationKey: String {
@@ -90,6 +91,7 @@ enum MeasurementSource: String, Codable {
         case .communityProtocol: "社区协议体重秤"
         case .customProtocol: "自定义通信协议"
         case .manual: "手动记录"
+        case .appleHealth: "Apple 健康"
         case .demo: "示例数据"
         }
     }
@@ -154,7 +156,7 @@ struct BodyMeasurement: Identifiable, Codable, Hashable {
 struct UserProfile: Identifiable, Codable, Equatable {
     var id = UUID()
     var name = "我"
-    var relation = "本人"
+    var role = "本人"
     var heightCM = 168.0
     var referenceWeightKG = 60.0
     var birthDate = Calendar.current.date(byAdding: .year, value: -30, to: .now) ?? .now
@@ -177,6 +179,20 @@ struct UserProfile: Identifiable, Codable, Equatable {
 
     var age: Int {
         Calendar.current.dateComponents([.year], from: birthDate, to: .now).year ?? 30
+    }
+}
+
+enum AppleHealthDataType: String, Codable, CaseIterable, Identifiable, Hashable {
+    case bodyMass
+    case bodyFatPercentage
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .bodyMass: "体重"
+        case .bodyFatPercentage: "体脂率"
+        }
     }
 }
 
@@ -324,6 +340,8 @@ struct AppConfiguration: Codable, Equatable {
     var isSimulationEnabled: Bool
     var appleHealthProfileID: UUID?
     var appleHealthDeviceIDs: Set<UUID>
+    var isAppleHealthImportEnabled: Bool
+    var appleHealthReadTypes: Set<AppleHealthDataType>
     var customCommunicationRules: [CommunicationRule]
     var dashboardMetricOrder: [DashboardMetricKind]
     var dashboardVisibleMetrics: Set<DashboardMetricKind>
@@ -341,6 +359,8 @@ struct AppConfiguration: Codable, Equatable {
         isSimulationEnabled: Bool = false,
         appleHealthProfileID: UUID? = nil,
         appleHealthDeviceIDs: Set<UUID> = [],
+        isAppleHealthImportEnabled: Bool = false,
+        appleHealthReadTypes: Set<AppleHealthDataType> = Set(AppleHealthDataType.allCases),
         customCommunicationRules: [CommunicationRule],
         dashboardMetricOrder: [DashboardMetricKind] = DashboardMetricKind.allCases,
         dashboardVisibleMetrics: Set<DashboardMetricKind> = DashboardMetricKind.defaultVisible,
@@ -357,6 +377,8 @@ struct AppConfiguration: Codable, Equatable {
         self.isSimulationEnabled = isSimulationEnabled
         self.appleHealthProfileID = appleHealthProfileID
         self.appleHealthDeviceIDs = appleHealthDeviceIDs
+        self.isAppleHealthImportEnabled = isAppleHealthImportEnabled
+        self.appleHealthReadTypes = appleHealthReadTypes
         self.customCommunicationRules = customCommunicationRules
         self.dashboardMetricOrder = dashboardMetricOrder
         self.dashboardVisibleMetrics = dashboardVisibleMetrics
@@ -375,6 +397,8 @@ struct AppConfiguration: Codable, Equatable {
         case isSimulationEnabled
         case appleHealthProfileID
         case appleHealthDeviceIDs
+        case isAppleHealthImportEnabled
+        case appleHealthReadTypes
         case customCommunicationRules
         case dashboardMetricOrder
         case dashboardVisibleMetrics
@@ -394,6 +418,8 @@ struct AppConfiguration: Codable, Equatable {
         isSimulationEnabled = try container.decodeIfPresent(Bool.self, forKey: .isSimulationEnabled) ?? false
         appleHealthProfileID = try container.decodeIfPresent(UUID.self, forKey: .appleHealthProfileID)
         appleHealthDeviceIDs = try container.decodeIfPresent(Set<UUID>.self, forKey: .appleHealthDeviceIDs) ?? []
+        isAppleHealthImportEnabled = try container.decode(Bool.self, forKey: .isAppleHealthImportEnabled)
+        appleHealthReadTypes = try container.decode(Set<AppleHealthDataType>.self, forKey: .appleHealthReadTypes)
         customCommunicationRules = try container.decode([CommunicationRule].self, forKey: .customCommunicationRules)
         dashboardMetricOrder = try container.decodeIfPresent([DashboardMetricKind].self, forKey: .dashboardMetricOrder) ?? DashboardMetricKind.allCases
         dashboardVisibleMetrics = try container.decodeIfPresent(Set<DashboardMetricKind>.self, forKey: .dashboardVisibleMetrics) ?? DashboardMetricKind.defaultVisible

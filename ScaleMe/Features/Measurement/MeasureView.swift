@@ -49,7 +49,7 @@ struct MeasureView: View {
                 id: profile.id.uuidString,
                 value: profile.id,
                 title: profile.name,
-                subtitle: "\(store.appLanguage.text(profile.relation)) · \(profile.heightCM.formatted(2)) cm",
+                subtitle: "\(store.appLanguage.text(profile.role)) · \(profile.heightCM.formatted(2)) cm",
                 icon: .avatar(profile.avatar)
             )
         }
@@ -764,7 +764,7 @@ struct ManualEntryView: View {
                 id: profile.id.uuidString,
                 value: profile.id,
                 title: profile.name,
-                subtitle: "\(store.appLanguage.text(profile.relation)) · \(profile.heightCM.formatted(2)) cm",
+                subtitle: "\(store.appLanguage.text(profile.role)) · \(profile.heightCM.formatted(2)) cm",
                 icon: .avatar(profile.avatar)
             )
         }
@@ -876,7 +876,7 @@ struct ManualEntryView: View {
                         .font(.body.weight(.medium))
                         .foregroundStyle(AppColor.ink)
 
-                    StatusPill(text: store.displaySelectedProfile.relation)
+                    StatusPill(text: store.displaySelectedProfile.role)
 
                     Spacer(minLength: 8)
 
@@ -902,7 +902,7 @@ struct ManualEntryView: View {
             .accessibilityLabel(store.appLanguage.format(
                 "记录成员，当前为 %@，%@",
                 store.displaySelectedProfile.name,
-                store.appLanguage.text(store.displaySelectedProfile.relation)
+                store.appLanguage.text(store.displaySelectedProfile.role)
             ))
             .accessibilityHint(store.appLanguage.text("点击展开选择记录成员"))
         }

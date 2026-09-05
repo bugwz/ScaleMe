@@ -87,12 +87,14 @@ struct ScaleMeApp: App {
                 if newPhase == .active {
                     store.refreshSystemLanguage()
                     appleHealth.refreshAuthorizationState()
+                    Task { await syncAppleHealthIfNeeded() }
                 }
             }
             .task {
                 store.prepareSimulationDataIfNeeded()
                 bluetooth.updatePairedScales(store.pairedScales, communicationRules: store.communicationRules)
                 appleHealth.refreshAuthorizationState()
+                await syncAppleHealthIfNeeded()
                 exportWidgetSnapshot()
                 guard isShowingLaunchScreen else { return }
                 try? await Task.sleep(for: .seconds(2.75))
@@ -110,6 +112,18 @@ struct ScaleMeApp: App {
         Task {
             await WidgetTrendSnapshotExporter.shared.export(snapshot)
         }
+    }
+
+    private func syncAppleHealthIfNeeded() async {
+        guard !store.isSimulationEnabled,
+              store.isAppleHealthImportEnabled,
+              !appleHealth.isImporting,
+              let currentUser = store.currentUserProfile else { return }
+        let imported = await appleHealth.readMeasurements(
+            dataTypes: store.appleHealthReadTypes,
+            profileID: currentUser.id
+        )
+        store.importAppleHealthMeasurements(imported)
     }
 }
 

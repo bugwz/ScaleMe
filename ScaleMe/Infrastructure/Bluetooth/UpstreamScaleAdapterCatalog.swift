@@ -74,7 +74,7 @@ enum UpstreamScaleAdapterCatalog {
         requirements: [ProtocolRuntimeRequirement] = [.multiFrameSession],
         mappedRuleID: String? = nil,
         implementation: ProtocolImplementationLevel = .protocolSkeleton,
-        note: String = "上游适配器定义已登记；ScaleMe 运行时尚未完整移植该会话。"
+        note: String = "上游适配器定义已登记；本应用运行时尚未完整移植该会话。"
     ) -> UpstreamScaleAdapterRecord {
         UpstreamScaleAdapterRecord(
             id: id,
@@ -269,7 +269,7 @@ enum UpstreamScaleAdapterCatalog {
         record("open.es-cs20m", .openScale, "ES-CS20M", "ESCS20MHandler.kt", services: ["1A10"], notify: ["2A10"], write: ["2A11"], requirements: [.multiFrameSession]),
         record("open.renpho-es26bb", .openScale, "Renpho ES-26BB", "RenphoES26BBHandler.kt", services: ["1A10"], notify: ["2A10"], write: ["2A11"], requirements: profileSession),
         record("open.digoo", .openScale, "Digoo DG-SO38H", "DigooDGSO38HHandler.kt", services: ["FFF0"], notify: ["FFF1"], write: ["FFF2"], requirements: profileSession),
-        record("open.custom", .openScale, "Custom Protocol", "CustomOpenScaleHandler.kt", services: ["待用户定义"], requirements: [], note: "上游自定义处理器入口已登记；ScaleMe 使用受限外部通信规则承担对应能力。"),
+        record("open.custom", .openScale, "Custom Protocol", "CustomOpenScaleHandler.kt", services: ["待用户定义"], requirements: [], note: "上游自定义处理器入口已登记；本应用使用受限外部通信规则承担对应能力。"),
         record("open.beurer-sanitas", .openScale, "Beurer / Sanitas", "BeurerSanitasHandler.kt", services: ["FFE0"], notify: ["FFE1"], write: ["FFE1"], requirements: [.vendorRegistration, .userProfile, .multiFrameSession]),
         record("open.aaa", .openScale, "AAA002 / AAA007 / AAA013", "AAAxHandler.kt", transport: .advertisementManufacturerData, services: ["ANY"], requirements: [], mappedRuleID: "protocol.builtin.aaa-series", implementation: .experimental),
         record("open.scaleup", .openScale, "Scaleup", "ScaleupHandler.kt", transport: .advertisementManufacturerData, services: ["xxD0", "xxE0"], requirements: [], mappedRuleID: "protocol.builtin.scaleup", implementation: .experimental),

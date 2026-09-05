@@ -30,7 +30,7 @@ extension MeasurementStore {
             WidgetTrendProfile(
                 id: $0.id.uuidString,
                 name: $0.name,
-                relation: appLanguage.text($0.relation)
+                relation: appLanguage.text($0.role)
             )
         }
         let devices = displayPairedScales.map {

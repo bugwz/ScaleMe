@@ -26,7 +26,7 @@ enum SimulationDataSmoke {
         precondition(Set(first.profiles.map(\.name)).count == first.profiles.count,
                      "simulated family members should have distinct names")
         precondition(first.profiles.first?.avatar == .father, "爸爸必须是首位模拟成员")
-        precondition(first.profiles.first?.relation == "本人", "默认中年男性必须使用本人关系选项")
+        precondition(first.profiles.first?.role == "本人", "默认中年男性必须使用本人角色选项")
         precondition(first.selectedProfileID == first.profiles.first?.id, "默认应选中中年男性本人")
         precondition(first.pairedScales.count == 2, "simulation should include multiple scales")
         precondition(first.measurements == second.measurements, "simulation must be deterministic for a reference date")
@@ -155,7 +155,7 @@ enum SimulationDataSmoke {
             .senior: "父母", .paternalGrandfather: "父母",
             .maternalGrandfather: "父母", .maternalGrandmother: "父母"
         ]
-        precondition(first.profiles.allSatisfy { expectedRelations[$0.avatar] == $0.relation },
+        precondition(first.profiles.allSatisfy { expectedRelations[$0.avatar] == $0.role },
                      "simulated names, relations, and character roles should agree")
 
         let ages = Dictionary(uniqueKeysWithValues: first.profiles.map { profile in
@@ -253,7 +253,7 @@ enum SimulationDataSmoke {
                          "each language must provide distinct natural member names")
             precondition(localized.profiles.allSatisfy { $0.name.count <= 9 },
                          "simulated names must fit every single-line member presentation")
-            precondition(localized.profiles.allSatisfy { !$0.name.isEmpty && !$0.relation.isEmpty },
+            precondition(localized.profiles.allSatisfy { !$0.name.isEmpty && !$0.role.isEmpty },
                          "each localized member needs a name and family relation")
             precondition(localized.pairedScales.allSatisfy { !$0.name.isEmpty && !$0.compatibility.isEmpty },
                          "simulated device cards must be localized")
@@ -268,7 +268,7 @@ enum SimulationDataSmoke {
         )
         precondition(japanese.profiles.first?.name == "佐藤健一",
                      "Japanese data should use a natural Japanese family name")
-        precondition(japanese.profiles.first?.relation == "本人",
+        precondition(japanese.profiles.first?.role == "本人",
                      "simulation relationships must use an available relationship option")
         precondition(japanese.pairedScales.first?.name == "体組成計",
                      "simulated device cards should switch language")

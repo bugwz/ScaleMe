@@ -16,6 +16,8 @@ final class MeasurementStore: ObservableObject {
     @Published var isSimulationEnabled: Bool { didSet { simulationModeDidChange() } }
     @Published var appleHealthProfileID: UUID? { didSet { persistConfigurationIfNeeded() } }
     @Published private(set) var appleHealthDeviceIDs: Set<UUID> { didSet { persistConfigurationIfNeeded() } }
+    @Published private(set) var isAppleHealthImportEnabled: Bool { didSet { persistConfigurationIfNeeded() } }
+    @Published private(set) var appleHealthReadTypes: Set<AppleHealthDataType> { didSet { persistConfigurationIfNeeded() } }
     @Published private(set) var customCommunicationRules: [CommunicationRule] { didSet { persistConfigurationIfNeeded() } }
     @Published private(set) var dashboardMetricOrder: [DashboardMetricKind] { didSet { persistConfigurationIfNeeded() } }
     @Published private(set) var dashboardVisibleMetrics: Set<DashboardMetricKind> { didSet { persistConfigurationIfNeeded() } }
@@ -39,6 +41,8 @@ final class MeasurementStore: ObservableObject {
     private var simulationSelectedProfileID: UUID
     @Published private var simulationAppleHealthProfileID: UUID?
     @Published private var simulationAppleHealthDeviceIDs: Set<UUID>
+    @Published private var simulationIsAppleHealthImportEnabled: Bool
+    @Published private var simulationAppleHealthReadTypes: Set<AppleHealthDataType>
     @Published private var simulationDeletedMeasurementIDs: Set<UUID>
     private var simulationArchiveUpdatedAt: Date
     private var simulationCommunicationRuleImportSequence = SimulationCommunicationRuleImportSequence()
@@ -69,6 +73,13 @@ final class MeasurementStore: ObservableObject {
             initialError = "无法初始化本地存储：\(error.localizedDescription)"
         }
 
+        loadedConfiguration.profiles = Self.normalizedProfiles(loadedConfiguration.profiles)
+        loadedConfiguration.appleHealthReadTypes.insert(.bodyMass)
+        loadedConfiguration.appleHealthProfileID = loadedConfiguration.appleHealthProfileID.flatMap { profileID in
+            loadedConfiguration.profiles.contains(where: { $0.id == profileID && $0.role == "本人" })
+                ? profileID
+                : nil
+        }
         let resolvedLanguage = loadedConfiguration.languageSelection.resolvedLanguage
         let simulationReferenceDate = Date.now
         let simulationCalendar = Calendar.current
@@ -85,6 +96,8 @@ final class MeasurementStore: ObservableObject {
         simulationSelectedProfileID = simulationData.selectedProfileID
         simulationAppleHealthProfileID = nil
         simulationAppleHealthDeviceIDs = []
+        simulationIsAppleHealthImportEnabled = false
+        simulationAppleHealthReadTypes = Set(AppleHealthDataType.allCases)
         simulationDeletedMeasurementIDs = []
         simulationArchiveUpdatedAt = .distantPast
         isSimulationHistoryLoaded = false
@@ -102,6 +115,8 @@ final class MeasurementStore: ObservableObject {
         appleHealthDeviceIDs = loadedConfiguration.appleHealthDeviceIDs.intersection(
             Set(loadedConfiguration.pairedScales.map(\.id))
         )
+        isAppleHealthImportEnabled = loadedConfiguration.isAppleHealthImportEnabled
+        appleHealthReadTypes = loadedConfiguration.appleHealthReadTypes
         customCommunicationRules = loadedConfiguration.customCommunicationRules
         dashboardMetricOrder = MeasurementStore.sanitizedMetricOrder(loadedConfiguration.dashboardMetricOrder)
         dashboardVisibleMetrics = loadedConfiguration.dashboardVisibleMetrics
@@ -132,6 +147,8 @@ final class MeasurementStore: ObservableObject {
             isSimulationEnabled: isSimulationEnabled,
             appleHealthProfileID: appleHealthProfileID,
             appleHealthDeviceIDs: appleHealthDeviceIDs,
+            isAppleHealthImportEnabled: isAppleHealthImportEnabled,
+            appleHealthReadTypes: appleHealthReadTypes,
             customCommunicationRules: customCommunicationRules,
             dashboardMetricOrder: dashboardMetricOrder,
             dashboardVisibleMetrics: dashboardVisibleMetrics,
@@ -161,6 +178,8 @@ final class MeasurementStore: ObservableObject {
             isSimulationEnabled: true,
             appleHealthProfileID: simulationAppleHealthProfileID,
             appleHealthDeviceIDs: simulationAppleHealthDeviceIDs,
+            isAppleHealthImportEnabled: simulationIsAppleHealthImportEnabled,
+            appleHealthReadTypes: simulationAppleHealthReadTypes,
             customCommunicationRules: customCommunicationRules,
             dashboardMetricOrder: dashboardMetricOrder,
             dashboardVisibleMetrics: dashboardVisibleMetrics,
@@ -220,6 +239,18 @@ final class MeasurementStore: ObservableObject {
 
     var displayAppleHealthDeviceIDs: Set<UUID> {
         isSimulationEnabled ? simulationAppleHealthDeviceIDs : appleHealthDeviceIDs
+    }
+
+    var displayIsAppleHealthImportEnabled: Bool {
+        isSimulationEnabled ? simulationIsAppleHealthImportEnabled : isAppleHealthImportEnabled
+    }
+
+    var displayAppleHealthReadTypes: Set<AppleHealthDataType> {
+        isSimulationEnabled ? simulationAppleHealthReadTypes : appleHealthReadTypes
+    }
+
+    var currentUserProfile: UserProfile? {
+        managedProfiles.first(where: { $0.role == "本人" })
     }
 
     var displayPairedScales: [PairedScale] {
@@ -282,6 +313,27 @@ final class MeasurementStore: ObservableObject {
         deletedMeasurementIDs.remove(enriched.id)
         persistArchive()
         latestHealthShareCandidate = attributed
+    }
+
+    @discardableResult
+    func importAppleHealthMeasurements(_ importedMeasurements: [BodyMeasurement]) -> Int {
+        guard !isSimulationEnabled,
+              isAppleHealthImportEnabled,
+              let currentUser = profiles.first(where: { $0.role == "本人" }) else { return 0 }
+        let existingIDs = Set(measurements.map(\.id)).union(deletedMeasurementIDs)
+        let newMeasurements = importedMeasurements.compactMap { measurement -> BodyMeasurement? in
+            guard !existingIDs.contains(measurement.id), measurement.source == .appleHealth else { return nil }
+            var attributed = measurement
+            attributed.profileID = currentUser.id
+            attributed.deviceID = nil
+            attributed.deviceName = nil
+            return BodyCompositionEstimator.enriching(attributed, profile: currentUser)
+        }
+        guard !newMeasurements.isEmpty else { return 0 }
+        measurements.append(contentsOf: newMeasurements)
+        measurements.sort { $0.date > $1.date }
+        persistArchive()
+        return newMeasurements.count
     }
 
     @discardableResult
@@ -354,11 +406,27 @@ final class MeasurementStore: ObservableObject {
 
     func setDisplayAppleHealthProfileID(_ id: UUID?) {
         if isSimulationEnabled {
-            guard id == nil || simulationData.profiles.contains(where: { $0.id == id }) else { return }
+            guard id == nil || simulationData.profiles.contains(where: { $0.id == id && $0.role == "本人" }) else { return }
             simulationAppleHealthProfileID = id
         } else {
-            guard id == nil || profiles.contains(where: { $0.id == id }) else { return }
+            guard id == nil || profiles.contains(where: { $0.id == id && $0.role == "本人" }) else { return }
             appleHealthProfileID = id
+        }
+    }
+
+    func setDisplayAppleHealthImportEnabled(_ isEnabled: Bool) {
+        if isSimulationEnabled {
+            simulationIsAppleHealthImportEnabled = isEnabled
+        } else {
+            isAppleHealthImportEnabled = isEnabled
+        }
+    }
+
+    func toggleDisplayAppleHealthReadType(_ type: AppleHealthDataType) {
+        if isSimulationEnabled {
+            Self.toggleAppleHealthReadType(type, in: &simulationAppleHealthReadTypes)
+        } else {
+            Self.toggleAppleHealthReadType(type, in: &appleHealthReadTypes)
         }
     }
 
@@ -375,24 +443,36 @@ final class MeasurementStore: ObservableObject {
 
     func addProfile(_ profile: UserProfile) {
         if isSimulationEnabled {
-            simulationData.profiles.append(profile)
+            var newProfile = profile
+            if simulationData.profiles.isEmpty { newProfile.role = "本人" }
+            else if newProfile.role == "本人" { newProfile.role = "其他" }
+            simulationData.profiles.append(newProfile)
             return
         }
         let isFirstProfile = profiles.isEmpty
-        profiles.append(profile)
+        var newProfile = profile
+        if isFirstProfile { newProfile.role = "本人" }
+        else if newProfile.role == "本人" { newProfile.role = "其他" }
+        profiles.append(newProfile)
         if isFirstProfile {
-            selectedProfileID = profile.id
+            selectedProfileID = newProfile.id
         }
     }
 
     func updateProfile(_ profile: UserProfile) {
         if isSimulationEnabled {
             guard let index = simulationData.profiles.firstIndex(where: { $0.id == profile.id }) else { return }
-            simulationData.profiles[index] = profile
+            var updated = profile
+            if simulationData.profiles[index].role == "本人" { updated.role = "本人" }
+            else if updated.role == "本人" { updated.role = "其他" }
+            simulationData.profiles[index] = updated
             return
         }
         guard let index = profiles.firstIndex(where: { $0.id == profile.id }) else { return }
-        profiles[index] = profile
+        var updated = profile
+        if profiles[index].role == "本人" { updated.role = "本人" }
+        else if updated.role == "本人" { updated.role = "其他" }
+        profiles[index] = updated
     }
 
     func moveProfile(_ profileID: UUID, onto targetProfileID: UUID) {
@@ -435,7 +515,8 @@ final class MeasurementStore: ObservableObject {
     func deleteProfile(_ id: UUID) {
         if isSimulationEnabled {
             guard simulationData.profiles.count > 1,
-                  let index = simulationData.profiles.firstIndex(where: { $0.id == id }) else { return }
+                  let index = simulationData.profiles.firstIndex(where: { $0.id == id }),
+                  simulationData.profiles[index].role != "本人" else { return }
             simulationData.profiles.remove(at: index)
             if simulationAppleHealthProfileID == id { simulationAppleHealthProfileID = nil }
             if simulationSelectedProfileID == id {
@@ -445,7 +526,9 @@ final class MeasurementStore: ObservableObject {
             }
             return
         }
-        guard profiles.count > 1, let index = profiles.firstIndex(where: { $0.id == id }) else { return }
+        guard profiles.count > 1,
+              let index = profiles.firstIndex(where: { $0.id == id }),
+              profiles[index].role != "本人" else { return }
         profiles.remove(at: index)
         if appleHealthProfileID == id { appleHealthProfileID = nil }
         if selectedProfileID == id {
@@ -604,14 +687,45 @@ final class MeasurementStore: ObservableObject {
     }
 
     private static func preferredProfileID(in profiles: [UserProfile]) -> UUID? {
-        profiles.first(where: { $0.relation == "本人" })?.id ?? profiles.first?.id
+        profiles.first(where: { $0.role == "本人" })?.id ?? profiles.first?.id
+    }
+
+    private static func normalizedProfiles(_ profiles: [UserProfile]) -> [UserProfile] {
+        guard !profiles.isEmpty else { return [] }
+        let currentUserID = profiles.first(where: { $0.role == "本人" })?.id ?? profiles[0].id
+        return profiles.map { profile in
+            var normalized = profile
+            if normalized.id == currentUserID {
+                normalized.role = "本人"
+            } else if normalized.role == "本人" {
+                normalized.role = "其他"
+            }
+            return normalized
+        }
+    }
+
+    private static func toggleAppleHealthReadType(
+        _ type: AppleHealthDataType,
+        in selection: inout Set<AppleHealthDataType>
+    ) {
+        if selection.contains(type) {
+            selection.remove(type)
+            if type == .bodyMass {
+                selection.remove(.bodyFatPercentage)
+            }
+        } else {
+            selection.insert(type)
+            if type == .bodyFatPercentage {
+                selection.insert(.bodyMass)
+            }
+        }
     }
 
     private var placeholderProfile: UserProfile {
         UserProfile(
             id: Self.placeholderProfileID,
             name: appLanguage.text("示例用户"),
-            relation: "本人",
+            role: "本人",
             heightCM: 168,
             referenceWeightKG: 60,
             birthDate: Calendar.current.date(byAdding: .year, value: -30, to: .now) ?? .now,
@@ -643,31 +757,39 @@ final class MeasurementStore: ObservableObject {
             applySimulation(configuration: configuration)
             return
         }
-        guard configuration != self.configuration else { return }
-        isApplyingExternalState = true
-        profiles = configuration.profiles
-        selectedProfileID = configuration.profiles.contains(where: { $0.id == selectedProfileID })
-            ? selectedProfileID
-            : Self.preferredProfileID(in: configuration.profiles) ?? Self.placeholderProfileID
-        pairedScales = configuration.pairedScales
-        unit = configuration.unit
-        languageSelection = configuration.languageSelection
-        appLanguage = configuration.languageSelection.resolvedLanguage
-        appearance = configuration.appearance
-        mergeFrequentMeasurements = configuration.mergeFrequentMeasurements
-        isSimulationEnabled = configuration.isSimulationEnabled
-        appleHealthProfileID = configuration.appleHealthProfileID.flatMap { profileID in
-            configuration.profiles.contains(where: { $0.id == profileID }) ? profileID : nil
+        var normalizedConfiguration = configuration
+        normalizedConfiguration.profiles = Self.normalizedProfiles(configuration.profiles)
+        normalizedConfiguration.appleHealthReadTypes.insert(.bodyMass)
+        normalizedConfiguration.appleHealthProfileID = configuration.appleHealthProfileID.flatMap { profileID in
+            normalizedConfiguration.profiles.contains(where: { $0.id == profileID && $0.role == "本人" })
+                ? profileID
+                : nil
         }
-        appleHealthDeviceIDs = configuration.appleHealthDeviceIDs.intersection(
-            Set(configuration.pairedScales.map(\.id))
+        guard normalizedConfiguration != self.configuration else { return }
+        isApplyingExternalState = true
+        profiles = normalizedConfiguration.profiles
+        selectedProfileID = normalizedConfiguration.profiles.contains(where: { $0.id == selectedProfileID })
+            ? selectedProfileID
+            : Self.preferredProfileID(in: normalizedConfiguration.profiles) ?? Self.placeholderProfileID
+        pairedScales = normalizedConfiguration.pairedScales
+        unit = normalizedConfiguration.unit
+        languageSelection = normalizedConfiguration.languageSelection
+        appLanguage = normalizedConfiguration.languageSelection.resolvedLanguage
+        appearance = normalizedConfiguration.appearance
+        mergeFrequentMeasurements = normalizedConfiguration.mergeFrequentMeasurements
+        isSimulationEnabled = normalizedConfiguration.isSimulationEnabled
+        appleHealthProfileID = normalizedConfiguration.appleHealthProfileID
+        appleHealthDeviceIDs = normalizedConfiguration.appleHealthDeviceIDs.intersection(
+            Set(normalizedConfiguration.pairedScales.map(\.id))
         )
-        customCommunicationRules = configuration.customCommunicationRules
-        dashboardMetricOrder = MeasurementStore.sanitizedMetricOrder(configuration.dashboardMetricOrder)
-        dashboardVisibleMetrics = configuration.dashboardVisibleMetrics
-        widgetProfileID = configuration.widgetProfileID
-        widgetTimeRange = configuration.widgetTimeRange
-        widgetDisplayStyle = configuration.widgetDisplayStyle
+        isAppleHealthImportEnabled = normalizedConfiguration.isAppleHealthImportEnabled
+        appleHealthReadTypes = normalizedConfiguration.appleHealthReadTypes
+        customCommunicationRules = normalizedConfiguration.customCommunicationRules
+        dashboardMetricOrder = MeasurementStore.sanitizedMetricOrder(normalizedConfiguration.dashboardMetricOrder)
+        dashboardVisibleMetrics = normalizedConfiguration.dashboardVisibleMetrics
+        widgetProfileID = normalizedConfiguration.widgetProfileID
+        widgetTimeRange = normalizedConfiguration.widgetTimeRange
+        widgetDisplayStyle = normalizedConfiguration.widgetDisplayStyle
         isApplyingExternalState = false
         if isSimulationEnabled {
             simulationModeDidChange()
@@ -742,6 +864,8 @@ final class MeasurementStore: ObservableObject {
         isSimulationEnabled = false
         appleHealthProfileID = nil
         appleHealthDeviceIDs = []
+        isAppleHealthImportEnabled = false
+        appleHealthReadTypes = defaults.appleHealthReadTypes
         customCommunicationRules = []
         dashboardMetricOrder = defaults.dashboardMetricOrder
         dashboardVisibleMetrics = defaults.dashboardVisibleMetrics
@@ -761,6 +885,8 @@ final class MeasurementStore: ObservableObject {
         simulationSelectedProfileID = simulationData.selectedProfileID
         simulationAppleHealthProfileID = nil
         simulationAppleHealthDeviceIDs = []
+        simulationIsAppleHealthImportEnabled = false
+        simulationAppleHealthReadTypes = defaults.appleHealthReadTypes
         simulationDeletedMeasurementIDs = []
         simulationArchiveUpdatedAt = .distantPast
         simulationCommunicationRuleImportSequence = SimulationCommunicationRuleImportSequence()
@@ -770,10 +896,11 @@ final class MeasurementStore: ObservableObject {
     private func applySimulation(configuration: AppConfiguration) {
         guard !configuration.profiles.isEmpty else { return }
         isApplyingExternalState = true
-        simulationData.profiles = configuration.profiles
-        if !configuration.profiles.contains(where: { $0.id == simulationSelectedProfileID }) {
-            simulationSelectedProfileID = Self.preferredProfileID(in: configuration.profiles)
-                ?? configuration.profiles[0].id
+        let normalizedProfiles = Self.normalizedProfiles(configuration.profiles)
+        simulationData.profiles = normalizedProfiles
+        if !normalizedProfiles.contains(where: { $0.id == simulationSelectedProfileID }) {
+            simulationSelectedProfileID = Self.preferredProfileID(in: normalizedProfiles)
+                ?? normalizedProfiles[0].id
         }
         simulationData.selectedProfileID = simulationSelectedProfileID
         simulationData.pairedScales = configuration.pairedScales
@@ -783,11 +910,13 @@ final class MeasurementStore: ObservableObject {
         appearance = configuration.appearance
         mergeFrequentMeasurements = configuration.mergeFrequentMeasurements
         simulationAppleHealthProfileID = configuration.appleHealthProfileID.flatMap { profileID in
-            configuration.profiles.contains(where: { $0.id == profileID }) ? profileID : nil
+            normalizedProfiles.contains(where: { $0.id == profileID && $0.role == "本人" }) ? profileID : nil
         }
         simulationAppleHealthDeviceIDs = configuration.appleHealthDeviceIDs.intersection(
             Set(configuration.pairedScales.map(\.id))
         )
+        simulationIsAppleHealthImportEnabled = configuration.isAppleHealthImportEnabled
+        simulationAppleHealthReadTypes = configuration.appleHealthReadTypes
         customCommunicationRules = configuration.customCommunicationRules
         dashboardMetricOrder = MeasurementStore.sanitizedMetricOrder(configuration.dashboardMetricOrder)
         dashboardVisibleMetrics = configuration.dashboardVisibleMetrics

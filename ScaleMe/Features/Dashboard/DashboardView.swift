@@ -192,7 +192,7 @@ struct DashboardView: View {
                     Text(
                         store.appLanguage.format(
                             "%@ · %lld 岁",
-                            store.appLanguage.text(profile.relation),
+                            store.appLanguage.text(profile.role),
                             profile.age
                         )
                     )

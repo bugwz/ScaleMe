@@ -1,123 +1,37 @@
 import SwiftUI
 
-struct AppleHealthSettingsView: View {
-    private struct ProfileOption: Hashable {
-        let id: UUID
-        let name: String
-    }
+private enum AppleHealthDropdown: Equatable {
+    case devices
+    case readTypes
+}
 
+struct AppleHealthSettingsView: View {
     @EnvironmentObject private var store: MeasurementStore
     @EnvironmentObject private var appleHealth: AppleHealthManager
-    @State private var isProfileDropdownExpanded = false
-    @State private var isDeviceDropdownExpanded = false
+    @State private var expandedDropdown: AppleHealthDropdown?
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 18) {
-                SettingsPanel(title: "Apple 健康", icon: "heart.fill") {
-                    authorizationStatusRow
-
-                    SettingsSeparator()
-
-                    SettingsSwitch(
-                        title: "同步到 Apple 健康",
-                        detail: "开启时会请求 Apple 健康写入权限；关闭后本应用不会继续写入新数据。",
-                        isOn: sharingBinding
-                    )
-                    .disabled(
-                        appleHealth.isRequestingAuthorization
-                            || appleHealth.authorizationState == .unavailable
-                            || store.managedProfiles.isEmpty
-                    )
-                    .opacity(
-                        appleHealth.authorizationState == .unavailable || store.managedProfiles.isEmpty
-                            ? 0.55
-                            : 1
-                    )
-
-                    if store.displayAppleHealthProfileID != nil {
-                        SettingsSeparator()
-
-                        VStack(alignment: .leading, spacing: 10) {
-                            AppLocalizedText("同步用户")
-                                .font(.subheadline.weight(.semibold))
-                                .foregroundStyle(AppColor.ink)
-                            AppDropdownField(
-                                value: sharedProfile?.name ?? store.appLanguage.text("请选择成员"),
-                                icon: "person.crop.circle",
-                                accessibilityLabel: "同步用户",
-                                isExpanded: isProfileDropdownExpanded,
-                                appearance: .compact,
-                                onToggle: toggleProfileDropdown
-                            )
-                        }
-
-                        SettingsSeparator()
-
-                        VStack(alignment: .leading, spacing: 10) {
-                            AppLocalizedText("同步设备")
-                                .font(.subheadline.weight(.semibold))
-                                .foregroundStyle(AppColor.ink)
-                            AppDropdownField(
-                                value: deviceSelectionTitle,
-                                icon: "externaldrive.connected.to.line.below",
-                                accessibilityLabel: "同步设备",
-                                isExpanded: isDeviceDropdownExpanded,
-                                appearance: .compact,
-                                onToggle: toggleDeviceDropdown
-                            )
-                            .disabled(store.displayPairedScales.isEmpty)
-                            .opacity(store.displayPairedScales.isEmpty ? 0.55 : 1)
-
-                            AppLocalizedText("仅勾选你确认数据可靠的设备。未选择的设备、无法关联设备的数据和手动记录不会写入 Apple 健康。")
-                                .font(.caption)
-                                .foregroundStyle(AppColor.secondary)
-                                .lineSpacing(3)
-                                .fixedSize(horizontal: false, vertical: true)
-
-                            if store.displayPairedScales.isEmpty {
-                                Label("请先在设备页关联体重秤，再选择允许同步的来源。", systemImage: "scalemass")
-                                    .font(.caption)
-                                    .foregroundStyle(AppColor.secondary)
-                                    .fixedSize(horizontal: false, vertical: true)
-                            } else if store.displayAppleHealthDeviceIDs.isEmpty {
-                                Label("开启同步后仍需至少选择一台设备，新的测量才会写入 Apple 健康。", systemImage: "exclamationmark.circle.fill")
-                                    .font(.caption)
-                                    .foregroundStyle(AppColor.rose)
-                                    .fixedSize(horizontal: false, vertical: true)
-                            }
-                        }
-                    }
+            SettingsPanel(title: "Apple 健康", icon: "heart.fill") {
+                authorizationStatusRow
+                if shouldShowAuthorizationRequestAction {
+                    authorizationRequestAction
                 }
-
-                SettingsPanel(title: "数据同步范围", icon: "square.and.arrow.up") {
-                    sharedTypeRow(icon: "scalemass.fill", title: "体重", detail: "每次稳定称重的千克值")
-                    SettingsSeparator()
-                    sharedTypeRow(icon: "percent", title: "体脂率", detail: "仅共享所选设备明确提供的数值")
-                }
-
-                Label(
-                    "本应用不会读取 Apple 健康数据。开启后仅共享所选成员的新测量，不补传历史记录；估算的身体成分不会写入。",
-                    systemImage: "hand.raised.fill"
-                )
-                .font(.caption)
-                .foregroundStyle(AppColor.secondary)
-                .lineSpacing(3)
-                .padding(.horizontal, 2)
+                SettingsSeparator()
+                sharingSection
+                importSection
 
                 if store.isSimulationEnabled {
-                    Label(
+                    notice(
                         "模拟数据不会写入 Apple 健康；这里的同步设置仅用于本次运行中的预览。",
-                        systemImage: "sparkles"
+                        icon: "sparkles"
                     )
-                    .font(.caption)
-                    .foregroundStyle(AppColor.secondary)
-                    .lineSpacing(3)
-                    .padding(.horizontal, 2)
                 }
-
-                if let lastShareError = appleHealth.lastShareError {
-                    errorBanner(lastShareError)
+                if let error = appleHealth.lastShareError {
+                    errorBanner(title: "最近一次共享失败", message: error)
+                }
+                if let error = appleHealth.lastImportError {
+                    errorBanner(title: "最近一次获取失败", message: error)
                 }
             }
             .padding(.horizontal, 18)
@@ -128,72 +42,253 @@ struct AppleHealthSettingsView: View {
         .navigationTitle(store.appLanguage.text(.dataSharing))
         .navigationBarTitleDisplayMode(.inline)
         .localizedNavigationBackButton()
-        .accessibilityHidden(isProfileDropdownExpanded || isDeviceDropdownExpanded)
+        .accessibilityHidden(expandedDropdown != nil)
         .overlayPreferenceValue(AppDropdownAnchorPreferenceKey.self) { anchor in
             GeometryReader { proxy in
-                if let anchor, isProfileDropdownExpanded {
-                    AppDropdownMenuLayer(
-                        anchorFrame: proxy[anchor],
-                        availableSize: proxy.size,
-                        options: profileOptions,
-                        isSelected: { $0.id == sharedProfile?.id },
-                        title: { $0.name },
-                        appearance: .compact,
-                        onSelect: { option in
-                            store.setDisplayAppleHealthProfileID(option.id)
-                            dismissProfileDropdown()
-                        },
-                        onDismiss: dismissProfileDropdown
-                    )
-                } else if let anchor, isDeviceDropdownExpanded {
-                    AppDropdownMenuLayer(
-                        anchorFrame: proxy[anchor],
-                        availableSize: proxy.size,
-                        options: store.displayPairedScales,
-                        isSelected: { store.displayAppleHealthDeviceIDs.contains($0.id) },
-                        title: { $0.name },
-                        detail: { $0.modelName },
-                        appearance: .compact,
-                        onSelect: { scale in
-                            withAnimation(.easeInOut(duration: 0.16)) {
-                                store.toggleDisplayAppleHealthDevice(scale.id)
-                            }
-                        },
-                        onDismiss: dismissDeviceDropdown
-                    )
+                if let anchor {
+                    dropdownLayer(anchorFrame: proxy[anchor], availableSize: proxy.size)
                 }
             }
         }
         .onAppear { appleHealth.refreshAuthorizationState() }
-        .onDisappear {
-            isProfileDropdownExpanded = false
-            isDeviceDropdownExpanded = false
+        .onDisappear { expandedDropdown = nil }
+    }
+
+    private var sharingSection: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            SettingsSwitch(
+                title: "共享数据给 Apple 健康",
+                isOn: sharingBinding
+            )
+            .disabled(isSharingControlDisabled)
+            .opacity(isSharingControlDisabled ? 0.55 : 1)
+
+            if store.displayAppleHealthProfileID != nil {
+                SettingsSeparator()
+                fixedField(
+                    title: "选择用户",
+                    value: sharedProfile?.name ?? store.appLanguage.text("请选择成员"),
+                    icon: "person.crop.circle"
+                )
+                SettingsSeparator()
+                dropdownField(
+                    title: "选择设备",
+                    value: deviceSelectionTitle,
+                    icon: "externaldrive.connected.to.line.below",
+                    dropdown: .devices,
+                    isEnabled: !store.displayPairedScales.isEmpty
+                )
+                if store.displayPairedScales.isEmpty {
+                    notice("请先在设备页关联体重秤，再选择允许同步的来源。", icon: "scalemass")
+                } else if store.displayAppleHealthDeviceIDs.isEmpty {
+                    notice(
+                        "开启同步后仍需至少选择一台设备，新的测量才会写入 Apple 健康。",
+                        icon: "exclamationmark.circle.fill",
+                        color: AppColor.rose
+                    )
+                }
+                notice(
+                    "共享到 Apple 健康的记录仅包含所选用户由所选设备产生的新稳定测量。",
+                    icon: "checkmark.shield"
+                )
+            }
+        }
+        .padding(14)
+        .overlay {
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(AppColor.mint.opacity(0.10))
+        }
+    }
+
+    private func fixedField(title: String, value: String, icon: String) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            AppLocalizedText(title)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(AppColor.ink)
+            HStack(spacing: 12) {
+                Image(systemName: icon)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(AppColor.mint)
+                    .frame(width: 34, height: 34)
+                    .background(AppColor.paleMint, in: RoundedRectangle(cornerRadius: 10))
+                Text(value)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(AppColor.ink)
+                Spacer(minLength: 8)
+            }
+            .padding(.horizontal, 12)
+            .frame(maxWidth: .infinity)
+            .frame(minHeight: 52)
+            .background(AppColor.canvas, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .stroke(AppColor.mint.opacity(0.18))
+            }
+            .accessibilityElement(children: .combine)
+        }
+    }
+
+    private var importSection: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            SettingsSwitch(
+                title: "从 Apple 健康获取数据",
+                isOn: importBinding
+            )
+            .disabled(isImportControlDisabled)
+            .opacity(isImportControlDisabled ? 0.55 : 1)
+
+            if store.displayIsAppleHealthImportEnabled {
+                SettingsSeparator()
+                dropdownField(
+                    title: "选择数据类型",
+                    value: readTypeSelectionTitle,
+                    icon: "square.and.arrow.down",
+                    dropdown: .readTypes
+                )
+                if appleHealth.isImporting {
+                    HStack(spacing: 8) {
+                        ProgressView().tint(AppColor.mint)
+                        AppLocalizedText("正在从 Apple 健康获取数据")
+                            .font(.caption)
+                            .foregroundStyle(AppColor.secondary)
+                    }
+                }
+                notice(
+                    "从 Apple 健康获取的记录会标记为 Apple 健康，并归入本人档案。",
+                    icon: "checkmark.shield"
+                )
+            }
+        }
+        .padding(14)
+        .overlay {
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(AppColor.mint.opacity(0.10))
+        }
+    }
+
+    private func dropdownField(
+        title: String,
+        value: String,
+        icon: String,
+        dropdown: AppleHealthDropdown,
+        isEnabled: Bool = true
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            AppLocalizedText(title)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(AppColor.ink)
+            AppDropdownField(
+                value: value,
+                icon: icon,
+                accessibilityLabel: title,
+                isExpanded: expandedDropdown == dropdown,
+                appearance: .compact,
+                onToggle: { toggleDropdown(dropdown, isEnabled: isEnabled) }
+            )
+            .disabled(!isEnabled)
+            .opacity(isEnabled ? 1 : 0.55)
+        }
+    }
+
+    @ViewBuilder
+    private func dropdownLayer(anchorFrame: CGRect, availableSize: CGSize) -> some View {
+        switch expandedDropdown {
+        case .devices:
+            AppDropdownMenuLayer(
+                anchorFrame: anchorFrame,
+                availableSize: availableSize,
+                options: store.displayPairedScales,
+                isSelected: { store.displayAppleHealthDeviceIDs.contains($0.id) },
+                title: { $0.name },
+                detail: { $0.modelName },
+                appearance: .compact,
+                onSelect: { scale in
+                    store.toggleDisplayAppleHealthDevice(scale.id)
+                },
+                onDismiss: dismissDropdown
+            )
+        case .readTypes:
+            AppDropdownMenuLayer(
+                anchorFrame: anchorFrame,
+                availableSize: availableSize,
+                options: AppleHealthDataType.allCases,
+                isSelected: { store.displayAppleHealthReadTypes.contains($0) },
+                title: { $0.title },
+                appearance: .compact,
+                onSelect: { dataType in
+                    store.toggleDisplayAppleHealthReadType(dataType)
+                },
+                onDismiss: dismissDropdown
+            )
+        case nil:
+            EmptyView()
         }
     }
 
     private var sharedProfile: UserProfile? {
-        guard let profileID = store.displayAppleHealthProfileID else { return nil }
-        return store.managedProfiles.first { $0.id == profileID }
+        guard let id = store.displayAppleHealthProfileID else { return nil }
+        return store.managedProfiles.first { $0.id == id }
     }
 
-    private var profileOptions: [ProfileOption] {
-        store.managedProfiles.map { ProfileOption(id: $0.id, name: $0.name) }
+    private var isSharingControlDisabled: Bool {
+        guard !store.isSimulationEnabled else { return store.currentUserProfile == nil }
+        if store.displayAppleHealthProfileID != nil {
+            return appleHealth.isRequestingAuthorization
+        }
+        return isSyncControlUnavailable || appleHealth.authorizationState != .authorized
+    }
+
+    private var isImportControlDisabled: Bool {
+        guard !store.isSimulationEnabled else { return store.currentUserProfile == nil }
+        return isSyncControlUnavailable
+    }
+
+    private var isSyncControlUnavailable: Bool {
+        guard store.currentUserProfile != nil,
+              !appleHealth.isRequestingAuthorization else { return true }
+        return switch appleHealth.authorizationState {
+        case .authorized, .denied: false
+        case .unavailable, .notDetermined, .failed: true
+        }
     }
 
     private var sharingBinding: Binding<Bool> {
         Binding(
             get: { store.displayAppleHealthProfileID != nil },
             set: { isEnabled in
-                if isEnabled {
-                    Task {
-                        guard !store.managedProfiles.isEmpty else { return }
-                        guard await appleHealth.requestSharingAuthorization() else { return }
-                        store.setDisplayAppleHealthProfileID(store.displaySelectedProfileID)
-                    }
-                } else {
-                    isDeviceDropdownExpanded = false
+                guard isEnabled else {
+                    expandedDropdown = nil
                     store.setDisplayAppleHealthProfileID(nil)
+                    return
                 }
+                guard let currentUser = store.currentUserProfile else { return }
+                if store.isSimulationEnabled {
+                    store.setDisplayAppleHealthProfileID(currentUser.id)
+                    return
+                }
+                store.setDisplayAppleHealthProfileID(currentUser.id)
+            }
+        )
+    }
+
+    private var importBinding: Binding<Bool> {
+        Binding(
+            get: { store.displayIsAppleHealthImportEnabled },
+            set: { isEnabled in
+                guard isEnabled else {
+                    if expandedDropdown == .readTypes { expandedDropdown = nil }
+                    store.setDisplayAppleHealthImportEnabled(false)
+                    return
+                }
+                if store.displayAppleHealthReadTypes.isEmpty {
+                    store.toggleDisplayAppleHealthReadType(.bodyMass)
+                }
+                if store.isSimulationEnabled {
+                    store.setDisplayAppleHealthImportEnabled(true)
+                    return
+                }
+                store.setDisplayAppleHealthImportEnabled(true)
+                Task { await importAppleHealthData() }
             }
         )
     }
@@ -203,6 +298,10 @@ struct AppleHealthSettingsView: View {
         return count == 0
             ? store.appLanguage.text("请选择设备")
             : store.appLanguage.format("已选择 %lld 台设备", count)
+    }
+
+    private var readTypeSelectionTitle: String {
+        store.appLanguage.format("已选择 %lld 项", store.displayAppleHealthReadTypes.count)
     }
 
     private var authorizationStatusRow: some View {
@@ -222,46 +321,57 @@ struct AppleHealthSettingsView: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
             Spacer()
-            if appleHealth.isRequestingAuthorization {
-                ProgressView().tint(AppColor.mint)
-            }
+            if appleHealth.isRequestingAuthorization { ProgressView().tint(AppColor.mint) }
         }
         .accessibilityElement(children: .combine)
     }
 
-    private func sharedTypeRow(icon: String, title: String, detail: String) -> some View {
-        HStack(spacing: 12) {
-            Image(systemName: icon)
-                .foregroundStyle(AppColor.mint)
-                .frame(width: 32, height: 32)
-                .background(AppColor.paleMint, in: RoundedRectangle(cornerRadius: 10))
-            VStack(alignment: .leading, spacing: 3) {
-                AppLocalizedText(title)
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(AppColor.ink)
-                AppLocalizedText(detail)
-                    .font(.caption)
-                    .foregroundStyle(AppColor.secondary)
-            }
+    private var shouldShowAuthorizationRequestAction: Bool {
+        switch appleHealth.authorizationState {
+        case .notDetermined, .failed: true
+        case .unavailable, .authorized, .denied: false
         }
     }
 
-    private func errorBanner(_ message: String) -> some View {
+    private var authorizationRequestAction: some View {
+        Button {
+            Task { await appleHealth.requestAuthorization() }
+        } label: {
+            Label("请求 Apple 健康权限", systemImage: "heart.text.clipboard")
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(AppColor.mint)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 13)
+                .background(AppColor.paleMint, in: RoundedRectangle(cornerRadius: 8))
+        }
+        .buttonStyle(.plain)
+        .disabled(
+            store.isSimulationEnabled
+                || appleHealth.isRequestingAuthorization
+                || appleHealth.authorizationState == .unavailable
+        )
+        .opacity(store.isSimulationEnabled ? 0.55 : 1)
+    }
+
+    private func notice(_ text: String, icon: String, color: Color = AppColor.secondary) -> some View {
+        Label { AppLocalizedText(text) } icon: { Image(systemName: icon) }
+            .font(.caption)
+            .foregroundStyle(color)
+            .lineSpacing(3)
+            .fixedSize(horizontal: false, vertical: true)
+    }
+
+    private func errorBanner(title: String, message: String) -> some View {
         HStack(alignment: .top, spacing: 12) {
-            Image(systemName: "exclamationmark.triangle.fill")
-                .foregroundStyle(AppColor.rose)
+            Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(AppColor.rose)
             VStack(alignment: .leading, spacing: 4) {
-                AppLocalizedText("最近一次共享失败")
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(AppColor.ink)
-                Text(message)
-                    .font(.caption)
-                    .foregroundStyle(AppColor.secondary)
+                AppLocalizedText(title).font(.subheadline.weight(.semibold)).foregroundStyle(AppColor.ink)
+                Text(message).font(.caption).foregroundStyle(AppColor.secondary)
             }
         }
-        .padding(16)
+        .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(AppColor.rose.opacity(0.1), in: RoundedRectangle(cornerRadius: 18))
+        .background(AppColor.rose.opacity(0.1), in: RoundedRectangle(cornerRadius: 8))
     }
 
     private var authorizationTitle: String {
@@ -278,7 +388,7 @@ struct AppleHealthSettingsView: View {
     private var authorizationDetail: String {
         switch appleHealth.authorizationState {
         case .unavailable: "当前设备不支持健康数据。"
-        case .notDetermined: "开启同步后，由系统显示权限确认。"
+        case .notDetermined: "点击下方按钮，由系统显示读写权限确认。"
         case .authorized: "本应用可以写入您允许的健康数据类型。"
         case .denied: "请在系统的健康权限设置中允许本应用写入。"
         case let .failed(message): message
@@ -301,30 +411,25 @@ struct AppleHealthSettingsView: View {
         }
     }
 
-    private func toggleProfileDropdown() {
-        isDeviceDropdownExpanded = false
+    private func toggleDropdown(_ dropdown: AppleHealthDropdown, isEnabled: Bool) {
+        guard isEnabled else { return }
         withAnimation(.easeInOut(duration: 0.18)) {
-            isProfileDropdownExpanded.toggle()
+            expandedDropdown = expandedDropdown == dropdown ? nil : dropdown
         }
     }
 
-    private func dismissProfileDropdown() {
-        withAnimation(.easeInOut(duration: 0.16)) {
-            isProfileDropdownExpanded = false
-        }
+    private func dismissDropdown() {
+        withAnimation(.easeInOut(duration: 0.16)) { expandedDropdown = nil }
     }
 
-    private func toggleDeviceDropdown() {
-        isProfileDropdownExpanded = false
-        guard !store.displayPairedScales.isEmpty else { return }
-        withAnimation(.easeInOut(duration: 0.18)) {
-            isDeviceDropdownExpanded.toggle()
-        }
-    }
-
-    private func dismissDeviceDropdown() {
-        withAnimation(.easeInOut(duration: 0.16)) {
-            isDeviceDropdownExpanded = false
-        }
+    private func importAppleHealthData() async {
+        guard !store.isSimulationEnabled,
+              store.isAppleHealthImportEnabled,
+              let currentUser = store.currentUserProfile else { return }
+        let imported = await appleHealth.readMeasurements(
+            dataTypes: store.appleHealthReadTypes,
+            profileID: currentUser.id
+        )
+        store.importAppleHealthMeasurements(imported)
     }
 }

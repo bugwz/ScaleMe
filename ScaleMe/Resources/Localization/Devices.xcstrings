@@ -1171,132 +1171,132 @@
         }
       }
     },
-    "上游自定义处理器入口已登记；ScaleMe 使用受限外部通信规则承担对应能力。" : {
+    "上游自定义处理器入口已登记；本应用使用受限外部通信规则承担对应能力。" : {
       "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Der benutzerdefinierte Upstream-Handler ist registriert. ScaleMe stellt die Funktion über eingeschränkte externe Kommunikationsregeln bereit."
+            "value" : "Der benutzerdefinierte Upstream-Handler ist registriert. Diese App stellt die Funktion über eingeschränkte externe Kommunikationsregeln bereit."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The upstream custom handler is registered. ScaleMe provides the capability through restricted external communication rules."
+            "value" : "The upstream custom handler is registered. This app provides the capability through restricted external communication rules."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "El controlador personalizado upstream está registrado. ScaleMe ofrece la función mediante reglas de comunicación externas restringidas."
+            "value" : "El controlador personalizado upstream está registrado. Esta aplicación ofrece la función mediante reglas de comunicación externas restringidas."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Le gestionnaire personnalisé amont est enregistré. ScaleMe fournit cette fonction via des règles de communication externes limitées."
+            "value" : "Le gestionnaire personnalisé amont est enregistré. Cette application fournit cette fonction via des règles de communication externes limitées."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "上流のカスタムハンドラーを登録済みです。ScaleMe は制限付き外部通信ルールで対応機能を提供します。"
+            "value" : "上流のカスタムハンドラーを登録済みです。本アプリは制限付き外部通信ルールで対応機能を提供します。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "업스트림 사용자 지정 핸들러가 등록되어 있습니다. ScaleMe는 제한된 외부 통신 규칙을 통해 해당 기능을 제공합니다."
+            "value" : "업스트림 사용자 지정 핸들러가 등록되어 있습니다. 이 앱은 제한된 외부 통신 규칙을 통해 해당 기능을 제공합니다."
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "O processador personalizado upstream está registado. O ScaleMe fornece a função através de regras externas restritas."
+            "value" : "O processador personalizado upstream está registado. Esta aplicação fornece a função através de regras externas restritas."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Пользовательский обработчик исходного проекта зарегистрирован. ScaleMe предоставляет функцию через ограниченные внешние правила связи."
+            "value" : "Пользовательский обработчик исходного проекта зарегистрирован. Приложение предоставляет функцию через ограниченные внешние правила связи."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "上游自定义处理器入口已登记；ScaleMe 使用受限外部通信规则承担对应能力。"
+            "value" : "上游自定义处理器入口已登记；本应用使用受限外部通信规则承担对应能力。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已登記上游自訂處理器入口；ScaleMe 透過受限的外部通訊規則提供對應能力。"
+            "value" : "已登記上游自訂處理器入口；本應用透過受限的外部通訊規則提供對應能力。"
           }
         }
       }
     },
-    "上游适配器定义已登记；ScaleMe 运行时尚未完整移植该会话。" : {
+    "上游适配器定义已登记；本应用运行时尚未完整移植该会话。" : {
       "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Die Upstream-Adapterdefinition ist registriert; die Sitzung ist noch nicht vollständig in ScaleMe portiert."
+            "value" : "Die Upstream-Adapterdefinition ist registriert; die Sitzung ist noch nicht vollständig in diese App portiert."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The upstream adapter definition is registered; its session is not yet fully ported to ScaleMe."
+            "value" : "The upstream adapter definition is registered; its session is not yet fully ported to this app."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "La definición del adaptador upstream está registrada; su sesión aún no se ha portado por completo a ScaleMe."
+            "value" : "La definición del adaptador upstream está registrada; su sesión aún no se ha portado por completo a esta aplicación."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "La définition de l’adaptateur amont est enregistrée ; sa session n’est pas encore entièrement portée dans ScaleMe."
+            "value" : "La définition de l’adaptateur amont est enregistrée ; sa session n’est pas encore entièrement portée dans cette application."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "上流アダプター定義を登録済みですが、そのセッションは ScaleMe にまだ完全移植されていません。"
+            "value" : "上流アダプター定義を登録済みですが、そのセッションは本アプリにまだ完全移植されていません。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "업스트림 어댑터 정의가 등록되어 있지만 해당 세션은 아직 ScaleMe에 완전히 이식되지 않았습니다."
+            "value" : "업스트림 어댑터 정의가 등록되어 있지만 해당 세션은 아직 이 앱에 완전히 이식되지 않았습니다."
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "A definição do adaptador upstream está registada; a sessão ainda não foi totalmente portada para o ScaleMe."
+            "value" : "A definição do adaptador upstream está registada; a sessão ainda não foi totalmente portada para esta aplicação."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Определение адаптера исходного проекта зарегистрировано, но его сеанс ещё не полностью перенесён в ScaleMe."
+            "value" : "Определение адаптера исходного проекта зарегистрировано, но его сеанс ещё не полностью перенесён в приложение."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "上游适配器定义已登记；ScaleMe 运行时尚未完整移植该会话。"
+            "value" : "上游适配器定义已登记；本应用运行时尚未完整移植该会话。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已登記上游適配器定義；該工作階段尚未完整移植至 ScaleMe。"
+            "value" : "已登記上游適配器定義；該工作階段尚未完整移植至本應用。"
           }
         }
       }
