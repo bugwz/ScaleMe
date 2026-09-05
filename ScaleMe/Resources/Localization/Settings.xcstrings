@@ -3056,67 +3056,67 @@
         }
       }
     },
-    "文件导入/导出" : {
+    "导入/导出" : {
       "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Dateien importieren/exportieren"
+            "value" : "Importieren/Exportieren"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "File Import/Export"
+            "value" : "Import/Export"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Importar/exportar archivos"
+            "value" : "Importar/exportar"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Importer/exporter des fichiers"
+            "value" : "Importer/exporter"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ファイルの読み込み／書き出し"
+            "value" : "読み込み／書き出し"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "파일 가져오기/내보내기"
+            "value" : "가져오기/내보내기"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Importar/exportar ficheiros"
+            "value" : "Importar/exportar"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Импорт/экспорт файлов"
+            "value" : "Импорт/экспорт"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "文件导入/导出"
+            "value" : "导入/导出"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "檔案匯入/匯出"
+            "value" : "匯入/匯出"
           }
         }
       }

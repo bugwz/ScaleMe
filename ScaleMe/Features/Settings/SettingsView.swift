@@ -214,8 +214,9 @@ struct DataManagementSettingsView: View {
     @State private var activeAlert: DataManagementAlert?
     @State private var pendingConfiguration: AppConfiguration?
     @State private var pendingRecords: MeasurementArchive?
-    @State private var showsConfigurationImporter = false
-    @State private var showsRecordImporter = false
+    @State private var selectedTransferFileKind: TransferFileKind = .configuration
+    @State private var expandedDropdown: TransferFileKind?
+    @State private var showsImporter = false
     @State private var showsExporter = false
     @State private var exportDocument = LocalTransferDocument()
     @State private var exportContentType = UTType.json
@@ -241,17 +242,12 @@ struct DataManagementSettingsView: View {
         .navigationTitle(store.appLanguage.text(.dataManagement))
         .navigationBarTitleDisplayMode(.inline)
         .localizedNavigationBackButton()
+        .accessibilityHidden(expandedDropdown != nil)
         .fileImporter(
-            isPresented: $showsConfigurationImporter,
+            isPresented: $showsImporter,
             allowedContentTypes: [.json]
         ) { result in
-            importConfiguration(result)
-        }
-        .fileImporter(
-            isPresented: $showsRecordImporter,
-            allowedContentTypes: [.json]
-        ) { result in
-            importRecords(result)
+            importFile(result)
         }
         .fileExporter(
             isPresented: $showsExporter,
@@ -266,63 +262,50 @@ struct DataManagementSettingsView: View {
         .alert(item: $activeAlert) { alert in
             alertContent(for: alert)
         }
+        .overlayPreferenceValue(AppDropdownAnchorPreferenceKey.self) { anchor in
+            GeometryReader { proxy in
+                if let anchor, expandedDropdown != nil {
+                    AppDropdownMenuLayer(
+                        anchorFrame: proxy[anchor],
+                        availableSize: proxy.size,
+                        options: TransferFileKind.allCases,
+                        isSelected: { $0 == selectedTransferFileKind },
+                        title: { $0.title },
+                        appearance: .compact,
+                        onSelect: { fileKind in
+                            selectedTransferFileKind = fileKind
+                            dismissDropdown()
+                        },
+                        onDismiss: dismissDropdown
+                    )
+                }
+            }
+        }
+        .onDisappear { expandedDropdown = nil }
     }
 
     private var localTransferPanel: some View {
-        SettingsPanel(title: "文件导入/导出", icon: "arrow.up.arrow.down.square") {
-            transferSection(
-                title: "配置文件",
-                detail: "成员、设备、显示单位和通信协议。",
-                importAction: { showsConfigurationImporter = true },
-                exportAction: { exportConfiguration() }
+        SettingsPanel(title: "导入/导出", icon: "arrow.up.arrow.down.square") {
+            AppDropdownField(
+                value: selectedTransferFileKind.title,
+                icon: selectedTransferFileKind.icon,
+                accessibilityLabel: "导入/导出",
+                isExpanded: expandedDropdown != nil,
+                appearance: .compact,
+                onToggle: toggleDropdown
             )
 
-            SettingsSeparator()
-
-            transferSection(
-                title: "数据文件",
-                detail: "包含称重和身体成分记录的版本化 JSON 文件。",
-                importAction: { showsRecordImporter = true },
-                exportAction: { exportRecords() }
-            )
-
-            Label("配置文件与数据文件均以版本化 JSON 格式导入导出，可跨设备分享。", systemImage: "doc.text.fill")
+            Label(selectedTransferFileKind.detail, systemImage: selectedTransferFileKind.icon)
                 .font(.caption)
                 .foregroundStyle(AppColor.secondary)
                 .fixedSize(horizontal: false, vertical: true)
                 .padding(12)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(AppColor.paleMint.opacity(0.7), in: RoundedRectangle(cornerRadius: 14))
-        }
-    }
-
-    private func transferSection(
-        title: String,
-        detail: String,
-        importAction: @escaping () -> Void,
-        exportAction: @escaping () -> Void
-    ) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .top, spacing: 12) {
-                Image(systemName: title == "配置文件" ? "gearshape.2.fill" : "waveform.path.ecg")
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(title == "配置文件" ? AppColor.sky : AppColor.mint)
-                    .frame(width: 36, height: 36)
-                    .background(AppColor.paleMint, in: RoundedRectangle(cornerRadius: 11, style: .continuous))
-                VStack(alignment: .leading, spacing: 3) {
-                    AppLocalizedText(title)
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(AppColor.ink)
-                    AppLocalizedText(detail)
-                        .font(.caption)
-                        .foregroundStyle(AppColor.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-            }
 
             HStack(spacing: 10) {
-                transferButton(title: "导入", icon: "square.and.arrow.down", action: importAction)
-                transferButton(title: "导出", icon: "square.and.arrow.up", action: exportAction)
+                transferButton(title: "导入", icon: "square.and.arrow.down", action: importFile)
+                transferButton(title: "导出", icon: "square.and.arrow.up", action: exportFile)
             }
         }
     }
@@ -407,6 +390,41 @@ struct DataManagementSettingsView: View {
         }
     }
 
+    private func importFile() {
+        showsImporter = true
+    }
+
+    private func exportFile() {
+        switch selectedTransferFileKind {
+        case .configuration:
+            exportConfiguration()
+        case .records:
+            exportRecords()
+        }
+    }
+
+    private func importFile(_ result: Result<URL, Error>) {
+        switch selectedTransferFileKind {
+        case .configuration:
+            importConfiguration(result)
+        case .records:
+            importRecords(result)
+        }
+    }
+
+    private func toggleDropdown() {
+        KeyboardFocus.dismiss()
+        withAnimation(.easeInOut(duration: 0.18)) {
+            expandedDropdown = expandedDropdown == nil ? selectedTransferFileKind : nil
+        }
+    }
+
+    private func dismissDropdown() {
+        withAnimation(.easeInOut(duration: 0.16)) {
+            expandedDropdown = nil
+        }
+    }
+
     private func importConfiguration(_ result: Result<URL, Error>) {
         do {
             pendingConfiguration = try transferService.importConfiguration(from: importedData(from: result))
@@ -487,6 +505,32 @@ struct DataManagementSettingsView: View {
             case .configurationImport: "configuration-import"
             case .recordImport: "record-import"
             case .message(let title, let message): "message-\(title)-\(message)"
+            }
+        }
+    }
+
+    private enum TransferFileKind: CaseIterable, Hashable {
+        case configuration
+        case records
+
+        var title: String {
+            switch self {
+            case .configuration: "配置文件"
+            case .records: "数据文件"
+            }
+        }
+
+        var detail: String {
+            switch self {
+            case .configuration: "成员、设备、显示单位和通信协议。"
+            case .records: "包含称重和身体成分记录的版本化 JSON 文件。"
+            }
+        }
+
+        var icon: String {
+            switch self {
+            case .configuration: "gearshape.2.fill"
+            case .records: "waveform.path.ecg"
             }
         }
     }
