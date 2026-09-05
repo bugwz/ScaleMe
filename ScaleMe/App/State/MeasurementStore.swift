@@ -41,6 +41,7 @@ final class MeasurementStore: ObservableObject {
     @Published private var simulationAppleHealthDeviceIDs: Set<UUID>
     @Published private var simulationDeletedMeasurementIDs: Set<UUID>
     private var simulationArchiveUpdatedAt: Date
+    private var simulationCommunicationRuleImportSequence = SimulationCommunicationRuleImportSequence()
     private var configurationBeforeSimulation: AppConfiguration?
 
     init() {
@@ -116,6 +117,7 @@ final class MeasurementStore: ObservableObject {
             var baseline = loadedConfiguration
             baseline.isSimulationEnabled = false
             configurationBeforeSimulation = baseline
+            customCommunicationRules = SimulationCommunicationRuleCatalog.initialRules
         }
     }
 
@@ -542,8 +544,8 @@ final class MeasurementStore: ObservableObject {
     }
 
     @discardableResult
-    func importCommunicationRules(_ data: Data, sourceURL: URL? = nil) throws -> Int {
-        let imported = try CommunicationRuleCodec.decode(data, importedFrom: sourceURL)
+    func importCommunicationRules(_ data: Data) throws -> Int {
+        let imported = try CommunicationRuleCodec.decode(data)
         var updated = customCommunicationRules
         for rule in imported {
             if let index = updated.firstIndex(where: { $0.id == rule.id }) {
@@ -554,6 +556,13 @@ final class MeasurementStore: ObservableObject {
         }
         customCommunicationRules = updated.sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
         return imported.count
+    }
+
+    func simulatedCommunicationRuleImportData(fileName: String) throws -> Data {
+        guard isSimulationEnabled else {
+            throw CommunicationRuleError.invalidDocument("模拟协议导入仅在模拟数据模式可用")
+        }
+        return try simulationCommunicationRuleImportSequence.makeImportData(fileName: fileName)
     }
 
     func removeCommunicationRule(_ id: String) {
@@ -747,6 +756,8 @@ final class MeasurementStore: ObservableObject {
             baseline.isSimulationEnabled = false
             configurationBeforeSimulation = baseline
             simulationSelectedProfileID = simulationData.selectedProfileID
+            customCommunicationRules = SimulationCommunicationRuleCatalog.initialRules
+            simulationCommunicationRuleImportSequence = SimulationCommunicationRuleImportSequence()
             prepareSimulationDataIfNeeded()
         } else if let baseline = configurationBeforeSimulation {
             restoreSharedConfiguration(from: baseline)

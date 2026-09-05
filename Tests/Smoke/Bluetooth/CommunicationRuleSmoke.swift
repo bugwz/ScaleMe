@@ -16,6 +16,7 @@ let json = #"""
     "version": 1,
     "summary": "smoke fixture",
     "origin": "custom",
+    "sourceURL": "https://example.com/should-not-be-retained.json",
     "verification": "fixtureValidated",
     "match": {
       "transport": "characteristicNotification",
@@ -53,8 +54,46 @@ struct CommunicationRuleSmoke {
         let rules = try CommunicationRuleCodec.decode(Data(json.utf8))
         expect(rules.count == 1, "one rule should decode")
         expect(rules[0].id == "protocol.custom.demo-scale", "external rule should use the custom protocol namespace")
+        expect(rules[0].origin == .custom, "file imports should always be identified as local imports")
+        expect(rules[0].sourceURL == nil, "file imports should not retain a remote source URL")
         expect(rules[0].match.serviceUUID == "FFF0", "UUID should normalize")
         expect(rules[0].effectiveVerification == .unverified, "external rules cannot claim hardware validation")
+        expect(
+            SimulationCommunicationRuleCatalog.initialRules.count == 2,
+            "simulation should start with two external protocols"
+        )
+        for rule in SimulationCommunicationRuleCatalog.initialRules {
+            try CommunicationRuleCodec.validate(rule)
+        }
+        var simulatedImports = SimulationCommunicationRuleImportSequence()
+        let firstSimulationRules = try CommunicationRuleCodec.decode(
+            simulatedImports.makeImportData(fileName: "")
+        )
+        expect(firstSimulationRules.count == 1, "an empty simulation file should produce a valid protocol")
+        do {
+            _ = try simulatedImports.makeImportData(fileName: "anything.bin")
+            preconditionFailure("the second simulation import should demonstrate field validation failure")
+        } catch CommunicationRuleError.invalidDocument(let detail) {
+            expect(detail.contains("weight 字段"), "the simulated validation error should identify the field")
+        }
+        let thirdSimulationRules = try CommunicationRuleCodec.decode(
+            simulatedImports.makeImportData(fileName: "third.txt")
+        )
+        expect(thirdSimulationRules.count == 1, "the third simulation import should succeed again")
+        do {
+            _ = try simulatedImports.makeImportData(fileName: "fourth.data")
+            preconditionFailure("even-numbered simulation imports should demonstrate field validation failure")
+        } catch CommunicationRuleError.invalidDocument(let detail) {
+            expect(detail.contains("weight 字段"), "the fourth simulation import should fail on the field again")
+        }
+        do {
+            _ = try CommunicationRuleCodec.decode(
+                Data(repeating: 0, count: CommunicationRuleCodec.maximumDocumentBytes + 1)
+            )
+            preconditionFailure("oversized protocol files should be rejected")
+        } catch CommunicationRuleError.responseTooLarge {
+            // Expected.
+        }
         expect(
             CommunicationRuleCatalog.builtIn.first(where: { $0.id == CommunicationRuleCatalog.xiaomiMiScale2ID })?
                 .capabilities.contains(.historyRead) == true,

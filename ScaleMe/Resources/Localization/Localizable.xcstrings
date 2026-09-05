@@ -2127,6 +2127,7 @@
       }
     },
     "删除正在使用的规则后，相关设备会恢复为自动识别。社区规则不是官方兼容性承诺。" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -3483,6 +3484,7 @@
       }
     },
     "导入" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -7086,6 +7088,7 @@
       }
     },
     "点击导入后会检查地址、网络资源与协议格式；校验通过才会保存。" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {

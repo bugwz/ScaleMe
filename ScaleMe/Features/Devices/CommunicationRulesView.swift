@@ -1,4 +1,5 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct CommunicationRulesView: View {
     @EnvironmentObject private var store: MeasurementStore
@@ -49,28 +50,15 @@ struct CommunicationRulesView: View {
                         ContentUnavailableView(
                             language.text("外部协议"),
                             systemImage: "doc.badge.plus",
-                            description: Text(language.text("点击“添加”并输入 HTTPS 地址导入。"))
+                            description: Text(language.text("点击“添加”并选择本地协议文件导入。"))
                         )
                         .frame(maxWidth: .infinity, minHeight: 150)
                     } else {
                         ForEach(store.customCommunicationRules) { rule in
-                            HStack(spacing: 12) {
-                                ProtocolRuleLink(rule: rule)
-                                Button(role: .destructive) {
-                                    store.removeCommunicationRule(rule.id)
-                                } label: {
-                                    Image(systemName: "trash")
-                                }
-                                .buttonStyle(.borderless)
-                                .accessibilityLabel(language.format("删除%@", rule.name))
-                            }
+                            ProtocolRuleLink(rule: rule)
                             if rule.id != store.customCommunicationRules.last?.id { SettingsSeparator() }
                         }
                     }
-                    Text("删除正在使用的规则后，相关设备会恢复为自动识别。社区规则不是官方兼容性承诺。")
-                        .font(.caption)
-                        .foregroundStyle(AppColor.secondary)
-                        .lineSpacing(3)
                 }
 
             }
@@ -265,142 +253,253 @@ private struct AddExternalProtocolView: View {
     @Environment(\.appLanguage) private var language
     @EnvironmentObject private var store: MeasurementStore
     @Environment(\.dismiss) private var dismiss
-    @State private var remoteURL = ""
-    @State private var isRemoteURLFocused = false
-    @State private var isImporting = false
+    @State private var showsFileImporter = false
+    @State private var selectedFileName: String?
+    @State private var selectedData: Data?
+    @State private var parsedRules: [CommunicationRule] = []
     @State private var errorMessage: String?
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 18) {
-                    SettingsPanel(title: "在线导入", icon: "link.badge.plus") {
-                        Text("点击导入后会检查地址、网络资源与协议格式；校验通过才会保存。")
-                            .font(.caption)
-                            .foregroundStyle(AppColor.secondary)
-                            .fixedSize(horizontal: false, vertical: true)
-
-                        ResponsiveTextField(
-                            text: $remoteURL,
-                            isFocused: $isRemoteURLFocused,
-                            placeholder: "https://example.com/scaleme-protocols.json",
-                            keyboardType: .URL,
-                            returnKeyType: .done,
-                            autocapitalizationType: .none,
-                            autocorrectionType: .no,
-                            spellCheckingType: .no
-                        )
-                        .padding(12)
-                        .background(AppColor.canvas, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                .stroke(errorMessage == nil ? AppColor.mint.opacity(0.18) : AppColor.rose, lineWidth: errorMessage == nil ? 1 : 1.5)
-                                .allowsHitTesting(false)
-                        )
-
-                        if let errorMessage {
-                            Label {
-                                Text(language.text(errorMessage))
-                                    .fixedSize(horizontal: false, vertical: true)
-                            } icon: {
-                                Image(systemName: "exclamationmark.triangle.fill")
-                            }
-                            .font(.caption)
-                            .foregroundStyle(AppColor.rose)
-                        }
-
-                        Button(action: importProtocol) {
-                            HStack {
-                                Label("导入", systemImage: "arrow.down.doc.fill")
-                                    .font(.subheadline.weight(.semibold))
-                                Spacer()
-                                if isImporting {
-                                    ProgressView().tint(.white)
-                                }
-                            }
-                            .foregroundStyle(hasImportAddress ? Color.white : AppColor.secondary)
-                            .frame(maxWidth: .infinity)
-                            .padding(.horizontal, 16)
-                            .frame(minHeight: 48)
-                            .background(
-                                hasImportAddress ? AppColor.mint : AppColor.paleMint,
-                                in: RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            )
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                    .stroke(hasImportAddress ? Color.clear : AppColor.secondary.opacity(0.18))
-                            )
-                        }
-                        .buttonStyle(.plain)
-                        .disabled(!hasImportAddress || isImporting)
-                    }
+                    selectFileButton
+                    parsedContentBox
                 }
                 .padding(.horizontal, 18)
                 .padding(.bottom, 28)
             }
-            .scrollDismissesKeyboard(.interactively)
             .pageBackground()
             .navigationTitle("外部协议")
             .navigationBarTitleDisplayMode(.inline)
-            .interactiveDismissDisabled(isImporting)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("取消") { dismiss() }
-                        .disabled(isImporting)
                 }
             }
+            .safeAreaInset(edge: .bottom) {
+                importFooter
+            }
+            .fileImporter(
+                isPresented: $showsFileImporter,
+                allowedContentTypes: store.isSimulationEnabled ? [.item] : [.json],
+                allowsMultipleSelection: false,
+                onCompletion: selectFile
+            )
         }
     }
 
-    private var trimmedURL: String {
-        remoteURL.trimmingCharacters(in: .whitespacesAndNewlines)
+    private var selectFileButton: some View {
+        Button {
+            showsFileImporter = true
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: "doc.badge.plus")
+                    .font(.headline)
+                VStack(alignment: .leading, spacing: 3) {
+                    AppLocalizedText("选择文件")
+                        .font(.subheadline.weight(.semibold))
+                    if let selectedFileName {
+                        Text(selectedFileName)
+                            .font(.caption)
+                            .lineLimit(1)
+                    }
+                }
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.caption.bold())
+            }
+            .foregroundStyle(AppColor.mint)
+            .padding(.horizontal, 16)
+            .frame(maxWidth: .infinity, minHeight: 58)
+            .background(AppColor.surface.opacity(0.94), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).stroke(AppColor.mint.opacity(0.16)))
+        }
+        .buttonStyle(.plain)
     }
 
-    private var hasImportAddress: Bool {
-        !trimmedURL.isEmpty
+    private var parsedContentBox: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Label {
+                AppLocalizedText("解析后的协议内容")
+            } icon: {
+                Image(systemName: "doc.text.magnifyingglass")
+            }
+                .font(.headline)
+                .foregroundStyle(AppColor.ink)
+
+            if parsedRules.isEmpty {
+                VStack(spacing: 10) {
+                    Image(systemName: "doc.text")
+                        .font(.title2)
+                        .foregroundStyle(AppColor.secondary.opacity(0.7))
+                    AppLocalizedText("选择文件后，这里会显示校验通过的协议名称、标识和通信特征。")
+                        .font(.caption)
+                        .foregroundStyle(AppColor.secondary)
+                        .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .frame(maxWidth: .infinity, minHeight: 150)
+            } else {
+                ForEach(Array(parsedRules.enumerated()), id: \.element.id) { index, rule in
+                    if index > 0 { SettingsSeparator() }
+                    parsedRuleSummary(rule)
+                }
+            }
+        }
+        .padding(18)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(AppColor.surface.opacity(0.94), in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                .stroke(errorMessage == nil ? AppColor.mint.opacity(0.10) : AppColor.rose.opacity(0.7), lineWidth: errorMessage == nil ? 1 : 1.5)
+        )
+    }
+
+    private func parsedRuleSummary(_ rule: CommunicationRule) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text(rule.name)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(AppColor.ink)
+            CommunicationRuleTags(rule: rule)
+            SettingsValueRow(title: "ID", value: rule.id)
+            SettingsSeparator()
+            SettingsValueRow(title: "版本", value: String(rule.version))
+            SettingsSeparator()
+            SettingsValueRow(title: "服务 UUID", value: rule.match.serviceUUID)
+            if let characteristicUUID = rule.match.characteristicUUID {
+                SettingsSeparator()
+                SettingsValueRow(title: "特征 UUID", value: characteristicUUID)
+            }
+            SettingsSeparator()
+            SettingsValueRow(title: "解析字段", value: decodedFieldDescription(rule.decoder))
+        }
+        .accessibilityElement(children: .contain)
+    }
+
+    private var importFooter: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            if let errorMessage {
+                Label {
+                    Text(language.text(errorMessage))
+                        .fixedSize(horizontal: false, vertical: true)
+                } icon: {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                }
+                .font(.caption)
+                .foregroundStyle(AppColor.rose)
+            } else if parsedRules.isEmpty {
+                AppLocalizedText("请先选择并校验本地协议文件。")
+                    .font(.caption)
+                    .foregroundStyle(AppColor.secondary)
+            }
+
+            Button(action: importProtocol) {
+                Label {
+                    AppLocalizedText("导入")
+                } icon: {
+                    Image(systemName: "square.and.arrow.down.fill")
+                }
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(canImport ? Color.white : AppColor.secondary)
+                    .frame(maxWidth: .infinity, minHeight: 48)
+                    .background(
+                        canImport ? AppColor.mint : AppColor.paleMint,
+                        in: RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 14, style: .continuous)
+                            .stroke(canImport ? Color.clear : AppColor.secondary.opacity(0.18))
+                    )
+            }
+            .buttonStyle(.plain)
+            .disabled(!canImport)
+        }
+        .padding(.horizontal, 18)
+        .padding(.top, 12)
+        .padding(.bottom, 8)
+        .background(.ultraThinMaterial)
+    }
+
+    private var canImport: Bool {
+        selectedData != nil && !parsedRules.isEmpty && errorMessage == nil
+    }
+
+    private func selectFile(_ result: Result<[URL], Error>) {
+        do {
+            guard let url = try result.get().first else { return }
+            selectedFileName = url.lastPathComponent
+            if store.isSimulationEnabled {
+                let data = try store.simulatedCommunicationRuleImportData(fileName: url.lastPathComponent)
+                let rules = try CommunicationRuleCodec.decode(data)
+                selectedData = data
+                parsedRules = rules
+                errorMessage = nil
+                return
+            }
+            let hasSecurityScope = url.startAccessingSecurityScopedResource()
+            defer {
+                if hasSecurityScope { url.stopAccessingSecurityScopedResource() }
+            }
+            if let fileSize = try url.resourceValues(forKeys: [.fileSizeKey]).fileSize,
+               fileSize > CommunicationRuleCodec.maximumDocumentBytes {
+                throw CommunicationRuleError.responseTooLarge
+            }
+            let file = try FileHandle(forReadingFrom: url)
+            defer { try? file.close() }
+            let data = try file.read(upToCount: CommunicationRuleCodec.maximumDocumentBytes + 1) ?? Data()
+            let rules = try CommunicationRuleCodec.decode(data)
+            selectedData = data
+            parsedRules = rules
+            errorMessage = nil
+        } catch let error as CocoaError where error.code == .userCancelled {
+            return
+        } catch {
+            selectedData = nil
+            parsedRules = []
+            errorMessage = error.localizedDescription
+        }
     }
 
     private func importProtocol() {
-        KeyboardFocus.dismiss()
-        errorMessage = nil
-        guard let url = URL(string: trimmedURL), url.scheme?.lowercased() == "https" else {
-            errorMessage = CommunicationRuleError.unsupportedRemoteURL.localizedDescription
-            return
+        guard let selectedData else { return }
+        do {
+            _ = try store.importCommunicationRules(selectedData)
+            dismiss()
+        } catch {
+            self.selectedData = nil
+            parsedRules = []
+            errorMessage = error.localizedDescription
         }
+    }
 
-        isImporting = true
-        Task {
-            defer { isImporting = false }
-            do {
-                var request = URLRequest(url: url)
-                request.timeoutInterval = 15
-                request.cachePolicy = .reloadIgnoringLocalCacheData
-                let (bytes, response) = try await URLSession.shared.bytes(for: request)
-                guard let http = response as? HTTPURLResponse,
-                      (200...299).contains(http.statusCode),
-                      let resolvedURL = http.url,
-                      resolvedURL.scheme?.lowercased() == "https" else {
-                    throw URLError(.badServerResponse)
-                }
-                var data = Data()
-                data.reserveCapacity(max(0, min(Int(http.expectedContentLength), 512 * 1024)))
-                for try await byte in bytes {
-                    guard data.count < 512 * 1024 else {
-                        throw CommunicationRuleError.responseTooLarge
-                    }
-                    data.append(byte)
-                }
-                _ = try store.importCommunicationRules(data, sourceURL: resolvedURL)
-                dismiss()
-            } catch {
-                errorMessage = error.localizedDescription
-            }
+    private func decodedFieldDescription(_ decoder: CommunicationRuleDecoder?) -> String {
+        guard let decoder else { return language.text("设备操作") }
+        var fields = [language.text("体重")]
+        let optionalFields: [(CommunicationField?, String)] = [
+            (decoder.impedance, "阻抗"),
+            (decoder.bodyFatPercent, "体脂率"),
+            (decoder.muscleMassKG, "肌肉量"),
+            (decoder.waterPercent, "身体水分"),
+            (decoder.visceralFat, "内脏脂肪"),
+            (decoder.basalMetabolismKCal, "基础代谢"),
+            (decoder.boneMassKG, "骨量")
+        ]
+        for (field, title) in optionalFields where field != nil {
+            fields.append(language.text(title))
         }
+        if decoder.date != nil {
+            fields.append(language.text("时间"))
+        }
+        return fields.joined(separator: " · ")
     }
 }
 
 private struct CommunicationRuleDetailView: View {
     @Environment(\.appLanguage) private var language
+    @EnvironmentObject private var store: MeasurementStore
+    @Environment(\.dismiss) private var dismiss
+    @State private var confirmsDeletion = false
     let rule: CommunicationRule
 
     var body: some View {
@@ -510,6 +609,31 @@ private struct CommunicationRuleDetailView: View {
                             .foregroundStyle(AppColor.apricot)
                     }
                 }
+
+                if rule.origin == .custom {
+                    Button(role: .destructive, action: showDeleteConfirmation) {
+                        Label {
+                            AppLocalizedText("删除协议")
+                        } icon: {
+                            Image(systemName: "trash")
+                        }
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(AppColor.rose)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
+                        .background(
+                            AppColor.rose.opacity(0.10),
+                            in: RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        )
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+
+                    AppLocalizedText("删除后，使用该协议的设备会恢复为自动识别。")
+                        .font(.caption2)
+                        .foregroundStyle(AppColor.secondary)
+                        .frame(maxWidth: .infinity)
+                }
             }
             .padding(.horizontal, 18)
             .padding(.bottom, 28)
@@ -518,6 +642,42 @@ private struct CommunicationRuleDetailView: View {
         .navigationTitle(language.text("协议详情"))
         .navigationBarTitleDisplayMode(.inline)
         .localizedNavigationBackButton()
+        .accessibilityHidden(confirmsDeletion)
+        .overlay {
+            if confirmsDeletion {
+                DestructiveConfirmationOverlay(
+                    icon: "doc.badge.minus",
+                    title: "删除外部协议？",
+                    message: language.format(
+                        "将删除“%@”。使用该协议的设备会恢复为自动识别。",
+                        rule.name
+                    ),
+                    confirmTitle: "删除协议",
+                    onCancel: hideDeleteConfirmation,
+                    onConfirm: deleteRule
+                )
+                .transition(.opacity)
+            }
+        }
+        .interactiveDismissDisabled(confirmsDeletion)
+    }
+
+    private func showDeleteConfirmation() {
+        withAnimation(.easeOut(duration: 0.12)) {
+            confirmsDeletion = true
+        }
+    }
+
+    private func hideDeleteConfirmation() {
+        withAnimation(.easeOut(duration: 0.12)) {
+            confirmsDeletion = false
+        }
+    }
+
+    private func deleteRule() {
+        confirmsDeletion = false
+        store.removeCommunicationRule(rule.id)
+        dismiss()
     }
 
     private func lengthDescription(_ match: CommunicationRuleMatch) -> String {

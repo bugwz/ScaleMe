@@ -16056,6 +16056,171 @@
         }
       }
     },
+    "删除协议" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Protokoll löschen" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Delete protocol" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Eliminar protocolo" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Supprimer le protocole" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "プロトコルを削除" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "프로토콜 삭제" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Eliminar protocolo" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Удалить протокол" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "删除协议" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "刪除協定" } }
+      }
+    },
+    "删除后，使用该协议的设备会恢复为自动识别。" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Danach verwenden betroffene Geräte wieder die automatische Erkennung." } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Devices using this protocol will return to automatic detection after deletion." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Los dispositivos que usen este protocolo volverán a la detección automática." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Les appareils utilisant ce protocole repasseront en détection automatique." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "削除後、このプロトコルを使用する機器は自動検出に戻ります。" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "삭제 후 이 프로토콜을 사용하는 기기는 자동 감지로 돌아갑니다." } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Os dispositivos que usam este protocolo voltarão à deteção automática." } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "После удаления использующие этот протокол устройства вернутся к автоопределению." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "删除后，使用该协议的设备会恢复为自动识别。" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "刪除後，使用此協定的裝置會恢復為自動識別。" } }
+      }
+    },
+    "删除外部协议？" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Externes Protokoll löschen?" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Delete external protocol?" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "¿Eliminar el protocolo externo?" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Supprimer le protocole externe ?" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "外部プロトコルを削除しますか？" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "외부 프로토콜을 삭제할까요?" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Eliminar protocolo externo?" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Удалить внешний протокол?" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "删除外部协议？" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "刪除外部協定？" } }
+      }
+    },
+    "将删除“%@”。使用该协议的设备会恢复为自动识别。" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "„%@“ wird gelöscht. Geräte mit diesem Protokoll verwenden danach wieder die automatische Erkennung." } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "“%@” will be deleted. Devices using it will return to automatic detection." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Se eliminará “%@”. Los dispositivos que lo usen volverán a la detección automática." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "« %@ » sera supprimé. Les appareils qui l’utilisent repasseront en détection automatique." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "「%@」を削除します。使用中の機器は自動検出に戻ります。" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "“%@”을(를) 삭제합니다. 사용 중인 기기는 자동 감지로 돌아갑니다." } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "“%@” será eliminado. Os dispositivos que o usam voltarão à deteção automática." } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "«%@» будет удален. Использующие его устройства вернутся к автоопределению." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "将删除“%@”。使用该协议的设备会恢复为自动识别。" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "將刪除「%@」。使用此協定的裝置會恢復為自動識別。" } }
+      }
+    },
+    "协议文件超过 512 KB 限制" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Die Protokolldatei überschreitet das Limit von 512 KB" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "The protocol file exceeds the 512 KB limit" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "El archivo de protocolo supera el límite de 512 KB" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Le fichier de protocole dépasse la limite de 512 Ko" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "プロトコルファイルが 512 KB の上限を超えています" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "프로토콜 파일이 512KB 제한을 초과합니다" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "O ficheiro de protocolo excede o limite de 512 KB" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Файл протокола превышает ограничение 512 КБ" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "协议文件超过 512 KB 限制" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "協定檔案超過 512 KB 限制" } }
+      }
+    },
+    "解析后的协议内容" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Analysierter Protokollinhalt" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Parsed protocol content" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Contenido del protocolo analizado" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Contenu du protocole analysé" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "解析済みプロトコル内容" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "분석된 프로토콜 내용" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Conteúdo do protocolo analisado" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Разобранное содержимое протокола" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "解析后的协议内容" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "解析後的協定內容" } }
+      }
+    },
+    "解析字段" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Dekodierte Felder" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Decoded fields" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Campos decodificados" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Champs décodés" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "解析フィールド" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "분석 필드" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Campos descodificados" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Декодируемые поля" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "解析字段" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "解析欄位" } }
+      }
+    },
+    "请先选择并校验本地协议文件。" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Wähle und prüfe zuerst eine lokale Protokolldatei." } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Select and validate a local protocol file first." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Primero selecciona y valida un archivo de protocolo local." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Sélectionnez et validez d’abord un fichier de protocole local." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "最初にローカルのプロトコルファイルを選択して検証してください。" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "먼저 로컬 프로토콜 파일을 선택하고 검증하세요." } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Primeiro, selecione e valide um ficheiro de protocolo local." } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Сначала выберите и проверьте локальный файл протокола." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "请先选择并校验本地协议文件。" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "請先選擇並驗證本機協定檔案。" } }
+      }
+    },
+    "点击“添加”并选择本地协议文件导入。" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Tippe auf „Hinzufügen“ und wähle eine lokale Protokolldatei." } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Tap Add and select a local protocol file to import." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Toca Añadir y selecciona un archivo de protocolo local." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Touchez Ajouter et sélectionnez un fichier de protocole local." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "「追加」をタップしてローカルのプロトコルファイルを選択します。" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "추가를 탭하고 가져올 로컬 프로토콜 파일을 선택하세요." } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Toque em Adicionar e selecione um ficheiro de protocolo local." } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Нажмите «Добавить» и выберите локальный файл протокола." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "点击“添加”并选择本地协议文件导入。" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "點選「新增」並選擇本機協定檔案匯入。" } }
+      }
+    },
+    "选择文件" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Datei auswählen" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Choose file" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Seleccionar archivo" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Choisir un fichier" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "ファイルを選択" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "파일 선택" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Escolher ficheiro" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Выбрать файл" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "选择文件" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "選擇檔案" } }
+      }
+    },
+    "选择文件后，这里会显示校验通过的协议名称、标识和通信特征。" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Nach der Auswahl erscheinen hier Name, Kennung und Kommunikationsmerkmale des geprüften Protokolls." } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "After you choose a file, validated protocol names, identifiers, and communication characteristics appear here." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Tras elegir un archivo, aquí aparecerán los nombres, identificadores y características de comunicación validados." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Après sélection, les noms, identifiants et caractéristiques de communication validés s’affichent ici." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "ファイルを選択すると、検証済みのプロトコル名、識別子、通信特性がここに表示されます。" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "파일을 선택하면 검증된 프로토콜 이름, 식별자 및 통신 특성이 여기에 표시됩니다." } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Depois de escolher um ficheiro, os nomes, identificadores e características de comunicação validados aparecem aqui." } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "После выбора файла здесь появятся проверенные названия, идентификаторы и характеристики связи протоколов." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "选择文件后，这里会显示校验通过的协议名称、标识和通信特征。" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "選擇檔案後，這裡會顯示驗證通過的協定名稱、識別碼和通訊特徵。" } }
+      }
+    },
     "验证状态" : {
       "extractionState" : "manual",
       "localizations" : {

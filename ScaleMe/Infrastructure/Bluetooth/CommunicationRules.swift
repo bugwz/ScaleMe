@@ -3,13 +3,11 @@ import Foundation
 enum CommunicationRuleOrigin: String, Codable, CaseIterable {
     case builtIn
     case custom
-    case community
 
     var title: String {
         switch self {
         case .builtIn: "内置"
         case .custom: "本地导入"
-        case .community: "在线导入"
         }
     }
 }
@@ -193,18 +191,107 @@ struct CommunicationRuleDocument: Codable, Equatable {
     static let currentSchemaVersion = 2
 }
 
+enum SimulationCommunicationRuleCatalog {
+    static let initialRules = [
+        makeRule(
+            id: "protocol.custom.simulated-body-pro",
+            name: "ScaleMe Demo Body Pro",
+            summary: "模拟外部体脂秤协议，可解析体重、阻抗与稳定状态。",
+            serviceUUID: "FFE0",
+            characteristicUUID: "FFE1",
+            minimumLength: 7,
+            decoder: CommunicationRuleDecoder(
+                weight: CommunicationField(offset: 1, length: 2, byteOrder: .bigEndian, scale: 0.01),
+                impedance: CommunicationField(offset: 3, length: 2, byteOrder: .bigEndian, scale: 1),
+                stableWhen: CommunicationFlag(offset: 5, mask: 0x01, equals: 0x01)
+            )
+        ),
+        makeRule(
+            id: "protocol.custom.simulated-weight-mini",
+            name: "ScaleMe Demo Weight Mini",
+            summary: "模拟外部体重秤协议，可解析体重与稳定状态。",
+            serviceUUID: "FFF0",
+            characteristicUUID: "FFF1",
+            minimumLength: 4,
+            decoder: CommunicationRuleDecoder(
+                weight: CommunicationField(offset: 1, length: 2, byteOrder: .littleEndian, scale: 0.01),
+                stableWhen: CommunicationFlag(offset: 3, mask: 0x80, equals: 0x80)
+            )
+        )
+    ]
+
+    static func importedRule(fileName: String, attempt: Int) -> CommunicationRule {
+        let trimmedName = fileName.trimmingCharacters(in: .whitespacesAndNewlines)
+        let displayName = trimmedName.isEmpty ? "本地文件" : trimmedName
+        return makeRule(
+            id: "protocol.custom.simulated-import-\(attempt)",
+            name: "\(displayName) · 模拟协议",
+            summary: "由模拟导入流程生成，用于演示外部协议的解析、校验、列表与详情界面。",
+            serviceUUID: "ABF0",
+            characteristicUUID: "ABF1",
+            minimumLength: 8,
+            decoder: CommunicationRuleDecoder(
+                weight: CommunicationField(offset: 2, length: 2, byteOrder: .bigEndian, scale: 0.01),
+                impedance: CommunicationField(offset: 4, length: 2, byteOrder: .littleEndian, scale: 1),
+                stableWhen: CommunicationFlag(offset: 6, mask: 0x01, equals: 0x01)
+            )
+        )
+    }
+
+    private static func makeRule(
+        id: String,
+        name: String,
+        summary: String,
+        serviceUUID: String,
+        characteristicUUID: String,
+        minimumLength: Int,
+        decoder: CommunicationRuleDecoder
+    ) -> CommunicationRule {
+        CommunicationRule(
+            id: id,
+            name: name,
+            version: 1,
+            summary: summary,
+            origin: .custom,
+            match: CommunicationRuleMatch(
+                transport: .characteristicNotification,
+                serviceUUID: serviceUUID,
+                characteristicUUID: characteristicUUID,
+                minimumLength: minimumLength
+            ),
+            decoder: decoder,
+            verification: .unverified,
+            implementation: .experimental
+        )
+    }
+}
+
+struct SimulationCommunicationRuleImportSequence {
+    private(set) var attemptCount = 0
+
+    mutating func makeImportData(fileName: String) throws -> Data {
+        attemptCount += 1
+        if attemptCount.isMultiple(of: 2) {
+            throw CommunicationRuleError.invalidDocument("weight 字段超出数据包范围")
+        }
+        let rule = SimulationCommunicationRuleCatalog.importedRule(
+            fileName: fileName,
+            attempt: attemptCount
+        )
+        return try CommunicationRuleCodec.encode([rule])
+    }
+}
+
 enum CommunicationRuleError: LocalizedError, Equatable {
     case unsupportedSchema(Int)
     case invalidDocument(String)
-    case unsupportedRemoteURL
     case responseTooLarge
 
     var errorDescription: String? {
         switch self {
         case .unsupportedSchema(let version): "不支持规则格式版本 \(version)"
         case .invalidDocument(let detail): "规则无效：\(detail)"
-        case .unsupportedRemoteURL: "远程规则只允许使用 HTTPS 地址"
-        case .responseTooLarge: "远程规则文件超过 512 KB 限制"
+        case .responseTooLarge: "协议文件超过 512 KB 限制"
         }
     }
 }
@@ -555,7 +642,7 @@ enum CommunicationRuleCodec {
     static let maximumDocumentBytes = 512 * 1_024
     static let customIDPrefix = "protocol.custom."
 
-    static func decode(_ data: Data, importedFrom sourceURL: URL? = nil) throws -> [CommunicationRule] {
+    static func decode(_ data: Data) throws -> [CommunicationRule] {
         guard data.count <= maximumDocumentBytes else { throw CommunicationRuleError.responseTooLarge }
         let document: CommunicationRuleDocument
         do {
@@ -572,8 +659,8 @@ enum CommunicationRuleCodec {
         var ids = Set<String>()
         return try document.rules.map { rule in
             var normalized = rule
-            normalized.origin = sourceURL == nil ? .custom : .community
-            normalized.sourceURL = sourceURL
+            normalized.origin = .custom
+            normalized.sourceURL = nil
             normalized.verification = .unverified
             normalized.match.serviceUUID = normalizeUUID(rule.match.serviceUUID)
             normalized.match.characteristicUUID = rule.match.characteristicUUID.map(normalizeUUID)
