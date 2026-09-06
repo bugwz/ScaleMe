@@ -3,6 +3,8 @@ import Foundation
 struct SimulationDataSnapshot {
     static let bodyCompositionScaleModelName = "ScaleMe Body Pro"
     static let weightOnlyScaleModelName = "ScaleMe Weight Mini"
+    static let bodyCompositionScaleRuleID = "protocol.custom.simulated-body-pro"
+    static let weightOnlyScaleRuleID = "protocol.custom.simulated-weight-mini"
 
     var profiles: [UserProfile]
     var selectedProfileID: UUID
@@ -46,12 +48,14 @@ struct SimulationDataSnapshot {
         let today = calendar.startOfDay(for: referenceDate)
         let primaryScaleID = random.uuid()
         let secondaryScaleID = random.uuid()
+        let unmatchedScaleID = random.uuid()
         let pairedScales = [
             PairedScale(
                 id: primaryScaleID,
                 name: copy.primaryScaleName,
                 modelName: bodyCompositionScaleModelName,
                 compatibility: copy.simulatedDevice,
+                communicationRuleID: bodyCompositionScaleRuleID,
                 addedAt: calendar.date(byAdding: .day, value: -420, to: today) ?? today
             ),
             PairedScale(
@@ -59,7 +63,15 @@ struct SimulationDataSnapshot {
                 name: copy.secondaryScaleName,
                 modelName: weightOnlyScaleModelName,
                 compatibility: copy.simulatedDevice,
+                communicationRuleID: weightOnlyScaleRuleID,
                 addedAt: calendar.date(byAdding: .day, value: -210, to: today) ?? today
+            ),
+            PairedScale(
+                id: unmatchedScaleID,
+                name: copy.unmatchedScaleName,
+                modelName: "Demo BLE Device",
+                compatibility: copy.pendingProtocol,
+                addedAt: calendar.date(byAdding: .day, value: -3, to: today) ?? today
             )
         ]
 
@@ -372,7 +384,9 @@ private struct SimulationCopy {
     let members: [MemberAvatar: SimulationMemberCopy]
     let primaryScaleName: String
     let secondaryScaleName: String
+    let unmatchedScaleName: String
     let simulatedDevice: String
+    let pendingProtocol: String
 
     private static let roles: [MemberAvatar] = [
         .father, .adult, .child, .childDaughter, .youth,
@@ -381,6 +395,8 @@ private struct SimulationCopy {
     ]
 
     init(language: AppLanguage) {
+        unmatchedScaleName = language.text("附近的健康设备")
+        pendingProtocol = language.text("协议待验证")
         let names: [String]
         switch language {
         case .simplifiedChinese:

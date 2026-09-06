@@ -28,7 +28,19 @@ enum SimulationDataSmoke {
         precondition(first.profiles.first?.avatar == .father, "爸爸必须是首位模拟成员")
         precondition(first.profiles.first?.role == "本人", "默认中年男性必须使用本人角色选项")
         precondition(first.selectedProfileID == first.profiles.first?.id, "默认应选中中年男性本人")
-        precondition(first.pairedScales.count == 2, "simulation should include multiple scales")
+        precondition(first.pairedScales.count == 3, "simulation should include two matched scales and one unmatched device")
+        precondition(
+            first.pairedScales[0].communicationRuleID == SimulationDataSnapshot.bodyCompositionScaleRuleID,
+            "the simulated body-composition scale should be matched to its protocol"
+        )
+        precondition(
+            first.pairedScales[1].communicationRuleID == SimulationDataSnapshot.weightOnlyScaleRuleID,
+            "the simulated weight-only scale should be matched to its protocol"
+        )
+        precondition(
+            first.pairedScales[2].communicationRuleID == nil,
+            "the additional simulated device should remain unmatched"
+        )
         precondition(first.measurements == second.measurements, "simulation must be deterministic for a reference date")
         precondition(first.measurements.count == 4_096,
                      "simulation should provide exactly 4,096 records")
@@ -93,7 +105,7 @@ enum SimulationDataSmoke {
             let weightOnlyInteractive = SimulationMeasurementGenerator.make(
                 profile: profile,
                 recentMeasurement: profileRecent,
-                device: metadata.pairedScales.last,
+                device: metadata.pairedScales[1],
                 date: referenceDate,
                 calendar: calendar
             )
@@ -192,8 +204,14 @@ enum SimulationDataSmoke {
                      "all simulated records must stay within the previous year")
         precondition(Set(first.measurements.compactMap(\.profileID)) == Set(first.profiles.map(\.id)),
                      "every simulated member should have measurements")
-        precondition(Set(first.measurements.compactMap(\.deviceID)) == Set(first.pairedScales.map(\.id)),
-                     "every simulated scale should appear in measurement history")
+        precondition(
+            Set(first.measurements.compactMap(\.deviceID)) == Set(first.pairedScales.prefix(2).map(\.id)),
+            "only the two matched simulated scales should appear in measurement history"
+        )
+        precondition(
+            first.measurements.allSatisfy { $0.deviceID != first.pairedScales[2].id },
+            "the unmatched simulated device should not produce measurement history"
+        )
 
         for profile in first.profiles {
             let measurements = first.measurements.filter { $0.profileID == profile.id }

@@ -880,6 +880,8 @@ private struct ScaleSettingsView: View {
     @State private var isEditingName = false
     @State private var isNameFocused = false
     @State private var settingsOperationMessagePlacement: SettingsOperationMessagePlacement?
+    @State private var isSimulationSettingsConnected = false
+    @State private var simulationConnectionAttemptID = UUID()
 
     private var scale: PairedScale? { store.displayPairedScales.first { $0.id == scaleID } }
 
@@ -970,6 +972,15 @@ private struct ScaleSettingsView: View {
         .onAppear {
             nameDraft = scale?.name ?? ""
             if let scale, !store.isSimulationEnabled { bluetooth.inspectSettings(for: scale) }
+        }
+        .task(id: simulationConnectionAttemptID) {
+            guard store.isSimulationEnabled else { return }
+            isSimulationSettingsConnected = false
+            try? await Task.sleep(for: .milliseconds(2_500))
+            guard !Task.isCancelled, store.isSimulationEnabled else { return }
+            withAnimation(.easeInOut(duration: 0.22)) {
+                isSimulationSettingsConnected = true
+            }
         }
         .onDisappear {
             diagnosticExportTask?.cancel()
@@ -1129,10 +1140,14 @@ private struct ScaleSettingsView: View {
                 .layoutPriority(1)
                 Spacer(minLength: 8)
                 Button {
-                    if let scale { bluetooth.reconnectSettings(for: scale) }
+                    if store.isSimulationEnabled {
+                        simulationConnectionAttemptID = UUID()
+                    } else if let scale {
+                        bluetooth.reconnectSettings(for: scale)
+                    }
                 } label: {
                     HStack(spacing: 6) {
-                        if bluetooth.settingsState.isBusy {
+                        if settingsConnectionIsBusy {
                             ProgressView()
                                 .tint(AppColor.mint)
                         } else {
@@ -1151,7 +1166,7 @@ private struct ScaleSettingsView: View {
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
-                .disabled(bluetooth.settingsState.isBusy || scale == nil)
+                .disabled(settingsConnectionIsBusy || scale == nil)
                 .accessibilityLabel(store.appLanguage.text("刷新"))
             }
         }
@@ -1716,7 +1731,10 @@ private struct ScaleSettingsView: View {
     }
 
     private var settingsStatusColor: Color {
-        switch bluetooth.settingsState {
+        if store.isSimulationEnabled {
+            return isSimulationSettingsConnected ? AppColor.mint : AppColor.sky
+        }
+        return switch bluetooth.settingsState {
         case .ready: AppColor.mint
         case .failed: AppColor.apricot
         case .idle: AppColor.secondary
@@ -1725,11 +1743,18 @@ private struct ScaleSettingsView: View {
     }
 
     private var settingsConnectionStatusText: String {
-        switch bluetooth.settingsState {
+        if store.isSimulationEnabled {
+            return isSimulationSettingsConnected ? "已连接" : "连接中"
+        }
+        return switch bluetooth.settingsState {
         case .idle, .failed: "未连接"
         case .locating, .connecting, .discovering: "连接中"
         case .ready: "已连接"
         }
+    }
+
+    private var settingsConnectionIsBusy: Bool {
+        store.isSimulationEnabled ? !isSimulationSettingsConnected : bluetooth.settingsState.isBusy
     }
 
     private func diagnosticEventColor(_ kind: DeviceDiagnosticEvent.Kind) -> Color {
