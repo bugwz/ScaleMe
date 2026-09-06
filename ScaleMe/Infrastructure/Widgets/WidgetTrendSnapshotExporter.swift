@@ -23,6 +23,7 @@ extension MeasurementStore {
                 title: appLanguage.text(metric.title),
                 systemImage: metric.systemImage,
                 unit: metric.unitLabel(weightUnit: unit),
+                fractionDigits: metric.displayFractionDigits,
                 isEstimated: metric.isEstimatedComposition
             )
         }

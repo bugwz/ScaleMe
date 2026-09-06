@@ -87,7 +87,7 @@ ScaleMeWidgetShared/  # 主应用与小组件共享的加密快照数据契约
 2. 在模拟器中运行，并从“设置 → 数据管理”开启模拟数据以体验完整界面。
 3. 如需扫描和测量真实设备，请选择开发团队并安装到 iPhone，在首次使用时授予蓝牙权限。
 
-桌面小组件使用 App Group 与共享 Keychain 读取经 AES-GCM 加密的精简趋势快照。首次运行时，签名团队需要为主应用和 `ScaleMeWidget` 扩展启用对应的 App Groups 与 Keychain Sharing 能力。
+桌面小组件提供方形、长条和大尺寸三种趋势视图：方形突出最新值与变化方向，长条保留轻量趋势图，大尺寸增加较期初变化、平均值、数值区间和记录数。小组件使用 App Group 与共享 Keychain 读取经 AES-GCM 加密的精简趋势快照。首次运行时，签名团队需要为主应用和 `ScaleMeWidget` 扩展启用对应的 App Groups 与 Keychain Sharing 能力。
 
 蓝牙测量、HealthKit 授权和具体体重秤协议最终都需要签名真机验证。详细环境说明、测试命令与真机检查项见 [开发与验证](Docs/Development.md)。
 

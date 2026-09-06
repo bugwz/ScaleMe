@@ -20,7 +20,8 @@ enum WidgetLocalizationSmoke {
         let requiredKeys = [
             "身体趋势", "趋势图", "趋势类别", "时间范围", "来源设备", "用户", "显示方式",
             "体重", "近 30 天", "全部设备", "汇总趋势 · 聚焦数据",
-            "所选范围暂无此项数据", "打开观我后即可配置用户与设备趋势", "我", "本人"
+            "所选范围暂无此项数据", "打开观我后即可配置用户与设备趋势", "我", "本人",
+            "较期初", "平均", "区间", "次记录", "估算数据，仅供趋势参考"
         ]
         for key in requiredKeys {
             precondition(strings[key] != nil, "widget localization catalog is missing: \(key)")

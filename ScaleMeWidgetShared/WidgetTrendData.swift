@@ -13,7 +13,25 @@ struct WidgetTrendMetricMetadata: Codable, Hashable {
     let title: String
     let systemImage: String
     let unit: String
+    let fractionDigits: Int
     let isEstimated: Bool
+
+    func formattedValue(_ value: Double, locale: Locale = .current) -> String {
+        value.formatted(
+            .number
+                .locale(locale)
+                .precision(.fractionLength(fractionDigits))
+        )
+    }
+
+    func formattedSignedValue(_ value: Double, locale: Locale = .current) -> String {
+        value.formatted(
+            .number
+                .locale(locale)
+                .sign(strategy: .always())
+                .precision(.fractionLength(fractionDigits))
+        )
+    }
 }
 
 struct WidgetTrendProfile: Codable, Hashable {
@@ -41,6 +59,7 @@ struct WidgetTrendSeries: Hashable {
     let profileName: String
     let deviceName: String
     let rangeTitle: String
+    let measurementCount: Int
     let points: [WidgetTrendPoint]
 
     var latestPoint: WidgetTrendPoint? { points.last }
@@ -125,6 +144,7 @@ struct WidgetTrendSnapshot: Codable, Hashable {
             profileName: profile.name,
             deviceName: deviceName,
             rangeTitle: rangeTitles[rangeID] ?? Self.rangeTitle(for: rangeID),
+            measurementCount: valued.count,
             points: points
         )
     }

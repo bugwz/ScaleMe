@@ -60,6 +60,8 @@ enum TrendMetric: String, CaseIterable, Identifiable {
         self != .weight && self != .bmi
     }
 
+    var displayFractionDigits: Int { 2 }
+
     func value(for measurement: BodyMeasurement, profile: UserProfile) -> Double? {
         switch self {
         case .weight: measurement.weightKG

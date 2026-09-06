@@ -227,7 +227,7 @@ struct ScaleMeTrendWidget: Widget {
         }
         .configurationDisplayName("身体趋势")
         .description("分别设置类别、时间、设备、用户和趋势显示方式。")
-        .supportedFamilies([.systemMedium])
+        .supportedFamilies([.systemSmall, .systemMedium, .systemLarge])
     }
 }
 
@@ -237,6 +237,8 @@ struct ScaleMeWidgetBundle: WidgetBundle {
 }
 
 private struct TrendWidgetView: View {
+    @Environment(\.widgetFamily) private var widgetFamily
+
     let entry: TrendWidgetEntry
 
     var body: some View {
@@ -246,7 +248,66 @@ private struct TrendWidgetView: View {
         .widgetURL(URL(string: "scaleme://trends"))
     }
 
+    @ViewBuilder
     private func content(_ series: WidgetTrendSeries) -> some View {
+        switch widgetFamily {
+        case .systemSmall:
+            compactContent(series)
+        case .systemLarge:
+            detailedContent(series)
+        default:
+            mediumContent(series)
+        }
+    }
+
+    private func compactContent(_ series: WidgetTrendSeries) -> some View {
+        let metricColor = TrendMetricPalette.color(forMetricID: series.metadata.metricID)
+
+        return VStack(alignment: .leading, spacing: 6) {
+            Label(series.metadata.title, systemImage: series.metadata.systemImage)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(WidgetPalette.ink)
+                .lineLimit(1)
+
+            if let latest = series.latestPoint {
+                HStack(alignment: .firstTextBaseline, spacing: 3) {
+                    Text(formattedValue(latest.value))
+                        .font(.title.bold())
+                        .monospacedDigit()
+                        .minimumScaleFactor(0.72)
+                    if !series.metadata.unit.isEmpty {
+                        Text(series.metadata.unit)
+                            .font(.caption.weight(.semibold))
+                    }
+                }
+                .foregroundStyle(metricColor)
+
+                if let change = change(for: series.points) {
+                    changeLabel(change, color: metricColor)
+                }
+            }
+
+            if series.points.isEmpty {
+                noMeasurements
+            } else {
+                trendChart(series.points, color: metricColor)
+                    .frame(minHeight: 34)
+            }
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text("\(series.profileName) · \(series.rangeTitle)")
+                    .lineLimit(1)
+                if series.metadata.isEstimated {
+                    estimatedDisclaimer
+                }
+            }
+            .font(.caption2)
+            .foregroundStyle(WidgetPalette.secondary)
+        }
+        .accessibilityElement(children: .combine)
+    }
+
+    private func mediumContent(_ series: WidgetTrendSeries) -> some View {
         let metricColor = TrendMetricPalette.color(forMetricID: series.metadata.metricID)
 
         return VStack(alignment: .leading, spacing: 6) {
@@ -258,7 +319,7 @@ private struct TrendWidgetView: View {
                 Spacer(minLength: 4)
                 if let latest = series.latestPoint {
                     HStack(alignment: .firstTextBaseline, spacing: 3) {
-                        Text(latest.value.formatted(.number.precision(.fractionLength(2))))
+                        Text(formattedValue(latest.value))
                             .font(.title3.bold())
                             .monospacedDigit()
                         if !series.metadata.unit.isEmpty {
@@ -278,6 +339,10 @@ private struct TrendWidgetView: View {
             HStack(spacing: 4) {
                 Text("\(series.profileName) · \(series.deviceName)").lineLimit(1)
                 Spacer(minLength: 4)
+                if series.metadata.isEstimated {
+                    estimatedDisclaimer
+                    Text("·")
+                }
                 Text(entry.displayStyle.shortTitle)
                 Text("·")
                 Text(series.rangeTitle)
@@ -287,6 +352,139 @@ private struct TrendWidgetView: View {
         }
         .padding(2)
         .accessibilityElement(children: .combine)
+    }
+
+    private func detailedContent(_ series: WidgetTrendSeries) -> some View {
+        let metricColor = TrendMetricPalette.color(forMetricID: series.metadata.metricID)
+
+        return VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .top, spacing: 12) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Label(series.metadata.title, systemImage: series.metadata.systemImage)
+                        .font(.headline)
+                        .foregroundStyle(WidgetPalette.ink)
+                    Text("\(series.profileName) · \(series.deviceName)")
+                        .font(.caption)
+                        .foregroundStyle(WidgetPalette.secondary)
+                        .lineLimit(1)
+                }
+                Spacer(minLength: 8)
+                if let latest = series.latestPoint {
+                    VStack(alignment: .trailing, spacing: 2) {
+                        HStack(alignment: .firstTextBaseline, spacing: 3) {
+                            Text(formattedValue(latest.value))
+                                .font(.title2.bold())
+                                .monospacedDigit()
+                            if !series.metadata.unit.isEmpty {
+                                Text(series.metadata.unit)
+                                    .font(.caption.weight(.semibold))
+                            }
+                        }
+                        .foregroundStyle(metricColor)
+                        Text(latest.date, style: .date)
+                            .font(.caption2)
+                            .foregroundStyle(WidgetPalette.secondary)
+                    }
+                }
+            }
+
+            if series.points.isEmpty {
+                noMeasurements
+            } else {
+                HStack(spacing: 8) {
+                    statisticCard(
+                        title: "较期初",
+                        value: change(for: series.points).map {
+                            series.metadata.formattedSignedValue($0)
+                        } ?? "--",
+                        unit: series.metadata.unit,
+                        color: metricColor
+                    )
+                    statisticCard(
+                        title: "平均",
+                        value: series.metadata.formattedValue(average(of: series.points)),
+                        unit: series.metadata.unit,
+                        color: WidgetPalette.ink
+                    )
+                    statisticCard(
+                        title: "区间",
+                        value: formattedRange(of: series.points),
+                        unit: series.metadata.unit,
+                        color: WidgetPalette.ink
+                    )
+                }
+
+                detailedTrendChart(series.points, color: metricColor)
+            }
+
+            HStack(spacing: 4) {
+                Text(entry.displayStyle.shortTitle)
+                Text("·")
+                Text(series.rangeTitle)
+                Spacer(minLength: 4)
+                Text(series.measurementCount, format: .number)
+                Text("次记录")
+            }
+            .font(.caption2)
+            .foregroundStyle(WidgetPalette.secondary)
+
+            if series.metadata.isEstimated {
+                estimatedDisclaimer
+                    .font(.caption2)
+                    .foregroundStyle(WidgetPalette.secondary)
+            }
+        }
+        .padding(2)
+        .accessibilityElement(children: .combine)
+    }
+
+    private func statisticCard(
+        title: LocalizedStringKey,
+        value: String,
+        unit: String,
+        color: Color
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(title)
+                .font(.caption2)
+                .foregroundStyle(WidgetPalette.secondary)
+            HStack(alignment: .firstTextBaseline, spacing: 2) {
+                Text(value)
+                    .font(.subheadline.bold())
+                    .monospacedDigit()
+                    .minimumScaleFactor(0.68)
+                    .lineLimit(1)
+                if !unit.isEmpty {
+                    Text(unit)
+                        .font(.caption2.weight(.semibold))
+                }
+            }
+            .foregroundStyle(color)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 9)
+        .padding(.vertical, 8)
+        .background(WidgetPalette.paleMint.opacity(0.7), in: RoundedRectangle(cornerRadius: 12))
+    }
+
+    private func changeLabel(_ change: Double, color: Color) -> some View {
+        HStack(spacing: 3) {
+            Image(systemName: changeIcon(for: change))
+            Text("较期初")
+            Text(entry.series?.metadata.formattedSignedValue(change) ?? "--")
+            if let unit = entry.series?.metadata.unit, !unit.isEmpty {
+                Text(unit)
+            }
+        }
+        .font(.caption2.weight(.semibold))
+        .foregroundStyle(color)
+        .lineLimit(1)
+    }
+
+    private var estimatedDisclaimer: some View {
+        Label("估算数据，仅供趋势参考", systemImage: "info.circle")
+            .lineLimit(1)
+            .minimumScaleFactor(0.72)
     }
 
     private func trendChart(_ points: [WidgetTrendPoint], color: Color) -> some View {
@@ -317,6 +515,79 @@ private struct TrendWidgetView: View {
         .chartYAxis(.hidden)
         .chartXScale(domain: chartDateDomain(for: points))
         .chartYScale(domain: chartValueDomain(for: points))
+    }
+
+    private func detailedTrendChart(_ points: [WidgetTrendPoint], color: Color) -> some View {
+        Chart(points, id: \.id) { point in
+            AreaMark(
+                x: .value("日期", point.date),
+                yStart: .value("基线", chartValueDomain(for: points).lowerBound),
+                yEnd: .value("数值", point.value)
+            )
+            .foregroundStyle(
+                LinearGradient(
+                    colors: [color.opacity(0.24), color.opacity(0.01)],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+            )
+
+            LineMark(x: .value("日期", point.date), y: .value("数值", point.value))
+                .foregroundStyle(color)
+                .lineStyle(StrokeStyle(lineWidth: 2.5, lineCap: .round, lineJoin: .round))
+                .interpolationMethod(entry.displayStyle.rawValue.hasPrefix("actual") ? .linear : .catmullRom)
+
+            PointMark(x: .value("日期", point.date), y: .value("数值", point.value))
+                .foregroundStyle(color)
+                .symbolSize(points.count == 1 ? 34 : 12)
+        }
+        .chartXAxis {
+            AxisMarks(values: .automatic(desiredCount: 4)) {
+                AxisGridLine().foregroundStyle(WidgetPalette.secondary.opacity(0.12))
+                AxisValueLabel(format: .dateTime.month(.twoDigits).day())
+                    .foregroundStyle(WidgetPalette.secondary)
+            }
+        }
+        .chartYAxis {
+            AxisMarks(position: .trailing, values: .automatic(desiredCount: 4)) {
+                AxisGridLine().foregroundStyle(WidgetPalette.secondary.opacity(0.12))
+                AxisValueLabel(
+                    format: FloatingPointFormatStyle<Double>.number.precision(
+                        .fractionLength(entry.series?.metadata.fractionDigits ?? 2)
+                    )
+                )
+                .foregroundStyle(WidgetPalette.secondary)
+            }
+        }
+        .chartXScale(domain: chartDateDomain(for: points))
+        .chartYScale(domain: chartValueDomain(for: points))
+    }
+
+    private func change(for points: [WidgetTrendPoint]) -> Double? {
+        guard let first = points.first, let latest = points.last, first.id != latest.id else { return nil }
+        return latest.value - first.value
+    }
+
+    private func average(of points: [WidgetTrendPoint]) -> Double {
+        guard !points.isEmpty else { return 0 }
+        return points.map(\.value).reduce(0, +) / Double(points.count)
+    }
+
+    private func formattedRange(of points: [WidgetTrendPoint]) -> String {
+        guard let minimum = points.map(\.value).min(), let maximum = points.map(\.value).max() else {
+            return "--"
+        }
+        guard let metadata = entry.series?.metadata else { return "--" }
+        return "\(metadata.formattedValue(minimum))–\(metadata.formattedValue(maximum))"
+    }
+
+    private func formattedValue(_ value: Double) -> String {
+        entry.series?.metadata.formattedValue(value) ?? "--"
+    }
+
+    private func changeIcon(for change: Double) -> String {
+        if abs(change) < 0.005 { return "minus" }
+        return change > 0 ? "arrow.up.right" : "arrow.down.right"
     }
 
     private func chartDateDomain(for points: [WidgetTrendPoint]) -> ClosedRange<Date> {
@@ -366,6 +637,7 @@ private enum WidgetPalette {
     static let ink = Color(red: 18 / 255, green: 51 / 255, blue: 46 / 255)
     static let secondary = Color(red: 92 / 255, green: 120 / 255, blue: 115 / 255)
     static let canvas = Color(red: 246 / 255, green: 252 / 255, blue: 250 / 255)
+    static let paleMint = Color(red: 230 / 255, green: 250 / 255, blue: 242 / 255)
 }
 
 private extension WidgetProfileEntity {
@@ -392,6 +664,7 @@ private extension WidgetTrendSnapshot {
             title: String(localized: "体重"),
             systemImage: "scalemass.fill",
             unit: "kg",
+            fractionDigits: 2,
             isEstimated: false
         )
         let measurements = (0..<8).map { index in

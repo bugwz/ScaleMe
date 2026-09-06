@@ -35,6 +35,11 @@ private func measurement(daysBeforeEnd: Int, hour: Int = 12, weightKG: Double, b
 @main
 private enum TrendAnalysisSmoke {
     static func main() {
+        require(
+            TrendMetric.allCases.allSatisfy { $0.displayFractionDigits == 2 },
+            "every app trend metric should use two fixed fraction digits"
+        )
+
         let fixtures = [
             measurement(daysBeforeEnd: 1, hour: 8, weightKG: 60, bodyFat: 20),
             measurement(daysBeforeEnd: 1, hour: 20, weightKG: 62, bodyFat: 22),

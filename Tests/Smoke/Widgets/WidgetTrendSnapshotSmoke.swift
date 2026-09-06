@@ -26,6 +26,7 @@ enum WidgetTrendSnapshotSmoke {
             title: "体重",
             systemImage: "scalemass.fill",
             unit: "kg",
+            fractionDigits: 2,
             isEstimated: false
         )
         let snapshot = WidgetTrendSnapshot(
@@ -56,8 +57,12 @@ enum WidgetTrendSnapshotSmoke {
             calendar: calendar
         )
         precondition(aggregate?.points.count == 1)
+        precondition(metric.formattedValue(61, locale: Locale(identifier: "en_US_POSIX")) == "61.00")
+        precondition(metric.formattedValue(61.2, locale: Locale(identifier: "en_US_POSIX")) == "61.20")
+        precondition(metric.formattedSignedValue(-0.5, locale: Locale(identifier: "en_US_POSIX")) == "-0.50")
         precondition(snapshot.localeIdentifier == "en")
         precondition(aggregate?.points.first?.value == 61)
+        precondition(aggregate?.measurementCount == 2)
         precondition(aggregate?.profileName == "甲")
         precondition(aggregate?.deviceName == "秤 A")
 
@@ -71,6 +76,7 @@ enum WidgetTrendSnapshotSmoke {
             calendar: calendar
         )
         precondition(actual?.points.map(\.value) == [60, 62, 61])
+        precondition(actual?.measurementCount == 3)
         precondition(actual?.deviceName == "全部设备")
 
         let fullRange = snapshot.dateDomain(

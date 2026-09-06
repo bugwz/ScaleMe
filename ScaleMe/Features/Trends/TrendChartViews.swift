@@ -77,7 +77,7 @@ struct TrendChartCard: View {
         let sign = delta > 0 ? "+" : ""
         let unitLabel = metric.unitLabel(weightUnit: unit)
         let suffix = unitLabel.isEmpty ? "" : " \(unitLabel)"
-        return "\(sign)\(delta.formatted(2))\(suffix)"
+        return "\(sign)\(delta.formatted(metric.displayFractionDigits))\(suffix)"
         }()
 
         return SoftCard(padding: 12) {
@@ -1224,7 +1224,9 @@ private struct TrendChartPlot: View {
             AxisMarks(position: .trailing) {
                 AxisGridLine().foregroundStyle(AppColor.secondary.opacity(0.12))
                 AxisValueLabel(
-                    format: FloatingPointFormatStyle<Double>.number.precision(.fractionLength(2))
+                    format: FloatingPointFormatStyle<Double>.number.precision(
+                        .fractionLength(metric.displayFractionDigits)
+                    )
                 )
             }
         }
@@ -1548,7 +1550,7 @@ private struct TrendChartPlot: View {
     }
 
     private func formattedNumericValue(_ value: Double) -> String {
-        metric.displayValue(value, unit: unit).formatted(2)
+        metric.displayValue(value, unit: unit).formatted(metric.displayFractionDigits)
     }
 }
 
