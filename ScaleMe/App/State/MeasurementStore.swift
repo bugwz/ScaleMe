@@ -1026,24 +1026,17 @@ final class MeasurementStore: ObservableObject {
     private func updateResolvedLanguage() {
         let resolvedLanguage = languageSelection.resolvedLanguage
         guard appLanguage != resolvedLanguage else { return }
+        let previousLanguage = appLanguage
         appLanguage = resolvedLanguage
-        guard !isSimulationHistoryLoaded else { return }
-        simulationDataLoadGeneration += 1
-        simulationDataLoadTask?.cancel()
-        simulationDataLoadTask = nil
-        isSimulationDataLoading = false
-        isSimulationHistoryLoaded = false
-        simulationData = SimulationDataSnapshot.makeMetadata(
-            language: appLanguage,
-            launchDay: simulationLaunchDay,
-            calendar: simulationCalendar
-        )
-        simulationSelectedProfileID = simulationData.selectedProfileID
-        simulationAppleHealthDeviceIDs.formIntersection(Set(simulationData.pairedScales.map(\.id)))
-        if let simulationAppleHealthProfileID,
-           !simulationData.profiles.contains(where: { $0.id == simulationAppleHealthProfileID }) {
-            self.simulationAppleHealthProfileID = nil
+
+        if simulationDataLoadTask != nil {
+            simulationDataLoadGeneration += 1
+            simulationDataLoadTask?.cancel()
+            simulationDataLoadTask = nil
+            isSimulationDataLoading = false
         }
+
+        simulationData.relocalizeDefaults(from: previousLanguage, to: appLanguage)
         prepareSimulationDataIfNeeded()
     }
 

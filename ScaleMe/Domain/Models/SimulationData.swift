@@ -106,6 +106,42 @@ struct SimulationDataSnapshot {
         device?.modelName == bodyCompositionScaleModelName
     }
 
+    mutating func relocalizeDefaults(from previousLanguage: AppLanguage, to language: AppLanguage) {
+        guard previousLanguage != language else { return }
+        let previousCopy = SimulationCopy(language: previousLanguage)
+        let copy = SimulationCopy(language: language)
+
+        for index in profiles.indices {
+            let avatar = profiles[index].avatar
+            guard profiles[index].name == previousCopy.member(for: avatar).name else { continue }
+            profiles[index].name = copy.member(for: avatar).name
+        }
+
+        var localizedScaleNames: [UUID: (previous: String, current: String)] = [:]
+        for index in pairedScales.indices {
+            let modelName = pairedScales[index].modelName
+            guard let previousName = previousCopy.scaleName(for: modelName),
+                  let currentName = copy.scaleName(for: modelName) else { continue }
+
+            if pairedScales[index].name == previousName {
+                pairedScales[index].name = currentName
+                localizedScaleNames[pairedScales[index].id] = (previousName, currentName)
+            }
+            if let previousCompatibility = previousCopy.compatibility(for: modelName),
+               let currentCompatibility = copy.compatibility(for: modelName),
+               pairedScales[index].compatibility == previousCompatibility {
+                pairedScales[index].compatibility = currentCompatibility
+            }
+        }
+
+        for index in measurements.indices {
+            guard let deviceID = measurements[index].deviceID,
+                  let localizedName = localizedScaleNames[deviceID],
+                  measurements[index].deviceName == localizedName.previous else { continue }
+            measurements[index].deviceName = localizedName.current
+        }
+    }
+
     private static func simulationProfile(
         id: UUID,
         name: String,
@@ -504,6 +540,31 @@ private struct SimulationCopy {
             preconditionFailure("Missing simulation copy for \(avatar.rawValue)")
         }
         return member
+    }
+
+    func scaleName(for modelName: String) -> String? {
+        switch modelName {
+        case SimulationDataSnapshot.bodyCompositionScaleModelName:
+            primaryScaleName
+        case SimulationDataSnapshot.weightOnlyScaleModelName:
+            secondaryScaleName
+        case "Demo BLE Device":
+            unmatchedScaleName
+        default:
+            nil
+        }
+    }
+
+    func compatibility(for modelName: String) -> String? {
+        switch modelName {
+        case SimulationDataSnapshot.bodyCompositionScaleModelName,
+             SimulationDataSnapshot.weightOnlyScaleModelName:
+            simulatedDevice
+        case "Demo BLE Device":
+            pendingProtocol
+        default:
+            nil
+        }
     }
 }
 

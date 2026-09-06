@@ -294,6 +294,24 @@ enum SimulationDataSmoke {
             measurement.deviceName == "体組成計" || measurement.deviceName == "体重計"
         }, "measurement device names should switch with simulated device cards")
 
+        var relocalized = first
+        let customizedProfileID = relocalized.profiles[1].id
+        relocalized.profiles[1].name = "自定义名字"
+        let selectedProfileID = relocalized.selectedProfileID
+        let measurementIDs = relocalized.measurements.map(\.id)
+        relocalized.relocalizeDefaults(from: .simplifiedChinese, to: .english)
+        precondition(relocalized.profiles.first?.name == "Daniel",
+                     "switching language should relocalize default simulated member names")
+        precondition(relocalized.profiles.first(where: { $0.id == customizedProfileID })?.name == "自定义名字",
+                     "switching language must preserve a customized simulated member name")
+        precondition(relocalized.selectedProfileID == selectedProfileID,
+                     "switching language must preserve the selected simulated member")
+        precondition(relocalized.measurements.map(\.id) == measurementIDs,
+                     "switching language must preserve loaded simulated measurements")
+        precondition(relocalized.measurements.allSatisfy { measurement in
+            measurement.deviceName == "Body Scale" || measurement.deviceName == "Weight Scale"
+        }, "switching language should relocalize loaded simulated measurement device names")
+
         print("Simulation data smoke tests passed (\(first.measurements.count) records)")
     }
 
