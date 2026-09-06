@@ -45,6 +45,36 @@ enum WidgetLocalizationSmoke {
             }
         }
 
+        let infoCatalogData = try Data(
+            contentsOf: URL(fileURLWithPath: "ScaleMeWidget/InfoPlist.xcstrings")
+        )
+        guard
+            let infoCatalog = try JSONSerialization.jsonObject(with: infoCatalogData) as? [String: Any],
+            infoCatalog["sourceLanguage"] as? String == "zh-Hans",
+            let infoStrings = infoCatalog["strings"] as? [String: Any],
+            let displayName = infoStrings["CFBundleDisplayName"] as? [String: Any],
+            let displayNameLocalizations = displayName["localizations"] as? [String: Any]
+        else {
+            preconditionFailure("widget InfoPlist.xcstrings must localize CFBundleDisplayName")
+        }
+        for language in supportedLanguages {
+            guard
+                let localization = displayNameLocalizations[language] as? [String: Any],
+                let stringUnit = localization["stringUnit"] as? [String: Any],
+                stringUnit["state"] as? String == "translated",
+                let value = stringUnit["value"] as? String,
+                !value.isEmpty
+            else {
+                preconditionFailure("\(language) is missing from widget display name")
+            }
+        }
+        precondition(
+            ((displayNameLocalizations["zh-Hans"] as? [String: Any])?["stringUnit"] as? [String: Any])?["value"] as? String == "观我趋势"
+        )
+        precondition(
+            ((displayNameLocalizations["zh-Hant"] as? [String: Any])?["stringUnit"] as? [String: Any])?["value"] as? String == "觀我趨勢"
+        )
+
         print("Widget localization smoke passed")
     }
 }

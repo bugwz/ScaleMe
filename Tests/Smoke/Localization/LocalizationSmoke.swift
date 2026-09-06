@@ -150,6 +150,19 @@ struct LocalizationSmoke {
             }
         }
 
+        guard
+            let productName = strings[AppText.productName.rawValue] as? [String: Any],
+            let productNameLocalizations = productName["localizations"] as? [String: Any],
+            let simplifiedProductName = productNameLocalizations[AppLanguage.simplifiedChinese.rawValue] as? [String: Any],
+            let simplifiedProductNameUnit = simplifiedProductName["stringUnit"] as? [String: Any],
+            simplifiedProductNameUnit["value"] as? String == "观我",
+            let traditionalProductName = productNameLocalizations[AppLanguage.traditionalChinese.rawValue] as? [String: Any],
+            let traditionalProductNameUnit = traditionalProductName["stringUnit"] as? [String: Any],
+            traditionalProductNameUnit["value"] as? String == "觀我"
+        else {
+            preconditionFailure("Chinese product names must be 观我 and 觀我")
+        }
+
         for key in requiredLocalizedKeys + AppText.allCases.map(\.rawValue) {
             guard
                 let entry = strings[key] as? [String: Any],

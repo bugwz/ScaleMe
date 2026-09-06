@@ -2861,12 +2861,8 @@
         }
       }
     },
-    "导入配置和数据文件？" : {
-
-    },
-    "导出" : {
-
-    },
+    "导入配置和数据文件？" : {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Konfigurations- und Datendatei importieren?"}},"en":{"stringUnit":{"state":"translated","value":"Import configuration and data file?"}},"es":{"stringUnit":{"state":"translated","value":"¿Importar el archivo de configuración y datos?"}},"fr":{"stringUnit":{"state":"translated","value":"Importer le fichier de configuration et de données ?"}},"ja":{"stringUnit":{"state":"translated","value":"設定とデータのファイルを読み込みますか？"}},"ko":{"stringUnit":{"state":"translated","value":"설정 및 데이터 파일을 가져오시겠습니까?"}},"pt":{"stringUnit":{"state":"translated","value":"Importar o ficheiro de configuração e dados?"}},"ru":{"stringUnit":{"state":"translated","value":"Импортировать файл конфигурации и данных?"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"导入配置和数据文件？"}},"zh-Hant":{"stringUnit":{"state":"translated","value":"匯入設定和資料檔案？"}}}},
+    "导出" : {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Exportieren"}},"en":{"stringUnit":{"state":"translated","value":"Export"}},"es":{"stringUnit":{"state":"translated","value":"Exportar"}},"fr":{"stringUnit":{"state":"translated","value":"Exporter"}},"ja":{"stringUnit":{"state":"translated","value":"エクスポート"}},"ko":{"stringUnit":{"state":"translated","value":"내보내기"}},"pt":{"stringUnit":{"state":"translated","value":"Exportar"}},"ru":{"stringUnit":{"state":"translated","value":"Экспорт"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"导出"}},"zh-Hant":{"stringUnit":{"state":"translated","value":"匯出"}}}},
     "展示类别" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -6117,12 +6113,8 @@
         }
       }
     },
-    "设备中没有待同步的历史记录" : {
-
-    },
-    "设备显示单位" : {
-
-    },
+    "设备中没有待同步的历史记录" : {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Auf dem Gerät sind keine ausstehenden Verlaufseinträge vorhanden"}},"en":{"stringUnit":{"state":"translated","value":"There are no history records waiting to be synced on the device"}},"es":{"stringUnit":{"state":"translated","value":"No hay registros históricos pendientes de sincronizar en el dispositivo"}},"fr":{"stringUnit":{"state":"translated","value":"Aucun historique en attente de synchronisation sur l’appareil"}},"ja":{"stringUnit":{"state":"translated","value":"デバイスに同期待ちの履歴はありません"}},"ko":{"stringUnit":{"state":"translated","value":"기기에 동기화 대기 중인 기록이 없습니다"}},"pt":{"stringUnit":{"state":"translated","value":"Não há registros de histórico aguardando sincronização no dispositivo"}},"ru":{"stringUnit":{"state":"translated","value":"На устройстве нет записей истории, ожидающих синхронизации"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"设备中没有待同步的历史记录"}},"zh-Hant":{"stringUnit":{"state":"translated","value":"裝置中沒有待同步的歷史記錄"}}}},
+    "设备显示单位" : {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Geräteanzeigeeinheit"}},"en":{"stringUnit":{"state":"translated","value":"Device display unit"}},"es":{"stringUnit":{"state":"translated","value":"Unidad de pantalla del dispositivo"}},"fr":{"stringUnit":{"state":"translated","value":"Unité d’affichage de l’appareil"}},"ja":{"stringUnit":{"state":"translated","value":"デバイスの表示単位"}},"ko":{"stringUnit":{"state":"translated","value":"기기 표시 단위"}},"pt":{"stringUnit":{"state":"translated","value":"Unidade de apresentação do dispositivo"}},"ru":{"stringUnit":{"state":"translated","value":"Единица отображения устройства"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"设备显示单位"}},"zh-Hant":{"stringUnit":{"state":"translated","value":"裝置顯示單位"}}}},
     "设备管理" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -6383,9 +6375,7 @@
         }
       }
     },
-    "请求 Apple 健康权限" : {
-
-    },
+    "请求 Apple 健康权限" : {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Apple-Health-Zugriff anfordern"}},"en":{"stringUnit":{"state":"translated","value":"Request Apple Health access"}},"es":{"stringUnit":{"state":"translated","value":"Solicitar acceso a Apple Health"}},"fr":{"stringUnit":{"state":"translated","value":"Demander l’accès à Apple Santé"}},"ja":{"stringUnit":{"state":"translated","value":"Appleヘルスケアへのアクセスを要求"}},"ko":{"stringUnit":{"state":"translated","value":"Apple 건강 접근 권한 요청"}},"pt":{"stringUnit":{"state":"translated","value":"Pedir acesso à Saúde Apple"}},"ru":{"stringUnit":{"state":"translated","value":"Запросить доступ к Apple Здоровью"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"请求 Apple 健康权限"}},"zh-Hant":{"stringUnit":{"state":"translated","value":"要求 Apple 健康權限"}}}},
     "资料仅用于日常指标估算。生物电阻抗与推导结果不具备医疗诊断用途。" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -6646,9 +6636,7 @@
         }
       }
     },
-    "连接状态" : {
-
-    },
+    "连接状态" : {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Verbindungsstatus"}},"en":{"stringUnit":{"state":"translated","value":"Connection status"}},"es":{"stringUnit":{"state":"translated","value":"Estado de conexión"}},"fr":{"stringUnit":{"state":"translated","value":"État de la connexion"}},"ja":{"stringUnit":{"state":"translated","value":"接続状態"}},"ko":{"stringUnit":{"state":"translated","value":"연결 상태"}},"pt":{"stringUnit":{"state":"translated","value":"Estado da ligação"}},"ru":{"stringUnit":{"state":"translated","value":"Состояние подключения"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"连接状态"}},"zh-Hant":{"stringUnit":{"state":"translated","value":"連線狀態"}}}},
     "选中位置" : {
       "extractionState" : "manual",
       "localizations" : {
