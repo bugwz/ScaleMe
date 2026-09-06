@@ -629,19 +629,7 @@ private struct DeviceScannerView: View {
     private var scanStage: some View {
         VStack(spacing: 18) {
             ZStack {
-                Circle()
-                    .stroke(AppColor.mint.opacity(0.08), lineWidth: 28)
-                    .frame(width: 250, height: 250)
-                    .scaleEffect(isScanRunning && !reduceMotion ? 1.06 : 0.98)
-                    .opacity(isScanRunning && !reduceMotion ? 0.28 : 0.6)
-                    .animation(
-                        reduceMotion
-                            ? nil
-                            : isScanRunning
-                                ? .easeInOut(duration: 1.4).repeatForever(autoreverses: true)
-                                : .easeOut(duration: 0.2),
-                        value: isScanRunning
-                    )
+                PulsingRing(diameter: 250, lineWidth: 28, isActive: isScanRunning)
 
                 Circle()
                     .fill(

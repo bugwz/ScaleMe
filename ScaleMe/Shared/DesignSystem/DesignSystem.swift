@@ -966,6 +966,63 @@ struct ScaleDeviceIconView: View {
     }
 }
 
+struct PulsingRing: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var pulseStartedAt = Date()
+
+    let diameter: CGFloat
+    let lineWidth: CGFloat
+    let isActive: Bool
+
+    var body: some View {
+        Color.clear
+            .frame(width: diameter, height: diameter)
+            .overlay {
+                TimelineView(.animation(paused: !isActive || reduceMotion)) { timeline in
+                    Canvas { context, size in
+                        let progress = pulseProgress(at: timeline.date)
+                        let renderedDiameter = diameter * (0.98 + 0.08 * progress)
+                        let origin = CGPoint(
+                            x: (size.width - renderedDiameter) / 2,
+                            y: (size.height - renderedDiameter) / 2
+                        )
+                        let ringRect = CGRect(
+                            origin: origin,
+                            size: CGSize(width: renderedDiameter, height: renderedDiameter)
+                        )
+                        let opacity = 0.6 - 0.32 * progress
+
+                        context.stroke(
+                            Path(ellipseIn: ringRect),
+                            with: .color(AppColor.mint.opacity(0.08 * opacity)),
+                            lineWidth: lineWidth
+                        )
+                    }
+                    .frame(width: drawingSize, height: drawingSize)
+                }
+            }
+            .accessibilityHidden(true)
+            .onChange(of: isActive) { _, isNowActive in
+                if isNowActive {
+                    pulseStartedAt = Date()
+                }
+            }
+    }
+
+    private var drawingSize: CGFloat {
+        diameter * 1.06 + lineWidth
+    }
+
+    private func pulseProgress(at date: Date) -> CGFloat {
+        guard isActive, !reduceMotion else { return 0 }
+
+        let cycleDuration = 2.8
+        let phase = date.timeIntervalSince(pulseStartedAt)
+            .truncatingRemainder(dividingBy: cycleDuration) / cycleDuration
+        return CGFloat((1 - cos(phase * 2 * .pi)) / 2)
+    }
+}
+
 struct BodyFatRateIcon: View {
     var size: CGFloat = 16
 

@@ -279,12 +279,7 @@ struct MeasureView: View {
     private var scaleStage: some View {
         VStack(spacing: 18) {
             ZStack {
-                Circle()
-                    .stroke(AppColor.mint.opacity(0.08), lineWidth: 28)
-                    .frame(width: 276, height: 276)
-                    .scaleEffect(isPulsing && !reduceMotion ? 1.06 : 0.98)
-                    .opacity(isPulsing && !reduceMotion ? 0.28 : 0.6)
-                    .animation(reduceMotion ? nil : .easeInOut(duration: 1.4).repeatForever(autoreverses: true), value: isPulsing)
+                PulsingRing(diameter: 276, lineWidth: 28, isActive: isPulsing)
                 Circle()
                     .fill(LinearGradient(colors: [AppColor.surface, AppColor.paleMint], startPoint: .top, endPoint: .bottom))
                     .frame(width: 230, height: 230)
