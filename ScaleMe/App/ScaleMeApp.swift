@@ -32,7 +32,7 @@ struct ScaleMeApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @Environment(\.scenePhase) private var scenePhase
     @StateObject private var store = MeasurementStore()
-    @StateObject private var bluetooth = BLEScaleManager()
+    @StateObject private var bluetooth = BluetoothScaleCoordinator()
     @StateObject private var appleHealth = AppleHealthManager()
     @State private var isShowingLaunchScreen = true
     @State private var isLeavingLaunchScreen = false

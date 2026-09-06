@@ -65,6 +65,10 @@ BodyMeasurement 领域记录
 
 扫描发现、载荷解码和测量会话是不同职责：
 
+- `BluetoothScaleCoordinator` 只作为 CoreBluetooth 生命周期与各会话组件之间的总协调入口；界面通过它观察连接和测量状态。
+- `BluetoothScaleState` 集中定义发现结果、连接状态、设备设置和历史读取等界面可观察状态。
+- `PairedScaleRegistry` 维护已关联设备、自动历史读取范围及所选通信规则的索引，避免协调器持有多组必须同步更新的平行字典。
+- `DeviceDiagnosticLog` 独立负责诊断采集生命周期、容量限制和报告格式，协调器只记录蓝牙事件。
 - 发现分类只决定候选设备如何展示，不等同于协议兼容结论。
 - 标准 GATT 特征与厂商广播即使共享服务 UUID，也走不同解析路径。
 - 每个私有协议族维护独立 parser/adapter，解析前检查长度、标志、字节序、单位和合理范围。

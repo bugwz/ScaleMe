@@ -2,112 +2,8 @@ import CoreBluetooth
 import Foundation
 import Security
 
-struct DiscoveredScale: Identifiable, Hashable {
-    let id: UUID
-    var name: String
-    var rssi: Int
-    var compatibility: String
-    var discoveryPriority: Int
-    var discoveryOrder = 0
-    var peripheral: CBPeripheral
-
-    var isVerifiedCompatible: Bool {
-        ScaleDiscoveryCompatibility(rawValue: compatibility)?.isVerified == true
-    }
-
-    static func == (lhs: Self, rhs: Self) -> Bool { lhs.id == rhs.id && lhs.rssi == rhs.rssi }
-    func hash(into hasher: inout Hasher) { hasher.combine(id) }
-}
-
-struct ScaleDeviceSettingsSnapshot: Equatable {
-    var firmwareRevision: String?
-    var hardwareRevision: String?
-    var serialNumber: String?
-    var hardwareUnit: XiaomiScaleHardwareUnit?
-    var canConfigureXiaomiUnit = false
-    var canSynchronizeTime = false
-    var hasHistoryChannel = false
-    var discoveredServiceUUIDs: [String] = []
-    var writableCharacteristicUUIDs: [String] = []
-}
-
-enum ScaleHistoryState: Equatable {
-    case unavailable
-    case ready
-    case reading(received: Int, announced: Int?)
-    case empty
-    case awaitingImport([BodyMeasurement])
-    case imported(DeviceHistoryImportSummary)
-    case clearCommandSent
-    case failed(String)
-}
-
-struct AutomaticallyRetrievedHistory: Identifiable, Equatable {
-    let id = UUID()
-    var measurements: [BodyMeasurement]
-}
-
-struct DeviceDiagnosticEvent: Identifiable, Equatable, Sendable {
-    enum Kind: String, Sendable {
-        case advertisement = "广播"
-        case service = "服务"
-        case characteristic = "特征"
-        case notification = "通知"
-        case write = "写入"
-        case acknowledgement = "回执"
-        case read = "读取"
-        case received = "响应"
-        case error = "错误"
-    }
-
-    let id = UUID()
-    var elapsedSeconds: TimeInterval
-    var kind: Kind
-    var source: String
-    var payloadHex: String?
-    var summary: String
-
-    var reportLine: String {
-        String(
-            format: "%7.3fs  %-4@  %-36@  %-24@  %@",
-            elapsedSeconds,
-            kind.rawValue,
-            source,
-            payloadHex ?? "-",
-            summary
-        )
-    }
-}
-
-enum ScaleDeviceSettingsState: Equatable {
-    case idle
-    case locating
-    case connecting
-    case discovering
-    case ready
-    case failed(String)
-
-    func title(in language: AppLanguage) -> String {
-        switch self {
-        case .idle: language.text("尚未检测")
-        case .locating: language.text("正在寻找设备")
-        case .connecting: language.text("正在连接")
-        case .discovering: language.text("正在读取设备能力")
-        case .ready: language.text("设备能力已更新")
-        case .failed(let message): language.text(message)
-        }
-    }
-
-    var isBusy: Bool {
-        switch self {
-        case .locating, .connecting, .discovering: true
-        default: false
-        }
-    }
-}
-
 @MainActor
-final class BLEScaleManager: NSObject, ObservableObject {
+final class BluetoothScaleCoordinator: NSObject, ObservableObject {
     private enum ScanPurpose { case adding, measuring, configuring(UUID) }
     private enum HistoryRequestOrigin: Equatable { case manual, automatic }
     private enum SettingsOperation {
@@ -130,26 +26,7 @@ final class BLEScaleManager: NSObject, ObservableObject {
         case ready
         case failed
     }
-    enum State: Equatable {
-        case idle, unavailable(String), scanning, connecting(String), connected(String)
-        case measuringWeight, measuringBodyComposition, confirmingMeasurement, completed
-
-        func title(in language: AppLanguage) -> String {
-            switch self {
-            case .idle: language.text("准备连接")
-            case .unavailable(let reason): language.text(reason)
-            case .scanning: language.text("正在等待已关联的设备")
-            case .connecting(let name): language.format("正在连接 %@", name)
-            case .connected(let name): language.format("已连接 %@", name)
-            case .measuringWeight: language.text("正在测量体重，请保持站立")
-            case .measuringBodyComposition: language.text("体重测量完成，正在测量身体成分，请保持站立")
-            case .confirmingMeasurement: language.text("正在确认测量结果，请保持站立")
-            case .completed: language.text("测量完成，最终值已保存")
-            }
-        }
-    }
-
-    @Published private(set) var state: State = .idle
+    @Published private(set) var state: BluetoothScaleState = .idle
     @Published private(set) var devices: [DiscoveredScale] = []
     @Published private(set) var latestMeasurement: BodyMeasurement?
     @Published private(set) var liveWeightKG: Double?
@@ -159,8 +36,10 @@ final class BLEScaleManager: NSObject, ObservableObject {
     @Published private(set) var settingsOperationSucceeded = false
     @Published private(set) var historyState: ScaleHistoryState = .unavailable
     @Published private(set) var automaticallyRetrievedHistory: AutomaticallyRetrievedHistory?
-    @Published private(set) var isDeviceDiagnosticCaptureEnabled = false
-    @Published private(set) var deviceDiagnosticEvents: [DeviceDiagnosticEvent] = []
+    @Published private var diagnosticLog = DeviceDiagnosticLog()
+
+    var isDeviceDiagnosticCaptureEnabled: Bool { diagnosticLog.isCapturing }
+    var deviceDiagnosticEvents: [DeviceDiagnosticEvent] { diagnosticLog.events }
 
     var currentScaleName: String? { activeScaleName }
 
@@ -173,13 +52,7 @@ final class BLEScaleManager: NSObject, ObservableObject {
     private var isWaitingForNextLoad = false
     private var minimumWeightAfterCompletionKG: Double?
     private var scanPurpose: ScanPurpose = .adding
-    private var pairedScaleIDs: Set<UUID> = []
-    private var pairedScaleNames: [UUID: String] = [:]
-    private var pairedScaleModelNames: [UUID: String] = [:]
-    private var pairedScaleCompatibilities: [UUID: String] = [:]
-    private var pairedScaleRuleIDs: [UUID: String] = [:]
-    private var automaticHistoryScaleIDs = Set<UUID>()
-    private var communicationRulesByID: [String: CommunicationRule] = [:]
+    private var pairedScales = PairedScaleRegistry()
     private var measurementScaleID: UUID?
     private var activeScaleID: UUID?
     private var activeScaleName: String?
@@ -204,7 +77,6 @@ final class BLEScaleManager: NSObject, ObservableObject {
     private var pendingAutomaticHistoryImportID: UUID?
     private var pendingSettingsServiceIDs: Set<ObjectIdentifier> = []
     private var pendingSettingsOperation: SettingsOperation?
-    private var deviceDiagnosticCaptureStartedAt: Date?
     private var scanRequested = false
     private var discoverySequence = 0
     private var didCompleteWolaiFinal = false
@@ -272,17 +144,8 @@ final class BLEScaleManager: NSObject, ObservableObject {
         selectedScaleID: UUID? = nil,
         profile: UserProfile? = nil
     ) {
-        pairedScaleIDs = Set(scales.map(\.id))
-        pairedScaleNames = Dictionary(uniqueKeysWithValues: scales.map { ($0.id, $0.name) })
-        pairedScaleModelNames = Dictionary(uniqueKeysWithValues: scales.map { ($0.id, $0.modelName) })
-        pairedScaleCompatibilities = Dictionary(uniqueKeysWithValues: scales.map { ($0.id, $0.compatibility) })
-        pairedScaleRuleIDs = Dictionary(uniqueKeysWithValues: scales.compactMap { scale in
-            scale.communicationRuleID.map { (scale.id, $0) }
-        })
-        automaticHistoryScaleIDs = Set(
-            scales.lazy.filter(\.isAutomaticHistoryImportEnabled).map(\.id)
-        )
-        measurementScaleID = selectedScaleID.flatMap { pairedScaleIDs.contains($0) ? $0 : nil }
+        pairedScales.updateScales(scales)
+        measurementScaleID = selectedScaleID.flatMap { pairedScales.contains($0) ? $0 : nil }
         scanPurpose = .measuring
         liveWeightKG = nil
         latestMeasurement = nil
@@ -315,39 +178,30 @@ final class BLEScaleManager: NSObject, ObservableObject {
         _ scales: [PairedScale],
         communicationRules: [CommunicationRule] = CommunicationRuleCatalog.builtIn
     ) {
-        pairedScaleIDs = Set(scales.map(\.id))
-        pairedScaleNames = Dictionary(uniqueKeysWithValues: scales.map { ($0.id, $0.name) })
-        pairedScaleModelNames = Dictionary(uniqueKeysWithValues: scales.map { ($0.id, $0.modelName) })
-        pairedScaleCompatibilities = Dictionary(uniqueKeysWithValues: scales.map { ($0.id, $0.compatibility) })
-        pairedScaleRuleIDs = Dictionary(uniqueKeysWithValues: scales.compactMap { scale in
-            scale.communicationRuleID.map { (scale.id, $0) }
-        })
-        automaticHistoryScaleIDs = Set(
-            scales.lazy.filter(\.isAutomaticHistoryImportEnabled).map(\.id)
-        )
-        communicationRulesByID = Dictionary(uniqueKeysWithValues: communicationRules.map { ($0.id, $0) })
+        pairedScales.updateScales(scales)
+        pairedScales.updateRules(communicationRules)
         if let activeScaleID, let scale = scales.first(where: { $0.id == activeScaleID }) {
             activeScaleName = scale.name
         }
     }
 
     private func selectedRule(for deviceID: UUID) -> CommunicationRule? {
-        pairedScaleRuleIDs[deviceID].flatMap { communicationRulesByID[$0] }
+        pairedScales.selectedRule(for: deviceID)
     }
 
     private func historyOperation(for deviceID: UUID) -> CommunicationGATTOperation? {
-        if pairedScaleRuleIDs[deviceID] != nil {
+        if pairedScales.hasExplicitRule(for: deviceID) {
             return selectedRule(for: deviceID)?.operations?.historyRead
         }
-        if let compatibility = pairedScaleCompatibilities[deviceID],
+        if let compatibility = pairedScales.compatibilities[deviceID],
            let ruleID = CommunicationRuleCatalog.automaticRuleID(for: compatibility),
-           let operation = communicationRulesByID[ruleID]?.operations?.historyRead {
+           let operation = pairedScales.rule(id: ruleID)?.operations?.historyRead {
             return operation
         }
-        guard pairedScaleModelNames[deviceID]?
+        guard pairedScales.modelNames[deviceID]?
             .trimmingCharacters(in: .whitespacesAndNewlines)
             .uppercased() == "MI SCALE2" else { return nil }
-        return communicationRulesByID[CommunicationRuleCatalog.xiaomiMiScale2ID]?
+        return pairedScales.rule(id: CommunicationRuleCatalog.xiaomiMiScale2ID)?
             .operations?.historyRead
     }
 
@@ -363,11 +217,11 @@ final class BLEScaleManager: NSObject, ObservableObject {
         if let selected = selectedRule(for: deviceID) {
             return selected.builtInParser == "wolaiAFU"
         }
-        return pairedScaleCompatibilities[deviceID] == ScaleDiscoveryCompatibility.wolaiAFU.rawValue
+        return pairedScales.compatibilities[deviceID] == ScaleDiscoveryCompatibility.wolaiAFU.rawValue
     }
 
     private func isMonitoredScale(_ deviceID: UUID) -> Bool {
-        pairedScaleIDs.contains(deviceID)
+        pairedScales.contains(deviceID)
             && (measurementScaleID == nil || measurementScaleID == deviceID)
     }
 
@@ -399,7 +253,7 @@ final class BLEScaleManager: NSObject, ObservableObject {
                 measurement,
                 reliability: measurement.isStable ? .protocolStable : .requiresStability,
                 deviceID: deviceID,
-                deviceName: pairedScaleNames[deviceID]
+                deviceName: pairedScales.names[deviceID]
             )
         case .weightRemoved:
             weightWasRemoved()
@@ -500,10 +354,7 @@ final class BLEScaleManager: NSObject, ObservableObject {
         huaweiHagridNotificationAccumulators.removeAll()
         settingsHuaweiAuthenticationCharacteristic = nil
         settingsHuaweiRealtimeCharacteristic = nil
-        if !isDeviceDiagnosticCaptureEnabled {
-            deviceDiagnosticEvents.removeAll(keepingCapacity: true)
-            deviceDiagnosticCaptureStartedAt = nil
-        }
+        diagnosticLog.resetIfInactive()
         settingsState = .locating
         scanPurpose = .configuring(scale.id)
     }
@@ -530,26 +381,19 @@ final class BLEScaleManager: NSObject, ObservableObject {
         stopScanning()
         disconnectSettingsPeripheral()
         settingsScaleID = nil
-        isDeviceDiagnosticCaptureEnabled = false
-        deviceDiagnosticCaptureStartedAt = nil
+        diagnosticLog.end()
         settingsState = .idle
     }
 
-    func makeDeviceDiagnosticReport() async -> String {
-        let services = settingsSnapshot.discoveredServiceUUIDs.joined(separator: ", ")
-        let device = settingsScaleID?.uuidString ?? "-"
-        let events = deviceDiagnosticEvents
-
-        return await Task.detached(priority: .userInitiated) {
-            let header = "ScaleMe device diagnostic capture\ndevice: \(device)\nservices: \(services)\nelapsed  type  source                                payload                   summary\n"
-            return header + events.map(\.reportLine).joined(separator: "\n")
-        }.value
+    func makeDeviceDiagnosticReport() -> String {
+        diagnosticLog.report(
+            deviceID: settingsScaleID,
+            serviceUUIDs: settingsSnapshot.discoveredServiceUUIDs
+        )
     }
 
     func startDeviceDiagnosticCapture(for scale: PairedScale) {
-        deviceDiagnosticEvents.removeAll(keepingCapacity: true)
-        deviceDiagnosticCaptureStartedAt = .now
-        isDeviceDiagnosticCaptureEnabled = true
+        diagnosticLog.start()
         inspectSettings(for: scale)
         appendDiagnosticEvent(kind: .service, source: "SESSION", summary: "开始采集目标设备 \(scale.name)")
         beginScanning(clearDevices: false)
@@ -557,7 +401,7 @@ final class BLEScaleManager: NSObject, ObservableObject {
 
     func stopDeviceDiagnosticCapture() {
         appendDiagnosticEvent(kind: .service, source: "SESSION", summary: "停止采集")
-        isDeviceDiagnosticCaptureEnabled = false
+        diagnosticLog.stop()
         if connected?.identifier == settingsScaleID {
             scanRequested = false
             central.stopScan()
@@ -670,7 +514,7 @@ final class BLEScaleManager: NSObject, ObservableObject {
     }
 
     private func startAutomaticWolaiHistoryIfNeeded(on peripheral: CBPeripheral) -> Bool {
-        guard automaticHistoryScaleIDs.contains(peripheral.identifier),
+        guard pairedScales.automaticHistoryIDs.contains(peripheral.identifier),
               wolaiHistorySession == nil,
               let operation = historyOperation(for: peripheral.identifier),
               operation.historyResponse?.builtInParser == "wolaiHistory20",
@@ -787,7 +631,7 @@ final class BLEScaleManager: NSObject, ObservableObject {
             let attributed = completed.map { value -> BodyMeasurement in
                 var result = value
                 result.deviceID = peripheral.identifier
-                result.deviceName = self.pairedScaleNames[peripheral.identifier] ?? peripheral.name
+                result.deviceName = self.pairedScales.names[peripheral.identifier] ?? peripheral.name
                 return result
             }
             if origin == .automatic {
@@ -972,7 +816,7 @@ final class BLEScaleManager: NSObject, ObservableObject {
     }
 
     private func startAutomaticXiaomiHistoryIfNeeded(on peripheral: CBPeripheral) -> Bool {
-        guard automaticHistoryScaleIDs.contains(peripheral.identifier),
+        guard pairedScales.automaticHistoryIDs.contains(peripheral.identifier),
               xiaomiHistorySession == nil,
               let operation = historyOperation(for: peripheral.identifier),
               operation.historyResponse?.builtInParser == "xiaomiHistory10",
@@ -1045,7 +889,7 @@ final class BLEScaleManager: NSObject, ObservableObject {
                 let attributed = measurements.map { value -> BodyMeasurement in
                     var result = value
                     result.deviceID = peripheral.identifier
-                    result.deviceName = pairedScaleNames[peripheral.identifier] ?? peripheral.name
+                    result.deviceName = pairedScales.names[peripheral.identifier] ?? peripheral.name
                     return result
                 }
                 if origin == .automatic {
@@ -1113,7 +957,7 @@ final class BLEScaleManager: NSObject, ObservableObject {
                 let attributed = measurements.map { value -> BodyMeasurement in
                     var result = value
                     result.deviceID = peripheral.identifier
-                    result.deviceName = pairedScaleNames[peripheral.identifier] ?? peripheral.name
+                    result.deviceName = pairedScales.names[peripheral.identifier] ?? peripheral.name
                     return result
                 }
                 historyState = .awaitingImport(attributed)
@@ -1227,17 +1071,13 @@ final class BLEScaleManager: NSObject, ObservableObject {
         summary: String,
         receivedAt: Date = .now
     ) {
-        guard isDeviceDiagnosticCaptureEnabled, let deviceDiagnosticCaptureStartedAt else { return }
-        deviceDiagnosticEvents.append(DeviceDiagnosticEvent(
-            elapsedSeconds: receivedAt.timeIntervalSince(deviceDiagnosticCaptureStartedAt),
+        diagnosticLog.append(
             kind: kind,
             source: source,
             payloadHex: payload.map(Self.hexString),
-            summary: summary
-        ))
-        if deviceDiagnosticEvents.count > 500 {
-            deviceDiagnosticEvents.removeFirst(deviceDiagnosticEvents.count - 500)
-        }
+            summary: summary,
+            receivedAt: receivedAt
+        )
     }
 
     func connect(_ device: DiscoveredScale) {
@@ -1245,7 +1085,7 @@ final class BLEScaleManager: NSObject, ObservableObject {
         central.stopScan()
         connected = device.peripheral
         activeScaleID = device.id
-        activeScaleName = pairedScaleNames[device.id] ?? device.name
+        activeScaleName = pairedScales.names[device.id] ?? device.name
         device.peripheral.delegate = self
         state = .connecting(device.name)
         central.connect(device.peripheral)
@@ -1617,7 +1457,7 @@ final class BLEScaleManager: NSObject, ObservableObject {
               connected == nil,
               let scale = scales.first(where: {
                   isMonitoredScale($0.id)
-                      && (automaticHistoryScaleIDs.contains($0.id)
+                      && (pairedScales.automaticHistoryIDs.contains($0.id)
                           || $0.compatibility == ScaleDiscoveryCompatibility.bluetoothSIG.rawValue
                           || $0.compatibility == ScaleDiscoveryCompatibility.wolaiAFU.rawValue
                           || selectedRule(for: $0.id)?.match.transport == .characteristicNotification)
@@ -1730,7 +1570,7 @@ final class BLEScaleManager: NSObject, ObservableObject {
     }
 }
 
-extension BLEScaleManager: CBCentralManagerDelegate {
+extension BluetoothScaleCoordinator: CBCentralManagerDelegate {
     nonisolated func centralManagerDidUpdateState(_ central: CBCentralManager) {
         Task { @MainActor in
             if central.state == .poweredOn, scanRequested {
@@ -1794,7 +1634,7 @@ extension BLEScaleManager: CBCentralManagerDelegate {
                         broadcastMatch.measurement,
                         reliability: broadcastReliability(for: broadcastMatch.family),
                         deviceID: peripheral.identifier,
-                        deviceName: pairedScaleNames[peripheral.identifier] ?? peripheral.name
+                        deviceName: pairedScales.names[peripheral.identifier] ?? peripheral.name
                     )
                 } else if let serviceDataMatch,
                           allowsBuiltInParser(
@@ -1807,7 +1647,7 @@ extension BLEScaleManager: CBCentralManagerDelegate {
                             measurement,
                             reliability: .protocolStable,
                             deviceID: peripheral.identifier,
-                            deviceName: pairedScaleNames[peripheral.identifier] ?? peripheral.name
+                            deviceName: pairedScales.names[peripheral.identifier] ?? peripheral.name
                         )
                     case .weightRemoved:
                         weightWasRemoved()
@@ -1827,7 +1667,7 @@ extension BLEScaleManager: CBCentralManagerDelegate {
                             measurement,
                             reliability: .protocolStable,
                             deviceID: peripheral.identifier,
-                            deviceName: pairedScaleNames[peripheral.identifier] ?? peripheral.name
+                            deviceName: pairedScales.names[peripheral.identifier] ?? peripheral.name
                         )
                     case .weightRemoved:
                         weightWasRemoved()
@@ -1839,11 +1679,11 @@ extension BLEScaleManager: CBCentralManagerDelegate {
             if case .configuring(let scaleID) = scanPurpose,
                scaleID == peripheral.identifier,
                connected?.identifier != peripheral.identifier {
-                connectForSettings(peripheral, name: pairedScaleNames[scaleID] ?? name)
+                connectForSettings(peripheral, name: pairedScales.names[scaleID] ?? name)
                 return
             }
             let discovery = discoveryAdvertisement(
-                name: pairedScaleModelNames[peripheral.identifier] ?? name,
+                name: pairedScales.modelNames[peripheral.identifier] ?? name,
                 advertisement: advertisementData,
                 hasVerifiedXiaomiPayload: hasVerifiedXiaomiPayload,
                 verifiedBroadcastProtocol: broadcastMatch?.family,
@@ -1868,7 +1708,7 @@ extension BLEScaleManager: CBCentralManagerDelegate {
             if case .measuring = scanPurpose,
                isMonitoredScale(peripheral.identifier),
                connected?.identifier != peripheral.identifier,
-               automaticHistoryScaleIDs.contains(peripheral.identifier)
+               pairedScales.automaticHistoryIDs.contains(peripheral.identifier)
                     || (item.isVerifiedCompatible
                         || selectedRule(for: peripheral.identifier)?.match.transport == .characteristicNotification)
                         && broadcastMatch == nil
@@ -1944,7 +1784,7 @@ extension BLEScaleManager: CBCentralManagerDelegate {
                     summary: "连接失败：\(error?.localizedDescription ?? "未知错误")"
                 )
                 settingsState = .failed(error?.localizedDescription ?? "无法连接设备，请唤醒秤后重试")
-            } else if case .measuring = scanPurpose, !pairedScaleIDs.isEmpty {
+            } else if case .measuring = scanPurpose, !pairedScales.ids.isEmpty {
                 beginScanning(clearDevices: false)
             } else {
                 state = .unavailable(error?.localizedDescription ?? "连接失败，请重试")
@@ -1999,7 +1839,7 @@ extension BLEScaleManager: CBCentralManagerDelegate {
                 if error != nil {
                     settingsState = .failed("设备连接已断开")
                 }
-            } else if case .measuring = scanPurpose, !pairedScaleIDs.isEmpty {
+            } else if case .measuring = scanPurpose, !pairedScales.ids.isEmpty {
                 beginScanning(clearDevices: false)
             } else {
                 state = error == nil ? .idle : .unavailable("连接已断开")
@@ -2008,7 +1848,7 @@ extension BLEScaleManager: CBCentralManagerDelegate {
     }
 }
 
-extension BLEScaleManager: CBPeripheralDelegate {
+extension BluetoothScaleCoordinator: CBPeripheralDelegate {
     nonisolated func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
         Task { @MainActor in
             guard error == nil else {
@@ -2072,7 +1912,7 @@ extension BLEScaleManager: CBPeripheralDelegate {
                 let isSelectedNotificationTarget = selectedRule(for: peripheral.identifier)?
                     .notifyTargets?.contains(characteristicTarget) == true
                 let historyOperation = historyOperation(for: peripheral.identifier)
-                let isAutomaticXiaomiHistoryTarget = automaticHistoryScaleIDs.contains(peripheral.identifier)
+                let isAutomaticXiaomiHistoryTarget = pairedScales.automaticHistoryIDs.contains(peripheral.identifier)
                     && historyOperation?.historyResponse?.builtInParser == "xiaomiHistory10"
                     && historyOperation?.subscriptions.contains(where: {
                         targetKey($0) == targetKey(characteristicTarget)
@@ -2875,7 +2715,7 @@ extension BLEScaleManager: CBPeripheralDelegate {
         )
         let compactAddress = credentials.bluetoothAddressText.replacingOccurrences(of: ":", with: "")
         let compactProfileID = profile.id.uuidString.replacingOccurrences(of: "-", with: "")
-        let isScale3 = pairedScaleModelNames[peripheral.identifier]?
+        let isScale3 = pairedScales.modelNames[peripheral.identifier]?
             .localizedCaseInsensitiveContains("Scale 3") == true
         let gender: UInt8 = if isScale3 {
             profile.biologicalSex == .male ? 1 : 0

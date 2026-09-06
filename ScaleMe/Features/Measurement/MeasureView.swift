@@ -16,7 +16,7 @@ private struct MeasureScaleAnchorKey: PreferenceKey {
 
 struct MeasureView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @EnvironmentObject private var bluetooth: BLEScaleManager
+    @EnvironmentObject private var bluetooth: BluetoothScaleCoordinator
     @EnvironmentObject private var store: MeasurementStore
     @State private var showManualEntry = false
     @State private var isPulsing = false
@@ -24,7 +24,7 @@ struct MeasureView: View {
     @State private var showProfileDropdown = false
     @State private var showScaleDropdown = false
     @State private var selectedScaleID: UUID?
-    @State private var simulationState: BLEScaleManager.State = .completed
+    @State private var simulationState: BluetoothScaleState = .completed
     @State private var simulatedWeightKG: Double?
     @State private var simulationMeasurementTask: Task<Void, Never>?
     @State private var detailMeasurement: BodyMeasurement?
@@ -435,7 +435,7 @@ struct MeasureView: View {
         return bluetooth.state.title(in: store.appLanguage)
     }
 
-    private var displayedMeasurementState: BLEScaleManager.State {
+    private var displayedMeasurementState: BluetoothScaleState {
         store.isSimulationEnabled ? simulationState : bluetooth.state
     }
 
@@ -560,7 +560,7 @@ struct MeasureView: View {
     }
 
     @MainActor
-    private func updateSimulation(state: BLEScaleManager.State, weightKG: Double?) {
+    private func updateSimulation(state: BluetoothScaleState, weightKG: Double?) {
         if reduceMotion {
             simulationState = state
             simulatedWeightKG = weightKG

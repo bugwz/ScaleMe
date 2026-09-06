@@ -552,7 +552,7 @@ private struct ScaleScrollViewportHeightPreferenceKey: PreferenceKey {
 }
 
 private struct DeviceScannerView: View {
-    @EnvironmentObject private var bluetooth: BLEScaleManager
+    @EnvironmentObject private var bluetooth: BluetoothScaleCoordinator
     @EnvironmentObject private var store: MeasurementStore
     @Environment(\.dismiss) private var dismiss
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -864,7 +864,7 @@ private struct ScaleSettingsView: View {
     }
 
     @EnvironmentObject private var store: MeasurementStore
-    @EnvironmentObject private var bluetooth: BLEScaleManager
+    @EnvironmentObject private var bluetooth: BluetoothScaleCoordinator
     @Environment(\.dismiss) private var dismiss
     let scaleID: UUID
     @State private var confirmDelete = false
@@ -1705,7 +1705,7 @@ private struct ScaleSettingsView: View {
         }
         diagnosticExportTask = Task {
             await Task.yield()
-            let report = await bluetooth.makeDeviceDiagnosticReport()
+            let report = bluetooth.makeDeviceDiagnosticReport()
             guard !Task.isCancelled else { return }
             diagnosticReportDocument = DiagnosticReportDocument(report: report)
             withAnimation(.easeInOut(duration: 0.2)) {
