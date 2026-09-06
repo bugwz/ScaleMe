@@ -103,15 +103,16 @@ This project is pre-release and in rapid development. Optimize for a clean curre
   - Apricot and rose are limited semantic accents.
 - Favor mist-white surfaces, generous spacing, restrained gradients, soft corners, subtle mint shadows, and strong readable text contrast.
 - Reference screenshots define useful information hierarchy, not pixel-perfect appearance. Do not clone another product's branding or layout.
-- The canonical logo is `Design/Logo/logo.svg`: a full-bleed fresh mint-to-sky scale face with exactly four compact light sensing points, no center symbol, and no outer white margin or nested app-icon silhouette. A clearly visible translucent white perimeter stroke is inset inside the scale face; let iOS apply the final app-icon corner mask.
+- The canonical logo is `Design/Logo/logo.svg`: an opaque white canvas with a centered mint circle and a soft white M-shaped mark. Preserve this identity across app-icon formats; do not replace the M with scale sensing points or another center symbol. Let iOS apply the final app-icon corner mask.
 - `Design/Logo/readme-logo.svg` is the dedicated transparent, tightly cropped README mark. Do not add an outer canvas or safe-area padding to it.
 - Keep these generated application resources synchronized with the canonical logo:
   - `ScaleMe/Resources/Assets.xcassets/AppLogo.imageset/AppLogo.svg` for in-app vector rendering.
-  - `ScaleMe/Resources/Assets.xcassets/AppIcon.appiconset/AppIcon-1024.png` for the iOS app icon.
+  - `ScaleMe/AppIcon.icon` for the iOS 26 layered app icon. Keep the mint circle and white M at scale `0.875`, with glass, specular, blur, translucency, refraction, and shadow disabled so the brand mark remains flat and crisp.
+  - `ScaleMe/Resources/Assets.xcassets/AppIcon.appiconset/AppIcon-1024.png` as the opaque fallback app icon for iOS 17 and iOS 18.
   - `Design/Logo/logo-preview.png` for documentation preview.
 - Follow Apple asset naming conventions: PascalCase asset catalog names (`AppIcon`, `AppLogo`, `AccentColor`) and concise, role-based file names. Do not add version suffixes to active production assets.
 - Regenerate the opaque iOS icon with `Tools/AssetGeneration/GenerateAppIcon.swift` after updating `logo-preview.png`; do not use lossy conversion or commit an app icon with an alpha channel.
-- The custom SwiftUI launch animation lives in `ScaleMe/App/Launch/AnimatedLaunchView.swift`. Keep it visually aligned with the four-point logo, honor Reduce Motion, block interaction only while visible, and transition cleanly into the real root view. Do not use launch animation time to delay required initialization.
+- The custom SwiftUI launch animation lives in `ScaleMe/App/Launch/AnimatedLaunchView.swift`. Keep it visually aligned with the mint-circle-and-M logo, honor Reduce Motion, block interaction only while visible, and transition cleanly into the real root view. Do not use launch animation time to delay required initialization.
 
 ## Swift implementation rules
 

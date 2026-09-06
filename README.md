@@ -112,6 +112,6 @@ ScaleMeWidgetShared/  # 主应用与小组件共享的加密快照数据契约
 
 ## 品牌
 
-中文产品名为“观我”，英文名及 Xcode 工程名为 “ScaleMe”。规范源文件是 [`Design/Logo/logo.svg`](Design/Logo/logo.svg)：薄荷到天蓝渐变的秤面、四个感应点和内嵌半透明轮廓。README 使用透明背景的 [`readme-logo.svg`](Design/Logo/readme-logo.svg)，应用内矢量图与 iOS 图标由同一视觉规范派生。
+中文产品名为“观我”，英文名及 Xcode 工程名为 “ScaleMe”。规范源文件是 [`Design/Logo/logo.svg`](Design/Logo/logo.svg)：白色背景上的薄荷绿圆形与圆内白色 M。README 使用透明背景、紧密裁切的 [`readme-logo.svg`](Design/Logo/readme-logo.svg)，应用内矢量图与 iOS 图标由同一视觉规范派生。iOS 26 使用关闭玻璃材质与高光的分层 `AppIcon.icon`，iOS 17 和 iOS 18 使用同尺寸的不透明 PNG 回退图标。
 
 品牌名称仅用于设备兼容性描述，不代表相关厂商背书。

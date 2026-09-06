@@ -107,7 +107,7 @@ SwiftUI 可观察状态保持在主 actor。CoreBluetooth delegate、受保护�
 
 共享色彩、卡片、设置面板、下拉菜单和页面背景集中在 `ScaleMe/Shared/DesignSystem/DesignSystem.swift`。功能页使用这些组件组合界面，避免依赖默认 `List`、`Form` 等系统样式形成不一致的产品体验。
 
-品牌资源以 `Design/Logo/logo.svg` 为规范源，应用内矢量、README 标记、预览图和 App Icon 保持同步。App Icon 由 `Tools/AssetGeneration/GenerateAppIcon.swift` 生成，确保输出不含 alpha 通道。
+品牌资源以 `Design/Logo/logo.svg` 为规范源，应用内矢量、README 标记、预览图和 App Icon 保持同步。iOS 26 使用 `ScaleMe/AppIcon.icon` 中关闭玻璃效果的绿色圆形与白色 M 分层资源；iOS 17 和 iOS 18 的回退 App Icon 由 `Tools/AssetGeneration/GenerateAppIcon.swift` 生成，确保输出不含 alpha 通道且视觉尺寸一致。
 
 ## 扩展指南
 

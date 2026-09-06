@@ -3,6 +3,7 @@
   <title>观我 ScaleMe logo</title>
   <desc>A flat mint circle with a soft white M-shaped polyline.</desc>
 
+  <rect width="1024" height="1024" fill="#FFFFFF"/>
   <circle cx="512" cy="512" r="400" fill="#14AD8C"/>
   <path d="M280 680L360 360L512 600L664 360L744 680" stroke="#FFFFFF" stroke-width="64" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>
