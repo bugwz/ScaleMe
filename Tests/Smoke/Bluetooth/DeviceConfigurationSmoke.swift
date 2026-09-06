@@ -3,7 +3,7 @@ import Foundation
 @main
 enum DeviceConfigurationSmoke {
     static func main() {
-        for unit in XiaomiScaleHardwareUnit.allCases {
+        for unit in CommunicationWeightUnit.allCases {
             let command = XiaomiScaleConfigurationProtocol.unitCommand(unit)
             precondition(command.count == 4)
             precondition(XiaomiScaleConfigurationProtocol.parseUnit(from: command) == unit)

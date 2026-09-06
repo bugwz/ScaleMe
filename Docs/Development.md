@@ -52,6 +52,12 @@ swiftc -module-cache-path /tmp/scaleme-swift-module-cache \
 
 swiftc -module-cache-path /tmp/scaleme-swift-module-cache \
   @Tests/Smoke/Bluetooth/ProtocolSources.rsp \
+  Tests/Smoke/Bluetooth/ProtocolSessionSmoke.swift \
+  -o /tmp/scaleme-protocol-session-smoke
+/tmp/scaleme-protocol-session-smoke
+
+swiftc -module-cache-path /tmp/scaleme-swift-module-cache \
+  @Tests/Smoke/Bluetooth/ProtocolSources.rsp \
   Tests/Smoke/Localization/LocalizationSmoke.swift \
   -o /tmp/scaleme-localization-smoke
 /tmp/scaleme-localization-smoke
@@ -73,6 +79,7 @@ swiftc -module-cache-path /tmp/scaleme-swift-module-cache \
 | 范围 | 测试文件 |
 | --- | --- |
 | 测量稳定与完成态 | `Tests/Smoke/Bluetooth/MeasurementSessionSmoke.swift` |
+| 连接协议事件与动作 | `Tests/Smoke/Bluetooth/ProtocolSessionSmoke.swift` |
 | 发现分类 | `Tests/Smoke/Bluetooth/DiscoveryClassifierSmoke.swift` |
 | 设备设置命令 | `Tests/Smoke/Bluetooth/DeviceConfigurationSmoke.swift` |
 | 趋势分析 | `Tests/Smoke/Domain/TrendAnalysisSmoke.swift` |
@@ -101,7 +108,7 @@ swiftc -module-cache-path /tmp/scaleme-swift-module-cache \
 1. **已实现**：存在可执行解析或会话代码。
 2. **Fixture 验证**：通过可复现的捕获载荷和畸形输入测试。
 3. **实机验证**：在明确型号与固件上完成测量流程验证。
-4. **计划中 / 协议骨架**：仅记录服务、特征或上游能力，不能作为可测量协议使用。
+4. **待完善或验证**：可以在对应协议目录中登记只读协议骨架，并显示在内置协议目录和设备协议选择器中；没有可执行解析或会话实现时不能作为已支持协议或产生测量结果。
 
 发现到设备、名称匹配、网络片段或上游 handler 存在，都不能单独升级为“实机支持”。完整清单维护在 [体重秤协议支持矩阵](BluetoothProtocolSupport.md)。
 

@@ -1,6 +1,22 @@
 import Foundation
 
 struct StandardWeightScaleParser {
+    static let communicationRule = CommunicationRule(
+        id: "protocol.builtin.sig-weight",
+        name: "SIG Weight",
+        version: 1,
+        summary: "Bluetooth SIG 标准体重服务（181D / 2A9D）。",
+        origin: .builtIn,
+        match: .init(
+            transport: .characteristicNotification,
+            serviceUUID: "181D",
+            characteristicUUID: "2A9D",
+            minimumLength: 3
+        ),
+        decoder: nil,
+        builtInParser: "bluetoothSIGWeight",
+        verification: .standardSpecification
+    )
     /// Bluetooth SIG Weight Measurement (0x2A9D), WSS 1.0.1.
     static func parse(_ data: Data, now: Date = .now) throws -> BodyMeasurement {
         let bytes = [UInt8](data)

@@ -1,24 +1,8 @@
 import Foundation
 
-enum XiaomiScaleHardwareUnit: UInt8, CaseIterable, Identifiable {
-    case kilograms = 0x00
-    case pounds = 0x01
-    case jin = 0x02
-
-    var id: UInt8 { rawValue }
-
-    var title: String {
-        switch self {
-        case .kilograms: "公制（kg）"
-        case .pounds: "英制（lb）"
-        case .jin: "市斤（斤）"
-        }
-    }
-}
-
 enum XiaomiScaleConfigurationProtocol {
     struct UnitCommandResponse: Equatable {
-        let unit: XiaomiScaleHardwareUnit
+        let unit: CommunicationWeightUnit
         let status: UInt8
     }
 
@@ -26,17 +10,17 @@ enum XiaomiScaleConfigurationProtocol {
     static let configurationCharacteristicUUID = "00001542-0000-3512-2118-0009AF100700"
     static let historyCharacteristicUUID = "00002A2F-0000-3512-2118-0009AF100700"
 
-    static func unitCommand(_ unit: XiaomiScaleHardwareUnit) -> Data {
-        Data([0x06, 0x04, 0x00, unit.rawValue])
+    static func unitCommand(_ unit: CommunicationWeightUnit) -> Data {
+        Data([0x06, 0x04, 0x00, rawValue(for: unit)])
     }
 
-    static func parseUnit(from data: Data) -> XiaomiScaleHardwareUnit? {
+    static func parseUnit(from data: Data) -> CommunicationWeightUnit? {
         let bytes = [UInt8](data)
         guard bytes.count >= 4,
               bytes[0] == 0x06,
               bytes[1] == 0x04,
               bytes[2] == 0x00 else { return nil }
-        return XiaomiScaleHardwareUnit(rawValue: bytes[3])
+        return unit(for: bytes[3])
     }
 
     static func parseUnitCommandResponse(from data: Data) -> UnitCommandResponse? {
@@ -45,8 +29,25 @@ enum XiaomiScaleConfigurationProtocol {
               bytes[0] == 0x10,
               bytes[1] == 0x06,
               bytes[2] == 0x04,
-              let unit = XiaomiScaleHardwareUnit(rawValue: bytes[3]) else { return nil }
+              let unit = unit(for: bytes[3]) else { return nil }
         return UnitCommandResponse(unit: unit, status: bytes[4])
+    }
+
+    private static func rawValue(for unit: CommunicationWeightUnit) -> UInt8 {
+        switch unit {
+        case .kilograms: 0x00
+        case .pounds: 0x01
+        case .jin: 0x02
+        }
+    }
+
+    private static func unit(for rawValue: UInt8) -> CommunicationWeightUnit? {
+        switch rawValue {
+        case 0x00: .kilograms
+        case 0x01: .pounds
+        case 0x02: .jin
+        default: nil
+        }
     }
 }
 

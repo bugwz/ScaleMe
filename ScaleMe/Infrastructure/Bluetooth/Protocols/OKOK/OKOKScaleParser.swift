@@ -90,7 +90,7 @@ struct OKOKScaleParser {
             date: now,
             weightKG: weightKG,
             impedanceOhm: impedanceOhm,
-            source: .communityProtocol,
+            source: .builtInProtocol,
             isStable: isStable
         )
     }
@@ -124,5 +124,41 @@ struct OKOKScaleParser {
 
     private static func readUInt16BE(_ bytes: [UInt8], at index: Int) -> UInt16 {
         UInt16(bytes[index]) << 8 | UInt16(bytes[index + 1])
+    }
+}
+
+extension OKOKScaleParser: ScaleAdvertisementProtocolAdapter {
+    static let descriptor = ScaleProtocolDescriptor(
+        id: "protocol.builtin.okok",
+        name: "OKOK 广播协议",
+        parserID: "okokBroadcast",
+        transport: .advertisementManufacturerData,
+        discoveryCompatibility: .okokBroadcast,
+        capabilities: [.liveMeasurement]
+    )
+
+    static let communicationRule = CommunicationRule(
+        id: descriptor.id,
+        name: "OKOK",
+        version: 1,
+        summary: "解析 OKOK V20、V11、VF0 与 C0 广播变体。已通过数据样本验证，待真机验证。",
+        origin: .builtIn,
+        match: .init(
+            transport: descriptor.transport,
+            serviceUUID: "MULTI",
+            characteristicUUID: nil,
+            minimumLength: 6
+        ),
+        decoder: nil,
+        builtInParser: descriptor.parserID,
+        verification: .fixtureValidated
+    )
+
+    static func decodeAdvertisement(_ input: ScaleAdvertisementInput) throws -> ScaleProtocolPacket {
+        guard let data = input.manufacturerData,
+              let packet = ScaleManufacturerPacket(appleManufacturerData: data) else {
+            throw ScalePayloadError.unsupported
+        }
+        return .measurement(try parse(packet, advertisedName: input.name, now: input.receivedAt))
     }
 }

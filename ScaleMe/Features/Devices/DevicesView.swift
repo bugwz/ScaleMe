@@ -869,7 +869,7 @@ private struct ScaleSettingsView: View {
     let scaleID: UUID
     @State private var confirmDelete = false
     @State private var confirmClearHistory = false
-    @State private var selectedHardwareUnit = XiaomiScaleHardwareUnit.kilograms
+    @State private var selectedHardwareUnit = CommunicationWeightUnit.kilograms
     @State private var showsHardwareUnitMenu = false
     @State private var showsProtocolMenu = false
     @State private var diagnosticExportState: DiagnosticExportState?
@@ -952,7 +952,7 @@ private struct ScaleSettingsView: View {
                     AppDropdownMenuLayer(
                         anchorFrame: proxy[anchor],
                         availableSize: proxy.size,
-                        options: XiaomiScaleHardwareUnit.allCases,
+                        options: CommunicationWeightUnit.allCases,
                         isSelected: { $0 == selectedHardwareUnit },
                         title: { $0.title },
                         appearance: .compact,
@@ -1042,7 +1042,7 @@ private struct ScaleSettingsView: View {
 
     private var showsHuaweiHagridCredentials: Bool {
         guard let scale else { return false }
-        if scale.communicationRuleID == CommunicationRuleCatalog.huaweiHagridID
+        if scale.communicationRuleID == HuaweiHagridProtocolSession.communicationRule.id
             || scale.compatibility == ScaleDiscoveryCompatibility.huaweiHagridAuthorizationRequired.rawValue {
             return true
         }
@@ -1207,7 +1207,7 @@ private struct ScaleSettingsView: View {
 
     private var deviceOperationsPanel: some View {
         SettingsPanel(title: "设备操作", icon: "slider.horizontal.3") {
-            if bluetooth.settingsSnapshot.canConfigureXiaomiUnit {
+            if bluetooth.settingsSnapshot.canConfigureHardwareUnit {
                 VStack(alignment: .leading, spacing: 10) {
                     Text("设备显示单位")
                         .font(.subheadline.weight(.semibold))

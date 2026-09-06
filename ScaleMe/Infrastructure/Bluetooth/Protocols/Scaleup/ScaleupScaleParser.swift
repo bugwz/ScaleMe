@@ -12,8 +12,44 @@ struct ScaleupScaleParser {
         return BodyMeasurement(
             date: now,
             weightKG: weightKG,
-            source: .communityProtocol,
+            source: .builtInProtocol,
             isStable: flag == 0xE0
         )
+    }
+}
+
+extension ScaleupScaleParser: ScaleAdvertisementProtocolAdapter {
+    static let descriptor = ScaleProtocolDescriptor(
+        id: "protocol.builtin.scaleup",
+        name: "Scaleup 广播协议",
+        parserID: "scaleupBroadcast",
+        transport: .advertisementManufacturerData,
+        discoveryCompatibility: .scaleupBroadcast,
+        capabilities: [.liveMeasurement]
+    )
+
+    static let communicationRule = CommunicationRule(
+        id: descriptor.id,
+        name: "Scaleup",
+        version: 1,
+        summary: "解析 D0/E0 状态、0.01 kg 体重与稳定状态。已通过数据样本验证，待真机验证。",
+        origin: .builtIn,
+        match: .init(
+            transport: descriptor.transport,
+            serviceUUID: "xxD0/xxE0",
+            characteristicUUID: nil,
+            minimumLength: 11
+        ),
+        decoder: nil,
+        builtInParser: descriptor.parserID,
+        verification: .fixtureValidated
+    )
+
+    static func decodeAdvertisement(_ input: ScaleAdvertisementInput) throws -> ScaleProtocolPacket {
+        guard let data = input.manufacturerData,
+              let packet = ScaleManufacturerPacket(appleManufacturerData: data) else {
+            throw ScalePayloadError.unsupported
+        }
+        return .measurement(try parse(packet, now: input.receivedAt))
     }
 }

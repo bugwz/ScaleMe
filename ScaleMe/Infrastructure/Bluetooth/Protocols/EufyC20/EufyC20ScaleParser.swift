@@ -22,8 +22,44 @@ struct EufyC20ScaleParser {
             date: now,
             weightKG: weightKG,
             impedanceOhm: impedanceOhm,
-            source: .communityProtocol,
+            source: .builtInProtocol,
             isStable: impedanceOhm != nil
         )
+    }
+}
+
+extension EufyC20ScaleParser: ScaleAdvertisementProtocolAdapter {
+    static let descriptor = ScaleProtocolDescriptor(
+        id: "protocol.builtin.eufy-c20",
+        name: "Eufy C20 广播协议",
+        parserID: "eufyC20Broadcast",
+        transport: .advertisementManufacturerData,
+        discoveryCompatibility: .eufyC20Broadcast,
+        capabilities: [.liveMeasurement]
+    )
+
+    static let communicationRule = CommunicationRule(
+        id: descriptor.id,
+        name: "Eufy C20",
+        version: 1,
+        summary: "解析 Company ID BC64 的体重与阻抗字段。已通过数据样本验证，待真机验证。",
+        origin: .builtIn,
+        match: .init(
+            transport: descriptor.transport,
+            serviceUUID: "BC64",
+            characteristicUUID: nil,
+            minimumLength: 16
+        ),
+        decoder: nil,
+        builtInParser: descriptor.parserID,
+        verification: .fixtureValidated
+    )
+
+    static func decodeAdvertisement(_ input: ScaleAdvertisementInput) throws -> ScaleProtocolPacket {
+        guard let data = input.manufacturerData,
+              let packet = ScaleManufacturerPacket(appleManufacturerData: data) else {
+            throw ScalePayloadError.unsupported
+        }
+        return .measurement(try parse(packet, now: input.receivedAt))
     }
 }

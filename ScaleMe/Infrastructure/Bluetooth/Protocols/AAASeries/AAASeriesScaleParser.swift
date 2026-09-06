@@ -33,8 +33,44 @@ struct AAASeriesScaleParser {
         return BodyMeasurement(
             date: now,
             weightKG: weightKG,
-            source: .communityProtocol,
+            source: .builtInProtocol,
             isStable: value & 0x8000_0000 != 0
         )
+    }
+}
+
+extension AAASeriesScaleParser: ScaleAdvertisementProtocolAdapter {
+    static let descriptor = ScaleProtocolDescriptor(
+        id: "protocol.builtin.aaa-series",
+        name: "AAA 系列广播协议",
+        parserID: "aaaSeriesBroadcast",
+        transport: .advertisementManufacturerData,
+        discoveryCompatibility: .aaaSeriesBroadcast,
+        capabilities: [.liveMeasurement]
+    )
+
+    static let communicationRule = CommunicationRule(
+        id: descriptor.id,
+        name: "AAA Series",
+        version: 1,
+        summary: "解析 AAA 系列厂商广播的 XOR 数据、5 位校验、克数与稳定状态。已通过数据样本验证，待真机验证。",
+        origin: .builtIn,
+        match: .init(
+            transport: descriptor.transport,
+            serviceUUID: "ANY",
+            characteristicUUID: nil,
+            minimumLength: 14
+        ),
+        decoder: nil,
+        builtInParser: descriptor.parserID,
+        verification: .fixtureValidated
+    )
+
+    static func decodeAdvertisement(_ input: ScaleAdvertisementInput) throws -> ScaleProtocolPacket {
+        guard let data = input.manufacturerData,
+              let packet = ScaleManufacturerPacket(appleManufacturerData: data) else {
+            throw ScalePayloadError.unsupported
+        }
+        return .measurement(try parse(packet, advertisedName: input.name, now: input.receivedAt))
     }
 }

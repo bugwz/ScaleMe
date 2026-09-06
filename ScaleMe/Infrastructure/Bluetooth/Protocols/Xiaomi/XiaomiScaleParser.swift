@@ -1,6 +1,22 @@
 import Foundation
 
 struct XiaomiScaleParser {
+    static let communicationRule = CommunicationRule(
+        id: "protocol.builtin.xiaomi-legacy",
+        name: "Xiaomi 181B",
+        version: 1,
+        summary: "解析 0x181B 服务广播中的体重、稳定状态、时间与阻抗。",
+        origin: .builtIn,
+        match: .init(
+            transport: .advertisementServiceData,
+            serviceUUID: "181B",
+            characteristicUUID: nil,
+            minimumLength: 13
+        ),
+        decoder: nil,
+        builtInParser: "xiaomiLegacyAdvertisement",
+        verification: .fixtureValidated
+    )
     enum Packet {
         case measurement(BodyMeasurement)
         case weightRemoved

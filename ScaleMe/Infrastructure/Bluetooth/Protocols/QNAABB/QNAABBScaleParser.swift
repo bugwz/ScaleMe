@@ -18,8 +18,44 @@ struct QNAABBScaleParser {
         return BodyMeasurement(
             date: now,
             weightKG: weightKG,
-            source: .communityProtocol,
+            source: .builtInProtocol,
             isStable: bytes[15] & 0x20 != 0
         )
+    }
+}
+
+extension QNAABBScaleParser: ScaleAdvertisementProtocolAdapter {
+    static let descriptor = ScaleProtocolDescriptor(
+        id: "protocol.builtin.qn-aabb",
+        name: "QN/AABB 广播协议",
+        parserID: "qnAABBBroadcast",
+        transport: .advertisementManufacturerData,
+        discoveryCompatibility: .qnAABBBroadcast,
+        capabilities: [.liveMeasurement]
+    )
+
+    static let communicationRule = CommunicationRule(
+        id: descriptor.id,
+        name: "QN/AABB",
+        version: 1,
+        summary: "解析 Company ID FFFF 厂商广播中的 AABB 体重与稳定状态。已通过数据样本验证，待真机验证。",
+        origin: .builtIn,
+        match: .init(
+            transport: descriptor.transport,
+            serviceUUID: "FFFF",
+            characteristicUUID: nil,
+            minimumLength: 21
+        ),
+        decoder: nil,
+        builtInParser: descriptor.parserID,
+        verification: .fixtureValidated
+    )
+
+    static func decodeAdvertisement(_ input: ScaleAdvertisementInput) throws -> ScaleProtocolPacket {
+        guard let data = input.manufacturerData,
+              let packet = ScaleManufacturerPacket(appleManufacturerData: data) else {
+            throw ScalePayloadError.unsupported
+        }
+        return .measurement(try parse(packet, now: input.receivedAt))
     }
 }

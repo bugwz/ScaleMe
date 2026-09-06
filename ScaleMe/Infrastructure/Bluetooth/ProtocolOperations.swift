@@ -8,6 +8,7 @@ enum CommunicationOperationCapability: String, Codable, Hashable {
 enum CommunicationWriteMode: String, Codable, Hashable {
     case withResponse
     case withoutResponse
+    case automatic
 }
 
 struct CommunicationGATTTarget: Codable, Equatable, Hashable {
@@ -119,6 +120,13 @@ enum CommunicationPayloadTemplate {
         guard !bytes.isEmpty, bytes.count <= 128 else {
             throw CommunicationRuleError.invalidDocument("单条 GATT 命令必须为 1 至 128 字节")
         }
+    }
+
+    static func validateExternal(_ template: String) throws {
+        guard !template.contains("{{wolaiTimeInitialization}}") else {
+            throw CommunicationRuleError.invalidDocument("外部规则不能使用内置协议专用动态字段")
+        }
+        try validate(template)
     }
 
     private static func replacingResponseFields(

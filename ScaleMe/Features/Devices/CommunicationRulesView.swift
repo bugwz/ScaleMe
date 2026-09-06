@@ -9,36 +9,23 @@ struct CommunicationRulesView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
-                NavigationLink {
-                    BuiltInProtocolsView()
-                } label: {
-                    HStack(spacing: 14) {
-                        Image(systemName: "checkmark.seal.fill")
-                            .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(AppColor.mint)
-                            .frame(width: 40, height: 40)
-                            .background(AppColor.paleMint, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-                        Text(language.text("内置协议"))
-                            .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(AppColor.ink)
-                        Spacer()
-                        Text(String(CommunicationRuleCatalog.builtIn.count))
-                            .font(.caption.weight(.semibold).monospacedDigit())
-                            .foregroundStyle(AppColor.secondary)
-                            .padding(.horizontal, 9)
-                            .padding(.vertical, 5)
-                            .background(AppColor.canvas, in: Capsule())
-                        Image(systemName: "chevron.right")
-                            .font(.caption.bold())
-                            .foregroundStyle(AppColor.secondary.opacity(0.7))
-                    }
-                    .padding(14)
-                    .background(AppColor.surface.opacity(0.94))
-                    .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-                    .overlay(RoundedRectangle(cornerRadius: 20, style: .continuous).stroke(AppColor.mint.opacity(0.08)))
-                    .contentShape(Rectangle())
+                SettingsPanel(title: "内置协议", icon: "checkmark.seal.fill") {
+                    builtInGroupLink(
+                        title: "可执行协议",
+                        detail: "已完整实现并具有明确验证依据",
+                        icon: "checkmark.circle.fill",
+                        color: AppColor.mint,
+                        rules: CommunicationRuleCatalog.confirmedExecutableBuiltIn
+                    )
+                    SettingsSeparator()
+                    builtInGroupLink(
+                        title: "待完善或验证的协议",
+                        detail: "实现、验证或运行条件尚未完整确认",
+                        icon: "wrench.and.screwdriver.fill",
+                        color: AppColor.apricot,
+                        rules: CommunicationRuleCatalog.pendingBuiltIn
+                    )
                 }
-                .buttonStyle(.plain)
 
                 SettingsPanel(
                     title: "外部协议",
@@ -74,21 +61,59 @@ struct CommunicationRulesView: View {
         }
     }
 
+    private func builtInGroupLink(
+        title: String,
+        detail: String,
+        icon: String,
+        color: Color,
+        rules: [CommunicationRule]
+    ) -> some View {
+        NavigationLink {
+            BuiltInProtocolsView(title: title, rules: rules)
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: icon)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(color)
+                    .frame(width: 36, height: 36)
+                    .background(color.opacity(0.11), in: RoundedRectangle(cornerRadius: 11, style: .continuous))
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(language.text(title))
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(AppColor.ink)
+                    Text(language.text(detail))
+                        .font(.caption)
+                        .foregroundStyle(AppColor.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                Spacer(minLength: 8)
+                Text(String(rules.count))
+                    .font(.caption.weight(.semibold).monospacedDigit())
+                    .foregroundStyle(AppColor.secondary)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(AppColor.canvas, in: Capsule())
+                Image(systemName: "chevron.right")
+                    .font(.caption.bold())
+                    .foregroundStyle(AppColor.secondary.opacity(0.7))
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+    }
 }
 
 private struct BuiltInProtocolsView: View {
     @Environment(\.appLanguage) private var language
     @State private var searchText = ""
     @State private var isSearchFocused = false
-
-    private var sortedRules: [CommunicationRule] {
-        CommunicationRuleCatalog.builtInForDisplay
-    }
+    let title: String
+    let rules: [CommunicationRule]
 
     private var filteredRules: [CommunicationRule] {
         let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !query.isEmpty else { return sortedRules }
-        return sortedRules.filter { rule in
+        guard !query.isEmpty else { return rules }
+        return rules.filter { rule in
             [
                 rule.name,
                 language.text(rule.summary),
@@ -130,9 +155,9 @@ private struct BuiltInProtocolsView: View {
                 .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).stroke(AppColor.mint.opacity(0.10)))
 
                 SettingsPanel(
-                    title: "内置协议",
+                    title: title,
                     icon: "checkmark.seal.fill",
-                    headerValue: String(CommunicationRuleCatalog.builtIn.count)
+                    headerValue: String(rules.count)
                 ) {
                     if filteredRules.isEmpty {
                         Label("未找到匹配的内置协议", systemImage: "magnifyingglass")
@@ -145,10 +170,6 @@ private struct BuiltInProtocolsView: View {
                             if rule.id != filteredRules.last?.id { SettingsSeparator() }
                         }
                     }
-                    Text(language.text("内置目录同时包含可执行协议和已登记的上游协议骨架；请以“实现状态”与“验证状态”标签为准。"))
-                        .font(.caption)
-                        .foregroundStyle(AppColor.secondary)
-                        .lineSpacing(3)
                 }
             }
             .padding(.horizontal, 18)
@@ -156,7 +177,7 @@ private struct BuiltInProtocolsView: View {
         }
         .scrollDismissesKeyboard(.interactively)
         .pageBackground()
-        .navigationTitle("内置协议")
+        .navigationTitle(language.text(title))
         .navigationBarTitleDisplayMode(.inline)
         .localizedNavigationBackButton()
     }

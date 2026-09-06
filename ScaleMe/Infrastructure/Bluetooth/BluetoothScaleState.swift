@@ -22,8 +22,8 @@ struct ScaleDeviceSettingsSnapshot: Equatable {
     var firmwareRevision: String?
     var hardwareRevision: String?
     var serialNumber: String?
-    var hardwareUnit: XiaomiScaleHardwareUnit?
-    var canConfigureXiaomiUnit = false
+    var hardwareUnit: CommunicationWeightUnit?
+    var canConfigureHardwareUnit = false
     var canSynchronizeTime = false
     var hasHistoryChannel = false
     var discoveredServiceUUIDs: [String] = []

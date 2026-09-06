@@ -407,7 +407,7 @@ enum ParserSmoke {
         let qn = try QNAABBScaleParser.parse(.init(companyID: 0xFFFF, payload: qnPayload))
         precondition(abs(qn.weightKG - 72.35) < 0.001)
         precondition(qn.isStable)
-        precondition(qn.source == .communityProtocol)
+        precondition(qn.source == .builtInProtocol)
 
         let aaaPayload = Data([
             1, 2, 3, 4, 5, 6,
@@ -470,12 +470,12 @@ enum ParserSmoke {
         precondition(etekcity.impedanceOhm == 500)
         precondition(etekcity.isStable)
 
-        let etekcityCatalogMatch = ScaleBroadcastProtocolCatalog.parse(
+        let etekcityRegistryMatch = ScaleProtocolRegistry.builtIn.decodeAdvertisement(.init(
             name: "Etekcity Fit 8S",
             manufacturerData: Data([0xD0, 0x06]) + etekcityPayload,
             advertisedServiceUUIDs: ["FFD0"]
-        )
-        precondition(etekcityCatalogMatch?.family == .etekcityFit8S)
+        ))
+        precondition(etekcityRegistryMatch?.descriptor.id == "protocol.builtin.fit8s")
 
         let eufyPayload = Data([
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -519,19 +519,16 @@ enum ParserSmoke {
         }
         precondition(abs(xiaomiMiScale2KG.weightKG - 60.0) < 0.001)
         precondition(abs(xiaomiMiScale2Jin.weightKG - 70.0) < 0.001)
-        let xiaomiMiScale2Match = ScaleServiceDataProtocolCatalog.parse(
+        let xiaomiMiScale2Match = ScaleProtocolRegistry.builtIn.decodeAdvertisement(.init(
             name: "MI SCALE2",
-            serviceUUID: "181D",
-            payload: xiaomiMiScale2Payload,
-            manufacturerData: nil
-        )
-        precondition(xiaomiMiScale2Match?.family == .xiaomiMiScale2)
-        precondition(ScaleServiceDataProtocolCatalog.parse(
+            serviceData: ["181D": xiaomiMiScale2Payload]
+        ))
+        precondition(xiaomiMiScale2Match?.descriptor.id == "protocol.builtin.xiaomi-181d")
+        precondition(ScaleProtocolRegistry.builtIn.decodeAdvertisement(.init(
             name: "Generic Scale",
-            serviceUUID: "181D",
-            payload: xiaomiMiScale2Payload,
-            manufacturerData: Data([0x34, 0x12])
-        ) == nil)
+            manufacturerData: Data([0x34, 0x12]),
+            serviceData: ["181D": xiaomiMiScale2Payload]
+        )) == nil)
 
         let silvergearPayload = hexData("030000000002202C4AC00DA3")
         let silvergear = try Silvergear108ScaleParser.parse(.init(
@@ -540,12 +537,12 @@ enum ParserSmoke {
         ))
         precondition(abs(silvergear.weightKG - 60.0) < 0.001)
         precondition(silvergear.isStable)
-        let silvergearCatalogMatch = ScaleBroadcastProtocolCatalog.parse(
+        let silvergearRegistryMatch = ScaleProtocolRegistry.builtIn.decodeAdvertisement(.init(
             name: "108",
             manufacturerData: Data([0xAC, 0xA0]) + silvergearPayload,
             advertisedServiceUUIDs: ["FFB0"]
-        )
-        precondition(silvergearCatalogMatch?.family == .silvergear108)
+        ))
+        precondition(silvergearRegistryMatch?.descriptor.id == "protocol.builtin.silvergear-108")
         let silvergearSettling = try Silvergear108ScaleParser.parse(.init(
             companyID: 0xA0AC,
             payload: hexData("030000000002A02C4AC00DA3")
@@ -572,12 +569,15 @@ enum ParserSmoke {
         }
 
         let appleManufacturerData = Data([0xFF, 0xFF]) + qnPayload
-        let catalogMatch = ScaleBroadcastProtocolCatalog.parse(
+        let registryMatch = ScaleProtocolRegistry.builtIn.decodeAdvertisement(.init(
             name: "QN-Scale",
             manufacturerData: appleManufacturerData
-        )
-        precondition(catalogMatch?.family == .qnAABB)
-        precondition(abs((catalogMatch?.measurement.weightKG ?? 0) - 72.35) < 0.001)
+        ))
+        precondition(registryMatch?.descriptor.id == "protocol.builtin.qn-aabb")
+        guard case .measurement(let registryMeasurement) = registryMatch?.packet else {
+            preconditionFailure("QN adapter should emit a measurement")
+        }
+        precondition(abs(registryMeasurement.weightKG - 72.35) < 0.001)
 
         do {
             var invalidAAA = aaaPayload

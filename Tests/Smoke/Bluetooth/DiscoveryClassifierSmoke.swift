@@ -7,8 +7,7 @@ private func advertisement(
     verifiedXiaomi: Bool = false,
     verifiedWolaiAFU: Bool = false,
     huaweiHagrid: Bool = false,
-    verifiedBroadcastProtocol: ScaleBroadcastProtocolFamily? = nil,
-    verifiedServiceDataProtocol: ScaleServiceDataProtocolFamily? = nil
+    recognizedProtocol: ScaleDiscoveryCompatibility? = nil
 ) -> ScaleDiscoveryAdvertisement {
     ScaleDiscoveryAdvertisement(
         name: name,
@@ -17,8 +16,7 @@ private func advertisement(
         hasVerifiedXiaomiPayload: verifiedXiaomi,
         hasVerifiedWolaiAFUIdentity: verifiedWolaiAFU,
         hasHuaweiHagridIdentity: huaweiHagrid,
-        verifiedBroadcastProtocol: verifiedBroadcastProtocol,
-        verifiedServiceDataProtocol: verifiedServiceDataProtocol
+        recognizedProtocolCompatibility: recognizedProtocol
     )
 }
 
@@ -72,7 +70,7 @@ struct DiscoveryClassifierSmoke {
         )
         precondition(!ScaleDiscoveryClassifier.compatibility(for: huawei).isVerified)
         guard let huaweiRule = CommunicationRuleCatalog.builtIn.first(where: {
-            $0.id == CommunicationRuleCatalog.huaweiHagridID
+            $0.id == HuaweiHagridProtocolSession.communicationRule.id
         }) else {
             preconditionFailure("华为 Hagrid 内置通信协议缺失")
         }
@@ -82,25 +80,25 @@ struct DiscoveryClassifierSmoke {
         precondition(huaweiRule.effectiveVerification == .fixtureValidated)
         precondition(huaweiRule.effectiveImplementation == .experimental)
 
-        let qn = advertisement(verifiedBroadcastProtocol: .qnAABB)
+        let qn = advertisement(recognizedProtocol: .qnAABBBroadcast)
         precondition(ScaleDiscoveryClassifier.compatibility(for: qn) == .qnAABBBroadcast)
 
-        let aaa = advertisement(name: "AAA007", verifiedBroadcastProtocol: .aaaSeries)
+        let aaa = advertisement(name: "AAA007", recognizedProtocol: .aaaSeriesBroadcast)
         precondition(ScaleDiscoveryClassifier.compatibility(for: aaa) == .aaaSeriesBroadcast)
 
-        let communityFamilies: [(ScaleBroadcastProtocolFamily, ScaleDiscoveryCompatibility)] = [
-            (.sinocare, .sinocareBroadcast),
-            (.scaleup, .scaleupBroadcast),
-            (.okok, .okokBroadcast),
-            (.etekcityFit8S, .etekcityFit8SBroadcast),
-            (.eufyC20, .eufyC20Broadcast),
-            (.yunmaiX, .yunmaiXBroadcast),
-            (.silvergear108, .silvergear108Broadcast)
+        let builtInProtocols: [ScaleDiscoveryCompatibility] = [
+            .sinocareBroadcast,
+            .scaleupBroadcast,
+            .okokBroadcast,
+            .etekcityFit8SBroadcast,
+            .eufyC20Broadcast,
+            .yunmaiXBroadcast,
+            .silvergear108Broadcast
         ]
-        for (family, expectedCompatibility) in communityFamilies {
+        for expectedCompatibility in builtInProtocols {
             precondition(
                 ScaleDiscoveryClassifier.compatibility(
-                    for: advertisement(verifiedBroadcastProtocol: family)
+                    for: advertisement(recognizedProtocol: expectedCompatibility)
                 ) == expectedCompatibility
             )
         }
@@ -108,7 +106,7 @@ struct DiscoveryClassifierSmoke {
         let xiaomiMiScale2 = advertisement(
             name: "MI SCALE2",
             serviceData: ["181D"],
-            verifiedServiceDataProtocol: .xiaomiMiScale2
+            recognizedProtocol: .xiaomiMiScale2Advertisement
         )
         precondition(
             ScaleDiscoveryClassifier.compatibility(for: xiaomiMiScale2)

@@ -1,6 +1,22 @@
 import Foundation
 
 struct StandardBodyCompositionParser {
+    static let communicationRule = CommunicationRule(
+        id: "protocol.builtin.sig-body",
+        name: "SIG Body Composition",
+        version: 1,
+        summary: "Bluetooth SIG 标准体成分服务（181B / 2A9C）。",
+        origin: .builtIn,
+        match: .init(
+            transport: .characteristicNotification,
+            serviceUUID: "181B",
+            characteristicUUID: "2A9C",
+            minimumLength: 4
+        ),
+        decoder: nil,
+        builtInParser: "bluetoothSIGBodyComposition",
+        verification: .standardSpecification
+    )
     /// Bluetooth SIG Body Composition Measurement (0x2A9C), BCS 1.0.
     static func parse(_ data: Data, now: Date = .now) throws -> BodyMeasurement {
         let bytes = [UInt8](data)

@@ -75,7 +75,7 @@ enum MeasurementSource: String, Codable {
     case senssunIF2121
     case huaweiHagrid
     case bluetoothSIG
-    case communityProtocol
+    case builtInProtocol
     case customProtocol
     case manual
     case appleHealth
@@ -88,7 +88,7 @@ enum MeasurementSource: String, Codable {
         case .senssunIF2121: "香山 IF2121 体脂秤"
         case .huaweiHagrid: "华为 Hagrid/WSP 体脂秤"
         case .bluetoothSIG: "标准蓝牙体重秤"
-        case .communityProtocol: "社区协议体重秤"
+        case .builtInProtocol: "内置协议体重秤"
         case .customProtocol: "自定义通信协议"
         case .manual: "手动记录"
         case .appleHealth: "Apple 健康"

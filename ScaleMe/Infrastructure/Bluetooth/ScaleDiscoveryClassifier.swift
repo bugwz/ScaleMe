@@ -29,8 +29,7 @@ struct ScaleDiscoveryAdvertisement {
     var hasVerifiedXiaomiPayload: Bool
     var hasVerifiedWolaiAFUIdentity = false
     var hasHuaweiHagridIdentity = false
-    var verifiedBroadcastProtocol: ScaleBroadcastProtocolFamily?
-    var verifiedServiceDataProtocol: ScaleServiceDataProtocolFamily? = nil
+    var recognizedProtocolCompatibility: ScaleDiscoveryCompatibility? = nil
 }
 
 enum ScaleDiscoveryClassifier {
@@ -41,22 +40,7 @@ enum ScaleDiscoveryClassifier {
         if advertisement.hasHuaweiHagridIdentity {
             return .huaweiHagridAuthorizationRequired
         }
-        switch advertisement.verifiedBroadcastProtocol {
-        case .qnAABB: return .qnAABBBroadcast
-        case .aaaSeries: return .aaaSeriesBroadcast
-        case .sinocare: return .sinocareBroadcast
-        case .scaleup: return .scaleupBroadcast
-        case .okok: return .okokBroadcast
-        case .etekcityFit8S: return .etekcityFit8SBroadcast
-        case .eufyC20: return .eufyC20Broadcast
-        case .yunmaiX: return .yunmaiXBroadcast
-        case .silvergear108: return .silvergear108Broadcast
-        case nil: break
-        }
-        switch advertisement.verifiedServiceDataProtocol {
-        case .xiaomiMiScale2: return .xiaomiMiScale2Advertisement
-        case nil: break
-        }
+        if let compatibility = advertisement.recognizedProtocolCompatibility { return compatibility }
         if advertisement.hasVerifiedXiaomiPayload {
             return .xiaomiAdvertisement
         }

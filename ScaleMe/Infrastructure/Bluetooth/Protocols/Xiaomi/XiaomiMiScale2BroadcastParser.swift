@@ -50,3 +50,94 @@ struct XiaomiMiScale2BroadcastParser {
         ))
     }
 }
+
+extension XiaomiMiScale2BroadcastParser: ScaleAdvertisementProtocolAdapter {
+    static let descriptor = ScaleProtocolDescriptor(
+        id: "protocol.builtin.xiaomi-181d",
+        name: "Xiaomi XMTZC04HM 181D 广播协议",
+        parserID: "xiaomiMiScale2Advertisement",
+        transport: .advertisementServiceData,
+        discoveryCompatibility: .xiaomiMiScale2Advertisement,
+        capabilities: [
+            .liveMeasurement,
+            .weightRemoval,
+            .historyRead,
+            .hardwareUnitConfiguration,
+            .timeSynchronization
+        ]
+    )
+
+    static let communicationRule = CommunicationRule(
+        id: descriptor.id,
+        name: "Xiaomi XMTZC04HM",
+        version: 1,
+        summary: "解析 MI SCALE2 的 10 字节 181D 广播、单位、锁定状态、离秤状态与时间。仅体重，已通过上游抓包样本验证，待本项目真机验证。",
+        author: "ble-scale-sync contributors",
+        origin: .builtIn,
+        sourceURL: URL(string: "https://github.com/KristianP26/ble-scale-sync/blob/e5060b4e43e2d08ecace7e327145c777872ea93f/src/scales/xiaomi-mi-scale-legacy.ts"),
+        match: .init(
+            transport: descriptor.transport,
+            serviceUUID: serviceUUID,
+            characteristicUUID: nil,
+            minimumLength: frameLength,
+            maximumLength: frameLength
+        ),
+        decoder: nil,
+        builtInParser: descriptor.parserID,
+        verification: .fixtureValidated,
+        operations: CommunicationRuleOperations(
+            historyRead: CommunicationGATTOperation(
+                capability: .historyRead,
+                subscriptions: [historyTarget],
+                commands: [
+                    historyCommand("0198843059"),
+                    historyCommand("02")
+                ],
+                completionCommands: [historyCommand("03")],
+                acknowledgementCommands: [historyCommand("0498843059")],
+                historyResponse: CommunicationHistoryResponse(
+                    recordMatcher: .init(
+                        target: historyTarget,
+                        minimumLength: 10,
+                        maximumLength: 20
+                    ),
+                    completionMatcher: .init(
+                        target: historyTarget,
+                        minimumLength: 1,
+                        maximumLength: 1,
+                        exactHex: "03"
+                    ),
+                    framing: .fixedLength,
+                    recordLength: 10,
+                    builtInParser: "xiaomiHistory10"
+                )
+            )
+        ),
+        supportedModels: ["MI SCALE2"],
+        requirements: [.multiFrameSession, .historyStateMachine]
+    )
+
+    private static let historyTarget = CommunicationGATTTarget(
+        serviceUUID: serviceUUID,
+        characteristicUUID: XiaomiScaleConfigurationProtocol.historyCharacteristicUUID
+    )
+
+    private static func historyCommand(_ payload: String) -> CommunicationCommand {
+        CommunicationCommand(
+            target: historyTarget,
+            payloadHexTemplate: payload,
+            writeMode: .automatic
+        )
+    }
+
+    static func decodeAdvertisement(_ input: ScaleAdvertisementInput) throws -> ScaleProtocolPacket {
+        guard matchesIdentity(name: input.name, manufacturerData: input.manufacturerData),
+              let payload = input.serviceData[serviceUUID], payload.count == frameLength else {
+            throw ScalePayloadError.unsupported
+        }
+        switch try parsePacket(payload, now: input.receivedAt) {
+        case .measurement(let measurement): return .measurement(measurement)
+        case .weightRemoved: return .weightRemoved
+        }
+    }
+}

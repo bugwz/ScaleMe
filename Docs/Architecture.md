@@ -17,7 +17,7 @@ ScaleMe/
 │   ├── Models/           # 成员、设备、测量与配置模型
 │   └── Trends/           # 纯趋势计算与聚合
 ├── Infrastructure/
-│   ├── Bluetooth/        # CoreBluetooth 编排、协议解析与诊断
+│   ├── Bluetooth/        # CoreBluetooth 运行时、协议契约、协议实现与诊断
 │   ├── Health/           # Apple 健康写入
 │   ├── Persistence/      # 本地文件、系统数据保护与数据传输
 ├── Features/             # Dashboard、Measurement、Trends、Devices、Settings
@@ -66,6 +66,12 @@ BodyMeasurement 领域记录
 扫描发现、载荷解码和测量会话是不同职责：
 
 - `BluetoothScaleCoordinator` 只作为 CoreBluetooth 生命周期与各会话组件之间的总协调入口；界面通过它观察连接和测量状态。
+- `Bluetooth/Contracts` 定义协议描述、广播输入、事件、动作和可选能力接口，不依赖 `CBPeripheral`。
+- `Bluetooth/Runtime/ScaleProtocolRegistry` 是内置协议的统一注册与匹配入口。广播解析器在各自协议目录中直接实现 `ScaleAdvertisementProtocolAdapter`，注册顺序用于处理宽泛格式与特定格式的优先级。
+- 每个已实现协议在自身解析器或会话类型中定义 `communicationRule`；尚待实现的协议也在各自品牌或协议族目录中定义只读的协议骨架，记录稳定 ID、已知匹配条件、验证级别和资料来源。`CommunicationRuleCatalog` 只聚合这些定义，不保存品牌协议细节。
+- 连接协议通过 `ScaleConnectedProtocolSession` 接收连接、服务、特征、通知、写入结果和定时器事件，并返回 discover、subscribe、write、测量阶段、最终测量或历史语义动作。当前 Senssun IF2121、Wolai AFU、Xiaomi XMTZC04HM 与 Huawei Hagrid 的连接测量均使用该路径；分片缓存、校时、稳定/最终帧关联、认证握手、会话密钥和最终结果 ACK 不保存在协调器中。
+- 需要设备密钥的连接协议仍由协调器在会话创建边界从 Keychain 取得认证材料，并只把当前会话需要的凭据、成员资料和型号上下文传给具体协议会话；协议注册表可以单独登记这类上下文会话的描述与能力，而不提供无效的无参工厂。
+- 历史读取、导入确认、硬件单位和校时分别使用 `ScaleHistoryCapability`、`ScaleHistoryImportConfirmationCapability`、`ScaleUnitConfigurationCapability` 与 `ScaleTimeSynchronizationCapability`。设备不支持某项能力时不实现对应接口，不保留空方法。Wolai AFU 的历史聚合、逐条 ACK、静默完成及超时，以及 Xiaomi XMTZC04HM 的游标查询、定长记录重组、停止、导入确认、硬件单位命令和时间同步，都由各自协议会话负责；协调器只处理手动/自动导入结果、通用写入回执和界面状态。
 - `BluetoothScaleState` 集中定义发现结果、连接状态、设备设置和历史读取等界面可观察状态。
 - `PairedScaleRegistry` 维护已关联设备、自动历史读取范围及所选通信规则的索引，避免协调器持有多组必须同步更新的平行字典。
 - `DeviceDiagnosticLog` 独立负责诊断采集生命周期、容量限制和报告格式，协调器只记录蓝牙事件。
@@ -80,6 +86,8 @@ BodyMeasurement 领域记录
 ## 通信规则
 
 内置通信规则为经过代码审查的能力目录，稳定 ID 使用 `protocol.builtin.<slug>`。外部导入规则使用 `protocol.custom.<slug>`，只能描述受约束的广播字段或设备实际公开、属性匹配的 GATT 操作，不能执行脚本，也不能取得内置命名空间。
+
+外部文件当前使用 schema 3。公开结构由 `ExternalCommunicationRuleDocument` 和 `ExternalCommunicationRuleDefinition` 明确定义，只包含元数据、匹配条件、声明式 decoder、受限 operations、型号与 GATT 目标。`origin`、`verification`、`implementation`、`sourceURL` 和 `builtInParser` 属于运行时或信任边界，不进入公开文件格式；导入后统一标记为本地、未经验证，并由 decoder 与 operations 推导实际能力。
 
 设备可选择匹配的通信规则。规则分别声明传输方式、服务/特征、载荷边界、字段解码、验证级别和运行要求。历史读取与清除属于显式操作：清除必须标记为破坏性，不能在普通测量流程中自动执行。
 
@@ -118,9 +126,9 @@ SwiftUI 可观察状态保持在主 actor。CoreBluetooth delegate、受保护�
 ### 新增设备协议
 
 1. 根据服务、特征、帧结构和会话方式确定真实协议族，不以设备名作为唯一判断。
-2. 在 `Infrastructure/Bluetooth/Protocols/` 下添加隔离的解析器或适配器。
+2. 在 `Infrastructure/Bluetooth/Protocols/<协议族>/` 下添加隔离的解析器；广播协议由解析器类型实现 `ScaleAdvertisementProtocolAdapter`，连接协议实现 `ScaleConnectedProtocolSession` 及实际支持的可选能力接口。
 3. 使用真实捕获载荷建立正常、边界与畸形数据 fixture。
-4. 接入广播目录或 GATT 分发层，并为完成态补充 `MeasurementSession` 测试。
+4. 在同一协议类型中定义 `communicationRule`，再将适配器加入 `ScaleProtocolRegistry` 和中央规则聚合列表；除非新增的是通用能力，不能在 `BluetoothScaleCoordinator` 增加品牌或型号分支。
 5. 更新协议支持矩阵，准确标记当前证据层级。
 6. 在目标型号和固件上验证后，才将其标为硬件验证。
 

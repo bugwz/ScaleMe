@@ -1,13 +1,12 @@
 import CoreBluetooth
 import Foundation
-import Security
 
 @MainActor
 final class BluetoothScaleCoordinator: NSObject, ObservableObject {
     private enum ScanPurpose { case adding, measuring, configuring(UUID) }
     private enum HistoryRequestOrigin: Equatable { case manual, automatic }
     private enum SettingsOperation {
-        case unit(XiaomiScaleHardwareUnit)
+        case unit(CommunicationWeightUnit)
         case currentTime
     }
     private enum DiagnosticPayloadKind {
@@ -16,15 +15,6 @@ final class BluetoothScaleCoordinator: NSObject, ObservableObject {
         case standardBodyComposition
         case wolaiAFU
         case senssunIF2121
-    }
-    private enum HuaweiHagridHandshakeState {
-        case idle
-        case awaitingChallenge
-        case awaitingAuthenticationResponse
-        case awaitingWorkKeyAcknowledgement
-        case awaitingUserInfoAcknowledgement
-        case ready
-        case failed
     }
     @Published private(set) var state: BluetoothScaleState = .idle
     @Published private(set) var devices: [DiscoveredScale] = []
@@ -53,20 +43,16 @@ final class BluetoothScaleCoordinator: NSObject, ObservableObject {
     private var minimumWeightAfterCompletionKG: Double?
     private var scanPurpose: ScanPurpose = .adding
     private var pairedScales = PairedScaleRegistry()
+    private let protocolRegistry = ScaleProtocolRegistry.builtIn
+    private var activeProtocolSession: (any ScaleConnectedProtocolSession)?
+    private var protocolTimerTasks: [String: Task<Void, Never>] = [:]
     private var measurementScaleID: UUID?
     private var activeScaleID: UUID?
     private var activeScaleName: String?
     private var settingsScaleID: UUID?
     private var pendingSettingsReconnect: PairedScale?
-    private var settingsConfigurationCharacteristic: CBCharacteristic?
     private var settingsCurrentTimeCharacteristic: CBCharacteristic?
-    private var settingsHistoryCharacteristic: CBCharacteristic?
-    private var xiaomiHistorySession: XiaomiScaleHistorySession?
-    private var xiaomiHistoryCursor: Data?
-    private var xiaomiHistoryRequestOrigin: HistoryRequestOrigin?
-    private var wolaiHistorySession: WolaiAFUScaleHistorySession?
-    private var wolaiHistoryRequestOrigin: HistoryRequestOrigin?
-    private var didStartWolaiHistoryRequest = false
+    private var activeProtocolHistoryOrigin: HistoryRequestOrigin?
     private var declarativeHistorySession: DeclarativeHistoryOperationSession?
     private var activeHistoryOperation: CommunicationGATTOperation?
     private var activeHistorySessionToken: UInt16?
@@ -77,14 +63,9 @@ final class BluetoothScaleCoordinator: NSObject, ObservableObject {
     private var pendingAutomaticHistoryImportID: UUID?
     private var pendingSettingsServiceIDs: Set<ObjectIdentifier> = []
     private var pendingSettingsOperation: SettingsOperation?
+    private var pendingProtocolSettingsTarget: CommunicationGATTTarget?
     private var scanRequested = false
     private var discoverySequence = 0
-    private var didCompleteWolaiFinal = false
-    private var didInitializeWolaiSession = false
-    private var wolaiControlCharacteristic: CBCharacteristic?
-    private var wolaiMeasurementCharacteristic: CBCharacteristic?
-    private var senssunIF2121ResultAccumulator = SenssunIF2121ScaleParser.FrameAccumulator()
-    private var senssunIF2121StableWeightKG: Double?
     private var huaweiHagridDeviceIDs = Set<UUID>()
     private var didSendHuaweiHagridProbe = false
     private var didReceiveHuaweiHagridChallenge = false
@@ -93,27 +74,14 @@ final class BluetoothScaleCoordinator: NSObject, ObservableObject {
     private var huaweiHagridNotificationAccumulators: [String: HuaweiHagridProtocol.NotificationAccumulator] = [:]
     private var settingsHuaweiAuthenticationCharacteristic: CBCharacteristic?
     private var settingsHuaweiRealtimeCharacteristic: CBCharacteristic?
-    private var huaweiHagridHandshakeState: HuaweiHagridHandshakeState = .idle
-    private var huaweiHagridCredentials: HuaweiHagridProtocol.Credentials?
-    private var huaweiHagridRandomA: Data?
-    private var huaweiHagridRandomB: Data?
-    private var huaweiHagridWorkKey: Data?
-    private var huaweiHagridCharacteristics: [String: CBCharacteristic] = [:]
-    private var huaweiHagridMeasurementProfile: UserProfile?
-    private var huaweiHagridStatusPollingTask: Task<Void, Never>?
+    private var measurementProfile: UserProfile?
 
     private static let weightService = CBUUID(string: "181D")
     private static let bodyService = CBUUID(string: "181B")
     private static let weightMeasurement = CBUUID(string: "2A9D")
     private static let bodyMeasurement = CBUUID(string: "2A9C")
-    private static let huaweiUserDataService = CBUUID(string: HuaweiHagridProtocol.userDataServiceUUID)
-    private static let huaweiCurrentTimeService = CBUUID(string: HuaweiHagridProtocol.currentTimeServiceUUID)
     private static let wolaiService = CBUUID(string: WolaiAFUScaleAdapter.serviceUUID)
-    private static let wolaiControl = CBUUID(string: WolaiAFUScaleAdapter.controlCharacteristicUUID)
     private static let wolaiMeasurement = CBUUID(string: WolaiAFUScaleAdapter.measurementCharacteristicUUID)
-    private static let senssunIF2121Service = CBUUID(string: SenssunIF2121ScaleProtocol.serviceUUID)
-    private static let senssunIF2121Live = CBUUID(string: SenssunIF2121ScaleProtocol.liveCharacteristicUUID)
-    private static let senssunIF2121Result = CBUUID(string: SenssunIF2121ScaleProtocol.resultCharacteristicUUID)
     private static let serialNumber = CBUUID(string: "2A25")
     private static let hardwareRevision = CBUUID(string: "2A27")
     private static let softwareRevision = CBUUID(string: "2A28")
@@ -123,9 +91,6 @@ final class BluetoothScaleCoordinator: NSObject, ObservableObject {
     )
     private static let xiaomiConfiguration = CBUUID(
         string: XiaomiScaleConfigurationProtocol.configurationCharacteristicUUID
-    )
-    private static let xiaomiHistory = CBUUID(
-        string: XiaomiScaleConfigurationProtocol.historyCharacteristicUUID
     )
 
     override init() {
@@ -153,10 +118,8 @@ final class BluetoothScaleCoordinator: NSObject, ObservableObject {
         measurementSession.reset()
         isWaitingForNextLoad = false
         minimumWeightAfterCompletionKG = nil
-        didCompleteWolaiFinal = false
-        resetSenssunIF2121Session()
-        huaweiHagridMeasurementProfile = profile
-        resetHuaweiHagridSession()
+        resetActiveProtocolSession()
+        measurementProfile = profile
         if let connected, !isMonitoredScale(connected.identifier) {
             connectionTimeoutTask?.cancel()
             central.cancelPeripheralConnection(connected)
@@ -169,6 +132,9 @@ final class BluetoothScaleCoordinator: NSObject, ObservableObject {
             central.stopScan()
             state = .idle
             return
+        }
+        if let connected, isMonitoredScale(connected.identifier) {
+            _ = startConnectedProtocolSessionIfAvailable(on: connected)
         }
         beginScanning(clearDevices: false)
         connectKnownScale(from: scales)
@@ -183,10 +149,34 @@ final class BluetoothScaleCoordinator: NSObject, ObservableObject {
         if let activeScaleID, let scale = scales.first(where: { $0.id == activeScaleID }) {
             activeScaleName = scale.name
         }
+        if let connected, settingsScaleID == nil, case .measuring = scanPurpose {
+            resetActiveProtocolSession()
+            _ = startConnectedProtocolSessionIfAvailable(on: connected)
+        }
     }
 
     private func selectedRule(for deviceID: UUID) -> CommunicationRule? {
         pairedScales.selectedRule(for: deviceID)
+    }
+
+    private func selectedProtocolID(for deviceID: UUID) -> String? {
+        selectedRule(for: deviceID)?.id
+            ?? pairedScales.compatibilities[deviceID]
+                .flatMap(CommunicationRuleCatalog.automaticRuleID(for:))
+    }
+
+    private func connectedProtocolSession(for deviceID: UUID) -> (any ScaleConnectedProtocolSession)? {
+        guard let protocolID = selectedProtocolID(for: deviceID) else { return nil }
+        if let activeProtocolSession,
+           activeProtocolSession.descriptor.id == protocolID {
+            return activeProtocolSession
+        }
+        guard let session = protocolRegistry.makeConnectedSession(protocolID: protocolID) else {
+            return nil
+        }
+        resetActiveProtocolSession()
+        activeProtocolSession = session
+        return session
     }
 
     private func historyOperation(for deviceID: UUID) -> CommunicationGATTOperation? {
@@ -198,19 +188,62 @@ final class BluetoothScaleCoordinator: NSObject, ObservableObject {
            let operation = pairedScales.rule(id: ruleID)?.operations?.historyRead {
             return operation
         }
-        guard pairedScales.modelNames[deviceID]?
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-            .uppercased() == "MI SCALE2" else { return nil }
-        return pairedScales.rule(id: CommunicationRuleCatalog.xiaomiMiScale2ID)?
-            .operations?.historyRead
+        return nil
+    }
+
+    private func refreshHistoryAvailability(for deviceID: UUID) {
+        guard let operation = historyOperation(for: deviceID) else { return }
+        let canSubscribe = operation.subscriptions.allSatisfy { target in
+            guard let characteristic = settingsCharacteristicsByTarget[targetKey(target)] else { return false }
+            return characteristic.properties.contains(.notify)
+                || characteristic.properties.contains(.indicate)
+        }
+        let canWrite = operation.commands.allSatisfy { command in
+            guard let characteristic = settingsCharacteristicsByTarget[targetKey(command.target)] else { return false }
+            switch command.writeMode {
+            case .withResponse:
+                return characteristic.properties.contains(.write)
+            case .withoutResponse:
+                return characteristic.properties.contains(.writeWithoutResponse)
+            case .automatic:
+                return characteristic.properties.contains(.write)
+                    || characteristic.properties.contains(.writeWithoutResponse)
+            }
+        }
+        guard canSubscribe, canWrite else { return }
+        settingsSnapshot.hasHistoryChannel = true
+        if case .unavailable = historyState {
+            historyState = .ready
+        }
+    }
+
+    private func refreshProtocolConfigurationAvailability(for deviceID: UUID) {
+        guard let protocolID = selectedProtocolID(for: deviceID),
+              let session = protocolRegistry.makeConnectedSession(protocolID: protocolID) else {
+            return
+        }
+        if let capability = session as? any ScaleUnitConfigurationCapability,
+           let characteristic = settingsCharacteristicsByTarget[
+            targetKey(capability.hardwareUnitConfigurationTarget)
+           ], characteristic.properties.contains(.write)
+                || characteristic.properties.contains(.writeWithoutResponse) {
+            settingsSnapshot.canConfigureHardwareUnit = true
+        }
+        if let capability = session as? any ScaleTimeSynchronizationCapability,
+           let characteristic = settingsCharacteristicsByTarget[
+            targetKey(capability.timeSynchronizationTarget)
+           ], characteristic.properties.contains(.write)
+                || characteristic.properties.contains(.writeWithoutResponse) {
+            settingsSnapshot.canSynchronizeTime = true
+        }
     }
 
     private func isHuaweiHagridSelected(for deviceID: UUID) -> Bool {
-        selectedRule(for: deviceID)?.id == CommunicationRuleCatalog.huaweiHagridID
+        selectedRule(for: deviceID)?.id == HuaweiHagridProtocolSession.communicationRule.id
     }
 
     private func isSenssunIF2121Selected(for deviceID: UUID) -> Bool {
-        selectedRule(for: deviceID)?.id == CommunicationRuleCatalog.senssunIF2121ID
+        selectedRule(for: deviceID)?.id == SenssunIF2121ProtocolSession.communicationRule.id
     }
 
     private func isWolaiAFUSelected(for deviceID: UUID) -> Bool {
@@ -331,13 +364,7 @@ final class BluetoothScaleCoordinator: NSObject, ObservableObject {
         settingsScaleID = scale.id
         settingsSnapshot = ScaleDeviceSettingsSnapshot()
         historyState = .unavailable
-        settingsHistoryCharacteristic = nil
-        xiaomiHistorySession = nil
-        xiaomiHistoryCursor = nil
-        xiaomiHistoryRequestOrigin = nil
-        wolaiHistorySession = nil
-        wolaiHistoryRequestOrigin = nil
-        didStartWolaiHistoryRequest = false
+        activeProtocolHistoryOrigin = nil
         declarativeHistorySession = nil
         activeHistoryOperation = nil
         activeHistorySessionToken = nil
@@ -347,6 +374,8 @@ final class BluetoothScaleCoordinator: NSObject, ObservableObject {
         historyTimeoutTask?.cancel()
         settingsOperationMessage = nil
         settingsOperationSucceeded = false
+        pendingSettingsOperation = nil
+        pendingProtocolSettingsTarget = nil
         didSendHuaweiHagridProbe = false
         didReceiveHuaweiHagridChallenge = false
         didSendHuaweiHagridRealtimeProbe = false
@@ -365,11 +394,8 @@ final class BluetoothScaleCoordinator: NSObject, ObservableObject {
         settingsReadbackTask?.cancel()
         settingsReadbackTask = nil
         pendingSettingsOperation = nil
-        settingsConfigurationCharacteristic = nil
+        pendingProtocolSettingsTarget = nil
         settingsCurrentTimeCharacteristic = nil
-        settingsHistoryCharacteristic = nil
-        xiaomiHistorySession = nil
-        xiaomiHistoryCursor = nil
         declarativeHistorySession = nil
         activeHistoryOperation = nil
         activeHistorySessionToken = nil
@@ -408,38 +434,64 @@ final class BluetoothScaleCoordinator: NSObject, ObservableObject {
         }
     }
 
-    func configureHardwareUnit(_ unit: XiaomiScaleHardwareUnit) {
+    func configureHardwareUnit(_ unit: CommunicationWeightUnit) {
         guard let connected,
               connected.identifier == settingsScaleID,
-              let characteristic = settingsConfigurationCharacteristic,
+              let session = connectedProtocolSession(for: connected.identifier),
+              let capability = session as? any ScaleUnitConfigurationCapability,
+              capability.supportedHardwareUnits.contains(unit),
+              let characteristic = protocolCharacteristic(
+                capability.hardwareUnitConfigurationTarget,
+                on: connected
+              ),
               characteristic.properties.contains(.write) || characteristic.properties.contains(.writeWithoutResponse) else {
             settingsOperationSucceeded = false
-            settingsOperationMessage = "当前连接未发现可写的小米二代单位特征"
+            settingsOperationMessage = "当前协议没有可执行的设备单位设置能力"
             return
         }
-        let writeType: CBCharacteristicWriteType = characteristic.properties.contains(.write) ? .withResponse : .withoutResponse
         settingsReadbackTask?.cancel()
         settingsReadbackTask = nil
         pendingSettingsOperation = .unit(unit)
+        pendingProtocolSettingsTarget = capability.hardwareUnitConfigurationTarget
         settingsOperationSucceeded = false
         settingsOperationMessage = "正在写入秤端单位"
-        let command = XiaomiScaleConfigurationProtocol.unitCommand(unit)
-        captureCharacteristicEvent(
-            direction: .write,
-            characteristic: characteristic,
-            payload: command,
-            summary: "设置单位：\(unit.title)；类型：\(writeType == .withResponse ? "有响应" : "无响应")"
-        )
-        connected.writeValue(command, for: characteristic, type: writeType)
-        if writeType == .withoutResponse {
-            verifySettingsWrite(on: connected, characteristic: characteristic, wasAcknowledged: false)
+        do {
+            let actions = try capability.configureHardwareUnit(unit)
+            try executeProtocolActions(actions, on: connected)
+            if let mode = protocolWriteMode(
+                in: actions,
+                target: capability.hardwareUnitConfigurationTarget
+            ), writeType(for: mode, characteristic: characteristic) == .withoutResponse {
+                pendingProtocolSettingsTarget = nil
+                verifySettingsWrite(on: connected, characteristic: characteristic, wasAcknowledged: false)
+            }
+        } catch {
+            pendingProtocolSettingsTarget = nil
+            pendingSettingsOperation = nil
+            settingsOperationMessage = "设备单位设置命令生成失败"
         }
     }
 
     func synchronizeScaleTime() {
         guard let connected,
-              connected.identifier == settingsScaleID,
-              let characteristic = settingsCurrentTimeCharacteristic,
+              connected.identifier == settingsScaleID else {
+            settingsOperationSucceeded = false
+            settingsOperationMessage = "当前设备未连接"
+            return
+        }
+        if let session = connectedProtocolSession(for: connected.identifier),
+           let capability = session as? any ScaleTimeSynchronizationCapability,
+           let characteristic = protocolCharacteristic(capability.timeSynchronizationTarget, on: connected),
+           characteristic.properties.contains(.write) || characteristic.properties.contains(.writeWithoutResponse) {
+            performProtocolTimeSynchronization(
+                capability,
+                target: capability.timeSynchronizationTarget,
+                characteristic: characteristic,
+                on: connected
+            )
+            return
+        }
+        guard let characteristic = settingsCurrentTimeCharacteristic,
               characteristic.properties.contains(.write) || characteristic.properties.contains(.writeWithoutResponse) else {
             settingsOperationSucceeded = false
             settingsOperationMessage = "当前连接未发现可写的标准时间特征"
@@ -464,6 +516,33 @@ final class BluetoothScaleCoordinator: NSObject, ObservableObject {
         }
     }
 
+    private func performProtocolTimeSynchronization(
+        _ capability: any ScaleTimeSynchronizationCapability,
+        target: CommunicationGATTTarget,
+        characteristic: CBCharacteristic,
+        on peripheral: CBPeripheral
+    ) {
+        settingsReadbackTask?.cancel()
+        settingsReadbackTask = nil
+        pendingSettingsOperation = .currentTime
+        pendingProtocolSettingsTarget = target
+        settingsOperationSucceeded = false
+        settingsOperationMessage = "正在同步秤端时间"
+        do {
+            let actions = try capability.synchronizeTime(.now)
+            try executeProtocolActions(actions, on: peripheral)
+            if let mode = protocolWriteMode(in: actions, target: target),
+               writeType(for: mode, characteristic: characteristic) == .withoutResponse {
+                pendingProtocolSettingsTarget = nil
+                verifySettingsWrite(on: peripheral, characteristic: characteristic, wasAcknowledged: false)
+            }
+        } catch {
+            pendingProtocolSettingsTarget = nil
+            pendingSettingsOperation = nil
+            settingsOperationMessage = "设备时间同步命令生成失败"
+        }
+    }
+
     func readDeviceHistory() {
         guard let scaleID = settingsScaleID,
               let operation = historyOperation(for: scaleID) else {
@@ -472,205 +551,73 @@ final class BluetoothScaleCoordinator: NSObject, ObservableObject {
         }
         if operation.historyResponse?.builtInParser == nil {
             readDeclarativeHistory(operation)
-        } else if operation.historyResponse?.builtInParser == "xiaomiHistory10" {
-            readXiaomiHistory()
-        } else if operation.historyResponse?.builtInParser == "wolaiHistory20" {
-            readWolaiHistory(operation)
+        } else if operation.historyResponse?.builtInParser != nil {
+            readConnectedProtocolHistory(operation)
         } else {
             historyState = .failed("当前协议的历史解析器尚未实现")
         }
     }
 
-    private func readWolaiHistory(_ operation: CommunicationGATTOperation) {
+    private func readConnectedProtocolHistory(_ operation: CommunicationGATTOperation) {
         guard let connected,
               connected.identifier == settingsScaleID,
-              let control = wolaiControlCharacteristic,
-              let measurement = wolaiMeasurementCharacteristic,
-              control.properties.contains(.write) || control.properties.contains(.writeWithoutResponse),
-              measurement.properties.contains(.notify) || measurement.properties.contains(.indicate) else {
-            historyState = .failed("当前连接未发现可读写的 Wolai AFU 历史通道")
+              let session = connectedProtocolSession(for: connected.identifier),
+              let history = session as? any ScaleHistoryCapability else {
+            historyState = .failed("当前协议没有实现历史读取能力")
             return
         }
-        wolaiHistorySession = WolaiAFUScaleHistorySession(
-            maximumBytes: operation.maximumResponseBytes,
-            maximumRecords: operation.maximumRecords
-        )
-        wolaiHistoryRequestOrigin = .manual
-        xiaomiHistorySession = nil
-        xiaomiHistoryCursor = nil
-        declarativeHistorySession = nil
-        activeHistoryOperation = nil
-        activeHistorySessionToken = nil
-        activeHistoryCompletionResponse = nil
-        pendingHistorySubscriptions.removeAll()
-        didStartWolaiHistoryRequest = false
+        resetActiveProtocolSession()
+        activeProtocolSession = session
+        activeProtocolHistoryOrigin = .manual
         historyState = .reading(received: 0, announced: nil)
-        armWolaiHistoryTimeout(seconds: operation.timeoutSeconds)
-        if measurement.isNotifying {
-            sendWolaiHistoryRequest(on: connected, characteristic: control)
-        } else {
-            connected.setNotifyValue(true, for: measurement)
-        }
-    }
-
-    private func startAutomaticWolaiHistoryIfNeeded(on peripheral: CBPeripheral) -> Bool {
-        guard pairedScales.automaticHistoryIDs.contains(peripheral.identifier),
-              wolaiHistorySession == nil,
-              let operation = historyOperation(for: peripheral.identifier),
-              operation.historyResponse?.builtInParser == "wolaiHistory20",
-              let control = wolaiControlCharacteristic,
-              let measurement = wolaiMeasurementCharacteristic,
-              measurement.isNotifying else { return false }
-        wolaiHistorySession = WolaiAFUScaleHistorySession(
-            maximumBytes: operation.maximumResponseBytes,
-            maximumRecords: operation.maximumRecords
-        )
-        wolaiHistoryRequestOrigin = .automatic
-        didInitializeWolaiSession = true
-        didStartWolaiHistoryRequest = false
-        armWolaiHistoryTimeout(seconds: operation.timeoutSeconds)
-        sendWolaiHistoryRequest(on: peripheral, characteristic: control)
-        return true
-    }
-
-    private func sendWolaiHistoryRequest(on peripheral: CBPeripheral, characteristic: CBCharacteristic) {
-        guard wolaiHistorySession != nil, !didStartWolaiHistoryRequest else { return }
-        didStartWolaiHistoryRequest = true
-        let command = WolaiAFUScaleAdapter.makeTimeInitialization(at: .now)
-        let type: CBCharacteristicWriteType = characteristic.properties.contains(.write)
-            ? .withResponse
-            : .withoutResponse
-        captureCharacteristicEvent(
-            direction: .write,
-            characteristic: characteristic,
-            payload: command,
-            summary: "Wolai AFU 历史读取校时命令"
-        )
-        peripheral.writeValue(command, for: characteristic, type: type)
-        if type == .withoutResponse {
-            armWolaiHistoryQuietCompletion(after: 2, peripheral: peripheral)
-        }
-    }
-
-    private func armWolaiHistoryTimeout(seconds: Double) {
-        let origin = wolaiHistoryRequestOrigin
-        historyTimeoutTask?.cancel()
-        historyTimeoutTask = Task { [weak self] in
-            try? await Task.sleep(for: .seconds(seconds))
-            guard !Task.isCancelled, let self,
-                  self.wolaiHistorySession != nil,
-                  self.wolaiHistoryRequestOrigin == origin else { return }
-            self.wolaiHistorySession = nil
-            self.wolaiHistoryRequestOrigin = nil
-            self.didStartWolaiHistoryRequest = false
-            if origin == .manual {
-                self.historyState = .failed("读取历史超时，请唤醒秤后重试")
-            }
-        }
-    }
-
-    private func consumeWolaiHistory(
-        _ data: Data,
-        peripheral: CBPeripheral,
-        characteristic: CBCharacteristic
-    ) -> Bool {
-        guard var session = wolaiHistorySession else { return false }
         do {
-            guard try session.consume(data) != nil else {
-                wolaiHistorySession = session
-                return false
+            let configuration = historyConfiguration(for: operation)
+            try executeProtocolActions(history.startHistoryRead(configuration: configuration), on: connected)
+            if let target = operation.subscriptions.first,
+               let measurement = protocolCharacteristic(target, on: connected),
+               measurement.isNotifying {
+                try executeProtocolActions(session.handle(.notificationStateChanged(
+                    serviceUUID: CommunicationRuleCodec.normalizeUUID(target.serviceUUID),
+                    characteristicUUID: CommunicationRuleCodec.normalizeUUID(target.characteristicUUID),
+                    isNotifying: true,
+                    changedAt: .now
+                )), on: connected)
             }
-            wolaiHistorySession = session
-            if wolaiHistoryRequestOrigin == .manual {
-                historyState = .reading(received: session.measurements.count, announced: nil)
-            }
-            if let control = wolaiControlCharacteristic {
-                let acknowledgement = WolaiAFUScaleAdapter.makeHistoryAcknowledgement()
-                let type: CBCharacteristicWriteType = control.properties.contains(.write)
-                    ? .withResponse
-                    : .withoutResponse
-                captureCharacteristicEvent(
-                    direction: .write,
-                    characteristic: control,
-                    payload: acknowledgement,
-                    summary: "确认 Wolai AFU 历史记录"
-                )
-                peripheral.writeValue(acknowledgement, for: control, type: type)
-            }
-            armWolaiHistoryQuietCompletion(after: 1, peripheral: peripheral)
         } catch {
-            historyTimeoutTask?.cancel()
-            wolaiHistorySession = nil
-            let origin = wolaiHistoryRequestOrigin
-            wolaiHistoryRequestOrigin = nil
-            didStartWolaiHistoryRequest = false
-            if origin == .manual {
-                historyState = .failed("Wolai AFU 历史数据格式无效或超过安全上限")
-            }
-        }
-        return true
-    }
-
-    private func armWolaiHistoryQuietCompletion(after seconds: Double, peripheral: CBPeripheral) {
-        let origin = wolaiHistoryRequestOrigin
-        historyTimeoutTask?.cancel()
-        historyTimeoutTask = Task { [weak self] in
-            try? await Task.sleep(for: .seconds(seconds))
-            guard !Task.isCancelled, let self,
-                  self.wolaiHistoryRequestOrigin == origin,
-                  let completed = self.wolaiHistorySession?.completedMeasurements() else { return }
-            self.wolaiHistorySession = nil
-            self.wolaiHistoryRequestOrigin = nil
-            self.didStartWolaiHistoryRequest = false
-            guard !completed.isEmpty else {
-                if origin == .manual {
-                    self.historyState = .empty
-                }
-                return
-            }
-            let attributed = completed.map { value -> BodyMeasurement in
-                var result = value
-                result.deviceID = peripheral.identifier
-                result.deviceName = self.pairedScales.names[peripheral.identifier] ?? peripheral.name
-                return result
-            }
-            if origin == .automatic {
-                self.automaticallyRetrievedHistory = AutomaticallyRetrievedHistory(measurements: attributed)
-            } else {
-                self.historyState = .awaitingImport(attributed)
-            }
+            activeProtocolHistoryOrigin = nil
+            resetActiveProtocolSession()
+            historyState = .failed("历史读取会话启动失败")
         }
     }
 
-    private func readXiaomiHistory() {
-        guard let connected,
-              connected.identifier == settingsScaleID,
-              let characteristic = settingsHistoryCharacteristic,
-              characteristic.properties.contains(.notify) || characteristic.properties.contains(.indicate),
-              characteristic.properties.contains(.write) || characteristic.properties.contains(.writeWithoutResponse) else {
-            historyState = .failed("当前连接未发现可读写的小米历史特征")
-            return
+    private func startAutomaticConnectedProtocolHistoryIfNeeded(on peripheral: CBPeripheral) -> Bool {
+        guard pairedScales.automaticHistoryIDs.contains(peripheral.identifier),
+              activeProtocolHistoryOrigin == nil,
+              let operation = historyOperation(for: peripheral.identifier),
+              operation.historyResponse?.builtInParser != nil,
+              let session = activeProtocolSession,
+              let history = session as? any ScaleHistoryCapability else { return false }
+        do {
+            activeProtocolHistoryOrigin = .automatic
+            try executeProtocolActions(
+                history.startHistoryRead(configuration: historyConfiguration(for: operation)),
+                on: peripheral
+            )
+            return true
+        } catch {
+            activeProtocolHistoryOrigin = nil
+            return false
         }
-        guard characteristic.service?.uuid == Self.weightService else {
-            historyState = .failed("当前历史协议仅验证了 MI SCALE2 的 181D 服务")
-            return
-        }
-        let cursor = XiaomiScaleHistoryProtocol.capturedQueryCursor
-        xiaomiHistorySession = XiaomiScaleHistorySession(cursor: cursor)
-        xiaomiHistoryCursor = cursor
-        xiaomiHistoryRequestOrigin = .manual
-        declarativeHistorySession = nil
-        activeHistoryOperation = nil
-        activeHistorySessionToken = nil
-        activeHistoryCompletionResponse = nil
-        pendingHistorySubscriptions.removeAll()
-        historyState = .reading(received: 0, announced: nil)
-        armXiaomiHistoryTimeout()
-        if characteristic.isNotifying {
-            sendXiaomiHistoryRequest(on: connected, characteristic: characteristic)
-        } else {
-            connected.setNotifyValue(true, for: characteristic)
-        }
+    }
+
+    private func historyConfiguration(
+        for operation: CommunicationGATTOperation
+    ) -> ScaleHistoryReadConfiguration {
+        ScaleHistoryReadConfiguration(
+            timeoutSeconds: operation.timeoutSeconds,
+            maximumResponseBytes: operation.maximumResponseBytes,
+            maximumRecords: operation.maximumRecords
+        )
     }
 
     func importPendingHistory(into store: MeasurementStore) {
@@ -678,18 +625,12 @@ final class BluetoothScaleCoordinator: NSObject, ObservableObject {
               let connected else { return }
         let summary = store.importDeviceHistory(measurements)
         if summary.unmatchedCount == 0 {
-            if let operation = activeHistoryOperation {
+            if let confirmation = activeProtocolSession as? any ScaleHistoryImportConfirmationCapability {
+                try? executeProtocolActions(try confirmation.confirmHistoryImport(), on: connected)
+            } else if let operation = activeHistoryOperation {
                 write(operation.acknowledgementCommands, on: connected, response: activeHistoryCompletionResponse)
-            } else if let characteristic = settingsHistoryCharacteristic,
-                      let cursor = xiaomiHistoryCursor {
-                writeHistoryCommand(
-                    XiaomiScaleHistoryProtocol.acknowledge(since: cursor),
-                    on: connected,
-                    characteristic: characteristic
-                )
             }
         }
-        xiaomiHistoryCursor = nil
         historyState = .imported(summary)
     }
 
@@ -698,15 +639,9 @@ final class BluetoothScaleCoordinator: NSObject, ObservableObject {
         pendingAutomaticHistoryImportID = nil
         if summary.unmatchedCount == 0,
            let connected,
-           let characteristic = settingsHistoryCharacteristic,
-           let cursor = xiaomiHistoryCursor {
-            writeHistoryCommand(
-                XiaomiScaleHistoryProtocol.acknowledge(since: cursor),
-                on: connected,
-                characteristic: characteristic
-            )
+           let confirmation = activeProtocolSession as? any ScaleHistoryImportConfirmationCapability {
+            try? executeProtocolActions(try confirmation.confirmHistoryImport(), on: connected)
         }
-        xiaomiHistoryCursor = nil
     }
 
     func clearDeviceHistory() {
@@ -723,6 +658,9 @@ final class BluetoothScaleCoordinator: NSObject, ObservableObject {
                 switch command.writeMode {
                 case .withResponse: return characteristic.properties.contains(.write)
                 case .withoutResponse: return characteristic.properties.contains(.writeWithoutResponse)
+                case .automatic:
+                    return characteristic.properties.contains(.write)
+                        || characteristic.properties.contains(.writeWithoutResponse)
                 }
             }) else {
                 historyState = .failed("清除规则声明的服务或特征与当前设备不匹配")
@@ -749,14 +687,15 @@ final class BluetoothScaleCoordinator: NSObject, ObservableObject {
                 switch command.writeMode {
                 case .withResponse: return characteristic.properties.contains(.write)
                 case .withoutResponse: return characteristic.properties.contains(.writeWithoutResponse)
+                case .automatic:
+                    return characteristic.properties.contains(.write)
+                        || characteristic.properties.contains(.writeWithoutResponse)
                 }
             }) else {
                 historyState = .failed("规则声明的服务或特征与当前设备不匹配")
                 return
             }
             declarativeHistorySession = try DeclarativeHistoryOperationSession(operation: operation)
-            xiaomiHistorySession = nil
-            xiaomiHistoryCursor = nil
             activeHistoryOperation = operation
             activeHistorySessionToken = UInt16.random(in: .min ... .max)
             activeHistoryCompletionResponse = nil
@@ -800,7 +739,7 @@ final class BluetoothScaleCoordinator: NSObject, ObservableObject {
                     sessionToken: activeHistorySessionToken ?? 0,
                     response: response
                   ) else { continue }
-            let type: CBCharacteristicWriteType = command.writeMode == .withResponse ? .withResponse : .withoutResponse
+            let type = writeType(for: command.writeMode, characteristic: characteristic)
             captureCharacteristicEvent(direction: .write, characteristic: characteristic, payload: payload, summary: "外部协议历史命令")
             peripheral.writeValue(payload, for: characteristic, type: type)
         }
@@ -808,120 +747,6 @@ final class BluetoothScaleCoordinator: NSObject, ObservableObject {
 
     private func targetKey(_ target: CommunicationGATTTarget) -> String {
         "\(CommunicationRuleCodec.normalizeUUID(target.serviceUUID))|\(CommunicationRuleCodec.normalizeUUID(target.characteristicUUID))"
-    }
-
-    private func sendXiaomiHistoryRequest(on peripheral: CBPeripheral, characteristic: CBCharacteristic) {
-        guard let cursor = xiaomiHistoryCursor else { return }
-        writeHistoryCommand(XiaomiScaleHistoryProtocol.query(since: cursor), on: peripheral, characteristic: characteristic)
-    }
-
-    private func startAutomaticXiaomiHistoryIfNeeded(on peripheral: CBPeripheral) -> Bool {
-        guard pairedScales.automaticHistoryIDs.contains(peripheral.identifier),
-              xiaomiHistorySession == nil,
-              let operation = historyOperation(for: peripheral.identifier),
-              operation.historyResponse?.builtInParser == "xiaomiHistory10",
-              let characteristic = settingsHistoryCharacteristic,
-              characteristic.service?.uuid == Self.weightService,
-              characteristic.isNotifying,
-              characteristic.properties.contains(.write) || characteristic.properties.contains(.writeWithoutResponse) else {
-            return false
-        }
-        let cursor = XiaomiScaleHistoryProtocol.capturedQueryCursor
-        xiaomiHistorySession = XiaomiScaleHistorySession(
-            cursor: cursor,
-            maximumBytes: operation.maximumResponseBytes,
-            maximumRecords: operation.maximumRecords
-        )
-        xiaomiHistoryCursor = cursor
-        xiaomiHistoryRequestOrigin = .automatic
-        armXiaomiHistoryTimeout(seconds: operation.timeoutSeconds)
-        sendXiaomiHistoryRequest(on: peripheral, characteristic: characteristic)
-        return true
-    }
-
-    private func armXiaomiHistoryTimeout(seconds: Double = 20) {
-        let origin = xiaomiHistoryRequestOrigin
-        historyTimeoutTask?.cancel()
-        historyTimeoutTask = Task { [weak self] in
-            try? await Task.sleep(for: .seconds(seconds))
-            guard !Task.isCancelled, let self,
-                  self.xiaomiHistorySession != nil,
-                  self.xiaomiHistoryRequestOrigin == origin else { return }
-            self.xiaomiHistorySession = nil
-            self.xiaomiHistoryCursor = nil
-            self.xiaomiHistoryRequestOrigin = nil
-            if origin == .manual {
-                self.historyState = .failed("读取历史超时，请唤醒秤后重试")
-            }
-        }
-    }
-
-    private func writeHistoryCommand(_ data: Data, on peripheral: CBPeripheral, characteristic: CBCharacteristic) {
-        let type: CBCharacteristicWriteType = characteristic.properties.contains(.write) ? .withResponse : .withoutResponse
-        captureCharacteristicEvent(direction: .write, characteristic: characteristic, payload: data, summary: "历史操作命令")
-        peripheral.writeValue(data, for: characteristic, type: type)
-    }
-
-    private func consumeXiaomiHistory(_ data: Data, peripheral: CBPeripheral, characteristic: CBCharacteristic) -> Bool {
-        guard var session = xiaomiHistorySession else { return false }
-        do {
-            guard let event = try session.consume(data) else {
-                xiaomiHistorySession = session
-                return true
-            }
-            xiaomiHistorySession = session
-            switch event {
-            case .readyToTransfer(let announced):
-                if xiaomiHistoryRequestOrigin == .manual {
-                    historyState = .reading(received: 0, announced: announced)
-                }
-                writeHistoryCommand(XiaomiScaleHistoryProtocol.startTransfer, on: peripheral, characteristic: characteristic)
-            case .progress(let received, let announced):
-                if xiaomiHistoryRequestOrigin == .manual {
-                    historyState = .reading(received: received, announced: announced)
-                }
-            case .completed(let measurements):
-                historyTimeoutTask?.cancel()
-                xiaomiHistorySession = nil
-                let origin = xiaomiHistoryRequestOrigin
-                xiaomiHistoryRequestOrigin = nil
-                writeHistoryCommand(XiaomiScaleHistoryProtocol.stop, on: peripheral, characteristic: characteristic)
-                let attributed = measurements.map { value -> BodyMeasurement in
-                    var result = value
-                    result.deviceID = peripheral.identifier
-                    result.deviceName = pairedScales.names[peripheral.identifier] ?? peripheral.name
-                    return result
-                }
-                if origin == .automatic {
-                    guard !attributed.isEmpty else {
-                        if let cursor = xiaomiHistoryCursor {
-                            writeHistoryCommand(
-                                XiaomiScaleHistoryProtocol.acknowledge(since: cursor),
-                                on: peripheral,
-                                characteristic: characteristic
-                            )
-                        }
-                        xiaomiHistoryCursor = nil
-                        return true
-                    }
-                    let batch = AutomaticallyRetrievedHistory(measurements: attributed)
-                    pendingAutomaticHistoryImportID = batch.id
-                    automaticallyRetrievedHistory = batch
-                } else {
-                    historyState = attributed.isEmpty ? .empty : .awaitingImport(attributed)
-                }
-            }
-        } catch {
-            historyTimeoutTask?.cancel()
-            xiaomiHistorySession = nil
-            xiaomiHistoryCursor = nil
-            let origin = xiaomiHistoryRequestOrigin
-            xiaomiHistoryRequestOrigin = nil
-            if origin == .manual {
-                historyState = .failed("历史数据格式无效或超过安全上限")
-            }
-        }
-        return true
     }
 
     private func consumeDeclarativeHistory(
@@ -1106,8 +931,7 @@ final class BluetoothScaleCoordinator: NSObject, ObservableObject {
     func disconnect() {
         connectionTimeoutTask?.cancel()
         if let connected { central.cancelPeripheralConnection(connected) }
-        resetWolaiSession()
-        resetSenssunIF2121Session()
+        resetActiveProtocolSession()
         connected = nil
         activeScaleID = nil
         activeScaleName = nil
@@ -1173,28 +997,230 @@ final class BluetoothScaleCoordinator: NSObject, ObservableObject {
         }
     }
 
-    private func resetSenssunIF2121Session() {
-        senssunIF2121ResultAccumulator.reset()
-        senssunIF2121StableWeightKG = nil
+    private func resetActiveProtocolSession() {
+        if let activeProtocolSession {
+            _ = try? activeProtocolSession.handle(.disconnected)
+        }
+        activeProtocolSession = nil
+        activeProtocolHistoryOrigin = nil
+        protocolTimerTasks.values.forEach { $0.cancel() }
+        protocolTimerTasks.removeAll()
     }
 
-    private func resetXiaomiHistorySession() {
-        settingsHistoryCharacteristic = nil
-        xiaomiHistorySession = nil
-        xiaomiHistoryCursor = nil
-        xiaomiHistoryRequestOrigin = nil
-        historyTimeoutTask?.cancel()
+    @discardableResult
+    private func startConnectedProtocolSessionIfAvailable(on peripheral: CBPeripheral) -> Bool {
+        guard settingsScaleID == nil,
+              let ruleID = selectedRule(for: peripheral.identifier)?.id else {
+            return false
+        }
+        let session: any ScaleConnectedProtocolSession
+        if let registered = protocolRegistry.makeConnectedSession(protocolID: ruleID) {
+            session = registered
+        } else if ruleID == HuaweiHagridProtocolSession.communicationRule.id {
+            guard let credentials = try? HuaweiHagridCredentialStore().load(for: peripheral.identifier) else {
+                resetActiveProtocolSession()
+                state = .unavailable("华为 Hagrid 认证待配置")
+                return true
+            }
+            guard let profile = measurementProfile else {
+                resetActiveProtocolSession()
+                state = .unavailable("需要成员资料")
+                return true
+            }
+            let modelName = pairedScales.modelNames[peripheral.identifier] ?? peripheral.name ?? ""
+            session = HuaweiHagridProtocolSession(
+                credentials: credentials,
+                profile: profile,
+                usesScale3GenderEncoding: modelName.localizedCaseInsensitiveContains("Scale 3")
+            )
+        } else {
+            return false
+        }
+        resetActiveProtocolSession()
+        activeProtocolSession = session
+        do {
+            try executeProtocolActions(session.handle(.connected), on: peripheral)
+            return true
+        } catch {
+            resetActiveProtocolSession()
+            state = .unavailable("协议会话启动失败")
+            return false
+        }
     }
 
-    private func resetWolaiSession() {
-        didCompleteWolaiFinal = false
-        didInitializeWolaiSession = false
-        wolaiControlCharacteristic = nil
-        wolaiMeasurementCharacteristic = nil
-        wolaiHistorySession = nil
-        wolaiHistoryRequestOrigin = nil
-        didStartWolaiHistoryRequest = false
-        historyTimeoutTask?.cancel()
+    private func executeProtocolActions(
+        _ actions: [ScaleProtocolAction],
+        on peripheral: CBPeripheral
+    ) throws {
+        for action in actions {
+            switch action {
+            case .discoverServices(let serviceUUIDs):
+                peripheral.discoverServices(serviceUUIDs.map(CBUUID.init(string:)))
+            case .discoverCharacteristics(let serviceUUID, let characteristicUUIDs):
+                guard let service = peripheral.services?.first(where: {
+                    CommunicationRuleCodec.normalizeUUID($0.uuid.uuidString) == serviceUUID
+                }) else { continue }
+                peripheral.discoverCharacteristics(
+                    characteristicUUIDs.map(CBUUID.init(string:)),
+                    for: service
+                )
+            case .subscribe(let target):
+                guard let characteristic = protocolCharacteristic(target, on: peripheral),
+                      characteristic.properties.contains(.notify)
+                        || characteristic.properties.contains(.indicate) else { continue }
+                peripheral.setNotifyValue(true, for: characteristic)
+            case .write(let command):
+                guard let characteristic = protocolCharacteristic(command.target, on: peripheral) else { continue }
+                let payload = try CommunicationPayloadTemplate.render(
+                    command.payloadHexTemplate,
+                    sessionToken: 0
+                )
+                let writeType = writeType(for: command.writeMode, characteristic: characteristic)
+                guard writeType == .withResponse
+                    ? characteristic.properties.contains(.write)
+                    : characteristic.properties.contains(.writeWithoutResponse) else { continue }
+                if settingsScaleID == peripheral.identifier {
+                    captureCharacteristicEvent(
+                        direction: .write,
+                        characteristic: characteristic,
+                        payload: payload,
+                        summary: "协议会话命令"
+                    )
+                }
+                peripheral.writeValue(payload, for: characteristic, type: writeType)
+                if writeType == .withoutResponse,
+                   let session = activeProtocolSession {
+                    try executeProtocolActions(session.handle(.writeCompleted(
+                        serviceUUID: CommunicationRuleCodec.normalizeUUID(command.target.serviceUUID),
+                        characteristicUUID: CommunicationRuleCodec.normalizeUUID(command.target.characteristicUUID),
+                        succeeded: true
+                    )), on: peripheral)
+                }
+            case .reportLiveMeasurement(let measurement, let phase, let loadCycle):
+                if loadCycle == .coordinatorManaged,
+                   !prepareForConnectedProtocolLiveWeight(measurement.weightKG) { continue }
+                liveWeightKG = measurement.weightKG
+                state = phase == .measuringWeight ? .measuringWeight : .measuringBodyComposition
+            case .reportLivePhase(let phase):
+                state = phase == .measuringWeight ? .measuringWeight : .measuringBodyComposition
+            case .resetMeasurement:
+                measurementSession.reset()
+            case .emit(let packet, let reliability):
+                switch packet {
+                case .measurement(let measurement):
+                    let sessionReliability: MeasurementSampleReliability
+                    switch reliability {
+                    case .requiresStability: sessionReliability = .requiresStability
+                    case .protocolStable: sessionReliability = .protocolStable
+                    case .protocolFinal: sessionReliability = .protocolFinal
+                    }
+                    consume(measurement, reliability: sessionReliability)
+                case .weightRemoved:
+                    weightWasRemoved()
+                }
+            case .reportHistoryProgress(let received, let announced):
+                if activeProtocolHistoryOrigin == .manual {
+                    historyState = .reading(received: received, announced: announced)
+                }
+            case .completeHistory(let measurements):
+                let origin = activeProtocolHistoryOrigin
+                activeProtocolHistoryOrigin = nil
+                let attributed = measurements.map { value -> BodyMeasurement in
+                    var result = value
+                    result.deviceID = peripheral.identifier
+                    result.deviceName = pairedScales.names[peripheral.identifier] ?? peripheral.name
+                    return result
+                }
+                if origin == .automatic {
+                    if attributed.isEmpty {
+                        if let confirmation = activeProtocolSession
+                            as? any ScaleHistoryImportConfirmationCapability {
+                            try executeProtocolActions(
+                                try confirmation.confirmHistoryImport(),
+                                on: peripheral
+                            )
+                        }
+                    } else {
+                        let batch = AutomaticallyRetrievedHistory(measurements: attributed)
+                        pendingAutomaticHistoryImportID = batch.id
+                        automaticallyRetrievedHistory = batch
+                    }
+                } else if origin == .manual {
+                    historyState = attributed.isEmpty ? .empty : .awaitingImport(attributed)
+                }
+            case .failHistory(let failure):
+                let origin = activeProtocolHistoryOrigin
+                activeProtocolHistoryOrigin = nil
+                if origin == .manual {
+                    switch failure {
+                    case .timeout:
+                        historyState = .failed("读取历史超时，请唤醒秤后重试")
+                    case .invalidPayload:
+                        historyState = .failed("历史数据格式无效或超过安全上限")
+                    case .writeFailed:
+                        historyState = .failed("历史读取命令写入失败")
+                    }
+                }
+            case .failSession(let failure):
+                protocolTimerTasks.values.forEach { $0.cancel() }
+                protocolTimerTasks.removeAll()
+                switch failure {
+                case .invalidResponse:
+                    state = .unavailable("协议响应无效")
+                case .writeFailed:
+                    state = .unavailable("写入失败")
+                }
+            case .scheduleTimer(let id, let seconds):
+                protocolTimerTasks[id]?.cancel()
+                protocolTimerTasks[id] = Task { [weak self, weak peripheral] in
+                    try? await Task.sleep(for: .seconds(seconds))
+                    guard !Task.isCancelled, let self, let peripheral,
+                          let session = self.activeProtocolSession else { return }
+                    if let actions = try? session.handle(.timer(id)) {
+                        try? self.executeProtocolActions(actions, on: peripheral)
+                    }
+                }
+            case .cancelTimer(let id):
+                protocolTimerTasks[id]?.cancel()
+                protocolTimerTasks[id] = nil
+            }
+        }
+    }
+
+    private func protocolCharacteristic(
+        _ target: CommunicationGATTTarget,
+        on peripheral: CBPeripheral
+    ) -> CBCharacteristic? {
+        peripheral.services?.first(where: {
+            CommunicationRuleCodec.normalizeUUID($0.uuid.uuidString)
+                == CommunicationRuleCodec.normalizeUUID(target.serviceUUID)
+        })?.characteristics?.first(where: {
+            CommunicationRuleCodec.normalizeUUID($0.uuid.uuidString)
+                == CommunicationRuleCodec.normalizeUUID(target.characteristicUUID)
+        })
+    }
+
+    private func writeType(
+        for mode: CommunicationWriteMode,
+        characteristic: CBCharacteristic
+    ) -> CBCharacteristicWriteType {
+        switch mode {
+        case .withResponse: .withResponse
+        case .withoutResponse: .withoutResponse
+        case .automatic:
+            characteristic.properties.contains(.write) ? .withResponse : .withoutResponse
+        }
+    }
+
+    private func protocolWriteMode(
+        in actions: [ScaleProtocolAction],
+        target: CommunicationGATTTarget
+    ) -> CommunicationWriteMode? {
+        actions.lazy.compactMap { action in
+            guard case .write(let command) = action,
+                  self.targetKey(command.target) == self.targetKey(target) else { return nil }
+            return command.writeMode
+        }.first
     }
 
     private func isWolaiMeasurement(_ characteristic: CBCharacteristic) -> Bool {
@@ -1202,57 +1228,7 @@ final class BluetoothScaleCoordinator: NSObject, ObservableObject {
             && characteristic.service?.uuid == Self.wolaiService
     }
 
-    private func writeWolaiCommand(_ data: Data, on peripheral: CBPeripheral) {
-        guard let characteristic = wolaiControlCharacteristic else { return }
-        let type: CBCharacteristicWriteType
-        if characteristic.properties.contains(.write) {
-            type = .withResponse
-        } else if characteristic.properties.contains(.writeWithoutResponse) {
-            type = .withoutResponse
-        } else {
-            return
-        }
-        peripheral.writeValue(data, for: characteristic, type: type)
-    }
-
-    private func initializeWolaiSessionIfReady(on peripheral: CBPeripheral) {
-        guard !didInitializeWolaiSession,
-              wolaiControlCharacteristic != nil else { return }
-        didInitializeWolaiSession = true
-        writeWolaiCommand(WolaiAFUScaleAdapter.makeTimeInitialization(at: .now), on: peripheral)
-    }
-
-    private func consumeSenssunIF2121(_ packet: SenssunIF2121ScaleParser.Packet) {
-        switch packet {
-        case .weightRemoved:
-            senssunIF2121StableWeightKG = nil
-            weightWasRemoved()
-        case .progress:
-            if senssunIF2121StableWeightKG != nil { state = .measuringBodyComposition }
-        case .measurement(let phase, let measurement):
-            switch phase {
-            case .final:
-                guard let stableWeightKG = senssunIF2121StableWeightKG,
-                      abs(stableWeightKG - measurement.weightKG) <= 0.15 else { return }
-                senssunIF2121StableWeightKG = nil
-                consume(measurement, reliability: .protocolFinal)
-            case .stable:
-                guard prepareForSenssunIF2121LiveWeight(measurement.weightKG) else { return }
-                senssunIF2121StableWeightKG = measurement.weightKG
-                liveWeightKG = measurement.weightKG
-                state = .measuringBodyComposition
-            case .live:
-                guard prepareForSenssunIF2121LiveWeight(measurement.weightKG) else { return }
-                senssunIF2121StableWeightKG = nil
-                liveWeightKG = measurement.weightKG
-                state = .measuringWeight
-            case .bodyCompositionProgress:
-                if senssunIF2121StableWeightKG != nil { state = .measuringBodyComposition }
-            }
-        }
-    }
-
-    private func prepareForSenssunIF2121LiveWeight(_ weightKG: Double) -> Bool {
+    private func prepareForConnectedProtocolLiveWeight(_ weightKG: Double) -> Bool {
         if let completed = latestMeasurement, case .completed = state {
             if isWaitingForNextLoad {
                 let minimum = min(minimumWeightAfterCompletionKG ?? weightKG, weightKG)
@@ -1386,19 +1362,19 @@ final class BluetoothScaleCoordinator: NSObject, ObservableObject {
                 receivedAt: receivedAt
             )
         }
+        let protocolMatch = protocolRegistry.decodeAdvertisement(
+            advertisementInput(name: name, advertisement: data, receivedAt: receivedAt)
+        )
         if let manufacturerData = data[CBAdvertisementDataManufacturerDataKey] as? Data {
             let protocolSummary: String
-            if let match = ScaleBroadcastProtocolCatalog.parse(
-                name: name,
-                manufacturerData: manufacturerData,
-                advertisedServiceUUIDs: Set(advertisedServices.map(\.uuidString)),
-                now: receivedAt
-            ) {
+            if let match = protocolMatch,
+               match.descriptor.transport == .advertisementManufacturerData,
+               case .measurement(let measurement) = match.packet {
                 protocolSummary = String(
                     format: "%@ weight=%.3fkg stable=%@",
-                    match.family.rawValue,
-                    match.measurement.weightKG,
-                    match.measurement.isStable ? "1" : "0"
+                    match.descriptor.name,
+                    measurement.weightKG,
+                    measurement.isStable ? "1" : "0"
                 )
             } else {
                 protocolSummary = "厂商自定义数据"
@@ -1413,25 +1389,19 @@ final class BluetoothScaleCoordinator: NSObject, ObservableObject {
         }
         let serviceData = data[CBAdvertisementDataServiceDataKey] as? [CBUUID: Data] ?? [:]
         for (uuid, payload) in serviceData.sorted(by: { $0.key.uuidString < $1.key.uuidString }) {
-            let serviceMatch = ScaleServiceDataProtocolCatalog.parse(
-                name: name,
-                serviceUUID: uuid.uuidString,
-                payload: payload,
-                manufacturerData: data[CBAdvertisementDataManufacturerDataKey] as? Data,
-                now: receivedAt
-            )
             let summary: String
-            if let serviceMatch {
-                switch serviceMatch.packet {
+            if let protocolMatch,
+               protocolMatch.descriptor.transport == .advertisementServiceData {
+                switch protocolMatch.packet {
                 case .measurement(let measurement):
                     summary = String(
                         format: "%@ weight=%.3fkg stable=%@",
-                        serviceMatch.family.rawValue,
+                        protocolMatch.descriptor.name,
                         measurement.weightKG,
                         measurement.isStable ? "1" : "0"
                     )
                 case .weightRemoved:
-                    summary = "\(serviceMatch.family.rawValue) weightRemoved=1"
+                    summary = "\(protocolMatch.descriptor.name) weightRemoved=1"
                 }
             } else if uuid == Self.bodyService {
                 summary = diagnosticSummary(payload, kind: .xiaomiAdvertisement, receivedAt: receivedAt)
@@ -1485,21 +1455,37 @@ final class BluetoothScaleCoordinator: NSObject, ObservableObject {
         }
     }
 
-    private func broadcastReliability(
-        for family: ScaleBroadcastProtocolFamily
+    private func measurementReliability(
+        for descriptor: ScaleProtocolDescriptor
     ) -> MeasurementSampleReliability {
-        // Sinocare has no protocol-level stable bit and is finalized by repeated
-        // readings. Other built-in broadcast families expose an explicit stable
-        // or final state, which generic convergence must not replace.
-        family == .sinocare ? .requiresStability : .protocolStable
+        descriptor.stabilityPolicy == .repeatedSamples ? .requiresStability : .protocolStable
+    }
+
+    private func advertisementInput(
+        name: String,
+        advertisement: [String: Any],
+        receivedAt: Date
+    ) -> ScaleAdvertisementInput {
+        let advertisedServices = Set([
+            CBAdvertisementDataServiceUUIDsKey,
+            CBAdvertisementDataOverflowServiceUUIDsKey,
+            CBAdvertisementDataSolicitedServiceUUIDsKey
+        ].flatMap { advertisement[$0] as? [CBUUID] ?? [] }.map(\.uuidString))
+        let serviceData = advertisement[CBAdvertisementDataServiceDataKey] as? [CBUUID: Data] ?? [:]
+        return ScaleAdvertisementInput(
+            name: name,
+            manufacturerData: advertisement[CBAdvertisementDataManufacturerDataKey] as? Data,
+            advertisedServiceUUIDs: advertisedServices,
+            serviceData: Dictionary(uniqueKeysWithValues: serviceData.map { ($0.key.uuidString, $0.value) }),
+            receivedAt: receivedAt
+        )
     }
 
     private func discoveryAdvertisement(
         name: String,
         advertisement: [String: Any],
         hasVerifiedXiaomiPayload: Bool,
-        verifiedBroadcastProtocol: ScaleBroadcastProtocolFamily?,
-        verifiedServiceDataProtocol: ScaleServiceDataProtocolFamily?
+        recognizedProtocol: ScaleProtocolMatch?
     ) -> ScaleDiscoveryAdvertisement {
         let advertisedServices = [
             CBAdvertisementDataServiceUUIDsKey,
@@ -1520,8 +1506,7 @@ final class BluetoothScaleCoordinator: NSObject, ObservableObject {
                 name: name,
                 serviceDataUUIDs: Set(serviceData.keys.map(\.uuidString))
             ),
-            verifiedBroadcastProtocol: verifiedBroadcastProtocol,
-            verifiedServiceDataProtocol: verifiedServiceDataProtocol
+            recognizedProtocolCompatibility: recognizedProtocol?.descriptor.discoveryCompatibility
         )
     }
 
@@ -1591,30 +1576,10 @@ extension BluetoothScaleCoordinator: CBCentralManagerDelegate {
                 receivedAt: receivedAt
             )
             let name = discoveredName(for: peripheral, advertisement: advertisementData)
-            let advertisedServiceUUIDs = Set([
-                CBAdvertisementDataServiceUUIDsKey,
-                CBAdvertisementDataOverflowServiceUUIDsKey,
-                CBAdvertisementDataSolicitedServiceUUIDsKey
-            ].flatMap { advertisementData[$0] as? [CBUUID] ?? [] }.map(\.uuidString))
-            let manufacturerData = advertisementData[CBAdvertisementDataManufacturerDataKey] as? Data
-            let broadcastMatch = manufacturerData.flatMap {
-                ScaleBroadcastProtocolCatalog.parse(
-                    name: name,
-                    manufacturerData: $0,
-                    advertisedServiceUUIDs: advertisedServiceUUIDs,
-                    now: receivedAt
-                )
-            }
             let serviceData = advertisementData[CBAdvertisementDataServiceDataKey] as? [CBUUID: Data]
-            let serviceDataMatch = serviceData?.compactMap { uuid, payload in
-                ScaleServiceDataProtocolCatalog.parse(
-                    name: name,
-                    serviceUUID: uuid.uuidString,
-                    payload: payload,
-                    manufacturerData: manufacturerData,
-                    now: receivedAt
-                )
-            }.first
+            let protocolMatch = protocolRegistry.decodeAdvertisement(
+                advertisementInput(name: name, advertisement: advertisementData, receivedAt: receivedAt)
+            )
             let xiaomiPayload = serviceData?[Self.bodyService]
             let hasVerifiedXiaomiPayload = xiaomiPayload.flatMap {
                 try? XiaomiScaleParser.parsePacket($0, now: receivedAt)
@@ -1628,24 +1593,13 @@ extension BluetoothScaleCoordinator: CBCentralManagerDelegate {
             }
             if case .measuring = scanPurpose,
                isMonitoredScale(peripheral.identifier) {
-                if let broadcastMatch,
-                   allowsBuiltInParser(broadcastMatch.family.builtInParserID, for: peripheral.identifier) {
-                    consume(
-                        broadcastMatch.measurement,
-                        reliability: broadcastReliability(for: broadcastMatch.family),
-                        deviceID: peripheral.identifier,
-                        deviceName: pairedScales.names[peripheral.identifier] ?? peripheral.name
-                    )
-                } else if let serviceDataMatch,
-                          allowsBuiltInParser(
-                              serviceDataMatch.family.builtInParserID,
-                              for: peripheral.identifier
-                          ) {
-                    switch serviceDataMatch.packet {
+                if let protocolMatch,
+                   allowsBuiltInParser(protocolMatch.descriptor.parserID, for: peripheral.identifier) {
+                    switch protocolMatch.packet {
                     case .measurement(let measurement):
                         consume(
                             measurement,
-                            reliability: .protocolStable,
+                            reliability: measurementReliability(for: protocolMatch.descriptor),
                             deviceID: peripheral.identifier,
                             deviceName: pairedScales.names[peripheral.identifier] ?? peripheral.name
                         )
@@ -1686,8 +1640,7 @@ extension BluetoothScaleCoordinator: CBCentralManagerDelegate {
                 name: pairedScales.modelNames[peripheral.identifier] ?? name,
                 advertisement: advertisementData,
                 hasVerifiedXiaomiPayload: hasVerifiedXiaomiPayload,
-                verifiedBroadcastProtocol: broadcastMatch?.family,
-                verifiedServiceDataProtocol: serviceDataMatch?.family
+                recognizedProtocol: protocolMatch
             )
             let compatibility = ScaleDiscoveryClassifier.compatibility(for: discovery)
             let item = DiscoveredScale(
@@ -1711,8 +1664,7 @@ extension BluetoothScaleCoordinator: CBCentralManagerDelegate {
                pairedScales.automaticHistoryIDs.contains(peripheral.identifier)
                     || (item.isVerifiedCompatible
                         || selectedRule(for: peripheral.identifier)?.match.transport == .characteristicNotification)
-                        && broadcastMatch == nil
-                        && serviceDataMatch == nil
+                        && protocolMatch == nil
                         && (!hasVerifiedXiaomiPayload
                             || selectedRule(for: peripheral.identifier)?.match.transport == .characteristicNotification) {
                 connect(item)
@@ -1732,37 +1684,14 @@ extension BluetoothScaleCoordinator: CBCentralManagerDelegate {
                 huaweiHagridNotificationAccumulators.removeAll()
             }
             state = .connected(peripheral.name ?? "体重秤")
-            if historyOperation(for: peripheral.identifier)?.historyResponse?.builtInParser == "xiaomiHistory10" {
-                resetXiaomiHistorySession()
-            }
-            if isWolaiAFUSelected(for: peripheral.identifier) {
-                resetWolaiSession()
-            }
-            if isSenssunIF2121Selected(for: peripheral.identifier) {
-                resetSenssunIF2121Session()
-            }
             if settingsScaleID == peripheral.identifier {
                 settingsState = .discovering
                 armSettingsTimeout(for: peripheral.identifier)
                 peripheral.discoverServices(nil)
             } else {
                 let selected = selectedRule(for: peripheral.identifier)
-                if isHuaweiHagridSelected(for: peripheral.identifier) {
-                    resetHuaweiHagridSession()
-                    huaweiHagridCredentials = try? HuaweiHagridCredentialStore().load(
-                        for: peripheral.identifier
-                    )
-                    huaweiHagridHandshakeState = huaweiHagridCredentials == nil
-                        ? .failed
-                        : .awaitingChallenge
-                    peripheral.discoverServices([
-                        Self.huaweiUserDataService,
-                        Self.huaweiCurrentTimeService,
-                        Self.bodyService,
-                        Self.weightService
-                    ])
-                } else if isSenssunIF2121Selected(for: peripheral.identifier) {
-                    peripheral.discoverServices([Self.senssunIF2121Service])
+                if startConnectedProtocolSessionIfAvailable(on: peripheral) {
+                    // The protocol session owns service and characteristic discovery.
                 } else if selected?.isDeclarative == true
                     || selected?.notifyTargets?.isEmpty == false {
                     peripheral.discoverServices(nil)
@@ -1803,18 +1732,7 @@ extension BluetoothScaleCoordinator: CBCentralManagerDelegate {
             connected = nil
             activeScaleID = nil
             activeScaleName = nil
-            if isHuaweiHagridSelected(for: peripheral.identifier) {
-                resetHuaweiHagridSession()
-            }
-            if isSenssunIF2121Selected(for: peripheral.identifier) {
-                resetSenssunIF2121Session()
-            }
-            if isWolaiAFUSelected(for: peripheral.identifier) {
-                resetWolaiSession()
-            }
-            if historyOperation(for: peripheral.identifier)?.historyResponse?.builtInParser == "xiaomiHistory10" {
-                resetXiaomiHistorySession()
-            }
+            resetActiveProtocolSession()
             if let reconnectScale {
                 appendDiagnosticEvent(
                     kind: .service,
@@ -1863,6 +1781,16 @@ extension BluetoothScaleCoordinator: CBPeripheralDelegate {
                 return
             }
             let services = peripheral.services ?? []
+            if settingsScaleID != peripheral.identifier,
+               let session = activeProtocolSession {
+                let serviceUUIDs = Set(services.map {
+                    CommunicationRuleCodec.normalizeUUID($0.uuid.uuidString)
+                })
+                if let actions = try? session.handle(.servicesDiscovered(serviceUUIDs)) {
+                    try? executeProtocolActions(actions, on: peripheral)
+                }
+                return
+            }
             if settingsScaleID == peripheral.identifier {
                 settingsSnapshot.discoveredServiceUUIDs = services
                     .map { $0.uuid.uuidString.uppercased() }
@@ -1897,6 +1825,20 @@ extension BluetoothScaleCoordinator: CBPeripheralDelegate {
                 }
                 return
             }
+            if settingsScaleID != peripheral.identifier,
+               let session = activeProtocolSession {
+                let serviceUUID = CommunicationRuleCodec.normalizeUUID(service.uuid.uuidString)
+                let characteristicUUIDs = Set((service.characteristics ?? []).map {
+                    CommunicationRuleCodec.normalizeUUID($0.uuid.uuidString)
+                })
+                if let actions = try? session.handle(.characteristicsDiscovered(
+                    serviceUUID: serviceUUID,
+                    characteristicUUIDs: characteristicUUIDs
+                )) {
+                    try? executeProtocolActions(actions, on: peripheral)
+                }
+                return
+            }
             if CommunicationRuleCodec.normalizeUUID(service.uuid.uuidString)
                 == HuaweiHagridProtocol.userDataServiceUUID,
                service.characteristics?.contains(where: {
@@ -1911,32 +1853,8 @@ extension BluetoothScaleCoordinator: CBPeripheralDelegate {
                 )
                 let isSelectedNotificationTarget = selectedRule(for: peripheral.identifier)?
                     .notifyTargets?.contains(characteristicTarget) == true
-                let historyOperation = historyOperation(for: peripheral.identifier)
-                let isAutomaticXiaomiHistoryTarget = pairedScales.automaticHistoryIDs.contains(peripheral.identifier)
-                    && historyOperation?.historyResponse?.builtInParser == "xiaomiHistory10"
-                    && historyOperation?.subscriptions.contains(where: {
-                        targetKey($0) == targetKey(characteristicTarget)
-                    }) == true
-                if isAutomaticXiaomiHistoryTarget {
-                    settingsHistoryCharacteristic = characteristic
-                }
                 let isWolaiService = service.uuid == Self.wolaiService
                     && isWolaiAFUSelected(for: peripheral.identifier)
-                if isWolaiService, characteristic.uuid == Self.wolaiControl {
-                    wolaiControlCharacteristic = characteristic
-                } else if isWolaiService, characteristic.uuid == Self.wolaiMeasurement {
-                    wolaiMeasurementCharacteristic = characteristic
-                }
-                let isHuaweiMeasurementTarget = settingsScaleID == nil
-                    && isHuaweiHagridSelected(for: peripheral.identifier)
-                    && HuaweiHagridProtocol.isSessionCharacteristic(characteristic.uuid.uuidString)
-                if isHuaweiMeasurementTarget {
-                    huaweiHagridCharacteristics[characteristic.uuid.uuidString.uppercased()] = characteristic
-                    if characteristic.properties.contains(.notify)
-                        || characteristic.properties.contains(.indicate) {
-                        peripheral.setNotifyValue(true, for: characteristic)
-                    }
-                }
                 let isDiagnosticTarget = settingsScaleID == peripheral.identifier
                     && isDeviceDiagnosticCaptureEnabled
                 let isHuaweiDiagnosticTarget = isDiagnosticTarget
@@ -1949,7 +1867,6 @@ extension BluetoothScaleCoordinator: CBPeripheralDelegate {
                 if characteristic.uuid == Self.weightMeasurement
                     || characteristic.uuid == Self.bodyMeasurement
                     || isWolaiService && characteristic.uuid == Self.wolaiMeasurement
-                    || isAutomaticXiaomiHistoryTarget
                     || isSelectedNotificationTarget
                     || customRule(
                         for: peripheral.identifier,
@@ -1999,6 +1916,8 @@ extension BluetoothScaleCoordinator: CBPeripheralDelegate {
             if settingsScaleID == peripheral.identifier {
                 pendingSettingsServiceIDs.remove(ObjectIdentifier(service))
                 if pendingSettingsServiceIDs.isEmpty {
+                    refreshHistoryAvailability(for: peripheral.identifier)
+                    refreshProtocolConfigurationAvailability(for: peripheral.identifier)
                     settingsState = .ready
                     scheduleHuaweiHagridDiagnosticProbe(on: peripheral)
                 }
@@ -2028,13 +1947,23 @@ extension BluetoothScaleCoordinator: CBPeripheralDelegate {
         }
         guard let data = characteristic.value else { return }
         Task { @MainActor in
-            if isWolaiMeasurement(characteristic),
-               consumeWolaiHistory(data, peripheral: peripheral, characteristic: characteristic) {
-                return
-            }
-            if settingsScaleID != peripheral.identifier,
-               characteristic.uuid == Self.xiaomiHistory,
-               consumeXiaomiHistory(data, peripheral: peripheral, characteristic: characteristic) {
+            if activeProtocolHistoryOrigin != nil,
+               let session = activeProtocolSession,
+               let serviceUUID = characteristic.service?.uuid.uuidString,
+               historyOperation(for: peripheral.identifier)?.subscriptions.contains(where: {
+                   targetKey($0) == targetKey(.init(
+                    serviceUUID: serviceUUID,
+                    characteristicUUID: characteristic.uuid.uuidString
+                   ))
+               }) == true {
+                if let actions = try? session.handle(.notification(
+                    serviceUUID: CommunicationRuleCodec.normalizeUUID(serviceUUID),
+                    characteristicUUID: CommunicationRuleCodec.normalizeUUID(characteristic.uuid.uuidString),
+                    payload: data,
+                    receivedAt: .now
+                )) {
+                    try? executeProtocolActions(actions, on: peripheral)
+                }
                 return
             }
             if settingsScaleID == peripheral.identifier {
@@ -2083,36 +2012,19 @@ extension BluetoothScaleCoordinator: CBPeripheralDelegate {
                 if consumeDeclarativeHistory(data, peripheral: peripheral, characteristic: characteristic) {
                     return
                 }
-                if characteristic.uuid == Self.xiaomiHistory {
-                    _ = consumeXiaomiHistory(data, peripheral: peripheral, characteristic: characteristic)
-                    return
-                }
             }
 
             if settingsScaleID != peripheral.identifier,
-               isHuaweiHagridSelected(for: peripheral.identifier) {
-                consumeHuaweiHagridNotification(
-                    data,
-                    from: characteristic,
-                    on: peripheral
-                )
-                return
-            }
-
-            if settingsScaleID != peripheral.identifier,
-               isSenssunIF2121Selected(for: peripheral.identifier) {
+               let session = activeProtocolSession,
+               let serviceUUID = characteristic.service?.uuid.uuidString {
                 guard case .measuring = scanPurpose else { return }
-                if characteristic.uuid == Self.senssunIF2121Live,
-                   let packet = try? SenssunIF2121ScaleParser.parse(data) {
-                    consumeSenssunIF2121(packet)
-                } else if characteristic.uuid == Self.senssunIF2121Result {
-                    do {
-                        if let packet = try senssunIF2121ResultAccumulator.ingest(data) {
-                            consumeSenssunIF2121(packet)
-                        }
-                    } catch {
-                        senssunIF2121ResultAccumulator.reset()
-                    }
+                if let actions = try? session.handle(.notification(
+                    serviceUUID: CommunicationRuleCodec.normalizeUUID(serviceUUID),
+                    characteristicUUID: CommunicationRuleCodec.normalizeUUID(characteristic.uuid.uuidString),
+                    payload: data,
+                    receivedAt: .now
+                )) {
+                    try? executeProtocolActions(actions, on: peripheral)
                 }
                 return
             }
@@ -2129,29 +2041,7 @@ extension BluetoothScaleCoordinator: CBPeripheralDelegate {
                 return
             }
 
-            if isWolaiMeasurement(characteristic),
-               allowsBuiltInParser("wolaiAFU", for: peripheral.identifier),
-               let packet = try? WolaiAFUScaleParser.parse(data) {
-                guard case .measuring = scanPurpose else { return }
-                switch packet.phase {
-                case .live:
-                    if didCompleteWolaiFinal {
-                        measurementSession.reset()
-                        didCompleteWolaiFinal = false
-                    }
-                    liveWeightKG = packet.measurement.weightKG
-                    state = .measuringWeight
-                case .stable:
-                    guard !didCompleteWolaiFinal else { return }
-                    liveWeightKG = packet.measurement.weightKG
-                    state = .measuringBodyComposition
-                case .final:
-                    guard !didCompleteWolaiFinal else { return }
-                    didCompleteWolaiFinal = true
-                    writeWolaiCommand(WolaiAFUScaleAdapter.makeFinalAcknowledgement(), on: peripheral)
-                    consume(packet.measurement, reliability: .protocolFinal)
-                }
-            } else if characteristic.uuid == Self.weightMeasurement,
+            if characteristic.uuid == Self.weightMeasurement,
                allowsBuiltInParser("bluetoothSIGWeight", for: peripheral.identifier),
                XiaomiGATTWeightParser.matches(data),
                let packet = try? XiaomiGATTWeightParser.parsePacket(data) {
@@ -2189,40 +2079,23 @@ extension BluetoothScaleCoordinator: CBPeripheralDelegate {
 
     nonisolated func peripheral(_ peripheral: CBPeripheral, didUpdateNotificationStateFor characteristic: CBCharacteristic, error: Error?) {
         Task { @MainActor in
-            if characteristic.uuid == Self.xiaomiHistory,
-               error == nil,
-               characteristic.isNotifying {
-                if xiaomiHistorySession != nil {
-                    sendXiaomiHistoryRequest(on: peripheral, characteristic: characteristic)
-                } else {
-                    _ = startAutomaticXiaomiHistoryIfNeeded(on: peripheral)
+            if error == nil,
+               let session = activeProtocolSession,
+               let serviceUUID = characteristic.service?.uuid.uuidString {
+                if settingsScaleID != peripheral.identifier,
+                   characteristic.isNotifying {
+                    _ = startAutomaticConnectedProtocolHistoryIfNeeded(on: peripheral)
                 }
-            }
-            if isWolaiAFUSelected(for: peripheral.identifier),
-               isWolaiMeasurement(characteristic),
-               error == nil,
-               characteristic.isNotifying {
-                if wolaiHistorySession != nil,
-                   let control = wolaiControlCharacteristic {
-                    sendWolaiHistoryRequest(on: peripheral, characteristic: control)
-                } else if !startAutomaticWolaiHistoryIfNeeded(on: peripheral),
-                          settingsScaleID != peripheral.identifier {
-                    initializeWolaiSessionIfReady(on: peripheral)
+                if let actions = try? session.handle(.notificationStateChanged(
+                    serviceUUID: CommunicationRuleCodec.normalizeUUID(serviceUUID),
+                    characteristicUUID: CommunicationRuleCodec.normalizeUUID(
+                        characteristic.uuid.uuidString
+                    ),
+                    isNotifying: characteristic.isNotifying,
+                    changedAt: .now
+                )) {
+                    try? executeProtocolActions(actions, on: peripheral)
                 }
-            }
-            if settingsScaleID != peripheral.identifier,
-               isWolaiAFUSelected(for: peripheral.identifier),
-               isWolaiMeasurement(characteristic) {
-                return
-            }
-            if settingsScaleID != peripheral.identifier,
-               isHuaweiHagridSelected(for: peripheral.identifier) {
-                if error != nil {
-                    huaweiHagridHandshakeState = .failed
-                } else {
-                    startHuaweiHagridAuthenticationIfReady(on: peripheral)
-                }
-                return
             }
             guard settingsScaleID == peripheral.identifier else { return }
             if let error {
@@ -2263,30 +2136,46 @@ extension BluetoothScaleCoordinator: CBPeripheralDelegate {
 
     nonisolated func peripheral(_ peripheral: CBPeripheral, didWriteValueFor characteristic: CBCharacteristic, error: Error?) {
         Task { @MainActor in
-            if characteristic.uuid == Self.wolaiControl,
-               wolaiHistorySession != nil {
+            if let session = activeProtocolSession,
+               let serviceUUID = characteristic.service?.uuid.uuidString {
+                let writtenTarget = CommunicationGATTTarget(
+                    serviceUUID: CommunicationRuleCodec.normalizeUUID(serviceUUID),
+                    characteristicUUID: CommunicationRuleCodec.normalizeUUID(characteristic.uuid.uuidString)
+                )
+                let operation = historyOperation(for: peripheral.identifier)
+                let historyCommands = (operation?.commands ?? [])
+                    + (operation?.completionCommands ?? [])
+                    + (operation?.acknowledgementCommands ?? [])
+                let wasHistoryWrite = activeProtocolHistoryOrigin != nil
+                    && historyCommands.contains(where: { $0.target == writtenTarget })
                 if settingsScaleID == peripheral.identifier {
                     captureCharacteristicEvent(
                         direction: error == nil ? .acknowledgement : .error,
                         characteristic: characteristic,
-                        summary: error.map { "Wolai AFU 历史命令写入失败：\($0.localizedDescription)" }
-                            ?? "Wolai AFU 历史命令 ATT 写入回执成功"
+                        summary: error.map { "协议会话命令写入失败：\($0.localizedDescription)" }
+                            ?? "协议会话命令 ATT 写入回执成功"
                     )
                 }
-                if error != nil {
-                    historyTimeoutTask?.cancel()
-                    wolaiHistorySession = nil
-                    let origin = wolaiHistoryRequestOrigin
-                    wolaiHistoryRequestOrigin = nil
-                    didStartWolaiHistoryRequest = false
-                    if origin == .manual {
-                        historyState = .failed("Wolai AFU 历史命令写入失败")
-                    }
-                } else {
-                    let quietSeconds = wolaiHistorySession?.measurements.isEmpty == false ? 1.0 : 2.0
-                    armWolaiHistoryQuietCompletion(after: quietSeconds, peripheral: peripheral)
+                if let actions = try? session.handle(.writeCompleted(
+                    serviceUUID: CommunicationRuleCodec.normalizeUUID(serviceUUID),
+                    characteristicUUID: CommunicationRuleCodec.normalizeUUID(characteristic.uuid.uuidString),
+                    succeeded: error == nil
+                )) {
+                    try? executeProtocolActions(actions, on: peripheral)
                 }
-                return
+                if settingsScaleID == peripheral.identifier,
+                   pendingProtocolSettingsTarget.map({ targetKey($0) }) == targetKey(writtenTarget) {
+                    pendingProtocolSettingsTarget = nil
+                    if let error {
+                        settingsOperationSucceeded = false
+                        settingsOperationMessage = "写入失败：\(error.localizedDescription)"
+                        pendingSettingsOperation = nil
+                    } else {
+                        verifySettingsWrite(on: peripheral, characteristic: characteristic)
+                    }
+                    return
+                }
+                if wasHistoryWrite { return }
             }
             guard settingsScaleID == peripheral.identifier else { return }
             if isDeviceDiagnosticCaptureEnabled,
@@ -2352,8 +2241,7 @@ extension BluetoothScaleCoordinator: CBPeripheralDelegate {
             }
         case Self.xiaomiConfiguration:
             if service.uuid == Self.xiaomiConfigurationService {
-                settingsConfigurationCharacteristic = characteristic
-                settingsSnapshot.canConfigureXiaomiUnit = isWritable
+                settingsSnapshot.canConfigureHardwareUnit = isWritable
                 if characteristic.properties.contains(.read) {
                     captureCharacteristicEvent(
                         direction: .read,
@@ -2366,21 +2254,6 @@ extension BluetoothScaleCoordinator: CBPeripheralDelegate {
         case Self.currentTime:
             settingsCurrentTimeCharacteristic = characteristic
             settingsSnapshot.canSynchronizeTime = isWritable
-        case Self.xiaomiHistory:
-            let canNotify = characteristic.properties.contains(.notify) || characteristic.properties.contains(.indicate)
-            let target = CommunicationGATTTarget(
-                serviceUUID: service.uuid.uuidString,
-                characteristicUUID: characteristic.uuid.uuidString
-            )
-            let isDeclaredHistoryTarget = historyOperation(for: peripheral.identifier)?
-                .subscriptions.contains(where: {
-                    targetKey($0) == targetKey(target)
-                }) == true
-            if canNotify && isWritable && isDeclaredHistoryTarget {
-                settingsSnapshot.hasHistoryChannel = true
-                settingsHistoryCharacteristic = characteristic
-                historyState = .ready
-            }
         default:
             break
         }
@@ -2476,12 +2349,14 @@ extension BluetoothScaleCoordinator: CBPeripheralDelegate {
         if isWolaiMeasurement(characteristic) {
             return diagnosticSummary(data, kind: .wolaiAFU, receivedAt: .now)
         }
-        if characteristic.uuid == Self.senssunIF2121Live,
+        if CommunicationRuleCodec.normalizeUUID(characteristic.uuid.uuidString)
+            == SenssunIF2121ScaleProtocol.liveCharacteristicUUID,
            let deviceID = characteristic.service?.peripheral?.identifier,
            isSenssunIF2121Selected(for: deviceID) {
             return diagnosticSummary(data, kind: .senssunIF2121, receivedAt: .now)
         }
-        if characteristic.uuid == Self.senssunIF2121Result,
+        if CommunicationRuleCodec.normalizeUUID(characteristic.uuid.uuidString)
+            == SenssunIF2121ScaleProtocol.resultCharacteristicUUID,
            let deviceID = characteristic.service?.peripheral?.identifier,
            isSenssunIF2121Selected(for: deviceID) {
             return data.starts(with: [0x33, 0xCC])
@@ -2555,307 +2430,6 @@ extension BluetoothScaleCoordinator: CBPeripheralDelegate {
             summary: "华为 Hagrid 未认证实时测量探针（\(reason)）"
         )
         peripheral.writeValue(probe, for: characteristic, type: .withResponse)
-    }
-
-    private func resetHuaweiHagridSession() {
-        huaweiHagridStatusPollingTask?.cancel()
-        huaweiHagridStatusPollingTask = nil
-        huaweiHagridHandshakeState = .idle
-        huaweiHagridCredentials = nil
-        huaweiHagridRandomA = nil
-        huaweiHagridRandomB = nil
-        huaweiHagridWorkKey = nil
-        huaweiHagridCharacteristics.removeAll()
-        huaweiHagridNotificationAccumulators.removeAll()
-        didSendHuaweiHagridProbe = false
-    }
-
-    private func startHuaweiHagridAuthenticationIfReady(on peripheral: CBPeripheral) {
-        guard huaweiHagridHandshakeState == .awaitingChallenge,
-              !didSendHuaweiHagridProbe,
-              huaweiHagridCredentials != nil else { return }
-        let required = [
-            HuaweiHagridProtocol.requestAuthenticationCharacteristicUUID,
-            HuaweiHagridProtocol.authenticationTokenCharacteristicUUID,
-            HuaweiHagridProtocol.sendWorkKeyCharacteristicUUID,
-            HuaweiHagridProtocol.setUserInfoCharacteristicUUID,
-            HuaweiHagridProtocol.realtimeWeightCharacteristicUUID,
-            HuaweiHagridProtocol.measurementStatusPollCharacteristicUUID,
-            HuaweiHagridProtocol.measurementStatusResultCharacteristicUUID
-        ]
-        guard required.allSatisfy({ huaweiHagridCharacteristics[$0]?.isNotifying == true }) else {
-            return
-        }
-        didSendHuaweiHagridProbe = true
-        writeHuaweiHagridPlain(
-            Data(),
-            to: HuaweiHagridProtocol.requestAuthenticationCharacteristicUUID,
-            on: peripheral
-        )
-    }
-
-    private func consumeHuaweiHagridNotification(
-        _ data: Data,
-        from characteristic: CBCharacteristic,
-        on peripheral: CBPeripheral
-    ) {
-        let characteristicUUID = characteristic.uuid.uuidString.uppercased()
-        guard let frame = try? HuaweiHagridProtocol.parseNotificationFrame(data) else { return }
-        var accumulator = huaweiHagridNotificationAccumulators[characteristicUUID] ?? .init()
-        let completed = accumulator.ingest(frame)
-        huaweiHagridNotificationAccumulators[characteristicUUID] = accumulator
-        guard let completed else { return }
-
-        do {
-            switch characteristicUUID {
-            case HuaweiHagridProtocol.requestAuthenticationCharacteristicUUID:
-                try handleHuaweiHagridChallenge(completed, on: peripheral)
-            case HuaweiHagridProtocol.authenticationTokenCharacteristicUUID:
-                try handleHuaweiHagridAuthenticationResponse(completed, on: peripheral)
-            case HuaweiHagridProtocol.sendWorkKeyCharacteristicUUID:
-                try handleHuaweiHagridWorkKeyAcknowledgement(completed, on: peripheral)
-            case HuaweiHagridProtocol.setUserInfoCharacteristicUUID:
-                handleHuaweiHagridUserInfoAcknowledgement(completed, on: peripheral)
-            case HuaweiHagridProtocol.realtimeWeightCharacteristicUUID:
-                try handleHuaweiHagridRealtimeMeasurement(completed)
-            case HuaweiHagridProtocol.measurementStatusResultCharacteristicUUID:
-                handleHuaweiHagridMeasurementStatus(completed, on: peripheral)
-            default:
-                break
-            }
-        } catch {
-            // A malformed or unsupported measurement must not tear down an
-            // already-authenticated session; a later stable packet may follow.
-            guard huaweiHagridHandshakeState != .ready else { return }
-            huaweiHagridHandshakeState = .failed
-            huaweiHagridStatusPollingTask?.cancel()
-            huaweiHagridStatusPollingTask = nil
-            state = .unavailable("华为 Hagrid 协议响应无效")
-        }
-    }
-
-    private func handleHuaweiHagridChallenge(
-        _ notification: HuaweiHagridProtocol.CompletedNotification,
-        on peripheral: CBPeripheral
-    ) throws {
-        guard huaweiHagridHandshakeState == .awaitingChallenge,
-              !notification.isEncrypted,
-              let credentials = huaweiHagridCredentials else {
-            throw ScalePayloadError.unsupported
-        }
-        let randomA = try HuaweiHagridProtocol.parseAuthenticationChallenge(notification.payload)
-        let randomB = try secureRandomData(count: 16)
-        let token = try HuaweiHagridProtocol.makeAuthenticationTokenPayload(
-            challenge: randomA,
-            randomB: randomB,
-            cak: credentials.cak
-        )
-        huaweiHagridRandomA = randomA
-        huaweiHagridRandomB = randomB
-        huaweiHagridHandshakeState = .awaitingAuthenticationResponse
-        writeHuaweiHagridPlain(
-            token,
-            to: HuaweiHagridProtocol.authenticationTokenCharacteristicUUID,
-            on: peripheral
-        )
-    }
-
-    private func handleHuaweiHagridAuthenticationResponse(
-        _ notification: HuaweiHagridProtocol.CompletedNotification,
-        on peripheral: CBPeripheral
-    ) throws {
-        guard huaweiHagridHandshakeState == .awaitingAuthenticationResponse,
-              !notification.isEncrypted,
-              let credentials = huaweiHagridCredentials,
-              let randomA = huaweiHagridRandomA,
-              let randomB = huaweiHagridRandomB else {
-            throw ScalePayloadError.unsupported
-        }
-        let expected = try HuaweiHagridProtocol.expectedAuthenticationResponse(
-            challenge: randomA,
-            randomB: randomB,
-            cak: credentials.cak
-        )
-        guard notification.payload == expected else { throw ScalePayloadError.unsupported }
-
-        let rootKey = HuaweiHagridProtocol.deriveRootKey(credentials: credentials)
-        let workKey = try secureRandomData(count: 16)
-        let iv = try secureRandomData(count: 16)
-        huaweiHagridWorkKey = workKey
-        huaweiHagridHandshakeState = .awaitingWorkKeyAcknowledgement
-        let frames = try HuaweiHagridProtocol.makeEncryptedWriteFrames(
-            payload: workKey,
-            key: rootKey,
-            iv: iv
-        )
-        writeHuaweiHagridFrames(
-            frames,
-            to: HuaweiHagridProtocol.sendWorkKeyCharacteristicUUID,
-            on: peripheral
-        )
-    }
-
-    private func handleHuaweiHagridWorkKeyAcknowledgement(
-        _ notification: HuaweiHagridProtocol.CompletedNotification,
-        on peripheral: CBPeripheral
-    ) throws {
-        guard huaweiHagridHandshakeState == .awaitingWorkKeyAcknowledgement,
-              !notification.isEncrypted,
-              notification.payload.first == 0,
-              let credentials = huaweiHagridCredentials,
-              let workKey = huaweiHagridWorkKey,
-              let profile = huaweiHagridMeasurementProfile else {
-            throw ScalePayloadError.unsupported
-        }
-
-        writeHuaweiHagridPlain(
-            HuaweiHagridProtocol.makeCurrentTimePayload(),
-            to: HuaweiHagridProtocol.currentTimeCharacteristicUUID,
-            on: peripheral
-        )
-        let compactAddress = credentials.bluetoothAddressText.replacingOccurrences(of: ":", with: "")
-        let compactProfileID = profile.id.uuidString.replacingOccurrences(of: "-", with: "")
-        let isScale3 = pairedScales.modelNames[peripheral.identifier]?
-            .localizedCaseInsensitiveContains("Scale 3") == true
-        let gender: UInt8 = if isScale3 {
-            profile.biologicalSex == .male ? 1 : 0
-        } else {
-            profile.biologicalSex == .male ? 0 : 1
-        }
-        let userInfo = HuaweiHagridProtocol.makeUserInfoPayload(
-            huid: "scaleme:\(compactAddress)",
-            uid: "u:\(compactProfileID.prefix(30))",
-            gender: gender,
-            ageYears: UInt8(clamping: profile.age),
-            heightCM: UInt16(clamping: Int(profile.heightCM.rounded())),
-            weightKG: 0
-        )
-        let frames = try HuaweiHagridProtocol.makeEncryptedWriteFrames(
-            payload: userInfo,
-            key: workKey,
-            iv: secureRandomData(count: 16)
-        )
-        huaweiHagridHandshakeState = .awaitingUserInfoAcknowledgement
-        writeHuaweiHagridFrames(
-            frames,
-            to: HuaweiHagridProtocol.setUserInfoCharacteristicUUID,
-            on: peripheral
-        )
-    }
-
-    private func handleHuaweiHagridUserInfoAcknowledgement(
-        _ notification: HuaweiHagridProtocol.CompletedNotification,
-        on peripheral: CBPeripheral
-    ) {
-        guard huaweiHagridHandshakeState == .awaitingUserInfoAcknowledgement,
-              !notification.isEncrypted,
-              notification.payload.first == 0 else {
-            huaweiHagridHandshakeState = .failed
-            return
-        }
-        huaweiHagridHandshakeState = .ready
-        writeHuaweiHagridPlain(
-            Data(),
-            to: HuaweiHagridProtocol.realtimeWeightCharacteristicUUID,
-            on: peripheral
-        )
-        startHuaweiHagridStatusPolling(on: peripheral)
-    }
-
-    private func handleHuaweiHagridRealtimeMeasurement(
-        _ notification: HuaweiHagridProtocol.CompletedNotification
-    ) throws {
-        guard huaweiHagridHandshakeState == .ready,
-              notification.isEncrypted,
-              let workKey = huaweiHagridWorkKey,
-              let profile = huaweiHagridMeasurementProfile else {
-            throw ScalePayloadError.unsupported
-        }
-        let plaintext = try HuaweiHagridProtocol.decryptPayloadWithIV(
-            notification.payload,
-            key: workKey
-        )
-        let parsed = try HuaweiHagridProtocol.parseRealtimeMeasurement(plaintext)
-        let measurement = BodyMeasurement(
-            date: .now,
-            weightKG: parsed.weightKG,
-            impedanceOhm: parsed.representativeLowImpedanceOhm,
-            secondaryImpedanceOhm: parsed.representativeHighImpedanceOhm,
-            bodyFatPercent: parsed.deviceFatPercent,
-            source: .huaweiHagrid,
-            isStable: true,
-            profileID: profile.id
-        )
-        huaweiHagridStatusPollingTask?.cancel()
-        huaweiHagridStatusPollingTask = nil
-        consume(measurement, reliability: .protocolFinal)
-    }
-
-    private func handleHuaweiHagridMeasurementStatus(
-        _ notification: HuaweiHagridProtocol.CompletedNotification,
-        on peripheral: CBPeripheral
-    ) {
-        guard huaweiHagridHandshakeState == .ready,
-              !notification.isEncrypted,
-              let status = notification.payload.first else { return }
-        if status == 0 {
-            writeHuaweiHagridPlain(
-                Data(),
-                to: HuaweiHagridProtocol.realtimeWeightCharacteristicUUID,
-                on: peripheral
-            )
-        } else if status == 1 {
-            state = .measuringWeight
-        }
-    }
-
-    private func startHuaweiHagridStatusPolling(on peripheral: CBPeripheral) {
-        huaweiHagridStatusPollingTask?.cancel()
-        huaweiHagridStatusPollingTask = Task { [weak self, weak peripheral] in
-            for _ in 0..<30 {
-                guard !Task.isCancelled, let self, let peripheral,
-                      self.huaweiHagridHandshakeState == .ready else { return }
-                self.writeHuaweiHagridPlain(
-                    Data(),
-                    to: HuaweiHagridProtocol.measurementStatusPollCharacteristicUUID,
-                    on: peripheral
-                )
-                try? await Task.sleep(for: .seconds(3))
-            }
-        }
-    }
-
-    private func writeHuaweiHagridPlain(
-        _ payload: Data,
-        to characteristicUUID: String,
-        on peripheral: CBPeripheral
-    ) {
-        writeHuaweiHagridFrames(
-            HuaweiHagridProtocol.makePlainWriteFrames(payload: payload),
-            to: characteristicUUID,
-            on: peripheral
-        )
-    }
-
-    private func writeHuaweiHagridFrames(
-        _ frames: [Data],
-        to characteristicUUID: String,
-        on peripheral: CBPeripheral
-    ) {
-        guard let characteristic = huaweiHagridCharacteristics[characteristicUUID] else { return }
-        for frame in frames {
-            peripheral.writeValue(frame, for: characteristic, type: .withResponse)
-        }
-    }
-
-    private func secureRandomData(count: Int) throws -> Data {
-        var data = Data(repeating: 0, count: count)
-        let status = data.withUnsafeMutableBytes { buffer in
-            guard let baseAddress = buffer.baseAddress else { return errSecParam }
-            return SecRandomCopyBytes(kSecRandomDefault, count, baseAddress)
-        }
-        guard status == errSecSuccess else { throw ScalePayloadError.unsupported }
-        return data
     }
 
     private func characteristicPropertiesDescription(_ properties: CBCharacteristicProperties) -> String {

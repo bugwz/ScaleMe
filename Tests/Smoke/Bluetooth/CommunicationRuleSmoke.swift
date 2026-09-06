@@ -9,15 +9,12 @@ func expect(_ condition: @autoclosure () -> Bool, _ message: String) {
 
 let json = #"""
 {
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "rules": [{
     "id": "protocol.custom.demo-scale",
     "name": "Fixture Demo Scale",
     "version": 1,
     "summary": "smoke fixture",
-    "origin": "custom",
-    "sourceURL": "https://example.com/should-not-be-retained.json",
-    "verification": "fixtureValidated",
     "match": {
       "transport": "characteristicNotification",
       "serviceUUID": "fff0",
@@ -55,7 +52,8 @@ struct CommunicationRuleSmoke {
         expect(rules.count == 1, "one rule should decode")
         expect(rules[0].id == "protocol.custom.demo-scale", "external rule should use the custom protocol namespace")
         expect(rules[0].origin == .custom, "file imports should always be identified as local imports")
-        expect(rules[0].sourceURL == nil, "file imports should not retain a remote source URL")
+        expect(rules[0].sourceURL == nil, "file imports should not create a runtime source URL")
+        expect(rules[0].implementedCapabilities == [.liveMeasurement], "capabilities should be derived from executable definitions")
         expect(rules[0].match.serviceUUID == "FFF0", "UUID should normalize")
         expect(
             CommunicationRuleCodec.normalizeUUID("0000ffb1-0000-1000-8000-00805f9b34fb") == "FFB1",
@@ -72,6 +70,24 @@ struct CommunicationRuleSmoke {
         )
         for rule in SimulationCommunicationRuleCatalog.initialRules {
             try CommunicationRuleCodec.validate(rule)
+        }
+        let encodedRuleData = try CommunicationRuleCodec.encode([rules[0]])
+        let encodedDocument = try JSONSerialization.jsonObject(with: encodedRuleData) as? [String: Any]
+        let encodedRules = encodedDocument?["rules"] as? [[String: Any]]
+        expect(encodedDocument?["schemaVersion"] as? Int == 3, "external protocol files should use schema 3")
+        expect(encodedRules?.first?["origin"] == nil, "runtime origin must not be part of the public schema")
+        expect(encodedRules?.first?["builtInParser"] == nil, "external files must not address private parsers")
+        expect(encodedRules?.first?["verification"] == nil, "external files must not claim verification")
+        expect(encodedRules?.first?["implementation"] == nil, "runtime implementation state must not be imported")
+        let privateParserJSON = json.replacingOccurrences(
+            of: "\"match\": {",
+            with: "\"builtInParser\": \"bluetoothSIGWeight\", \"match\": {"
+        )
+        do {
+            _ = try CommunicationRuleCodec.decode(Data(privateParserJSON.utf8))
+            fatalError("external files must reject runtime-only parser fields")
+        } catch CommunicationRuleError.invalidDocument {
+            // Expected.
         }
         var simulatedImports = SimulationCommunicationRuleImportSequence()
         let firstSimulationRules = try CommunicationRuleCodec.decode(
@@ -103,22 +119,37 @@ struct CommunicationRuleSmoke {
             // Expected.
         }
         expect(
-            CommunicationRuleCatalog.builtIn.first(where: { $0.id == CommunicationRuleCatalog.xiaomiMiScale2ID })?
+            CommunicationRuleCatalog.builtIn.first(where: { $0.id == XiaomiMiScale2BroadcastParser.communicationRule.id })?
                 .capabilities.contains(.historyRead) == true,
             "MI SCALE2 built-in rule should declare captured 181D history support"
         )
         expect(
-            CommunicationRuleCatalog.builtIn.first(where: { $0.id == CommunicationRuleCatalog.xiaomiLegacyID })?
+            CommunicationRuleCatalog.builtIn.first(where: { $0.id == XiaomiScaleParser.communicationRule.id })?
                 .capabilities.contains(.historyRead) == false,
             "Xiaomi 181B advertising support must not claim unverified GATT history support"
         )
+        let huaweiRule = CommunicationRuleCatalog.builtIn.first {
+            $0.id == HuaweiHagridProtocolSession.communicationRule.id
+        }
+        expect(
+            huaweiRule?.requirements?.contains(.historyStateMachine) == false
+                && huaweiRule?.notifyTargets?.contains(.init(
+                    serviceUUID: HuaweiHagridProtocol.bodyCompositionServiceUUID,
+                    characteristicUUID: HuaweiHagridProtocol.historyWeightCharacteristicUUID
+                )) == false
+                && huaweiRule?.writeTargets?.contains(.init(
+                    serviceUUID: HuaweiHagridProtocol.userDataServiceUUID,
+                    characteristicUUID: HuaweiHagridProtocol.setUserInfoCharacteristicUUID
+                )) == true,
+            "Huawei rule targets should describe the implemented authenticated live session only"
+        )
         let wolaiRule = CommunicationRuleCatalog.builtIn.first {
-            $0.id == CommunicationRuleCatalog.wolaiAFUID
+            $0.id == WolaiAFUProtocolSession.communicationRule.id
         }
         expect(
             CommunicationRuleCatalog.automaticRuleID(
                 for: ScaleDiscoveryCompatibility.wolaiAFU.rawValue
-            ) == CommunicationRuleCatalog.wolaiAFUID
+            ) == WolaiAFUProtocolSession.communicationRule.id
                 &&
             wolaiRule?.capabilities.contains(.historyRead) == true
                 && wolaiRule?.operations?.historyRead?.historyResponse?.builtInParser == "wolaiHistory20",
@@ -196,14 +227,14 @@ struct CommunicationRuleSmoke {
         expect(measurement.source == .customProtocol, "source should identify a custom protocol")
         expect(
             CommunicationRuleCatalog.builtIn.contains {
-                $0.id == CommunicationRuleCatalog.qnAABBID
+                $0.id == QNAABBScaleParser.communicationRule.id
                     && $0.match.transport == .advertisementManufacturerData
             },
             "QN manufacturer broadcast parser should be in the built-in catalog"
         )
         expect(
             CommunicationRuleCatalog.builtIn.contains {
-                $0.id == CommunicationRuleCatalog.senssunIF2121ID
+                $0.id == SenssunIF2121ProtocolSession.communicationRule.id
                     && $0.builtInParser == SenssunIF2121ScaleProtocol.builtInParserID
                     && $0.match.serviceUUID == SenssunIF2121ScaleProtocol.serviceUUID
                     && $0.match.characteristicUUID == SenssunIF2121ScaleProtocol.liveCharacteristicUUID
@@ -224,12 +255,16 @@ struct CommunicationRuleSmoke {
         )
         expect(
             CommunicationRuleCatalog.builtIn.contains {
-                $0.id == CommunicationRuleCatalog.aaaSeriesID
-                    && $0.builtInParser == ScaleBroadcastProtocolFamily.aaaSeries.builtInParserID
+                $0.id == AAASeriesScaleParser.communicationRule.id
+                    && $0.builtInParser == AAASeriesScaleParser.descriptor.parserID
             },
             "AAA-series parser should be in the built-in catalog"
         )
-        let expectedBroadcastParserIDs = Set(ScaleBroadcastProtocolFamily.allBuiltInParserIDs)
+        let expectedBroadcastParserIDs = Set(
+            ScaleProtocolRegistry.builtIn.descriptors
+                .filter { $0.transport == .advertisementManufacturerData }
+                .map(\.parserID)
+        )
         let catalogBroadcastParserIDs = Set(
             CommunicationRuleCatalog.builtIn
                 .filter { $0.match.transport == .advertisementManufacturerData }
@@ -239,6 +274,11 @@ struct CommunicationRuleSmoke {
             expectedBroadcastParserIDs == catalogBroadcastParserIDs,
             "every broadcast protocol family should be selectable in the built-in catalog"
         )
+        for descriptor in ScaleProtocolRegistry.builtIn.descriptors {
+            let rule = CommunicationRuleCatalog.builtIn.first { $0.id == descriptor.id }
+            expect(rule?.builtInParser == descriptor.parserID, "adapter and communication rule IDs must stay aligned")
+            expect(rule?.match.transport == descriptor.transport, "adapter and communication rule transports must stay aligned")
+        }
         expect(
             CommunicationRuleCatalog.builtIn
                 .filter { $0.match.transport == .advertisementManufacturerData }
@@ -247,9 +287,9 @@ struct CommunicationRuleSmoke {
         )
         expect(
             CommunicationRuleCatalog.builtIn.contains {
-                $0.id == CommunicationRuleCatalog.xiaomiMiScale2ID
+                $0.id == XiaomiMiScale2BroadcastParser.communicationRule.id
                     && $0.builtInParser
-                        == ScaleServiceDataProtocolFamily.xiaomiMiScale2.builtInParserID
+                        == XiaomiMiScale2BroadcastParser.descriptor.parserID
                     && $0.match.transport == .advertisementServiceData
                     && $0.match.serviceUUID == "181D"
                     && $0.match.minimumLength == 10
@@ -262,91 +302,50 @@ struct CommunicationRuleSmoke {
             CommunicationRuleCatalog.builtIn.allSatisfy { $0.id.hasPrefix("protocol.builtin.") },
             "built-in rules should use the built-in protocol namespace"
         )
-        let upstreamRecords = UpstreamScaleAdapterCatalog.records
-        expect(upstreamRecords.count == 96, "all 33 ble-scale-sync and 63 openScale registrations should be inventoried")
+        let confirmedIDs = Set(CommunicationRuleCatalog.confirmedExecutableBuiltIn.map(\.id))
+        let pendingIDs = Set(CommunicationRuleCatalog.pendingBuiltIn.map(\.id))
         expect(
-            upstreamRecords.filter { $0.source == .bleScaleSync }.count == 33,
-            "ble-scale-sync registry should contain 33 adapters at the pinned revision"
+            confirmedIDs.isDisjoint(with: pendingIDs)
+                && confirmedIDs.union(pendingIDs) == Set(CommunicationRuleCatalog.builtIn.map(\.id)),
+            "built-in protocol groups should partition the complete catalog"
         )
         expect(
-            upstreamRecords.filter { $0.source == .openScale }.count == 63,
-            "openScale ScaleFactory should contain 63 handler instances at the pinned revision"
+            CommunicationRuleCatalog.confirmedExecutableBuiltIn.allSatisfy(\.isConfirmedExecutable)
+                && CommunicationRuleCatalog.pendingBuiltIn.allSatisfy { !$0.isConfirmedExecutable },
+            "built-in protocol groups should follow implementation and verification state"
         )
-        expect(Set(upstreamRecords.map(\.id)).count == upstreamRecords.count, "upstream adapter IDs should be unique")
-        let builtInIDs = Set(CommunicationRuleCatalog.builtIn.map(\.id))
-        expect(builtInIDs.count == CommunicationRuleCatalog.builtIn.count, "built-in protocol IDs should be unique")
-        let builtInNames = Set(CommunicationRuleCatalog.builtIn.map { $0.name.lowercased() })
-        expect(builtInNames.count == CommunicationRuleCatalog.builtIn.count, "built-in protocol names should be unique")
-        let displayedBuiltIn = CommunicationRuleCatalog.builtInForDisplay
         expect(
-            displayedBuiltIn.prefix { $0.effectiveImplementation == .executable }.count
-                == CommunicationRuleCatalog.builtIn.filter { $0.effectiveImplementation == .executable }.count,
-            "displayed built-in protocols should place executable rules first"
+            pendingIDs.contains(HuaweiHagridProtocolSession.communicationRule.id)
+                && pendingIDs.contains(SenssunIF2121ProtocolSession.communicationRule.id),
+            "experimental sessions should remain visible in the pending built-in group"
         )
-        guard var customRule = displayedBuiltIn.first else {
-            preconditionFailure("built-in protocol catalog should not be empty")
+        let catalogedPendingProtocols = CommunicationRuleCatalog.pendingBuiltIn.filter {
+            $0.builtInParser == nil
         }
-        customRule.id = "protocol.custom.selection-order"
-        customRule.name = "External Selection Rule"
-        customRule.origin = .custom
-        let selectionRules = CommunicationRuleCatalog.rulesForSelection(custom: [customRule])
-        expect(selectionRules.first?.id == customRule.id, "external protocols should precede built-in selection options")
+        expect(catalogedPendingProtocols.count == 56, "all cataloged pending device protocols should remain visible")
         expect(
-            Array(selectionRules.dropFirst().map(\.id)) == displayedBuiltIn.map(\.id),
-            "built-in selection options should use the same order as the built-in protocol list"
-        )
-        expect(
-            upstreamRecords.allSatisfy { record in
-                let ruleID = UpstreamScaleAdapterCatalog.builtInRuleID(for: record)
-                return builtInIDs.contains(ruleID)
+            catalogedPendingProtocols.allSatisfy {
+                $0.effectiveVerification == .unverified
+                    && !($0.sourceLinks ?? []).isEmpty
             },
-            "every upstream adapter should map to an executable rule or a visible protocol skeleton"
-        )
-        let groupedSkeletonRecords = Dictionary(
-            grouping: upstreamRecords.filter { $0.mappedRuleID == nil },
-            by: { UpstreamScaleAdapterCatalog.builtInRuleID(for: $0) }
+            "pending device protocols should retain sources without claiming executable parsing or validation"
         )
         expect(
-            groupedSkeletonRecords.values.allSatisfy { records in
-                guard let first = records.first else { return false }
-                return records.allSatisfy {
-                    $0.transport == first.transport
-                        && $0.serviceUUIDs == first.serviceUUIDs
-                        && $0.notifyCharacteristicUUIDs == first.notifyCharacteristicUUIDs
-                        && $0.writeCharacteristicUUIDs == first.writeCharacteristicUUIDs
-                        && $0.requirements == first.requirements
-                }
-            },
-            "merged upstream records should describe the same transport, GATT topology, and session requirements"
+            pendingIDs.contains("protocol.builtin.eufy-p2")
+                && pendingIDs.contains("protocol.builtin.renpho")
+                && pendingIDs.contains("protocol.builtin.xiaomi-s800"),
+            "previously cataloged community device protocols should remain in the pending group"
         )
         expect(
-            CommunicationRuleCatalog.builtIn.allSatisfy { rule in
-                let slug = rule.id.dropFirst("protocol.builtin.".count)
-                return slug.count <= 16
-                    && !slug.contains(".")
-                    && !slug.hasPrefix("ble-")
-                    && !slug.hasPrefix("open-")
-            },
-            "built-in protocol ID slugs should be compact and source-neutral"
+            Set(CommunicationRuleCatalog.builtIn.map(\.id)).count == CommunicationRuleCatalog.builtIn.count,
+            "every built-in protocol ID should be unique"
         )
+        let selectionRules = CommunicationRuleCatalog.rulesForSelection(custom: rules)
         expect(
-            UpstreamScaleAdapterCatalog.skeletonRules.allSatisfy {
-                !$0.canMeasure && $0.effectiveVerification == .unverified
-            },
-            "incomplete upstream adapters should be explicitly unverified and unavailable for measurement"
+            Array(selectionRules.prefix(CommunicationRuleCatalog.builtInForDisplay.count)).map(\.id)
+                == CommunicationRuleCatalog.builtInForDisplay.map(\.id),
+            "device protocol selection should show every built-in protocol before external protocols"
         )
-        expect(
-            UpstreamScaleAdapterCatalog.skeletonRules.flatMap { $0.sourceLinks ?? [] }.count
-                == upstreamRecords.filter { $0.mappedRuleID == nil }.count,
-            "merged protocol skeletons should retain every upstream source link"
-        )
-        expect(
-            UpstreamScaleAdapterCatalog.skeletonRules.contains {
-                $0.name.contains("iHealth HS3") && $0.effectiveImplementation == .unsupportedPlatform
-            },
-            "Classic Bluetooth SPP adapters should be labeled as unsupported on the CoreBluetooth runtime"
-        )
-
         let invalidID = json.replacingOccurrences(of: "protocol.custom.demo-scale", with: "demo-scale")
         do {
             _ = try CommunicationRuleCodec.decode(Data(invalidID.utf8))
@@ -380,6 +379,25 @@ struct CommunicationRuleSmoke {
         do {
             try CommunicationRuleCodec.validate(unsafeClear)
             fatalError("history clear without destructive marker should fail validation")
+        } catch {
+            // Expected.
+        }
+
+        var privateTemplateRule = rules[0]
+        privateTemplateRule.operations = CommunicationRuleOperations(
+            historyClear: CommunicationGATTOperation(
+                capability: .historyClear,
+                destructive: true,
+                subscriptions: [],
+                commands: [CommunicationCommand(
+                    target: .init(serviceUUID: "FFF0", characteristicUUID: "FFF1"),
+                    payloadHexTemplate: "{{wolaiTimeInitialization}}"
+                )]
+            )
+        )
+        do {
+            try CommunicationRuleCodec.validate(privateTemplateRule)
+            fatalError("external rules must not use a built-in protocol placeholder")
         } catch {
             // Expected.
         }

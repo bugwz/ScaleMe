@@ -24,7 +24,7 @@ struct YunmaiXScaleParser {
             date: now,
             weightKG: weightKG,
             impedanceOhm: state == 3 && rawImpedance > 0 ? Double(rawImpedance) : nil,
-            source: .communityProtocol,
+            source: .builtInProtocol,
             isStable: state == 3
         )
     }
@@ -34,5 +34,46 @@ struct YunmaiXScaleParser {
         let suffix = "-0000-1000-8000-00805F9B34FB"
         guard uppercase.hasPrefix("0000"), uppercase.hasSuffix(suffix) else { return uppercase }
         return String(uppercase.dropFirst(4).prefix(4))
+    }
+}
+
+extension YunmaiXScaleParser: ScaleAdvertisementProtocolAdapter {
+    static let descriptor = ScaleProtocolDescriptor(
+        id: "protocol.builtin.yunmai-x",
+        name: "Yunmai X 广播协议",
+        parserID: "yunmaiXBroadcast",
+        transport: .advertisementManufacturerData,
+        discoveryCompatibility: .yunmaiXBroadcast,
+        capabilities: [.liveMeasurement]
+    )
+
+    static let communicationRule = CommunicationRule(
+        id: descriptor.id,
+        name: "Yunmai X",
+        version: 1,
+        summary: "解析 1320 服务、0B7417 签名、XOR 校验、体重与阻抗。已通过数据样本验证，待真机验证。",
+        origin: .builtIn,
+        match: .init(
+            transport: descriptor.transport,
+            serviceUUID: "1320 + dynamic",
+            characteristicUUID: nil,
+            minimumLength: 16,
+            maximumLength: 16
+        ),
+        decoder: nil,
+        builtInParser: descriptor.parserID,
+        verification: .fixtureValidated
+    )
+
+    static func decodeAdvertisement(_ input: ScaleAdvertisementInput) throws -> ScaleProtocolPacket {
+        guard let data = input.manufacturerData,
+              let packet = ScaleManufacturerPacket(appleManufacturerData: data) else {
+            throw ScalePayloadError.unsupported
+        }
+        return .measurement(try parse(
+            packet,
+            advertisedServiceUUIDs: input.advertisedServiceUUIDs,
+            now: input.receivedAt
+        ))
     }
 }

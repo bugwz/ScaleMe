@@ -23,7 +23,7 @@ struct EtekcityFit8SScaleParser {
             date: now,
             weightKG: weightKG,
             impedanceOhm: rawImpedance > 0 ? Double(rawImpedance) : nil,
-            source: .communityProtocol,
+            source: .builtInProtocol,
             isStable: bytes[15] == 0x01
         )
     }
@@ -33,5 +33,46 @@ struct EtekcityFit8SScaleParser {
         let suffix = "-0000-1000-8000-00805F9B34FB"
         guard uppercase.hasPrefix("0000"), uppercase.hasSuffix(suffix) else { return uppercase }
         return String(uppercase.dropFirst(4).prefix(4))
+    }
+}
+
+extension EtekcityFit8SScaleParser: ScaleAdvertisementProtocolAdapter {
+    static let descriptor = ScaleProtocolDescriptor(
+        id: "protocol.builtin.fit8s",
+        name: "Etekcity Fit 8S 广播协议",
+        parserID: "etekcityFit8SBroadcast",
+        transport: .advertisementManufacturerData,
+        discoveryCompatibility: .etekcityFit8SBroadcast,
+        capabilities: [.liveMeasurement]
+    )
+
+    static let communicationRule = CommunicationRule(
+        id: descriptor.id,
+        name: "Etekcity Fit 8S",
+        version: 1,
+        summary: "解析 Company ID 06D0、FFD0 服务广播中的克数、阻抗与稳定状态。已通过数据样本验证，待真机验证。",
+        origin: .builtIn,
+        match: .init(
+            transport: descriptor.transport,
+            serviceUUID: "06D0 + FFD0",
+            characteristicUUID: nil,
+            minimumLength: 22,
+            maximumLength: 22
+        ),
+        decoder: nil,
+        builtInParser: descriptor.parserID,
+        verification: .fixtureValidated
+    )
+
+    static func decodeAdvertisement(_ input: ScaleAdvertisementInput) throws -> ScaleProtocolPacket {
+        guard let data = input.manufacturerData,
+              let packet = ScaleManufacturerPacket(appleManufacturerData: data) else {
+            throw ScalePayloadError.unsupported
+        }
+        return .measurement(try parse(
+            packet,
+            advertisedServiceUUIDs: input.advertisedServiceUUIDs,
+            now: input.receivedAt
+        ))
     }
 }

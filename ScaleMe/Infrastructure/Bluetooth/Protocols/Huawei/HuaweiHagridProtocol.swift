@@ -91,6 +91,7 @@ enum HuaweiHagridProtocol {
 
     static let advertisementServiceUUID = "FDEE"
     static let userDataServiceUUID = "181C"
+    static let bodyCompositionServiceUUID = "181B"
 
     static let requestAuthenticationCharacteristicUUID = "02B2A08E-F8B0-4047-B1FD-F4E0EFEEE679"
     static let authenticationTokenCharacteristicUUID = "32330A04-15D9-421A-91C5-2A2D5C7525C9"
