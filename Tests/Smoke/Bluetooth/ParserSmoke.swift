@@ -163,6 +163,29 @@ enum ParserSmoke {
         }
         precondition(importedHistory.count == 2)
         precondition(abs(importedHistory[0].weightKG - 50.0) < 0.001)
+
+        let invalidClockHistoryPackets = [
+            "231027B2070101000000231027B2070101000000",
+            "237427B2070101000100237427B2070101000100",
+            "23D827B207010100020023D827B2070101000200",
+            "233C28B2070101000300233C28B2070101000300",
+            "23A028B2070101000400"
+        ]
+        var invalidClockHistory = XiaomiScaleHistorySession()
+        guard case .readyToTransfer(announced: 9) = try invalidClockHistory.consume(
+            Data([0x01, 0x09, 0x00, 0x98, 0x84, 0x30, 0x59])
+        ) else {
+            preconditionFailure("MI SCALE2 真机历史计数解析失败")
+        }
+        for packet in invalidClockHistoryPackets {
+            _ = try invalidClockHistory.consume(hexData(packet))
+        }
+        guard case .completed(let usableHistory) = try invalidClockHistory.consume(Data([0x03])) else {
+            preconditionFailure("秤端时钟无效的 MI SCALE2 历史会话仍应完整结束")
+        }
+        precondition(usableHistory.isEmpty, "1970 年的秤端记录不得写入测量历史")
+        precondition(invalidClockHistory.discardedRecords == 9)
+
         do {
             var incompleteHistory = XiaomiScaleHistorySession()
             _ = try incompleteHistory.consume(Data([0x01, 0x01, 0x00, 0x98, 0x84, 0x30, 0x59]))

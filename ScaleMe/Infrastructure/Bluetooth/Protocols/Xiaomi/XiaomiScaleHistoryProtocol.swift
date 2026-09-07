@@ -68,6 +68,7 @@ struct XiaomiScaleHistorySession {
     private var buffer = Data()
     private var measurements: [BodyMeasurement] = []
     private var receivedRecords = 0
+    private(set) var discardedRecords = 0
     private let maximumBytes: Int
     private let maximumRecords: Int
 
@@ -109,7 +110,15 @@ struct XiaomiScaleHistorySession {
             guard receivedRecords < maximumRecords else { throw ScalePayloadError.unsupported }
             let record = buffer.prefix(10)
             buffer.removeFirst(10)
-            measurements.append(try XiaomiScaleHistoryProtocol.parseRecord(Data(record), now: now))
+            // A scale whose clock was never initialized can retain otherwise well-framed
+            // records dated 1970. Count the slot so the transfer can finish, but never
+            // persist a measurement with an invalid timestamp. One unusable device
+            // record must not abort valid records later in the same history batch.
+            if let measurement = try? XiaomiScaleHistoryProtocol.parseRecord(Data(record), now: now) {
+                measurements.append(measurement)
+            } else {
+                discardedRecords += 1
+            }
             receivedRecords += 1
         }
         guard announcedCount.map({ receivedRecords <= $0 }) == true else {
