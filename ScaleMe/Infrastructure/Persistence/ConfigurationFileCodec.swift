@@ -2,7 +2,7 @@ import CoreFoundation
 import Foundation
 
 enum ConfigurationFileCodec {
-    static let currentSchemaVersion = 1
+    static let currentSchemaVersion = 2
 
     static func encode(_ configuration: AppConfiguration, prettyPrinted: Bool) throws -> Data {
         let value = try orderedValue(for: configuration)
@@ -35,7 +35,8 @@ enum ConfigurationFileCodec {
             ("general", .object([
                 ("appearance", .string(configuration.appearance.rawValue)),
                 ("isSimulationEnabled", .bool(configuration.isSimulationEnabled)),
-                ("languageSelection", .string(configuration.languageSelection.rawValue))
+                ("languageSelection", .string(configuration.languageSelection.rawValue)),
+                ("visualTheme", .string(configuration.visualTheme.rawValue))
             ])),
             ("measurement", .object([
                 ("mergeFrequentMeasurements", .bool(configuration.mergeFrequentMeasurements)),
@@ -140,6 +141,7 @@ private struct ConfigurationDocument: Codable {
         var appearance: AppAppearance
         var isSimulationEnabled: Bool
         var languageSelection: AppLanguageSelection
+        var visualTheme: AppVisualTheme
     }
 
     struct Measurement: Codable {
@@ -171,6 +173,7 @@ private struct ConfigurationDocument: Codable {
             pairedScales: devices.pairedScales,
             unit: measurement.unit,
             languageSelection: general.languageSelection,
+            visualTheme: general.visualTheme,
             appearance: general.appearance,
             mergeFrequentMeasurements: measurement.mergeFrequentMeasurements,
             isSimulationEnabled: general.isSimulationEnabled,

@@ -34,7 +34,7 @@ struct HuaweiHagridCredentialsPanel: View {
             Button(action: save) {
                 Label("保存", systemImage: "lock.fill")
                     .font(.caption.weight(.bold))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(AppColor.onAccent)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 11)
                     .background(

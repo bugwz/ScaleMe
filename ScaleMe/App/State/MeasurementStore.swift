@@ -11,6 +11,7 @@ final class MeasurementStore: ObservableObject {
     @Published var unit: WeightUnit { didSet { persistConfigurationIfNeeded() } }
     @Published var languageSelection: AppLanguageSelection { didSet { languageSelectionDidChange() } }
     @Published private(set) var appLanguage: AppLanguage
+    @Published var visualTheme: AppVisualTheme { didSet { persistConfigurationIfNeeded() } }
     @Published var appearance: AppAppearance { didSet { persistConfigurationIfNeeded() } }
     @Published var mergeFrequentMeasurements: Bool { didSet { persistConfigurationIfNeeded() } }
     @Published var isSimulationEnabled: Bool { didSet { simulationModeDidChange() } }
@@ -108,6 +109,7 @@ final class MeasurementStore: ObservableObject {
         unit = loadedConfiguration.unit
         languageSelection = loadedConfiguration.languageSelection
         appLanguage = resolvedLanguage
+        visualTheme = loadedConfiguration.visualTheme
         appearance = loadedConfiguration.appearance
         mergeFrequentMeasurements = loadedConfiguration.mergeFrequentMeasurements
         isSimulationEnabled = loadedConfiguration.isSimulationEnabled
@@ -142,6 +144,7 @@ final class MeasurementStore: ObservableObject {
             pairedScales: pairedScales,
             unit: unit,
             languageSelection: languageSelection,
+            visualTheme: visualTheme,
             appearance: appearance,
             mergeFrequentMeasurements: mergeFrequentMeasurements,
             isSimulationEnabled: isSimulationEnabled,
@@ -173,6 +176,7 @@ final class MeasurementStore: ObservableObject {
             pairedScales: simulationData.pairedScales,
             unit: unit,
             languageSelection: languageSelection,
+            visualTheme: visualTheme,
             appearance: appearance,
             mergeFrequentMeasurements: mergeFrequentMeasurements,
             isSimulationEnabled: true,
@@ -823,6 +827,7 @@ final class MeasurementStore: ObservableObject {
         unit = normalizedConfiguration.unit
         languageSelection = normalizedConfiguration.languageSelection
         appLanguage = normalizedConfiguration.languageSelection.resolvedLanguage
+        visualTheme = normalizedConfiguration.visualTheme
         appearance = normalizedConfiguration.appearance
         mergeFrequentMeasurements = normalizedConfiguration.mergeFrequentMeasurements
         isSimulationEnabled = normalizedConfiguration.isSimulationEnabled
@@ -909,6 +914,7 @@ final class MeasurementStore: ObservableObject {
         unit = defaults.unit
         languageSelection = defaults.languageSelection
         appLanguage = defaults.languageSelection.resolvedLanguage
+        visualTheme = defaults.visualTheme
         appearance = defaults.appearance
         mergeFrequentMeasurements = defaults.mergeFrequentMeasurements
         isSimulationEnabled = false
@@ -957,6 +963,7 @@ final class MeasurementStore: ObservableObject {
         unit = configuration.unit
         languageSelection = configuration.languageSelection
         appLanguage = configuration.languageSelection.resolvedLanguage
+        visualTheme = configuration.visualTheme
         appearance = configuration.appearance
         mergeFrequentMeasurements = configuration.mergeFrequentMeasurements
         simulationAppleHealthProfileID = configuration.appleHealthProfileID.flatMap { profileID in
@@ -1024,6 +1031,7 @@ final class MeasurementStore: ObservableObject {
         unit = configuration.unit
         languageSelection = configuration.languageSelection
         appLanguage = configuration.languageSelection.resolvedLanguage
+        visualTheme = configuration.visualTheme
         appearance = configuration.appearance
         mergeFrequentMeasurements = configuration.mergeFrequentMeasurements
         customCommunicationRules = configuration.customCommunicationRules

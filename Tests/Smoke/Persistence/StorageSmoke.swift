@@ -6,6 +6,7 @@ enum StorageSmoke {
         precondition(AppConfiguration.standard.appleHealthProfileID == nil)
         precondition(AppConfiguration.standard.appleHealthDeviceIDs.isEmpty)
         precondition(!AppConfiguration.standard.isAppleHealthImportEnabled)
+        precondition(AppConfiguration.standard.visualTheme == .standard)
 
         let profileID = UUID()
         let scaleID = UUID()
@@ -71,6 +72,7 @@ enum StorageSmoke {
             profiles: [profile],
             pairedScales: [scale],
             unit: .kilograms,
+            visualTheme: .colorVisionAccessible,
             mergeFrequentMeasurements: true,
             isSimulationEnabled: true,
             customCommunicationRules: []
@@ -89,6 +91,7 @@ enum StorageSmoke {
         precondition(decoded.profiles[0].avatar == .senior, "member avatar selection must survive configuration round trip")
         precondition(decoded.isSimulationEnabled, "simulation preference must survive configuration round trip")
         precondition(decoded.languageSelection == .system, "language should follow the system by default")
+        precondition(decoded.visualTheme == .colorVisionAccessible, "visual theme must survive configuration round trip")
         precondition(decoded.appearance == .system, "appearance should follow the system by default")
         precondition(AppConfiguration.standard.profiles.isEmpty, "a fresh install must not create a preset member")
 

@@ -424,7 +424,7 @@ private struct AddExternalProtocolView: View {
                     Image(systemName: "square.and.arrow.down.fill")
                 }
                     .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(canImport ? Color.white : AppColor.secondary)
+                    .foregroundStyle(canImport ? AppColor.onAccent : AppColor.secondary)
                     .frame(maxWidth: .infinity, minHeight: 48)
                     .background(
                         canImport ? AppColor.mint : AppColor.paleMint,

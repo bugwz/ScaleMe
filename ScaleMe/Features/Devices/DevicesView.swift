@@ -796,7 +796,7 @@ private struct DeviceScannerView: View {
             } label: {
                 AppLocalizedText(existing ? "已绑定" : "关联")
                     .font(.caption.weight(.semibold))
-                    .foregroundStyle(existing ? AppColor.secondary : .white)
+                    .foregroundStyle(existing ? AppColor.secondary : AppColor.onAccent)
                     .padding(.horizontal, 14)
                     .padding(.vertical, 7)
                     .background(existing ? AppColor.paleMint : AppColor.mint, in: Capsule())
@@ -1400,7 +1400,7 @@ private struct ScaleSettingsView: View {
     }
 
     private var historyActionForegroundColor: Color {
-        if case .awaitingImport = bluetooth.historyState { return .white }
+        if case .awaitingImport = bluetooth.historyState { return AppColor.onAccent }
         return AppColor.mint
     }
 
@@ -1900,7 +1900,7 @@ private struct DiagnosticExportActionButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.subheadline.weight(.semibold))
-            .foregroundStyle(isProminent ? Color.white : AppColor.mint)
+            .foregroundStyle(isProminent ? AppColor.onAccent : AppColor.mint)
             .frame(maxWidth: .infinity)
             .frame(minHeight: 46)
             .background(

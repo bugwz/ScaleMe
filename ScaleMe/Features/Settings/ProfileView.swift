@@ -266,7 +266,7 @@ private struct MemberManagementView: View {
                     } label: {
                         Image(systemName: "plus")
                             .font(.subheadline.weight(.bold))
-                            .foregroundStyle(.white)
+                            .foregroundStyle(AppColor.onAccent)
                             .frame(width: 38, height: 38)
                             .background(AppColor.mint, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
                     }
@@ -1112,7 +1112,7 @@ private struct MemberAvatarPicker: View, Equatable {
                                 Image(systemName: "checkmark.circle.fill")
                                     .font(.title3)
                                     .symbolRenderingMode(.palette)
-                                    .foregroundStyle(.white, AppColor.mint)
+                                    .foregroundStyle(AppColor.onAccent, AppColor.mint)
                                     .padding(7)
                             }
                         }

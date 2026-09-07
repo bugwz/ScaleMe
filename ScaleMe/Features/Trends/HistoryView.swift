@@ -211,7 +211,7 @@ struct HistoryView: View {
                     .lineLimit(1)
                     .minimumScaleFactor(0.75)
             }
-            .foregroundStyle(isActive ? .white : AppColor.ink)
+            .foregroundStyle(isActive ? AppColor.onAccent : AppColor.ink)
             .frame(maxWidth: .infinity)
             .frame(height: 44)
             .background(

@@ -57,7 +57,10 @@ struct ScaleMeApp: App {
 
             }
             .background(AppColor.canvas.ignoresSafeArea())
-            .background(AppAppearanceTransitionView(appearance: store.appearance))
+            .background(AppAppearanceTransitionView(
+                appearance: store.appearance,
+                visualTheme: store.visualTheme
+            ))
             .environment(\.locale, store.appLanguage.locale)
             .environment(\.appLanguage, store.appLanguage)
             .onReceive(bluetooth.$latestMeasurement.compactMap { $0 }) { measurement in
@@ -135,19 +138,26 @@ private struct AppAppearanceTransitionView: UIViewControllerRepresentable {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     let appearance: AppAppearance
+    let visualTheme: AppVisualTheme
 
     func makeUIViewController(context: Context) -> AppearanceController {
         let controller = AppearanceController()
         controller.requestedStyle = appearance.interfaceStyle
+        controller.requestedTheme = visualTheme
         return controller
     }
 
     func updateUIViewController(_ controller: AppearanceController, context: Context) {
-        controller.apply(appearance.interfaceStyle, animated: !reduceMotion)
+        controller.apply(
+            appearance.interfaceStyle,
+            theme: visualTheme,
+            animated: !reduceMotion
+        )
     }
 
     final class AppearanceController: UIViewController {
         var requestedStyle: UIUserInterfaceStyle = .unspecified
+        var requestedTheme: AppVisualTheme = .standard
         private var hasAppliedInitialStyle = false
 
         override func loadView() {
@@ -159,13 +169,15 @@ private struct AppAppearanceTransitionView: UIViewControllerRepresentable {
 
         override func viewDidAppear(_ animated: Bool) {
             super.viewDidAppear(animated)
-            apply(requestedStyle, animated: false)
+            apply(requestedStyle, theme: requestedTheme, animated: false)
         }
 
-        func apply(_ style: UIUserInterfaceStyle, animated: Bool) {
+        func apply(_ style: UIUserInterfaceStyle, theme: AppVisualTheme, animated: Bool) {
             requestedStyle = style
+            requestedTheme = theme
             guard let window = viewIfLoaded?.window else { return }
-            guard window.overrideUserInterfaceStyle != style else {
+            let themeChanged = window.traitCollection[AppVisualThemeTrait.self] != theme
+            guard window.overrideUserInterfaceStyle != style || themeChanged else {
                 hasAppliedInitialStyle = true
                 return
             }
@@ -175,6 +187,7 @@ private struct AppAppearanceTransitionView: UIViewControllerRepresentable {
 
             guard shouldAnimate else {
                 window.overrideUserInterfaceStyle = style
+                window.traitOverrides[AppVisualThemeTrait.self] = theme
                 return
             }
 
@@ -184,6 +197,7 @@ private struct AppAppearanceTransitionView: UIViewControllerRepresentable {
                 options: [.transitionCrossDissolve, .beginFromCurrentState, .allowAnimatedContent]
             ) {
                 window.overrideUserInterfaceStyle = style
+                window.traitOverrides[AppVisualThemeTrait.self] = theme
             }
         }
     }

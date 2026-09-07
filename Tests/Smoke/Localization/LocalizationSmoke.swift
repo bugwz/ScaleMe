@@ -21,6 +21,7 @@ struct LocalizationSmoke {
             pairedScales: [],
             unit: .kilograms,
             languageSelection: .japanese,
+            visualTheme: .colorVisionAccessible,
             appearance: .dark,
             mergeFrequentMeasurements: false,
             appleHealthProfileID: profile.id,
@@ -33,6 +34,7 @@ struct LocalizationSmoke {
         let decoded = try JSONDecoder().decode(AppConfiguration.self, from: encoded)
         precondition(decoded.languageSelection == .japanese)
         precondition(decoded.languageSelection.resolvedLanguage == .japanese)
+        precondition(decoded.visualTheme == .colorVisionAccessible)
         precondition(decoded.appearance == .dark)
         precondition(decoded.appleHealthProfileID == profile.id)
         precondition(decoded.appleHealthDeviceIDs == [healthDeviceID])

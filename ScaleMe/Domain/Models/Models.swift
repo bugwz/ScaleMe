@@ -366,6 +366,7 @@ struct AppConfiguration: Codable, Equatable {
     var pairedScales: [PairedScale]
     var unit: WeightUnit
     var languageSelection: AppLanguageSelection
+    var visualTheme: AppVisualTheme
     var appearance: AppAppearance
     var mergeFrequentMeasurements: Bool
     var isSimulationEnabled: Bool
@@ -385,6 +386,7 @@ struct AppConfiguration: Codable, Equatable {
         pairedScales: [PairedScale],
         unit: WeightUnit,
         languageSelection: AppLanguageSelection = .system,
+        visualTheme: AppVisualTheme = .standard,
         appearance: AppAppearance = .system,
         mergeFrequentMeasurements: Bool,
         isSimulationEnabled: Bool = false,
@@ -403,6 +405,7 @@ struct AppConfiguration: Codable, Equatable {
         self.pairedScales = pairedScales
         self.unit = unit
         self.languageSelection = languageSelection
+        self.visualTheme = visualTheme
         self.appearance = appearance
         self.mergeFrequentMeasurements = mergeFrequentMeasurements
         self.isSimulationEnabled = isSimulationEnabled
@@ -423,6 +426,7 @@ struct AppConfiguration: Codable, Equatable {
         case pairedScales
         case unit
         case languageSelection
+        case visualTheme
         case appearance
         case mergeFrequentMeasurements
         case isSimulationEnabled
@@ -444,6 +448,7 @@ struct AppConfiguration: Codable, Equatable {
         pairedScales = try container.decode([PairedScale].self, forKey: .pairedScales)
         unit = try container.decode(WeightUnit.self, forKey: .unit)
         languageSelection = try container.decodeIfPresent(AppLanguageSelection.self, forKey: .languageSelection) ?? .system
+        visualTheme = try container.decodeIfPresent(AppVisualTheme.self, forKey: .visualTheme) ?? .standard
         appearance = try container.decodeIfPresent(AppAppearance.self, forKey: .appearance) ?? .system
         mergeFrequentMeasurements = try container.decode(Bool.self, forKey: .mergeFrequentMeasurements)
         isSimulationEnabled = try container.decodeIfPresent(Bool.self, forKey: .isSimulationEnabled) ?? false
@@ -469,6 +474,13 @@ struct AppConfiguration: Codable, Equatable {
             customCommunicationRules: []
         )
     }
+}
+
+enum AppVisualTheme: String, CaseIterable, Codable, Identifiable {
+    case standard
+    case colorVisionAccessible
+
+    var id: String { rawValue }
 }
 
 enum AppAppearance: String, CaseIterable, Codable, Identifiable {

@@ -45,7 +45,7 @@ struct MemberAvatarView: View {
                 RoundedRectangle(cornerRadius: min(width, height) * 0.18, style: .continuous)
                     .fill(
                         LinearGradient(
-                            colors: [Color.white.opacity(0.82), accent.opacity(0.22)],
+                            colors: [AppColor.surface.opacity(0.82), accent.opacity(0.22)],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         )

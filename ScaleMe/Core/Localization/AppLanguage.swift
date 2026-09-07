@@ -162,6 +162,9 @@ enum AppText: CaseIterable {
     case back
     case language
     case followSystem
+    case visualTheme
+    case standardTheme
+    case colorVisionAccessibleTheme
     case appearance
     case lightAppearance
     case darkAppearance
@@ -193,6 +196,9 @@ enum AppText: CaseIterable {
         case .back: "返回"
         case .language: "语言"
         case .followSystem: "跟随系统"
+        case .visualTheme: "主题风格"
+        case .standardTheme: "默认主题"
+        case .colorVisionAccessibleTheme: "色觉友好"
         case .appearance: "外观"
         case .lightAppearance: "浅色"
         case .darkAppearance: "深色"

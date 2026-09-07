@@ -254,7 +254,7 @@ struct DashboardView: View {
                             Image(systemName: store.isUsingPlaceholderData ? "person.badge.plus" : "wave.3.right")
                         }
                             .font(.caption.weight(.semibold))
-                            .foregroundStyle(.white)
+                            .foregroundStyle(AppColor.onAccent)
                             .padding(.horizontal, 10)
                             .padding(.vertical, 9)
                             .background(theme.primary, in: Capsule())
@@ -817,9 +817,9 @@ private struct DashboardMetricsEditorView: View {
             } label: {
                 Image(systemName: isShown ? "eye.slash.fill" : "eye.fill")
                     .font(.caption2.weight(.semibold))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(AppColor.surface)
                     .padding(6)
-                    .background(AppColor.ink.opacity(0.55), in: Circle())
+                    .background(AppColor.ink, in: Circle())
             }
             .buttonStyle(.plain)
             .disabled(draggingKind != nil)

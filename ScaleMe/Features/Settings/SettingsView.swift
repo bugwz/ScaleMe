@@ -2,6 +2,7 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 private enum DisplaySettingsDropdown: Equatable {
+    case visualTheme
     case appearance
     case language
     case weightUnit
@@ -30,6 +31,20 @@ struct DisplaySettingsView: View {
             GeometryReader { proxy in
                 if let anchor {
                     switch expandedDropdown {
+                    case .visualTheme:
+                        AppDropdownMenuLayer(
+                            anchorFrame: proxy[anchor],
+                            availableSize: proxy.size,
+                            options: AppVisualTheme.allCases,
+                            isSelected: { $0 == store.visualTheme },
+                            title: { title(for: $0) },
+                            appearance: .compact,
+                            onSelect: { theme in
+                                store.visualTheme = theme
+                                dismissDropdown()
+                            },
+                            onDismiss: dismissDropdown
+                        )
                     case .appearance:
                         AppDropdownMenuLayer(
                             anchorFrame: proxy[anchor],
@@ -83,6 +98,22 @@ struct DisplaySettingsView: View {
 
     private var interfaceDisplayPanel: some View {
         SettingsPanel(title: "界面显示", icon: "paintpalette.fill") {
+            VStack(alignment: .leading, spacing: 10) {
+                Text(store.appLanguage.text(.visualTheme))
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(AppColor.ink)
+                AppDropdownField(
+                    value: visualThemeTitle,
+                    icon: "eye.fill",
+                    accessibilityLabel: store.appLanguage.text(.visualTheme),
+                    isExpanded: expandedDropdown == .visualTheme,
+                    appearance: .compact,
+                    onToggle: { toggleDropdown(.visualTheme) }
+                )
+            }
+
+            SettingsSeparator()
+
             VStack(alignment: .leading, spacing: 10) {
                 Text(store.appLanguage.text(.appearance))
                     .font(.subheadline.weight(.semibold))
@@ -147,6 +178,17 @@ struct DisplaySettingsView: View {
 
     private var appearanceTitle: String {
         title(for: store.appearance)
+    }
+
+    private var visualThemeTitle: String {
+        title(for: store.visualTheme)
+    }
+
+    private func title(for theme: AppVisualTheme) -> String {
+        switch theme {
+        case .standard: store.appLanguage.text(.standardTheme)
+        case .colorVisionAccessible: store.appLanguage.text(.colorVisionAccessibleTheme)
+        }
     }
 
     private func title(for selection: AppLanguageSelection) -> String {

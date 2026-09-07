@@ -329,7 +329,7 @@ struct TrendMetricDropdown: View {
                                     Image(systemName: "checkmark")
                                         .font(.caption.bold())
                                         .frame(width: 24, height: 24)
-                                        .foregroundStyle(.white)
+                                        .foregroundStyle(AppColor.onAccent)
                                         .background(AppColor.mint, in: Circle())
                                 } else {
                                     Circle()
@@ -502,7 +502,7 @@ struct TrendTimeRangeDropdown: View {
                     Image(systemName: "checkmark")
                         .font(.caption.bold())
                         .frame(width: 24, height: 24)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(AppColor.onAccent)
                         .background(AppColor.mint, in: Circle())
                 }
             }
@@ -551,7 +551,7 @@ struct TrendTimeRangeDropdown: View {
             } label: {
                 Label("应用时间范围", systemImage: "checkmark")
                     .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(AppColor.onAccent)
                     .frame(maxWidth: .infinity)
                     .frame(height: 42)
                     .background(AppColor.mint, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
@@ -725,7 +725,7 @@ struct TrendDisplayDropdown: View {
             HStack(spacing: 10) {
                 Image(systemName: icon)
                     .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(isSelected ? .white : AppColor.mint)
+                    .foregroundStyle(isSelected ? AppColor.onAccent : AppColor.mint)
                     .frame(width: 32, height: 32)
                     .background(isSelected ? AppColor.mint : AppColor.paleMint, in: RoundedRectangle(cornerRadius: 9))
                 VStack(alignment: .leading, spacing: 2) {
@@ -816,7 +816,7 @@ struct TrendSingleChoiceDropdown<Value: Hashable>: View {
                                     Image(systemName: "checkmark")
                                         .font(.caption.bold())
                                         .frame(width: 24, height: 24)
-                                        .foregroundStyle(.white)
+                                        .foregroundStyle(AppColor.onAccent)
                                         .background(AppColor.mint, in: Circle())
                                 }
                             }
@@ -1188,7 +1188,8 @@ private struct TrendChartPlot: View {
                             }
                         }
                         .padding(8)
-                        .background(.white, in: RoundedRectangle(cornerRadius: 7))
+                        .foregroundStyle(AppColor.ink)
+                        .background(AppColor.surface, in: RoundedRectangle(cornerRadius: 7))
                     }
             }
         }

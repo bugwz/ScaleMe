@@ -21,6 +21,7 @@ struct LocalDataTransferSmoke {
         )]
         configuration.unit = .jin
         configuration.languageSelection = .english
+        configuration.visualTheme = .colorVisionAccessible
         configuration.appearance = .dark
         configuration.mergeFrequentMeasurements = true
         configuration.isSimulationEnabled = true
@@ -69,7 +70,7 @@ struct LocalDataTransferSmoke {
             keys: ["schemaVersion", "members", "devices", "communication", "general", "measurement", "appleHealth", "dashboard", "widget"]
         )
         let configurationObject = try JSONSerialization.jsonObject(with: configurationData) as? [String: Any]
-        precondition(configurationObject?["schemaVersion"] as? Int == 1)
+        precondition(configurationObject?["schemaVersion"] as? Int == ConfigurationFileCodec.currentSchemaVersion)
         precondition(configurationObject?["members"] is [String: Any])
         precondition(configurationObject?["devices"] is [String: Any])
         precondition(configurationObject?["communication"] is [String: Any])
@@ -79,6 +80,8 @@ struct LocalDataTransferSmoke {
         precondition(configurationObject?["dashboard"] is [String: Any])
         precondition(configurationObject?["widget"] is [String: Any])
         precondition(configurationObject?["profiles"] == nil, "configuration fields must not remain flat")
+        let general = configurationObject?["general"] as? [String: Any]
+        precondition(general?["visualTheme"] as? String == AppVisualTheme.colorVisionAccessible.rawValue)
         let members = configurationObject?["members"] as? [String: Any]
         let profiles = members?["profiles"] as? [[String: Any]]
         precondition(members?["selectedProfileID"] == nil)

@@ -1036,7 +1036,7 @@ struct ManualEntryView: View {
                 Text("保存测量数据")
             }
             .font(.headline)
-            .foregroundStyle(canSave ? .white : AppColor.secondary.opacity(0.5))
+            .foregroundStyle(canSave ? AppColor.onAccent : AppColor.secondary.opacity(0.5))
             .frame(maxWidth: .infinity)
             .frame(height: 52)
             .background(

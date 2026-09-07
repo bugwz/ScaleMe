@@ -13,26 +13,46 @@ enum KeyboardFocus {
     }
 }
 
-enum AppColor {
-    // Fresh health palette: soft natural surfaces with clear, accessible accents.
-    static let ink = adaptive(light: 0x12332E, dark: 0xE7F5F1)
-    static let secondary = adaptive(light: 0x5C7873, dark: 0x9BB8B2)
-    static let canvas = adaptive(light: 0xF6FCFA, dark: 0x0C1715)
-    static let surface = adaptive(light: 0xFFFFFF, dark: 0x142522)
-    static let mint = Color(red: 0.08, green: 0.68, blue: 0.55)
-    static let lime = Color(red: 0.74, green: 0.91, blue: 0.64)
-    static let paleMint = adaptive(light: 0xE6FAF2, dark: 0x173A32)
-    static let sky = Color(red: 0.43, green: 0.76, blue: 0.90)
-    static let violet = Color(red: 0.58, green: 0.66, blue: 0.88)
-    static let apricot = Color(red: 0.98, green: 0.67, blue: 0.43)
-    static let rose = Color(red: 0.94, green: 0.55, blue: 0.61)
-    static let bottomNavigationSelected = Color(red: 38 / 255, green: 155 / 255, blue: 112 / 255)
-    static let bottomNavigationInactive = Color(red: 0.62, green: 0.63, blue: 0.75)
-    static let bottomNavigationSurface = surface
+struct AppVisualThemeTrait: UITraitDefinition {
+    static let defaultValue = AppVisualTheme.standard
+    // Invalidate dynamic colors throughout existing SwiftUI and UIKit views,
+    // including cached tab content, presented sheets, and input accessories.
+    static let affectsColorAppearance = true
+}
 
-    private static func adaptive(light: UInt32, dark: UInt32) -> Color {
+enum AppColor {
+    // The accessible palette is blue/orange-led, raises contrast, and avoids
+    // red/green pairs for adjacent semantic accents.
+    static let ink = adaptive(light: 0x12332E, dark: 0xE7F5F1, accessibleLight: 0x17202A, accessibleDark: 0xF4F7FA)
+    static let secondary = adaptive(light: 0x5C7873, dark: 0x9BB8B2, accessibleLight: 0x44515E, accessibleDark: 0xBCC6CF)
+    static let canvas = adaptive(light: 0xF6FCFA, dark: 0x0C1715, accessibleLight: 0xF8FAFC, accessibleDark: 0x101419)
+    static let surface = adaptive(light: 0xFFFFFF, dark: 0x142522, accessibleLight: 0xFFFFFF, accessibleDark: 0x1A2027)
+    static let mint = adaptive(light: 0x14AD8C, dark: 0x14AD8C, accessibleLight: 0x0067A5, accessibleDark: 0x56B4E9)
+    static let lime = adaptive(light: 0xBDE8A3, dark: 0xBDE8A3, accessibleLight: 0xE69F00, accessibleDark: 0xF4C95D)
+    static let paleMint = adaptive(light: 0xE6FAF2, dark: 0x173A32, accessibleLight: 0xE3F2FA, accessibleDark: 0x153348)
+    static let sky = adaptive(light: 0x6DC2E6, dark: 0x6DC2E6, accessibleLight: 0xD55E00, accessibleDark: 0xF28E5B)
+    static let violet = adaptive(light: 0x94A8E0, dark: 0x94A8E0, accessibleLight: 0x8A4C8B, accessibleDark: 0xCC79A7)
+    static let apricot = adaptive(light: 0xFAAB6E, dark: 0xFAAB6E, accessibleLight: 0x9A6500, accessibleDark: 0xF0C04A)
+    static let rose = adaptive(light: 0xF08C9C, dark: 0xF08C9C, accessibleLight: 0xB43B32, accessibleDark: 0xFF806B)
+    static let bottomNavigationSelected = adaptive(light: 0x269B70, dark: 0x269B70, accessibleLight: 0x0067A5, accessibleDark: 0x56B4E9)
+    static let bottomNavigationInactive = adaptive(light: 0x9EA1BF, dark: 0x9EA1BF, accessibleLight: 0x596674, accessibleDark: 0xAAB4BE)
+    static let bottomNavigationSurface = surface
+    static let onAccent = adaptive(light: 0xFFFFFF, dark: 0xFFFFFF, accessibleLight: 0xFFFFFF, accessibleDark: 0x101419)
+
+    private static func adaptive(
+        light: UInt32,
+        dark: UInt32,
+        accessibleLight: UInt32,
+        accessibleDark: UInt32
+    ) -> Color {
         Color(uiColor: UIColor { traits in
-            let value = traits.userInterfaceStyle == .dark ? dark : light
+            let usesAccessiblePalette = traits[AppVisualThemeTrait.self] == .colorVisionAccessible
+            let value = switch (usesAccessiblePalette, traits.userInterfaceStyle) {
+            case (true, .dark): accessibleDark
+            case (true, _): accessibleLight
+            case (false, .dark): dark
+            case (false, _): light
+            }
             return UIColor(
                 red: CGFloat((value >> 16) & 0xFF) / 255,
                 green: CGFloat((value >> 8) & 0xFF) / 255,
@@ -42,21 +62,21 @@ enum AppColor {
         })
     }
 
-    // Distinct, calm series colors keep adjacent body-metric charts easy to scan.
-    static let trendWeight = TrendMetricPalette.weight
-    static let trendBMI = TrendMetricPalette.bmi
-    static let trendBodyFat = TrendMetricPalette.bodyFat
-    static let trendFatMass = TrendMetricPalette.fatMass
-    static let trendMuscleMass = TrendMetricPalette.muscleMass
-    static let trendMusclePercent = TrendMetricPalette.musclePercent
-    static let trendWaterPercent = TrendMetricPalette.waterPercent
-    static let trendWaterMass = TrendMetricPalette.waterMass
-    static let trendProteinPercent = TrendMetricPalette.proteinPercent
-    static let trendProteinMass = TrendMetricPalette.proteinMass
-    static let trendBoneMass = TrendMetricPalette.boneMass
-    static let trendBonePercent = TrendMetricPalette.bonePercent
-    static let trendVisceralFat = TrendMetricPalette.visceralFat
-    static let trendBasalMetabolism = TrendMetricPalette.basalMetabolism
+    // Metric colors switch to a color-vision-safe sequence in the accessible theme.
+    static let trendWeight = adaptive(light: 0x14AD8C, dark: 0x14AD8C, accessibleLight: 0x0067A5, accessibleDark: 0x56B4E9)
+    static let trendBMI = adaptive(light: 0x6DC2E6, dark: 0x6DC2E6, accessibleLight: 0xA55A00, accessibleDark: 0xE69F00)
+    static let trendBodyFat = adaptive(light: 0xFAAB6E, dark: 0xFAAB6E, accessibleLight: 0x7A5195, accessibleDark: 0xCC79A7)
+    static let trendFatMass = adaptive(light: 0xE8786E, dark: 0xE8786E, accessibleLight: 0xB43B32, accessibleDark: 0xFF806B)
+    static let trendMuscleMass = adaptive(light: 0x52A869, dark: 0x52A869, accessibleLight: 0x3B5B92, accessibleDark: 0x8DA0CB)
+    static let trendMusclePercent = adaptive(light: 0x1F9E9F, dark: 0x1F9E9F, accessibleLight: 0x8A6300, accessibleDark: 0xF0C04A)
+    static let trendWaterPercent = adaptive(light: 0x408FD1, dark: 0x408FD1, accessibleLight: 0x007C91, accessibleDark: 0x66C2D0)
+    static let trendWaterMass = adaptive(light: 0x4FB3C7, dark: 0x4FB3C7, accessibleLight: 0x9B4F96, accessibleDark: 0xD89BD3)
+    static let trendProteinPercent = adaptive(light: 0xABB347, dark: 0xABB347, accessibleLight: 0x5E6C84, accessibleDark: 0xB8C4D9)
+    static let trendProteinMass = adaptive(light: 0x78A338, dark: 0x78A338, accessibleLight: 0x8B4A20, accessibleDark: 0xD98C5F)
+    static let trendBoneMass = adaptive(light: 0x94A8E0, dark: 0x94A8E0, accessibleLight: 0x2F6F4E, accessibleDark: 0x74C69D)
+    static let trendBonePercent = adaptive(light: 0xAB85C9, dark: 0xAB85C9, accessibleLight: 0x6B5B00, accessibleDark: 0xCDBE63)
+    static let trendVisceralFat = adaptive(light: 0xF08C9C, dark: 0xF08C9C, accessibleLight: 0x8B3F63, accessibleDark: 0xD989B0)
+    static let trendBasalMetabolism = adaptive(light: 0xDB803D, dark: 0xDB803D, accessibleLight: 0x374C80, accessibleDark: 0x7E9BD3)
 
     static func memberTheme(for avatar: MemberAvatar) -> MemberVisualTheme {
         switch avatar {
@@ -497,7 +517,7 @@ struct SettingsSwitch: View {
                     Capsule()
                         .fill(isOn ? AppColor.mint : AppColor.secondary.opacity(0.18))
                     Circle()
-                        .fill(.white)
+                        .fill(isOn ? AppColor.onAccent : AppColor.surface)
                         .padding(3)
                         .shadow(color: AppColor.ink.opacity(0.12), radius: 3, y: 1)
                 }
@@ -839,7 +859,7 @@ struct MintActionButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.subheadline.weight(.semibold))
-            .foregroundStyle(isDestructive ? AppColor.rose : .white)
+            .foregroundStyle(isDestructive ? AppColor.rose : AppColor.onAccent)
             .frame(maxWidth: .infinity)
             .frame(minHeight: 46)
             .background(
@@ -1067,7 +1087,7 @@ struct BodyFatRateIcon: View {
 
             Text(verbatim: "%")
                 .font(.system(size: max(5, size * 0.30), weight: .black, design: .rounded))
-                .foregroundStyle(.white)
+                .foregroundStyle(AppColor.onAccent)
                 .offset(y: size * 0.08)
         }
         .frame(width: size, height: size)
