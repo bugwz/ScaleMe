@@ -8,7 +8,9 @@ struct PairedScaleRegistry {
     private(set) var automaticHistoryIDs: Set<UUID> = []
 
     private var ruleIDs: [UUID: String] = [:]
-    private var rulesByID: [String: CommunicationRule] = [:]
+    private var rulesByID: [String: CommunicationRule] = Dictionary(
+        uniqueKeysWithValues: CommunicationRuleCatalog.builtIn.map { ($0.id, $0) }
+    )
 
     mutating func updateScales(_ scales: [PairedScale]) {
         ids = Set(scales.map(\.id))
@@ -33,6 +35,17 @@ struct PairedScaleRegistry {
 
     func selectedRule(for deviceID: UUID) -> CommunicationRule? {
         ruleIDs[deviceID].flatMap { rulesByID[$0] }
+    }
+
+    func effectiveRule(for deviceID: UUID) -> CommunicationRule? {
+        if ruleIDs[deviceID] != nil {
+            return selectedRule(for: deviceID).flatMap { $0.canMeasure ? $0 : nil }
+        }
+        guard let compatibility = compatibilities[deviceID],
+              let ruleID = CommunicationRuleCatalog.automaticRuleID(for: compatibility) else {
+            return nil
+        }
+        return rulesByID[ruleID].flatMap { $0.canMeasure ? $0 : nil }
     }
 
     func hasExplicitRule(for deviceID: UUID) -> Bool {

@@ -2,6 +2,7 @@ import Foundation
 
 enum MeasurementSampleReliability: Equatable {
     case protocolFinal
+    case protocolLocked
     case protocolStable
     case requiresStability
 }
@@ -33,12 +34,16 @@ struct MeasurementSession {
 
     private var samples: [TimedSample] = []
     private var completedAt: Date?
+    private var completedWeightKG: Double?
+    private var newLoadMinimumKG: Double?
     private var lastReceivedAt: Date?
     private var sessionStartedAt: Date?
 
     mutating func reset() {
         samples.removeAll(keepingCapacity: true)
         completedAt = nil
+        completedWeightKG = nil
+        newLoadMinimumKG = nil
         lastReceivedAt = nil
         sessionStartedAt = nil
     }
@@ -51,6 +56,19 @@ struct MeasurementSession {
         if completedAt != nil {
             if reliability == .protocolFinal {
                 reset()
+            } else if let newLoadMinimumKG {
+                let minimum = min(newLoadMinimumKG, measurement.weightKG)
+                self.newLoadMinimumKG = minimum
+                guard measurement.weightKG >= minimum + 2 else {
+                    lastReceivedAt = receivedAt
+                    return MeasurementSessionUpdate(phase: .ignored)
+                }
+                reset()
+            } else if let completedWeightKG,
+                      measurement.weightKG <= completedWeightKG - 2 {
+                newLoadMinimumKG = measurement.weightKG
+                lastReceivedAt = receivedAt
+                return MeasurementSessionUpdate(phase: .ignored)
             } else {
                 guard let lastReceivedAt,
                       receivedAt.timeIntervalSince(lastReceivedAt) >= Self.newSessionInterval else {
@@ -63,7 +81,7 @@ struct MeasurementSession {
         lastReceivedAt = receivedAt
         if sessionStartedAt == nil { sessionStartedAt = receivedAt }
 
-        if reliability == .protocolFinal {
+        if reliability == .protocolFinal || reliability == .protocolLocked {
             return complete(measurement, receivedAt: receivedAt)
         }
 
@@ -104,6 +122,8 @@ struct MeasurementSession {
         receivedAt: Date
     ) -> MeasurementSessionUpdate {
         completedAt = receivedAt
+        completedWeightKG = measurement.weightKG
+        newLoadMinimumKG = nil
         samples.removeAll(keepingCapacity: true)
         var completed = measurement
         completed.isStable = true

@@ -14,6 +14,7 @@ enum ScaleProtocolCapability: String, Codable, CaseIterable, Hashable {
 
 enum ScaleProtocolStabilityPolicy: Equatable {
     case protocolReported
+    case lockedSampleIsFinal
     case repeatedSamples
 }
 

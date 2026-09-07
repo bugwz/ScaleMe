@@ -3,7 +3,7 @@ import Foundation
 
 @MainActor
 final class BluetoothScaleCoordinator: NSObject, ObservableObject {
-    private enum ScanPurpose { case adding, measuring, configuring(UUID) }
+    private enum ScanPurpose { case idle, adding, measuring, configuring(UUID) }
     private enum HistoryRequestOrigin: Equatable { case manual, automatic }
     private enum SettingsOperation {
         case unit(CommunicationWeightUnit)
@@ -45,6 +45,7 @@ final class BluetoothScaleCoordinator: NSObject, ObservableObject {
     private var pairedScales = PairedScaleRegistry()
     private let protocolRegistry = ScaleProtocolRegistry.builtIn
     private var activeProtocolSession: (any ScaleConnectedProtocolSession)?
+    private var activeProtocolSessionDeviceID: UUID?
     private var protocolTimerTasks: [String: Task<Void, Never>] = [:]
     private var measurementScaleID: UUID?
     private var activeScaleID: UUID?
@@ -106,11 +107,11 @@ final class BluetoothScaleCoordinator: NSObject, ObservableObject {
 
     func startMeasurementMonitoring(
         scales: [PairedScale],
-        selectedScaleID: UUID? = nil,
+        selectedScaleID: UUID,
         profile: UserProfile? = nil
     ) {
         pairedScales.updateScales(scales)
-        measurementScaleID = selectedScaleID.flatMap { pairedScales.contains($0) ? $0 : nil }
+        measurementScaleID = pairedScales.contains(selectedScaleID) ? selectedScaleID : nil
         scanPurpose = .measuring
         liveWeightKG = nil
         latestMeasurement = nil
@@ -127,7 +128,8 @@ final class BluetoothScaleCoordinator: NSObject, ObservableObject {
             activeScaleID = nil
             activeScaleName = nil
         }
-        guard !scales.isEmpty else {
+        guard measurementScaleID != nil else {
+            scanPurpose = .idle
             scanRequested = false
             central.stopScan()
             state = .idle
@@ -159,15 +161,18 @@ final class BluetoothScaleCoordinator: NSObject, ObservableObject {
         pairedScales.selectedRule(for: deviceID)
     }
 
+    private func effectiveRule(for deviceID: UUID) -> CommunicationRule? {
+        pairedScales.effectiveRule(for: deviceID)
+    }
+
     private func selectedProtocolID(for deviceID: UUID) -> String? {
-        selectedRule(for: deviceID)?.id
-            ?? pairedScales.compatibilities[deviceID]
-                .flatMap(CommunicationRuleCatalog.automaticRuleID(for:))
+        effectiveRule(for: deviceID)?.id
     }
 
     private func connectedProtocolSession(for deviceID: UUID) -> (any ScaleConnectedProtocolSession)? {
         guard let protocolID = selectedProtocolID(for: deviceID) else { return nil }
         if let activeProtocolSession,
+           activeProtocolSessionDeviceID == deviceID,
            activeProtocolSession.descriptor.id == protocolID {
             return activeProtocolSession
         }
@@ -176,19 +181,12 @@ final class BluetoothScaleCoordinator: NSObject, ObservableObject {
         }
         resetActiveProtocolSession()
         activeProtocolSession = session
+        activeProtocolSessionDeviceID = deviceID
         return session
     }
 
     private func historyOperation(for deviceID: UUID) -> CommunicationGATTOperation? {
-        if pairedScales.hasExplicitRule(for: deviceID) {
-            return selectedRule(for: deviceID)?.operations?.historyRead
-        }
-        if let compatibility = pairedScales.compatibilities[deviceID],
-           let ruleID = CommunicationRuleCatalog.automaticRuleID(for: compatibility),
-           let operation = pairedScales.rule(id: ruleID)?.operations?.historyRead {
-            return operation
-        }
-        return nil
+        effectiveRule(for: deviceID)?.operations?.historyRead
     }
 
     private func refreshHistoryAvailability(for deviceID: UUID) {
@@ -239,23 +237,19 @@ final class BluetoothScaleCoordinator: NSObject, ObservableObject {
     }
 
     private func isHuaweiHagridSelected(for deviceID: UUID) -> Bool {
-        selectedRule(for: deviceID)?.id == HuaweiHagridProtocolSession.communicationRule.id
+        selectedProtocolID(for: deviceID) == HuaweiHagridProtocolSession.communicationRule.id
     }
 
     private func isSenssunIF2121Selected(for deviceID: UUID) -> Bool {
-        selectedRule(for: deviceID)?.id == SenssunIF2121ProtocolSession.communicationRule.id
+        selectedProtocolID(for: deviceID) == SenssunIF2121ProtocolSession.communicationRule.id
     }
 
     private func isWolaiAFUSelected(for deviceID: UUID) -> Bool {
-        if let selected = selectedRule(for: deviceID) {
-            return selected.builtInParser == "wolaiAFU"
-        }
-        return pairedScales.compatibilities[deviceID] == ScaleDiscoveryCompatibility.wolaiAFU.rawValue
+        effectiveRule(for: deviceID)?.builtInParser == "wolaiAFU"
     }
 
     private func isMonitoredScale(_ deviceID: UUID) -> Bool {
-        pairedScales.contains(deviceID)
-            && (measurementScaleID == nil || measurementScaleID == deviceID)
+        pairedScales.contains(deviceID) && measurementScaleID == deviceID
     }
 
     private func allowsBuiltInParser(_ parser: String, for deviceID: UUID) -> Bool {
@@ -309,6 +303,15 @@ final class BluetoothScaleCoordinator: NSObject, ObservableObject {
         scanRequested = false
         central.stopScan()
         if case .scanning = state { state = .idle }
+    }
+
+    func stopMeasurementMonitoring() {
+        guard case .measuring = scanPurpose else { return }
+        scanPurpose = .idle
+        scanRequested = false
+        central.stopScan()
+        disconnect()
+        measurementScaleID = nil
     }
 
     func inspectSettings(for scale: PairedScale) {
@@ -568,6 +571,7 @@ final class BluetoothScaleCoordinator: NSObject, ObservableObject {
         }
         resetActiveProtocolSession()
         activeProtocolSession = session
+        activeProtocolSessionDeviceID = connected.identifier
         activeProtocolHistoryOrigin = .manual
         historyState = .reading(received: 0, announced: nil)
         do {
@@ -593,6 +597,7 @@ final class BluetoothScaleCoordinator: NSObject, ObservableObject {
     private func startAutomaticConnectedProtocolHistoryIfNeeded(on peripheral: CBPeripheral) -> Bool {
         guard pairedScales.automaticHistoryIDs.contains(peripheral.identifier),
               activeProtocolHistoryOrigin == nil,
+              activeProtocolSessionDeviceID == peripheral.identifier,
               let operation = historyOperation(for: peripheral.identifier),
               operation.historyResponse?.builtInParser != nil,
               let session = activeProtocolSession,
@@ -625,7 +630,8 @@ final class BluetoothScaleCoordinator: NSObject, ObservableObject {
               let connected else { return }
         let summary = store.importDeviceHistory(measurements)
         if summary.unmatchedCount == 0 {
-            if let confirmation = activeProtocolSession as? any ScaleHistoryImportConfirmationCapability {
+            if activeProtocolSessionDeviceID == connected.identifier,
+               let confirmation = activeProtocolSession as? any ScaleHistoryImportConfirmationCapability {
                 try? executeProtocolActions(try confirmation.confirmHistoryImport(), on: connected)
             } else if let operation = activeHistoryOperation {
                 write(operation.acknowledgementCommands, on: connected, response: activeHistoryCompletionResponse)
@@ -639,6 +645,7 @@ final class BluetoothScaleCoordinator: NSObject, ObservableObject {
         pendingAutomaticHistoryImportID = nil
         if summary.unmatchedCount == 0,
            let connected,
+           activeProtocolSessionDeviceID == connected.identifier,
            let confirmation = activeProtocolSession as? any ScaleHistoryImportConfirmationCapability {
             try? executeProtocolActions(try confirmation.confirmHistoryImport(), on: connected)
         }
@@ -906,6 +913,10 @@ final class BluetoothScaleCoordinator: NSObject, ObservableObject {
     }
 
     func connect(_ device: DiscoveredScale) {
+        if case .measuring = scanPurpose {
+            guard isMonitoredScale(device.id),
+                  connected == nil || connected?.identifier == device.id else { return }
+        }
         connectionTimeoutTask?.cancel()
         central.stopScan()
         connected = device.peripheral
@@ -1002,6 +1013,7 @@ final class BluetoothScaleCoordinator: NSObject, ObservableObject {
             _ = try? activeProtocolSession.handle(.disconnected)
         }
         activeProtocolSession = nil
+        activeProtocolSessionDeviceID = nil
         activeProtocolHistoryOrigin = nil
         protocolTimerTasks.values.forEach { $0.cancel() }
         protocolTimerTasks.removeAll()
@@ -1010,7 +1022,7 @@ final class BluetoothScaleCoordinator: NSObject, ObservableObject {
     @discardableResult
     private func startConnectedProtocolSessionIfAvailable(on peripheral: CBPeripheral) -> Bool {
         guard settingsScaleID == nil,
-              let ruleID = selectedRule(for: peripheral.identifier)?.id else {
+              let ruleID = selectedProtocolID(for: peripheral.identifier) else {
             return false
         }
         let session: any ScaleConnectedProtocolSession
@@ -1038,6 +1050,7 @@ final class BluetoothScaleCoordinator: NSObject, ObservableObject {
         }
         resetActiveProtocolSession()
         activeProtocolSession = session
+        activeProtocolSessionDeviceID = peripheral.identifier
         do {
             try executeProtocolActions(session.handle(.connected), on: peripheral)
             return true
@@ -1089,6 +1102,7 @@ final class BluetoothScaleCoordinator: NSObject, ObservableObject {
                 }
                 peripheral.writeValue(payload, for: characteristic, type: writeType)
                 if writeType == .withoutResponse,
+                   activeProtocolSessionDeviceID == peripheral.identifier,
                    let session = activeProtocolSession {
                     try executeProtocolActions(session.handle(.writeCompleted(
                         serviceUUID: CommunicationRuleCodec.normalizeUUID(command.target.serviceUUID),
@@ -1114,7 +1128,12 @@ final class BluetoothScaleCoordinator: NSObject, ObservableObject {
                     case .protocolStable: sessionReliability = .protocolStable
                     case .protocolFinal: sessionReliability = .protocolFinal
                     }
-                    consume(measurement, reliability: sessionReliability)
+                    consume(
+                        measurement,
+                        reliability: sessionReliability,
+                        deviceID: peripheral.identifier,
+                        deviceName: pairedScales.names[peripheral.identifier] ?? peripheral.name
+                    )
                 case .weightRemoved:
                     weightWasRemoved()
                 }
@@ -1175,6 +1194,8 @@ final class BluetoothScaleCoordinator: NSObject, ObservableObject {
                 protocolTimerTasks[id] = Task { [weak self, weak peripheral] in
                     try? await Task.sleep(for: .seconds(seconds))
                     guard !Task.isCancelled, let self, let peripheral,
+                          self.activeProtocolSessionDeviceID == peripheral.identifier,
+                          self.connected === peripheral,
                           let session = self.activeProtocolSession else { return }
                     if let actions = try? session.handle(.timer(id)) {
                         try? self.executeProtocolActions(actions, on: peripheral)
@@ -1363,7 +1384,8 @@ final class BluetoothScaleCoordinator: NSObject, ObservableObject {
             )
         }
         let protocolMatch = protocolRegistry.decodeAdvertisement(
-            advertisementInput(name: name, advertisement: data, receivedAt: receivedAt)
+            advertisementInput(name: name, advertisement: data, receivedAt: receivedAt),
+            preferredProtocolID: selectedProtocolID(for: peripheral.identifier)
         )
         if let manufacturerData = data[CBAdvertisementDataManufacturerDataKey] as? Data {
             let protocolSummary: String
@@ -1427,8 +1449,9 @@ final class BluetoothScaleCoordinator: NSObject, ObservableObject {
               connected == nil,
               let scale = scales.first(where: {
                   isMonitoredScale($0.id)
-                      && ($0.compatibility == ScaleDiscoveryCompatibility.bluetoothSIG.rawValue
-                          || selectedRule(for: $0.id)?.match.transport == .characteristicNotification)
+                      && (pairedScales.automaticHistoryIDs.contains($0.id)
+                          || $0.compatibility == ScaleDiscoveryCompatibility.bluetoothSIG.rawValue
+                          || effectiveRule(for: $0.id)?.match.transport == .characteristicNotification)
               }) else { return }
         let peripherals = central.retrievePeripherals(withIdentifiers: [scale.id])
         guard let peripheral = peripherals.first else { return }
@@ -1454,9 +1477,17 @@ final class BluetoothScaleCoordinator: NSObject, ObservableObject {
     }
 
     private func measurementReliability(
-        for descriptor: ScaleProtocolDescriptor
+        for descriptor: ScaleProtocolDescriptor,
+        measurement: BodyMeasurement
     ) -> MeasurementSampleReliability {
-        descriptor.stabilityPolicy == .repeatedSamples ? .requiresStability : .protocolStable
+        switch descriptor.stabilityPolicy {
+        case .protocolReported:
+            return .protocolStable
+        case .lockedSampleIsFinal:
+            return measurement.isStable ? .protocolLocked : .protocolStable
+        case .repeatedSamples:
+            return .requiresStability
+        }
     }
 
     private func advertisementInput(
@@ -1576,7 +1607,8 @@ extension BluetoothScaleCoordinator: CBCentralManagerDelegate {
             let name = discoveredName(for: peripheral, advertisement: advertisementData)
             let serviceData = advertisementData[CBAdvertisementDataServiceDataKey] as? [CBUUID: Data]
             let protocolMatch = protocolRegistry.decodeAdvertisement(
-                advertisementInput(name: name, advertisement: advertisementData, receivedAt: receivedAt)
+                advertisementInput(name: name, advertisement: advertisementData, receivedAt: receivedAt),
+                preferredProtocolID: selectedProtocolID(for: peripheral.identifier)
             )
             let xiaomiPayload = serviceData?[Self.bodyService]
             let hasVerifiedXiaomiPayload = xiaomiPayload.flatMap {
@@ -1597,7 +1629,10 @@ extension BluetoothScaleCoordinator: CBCentralManagerDelegate {
                     case .measurement(let measurement):
                         consume(
                             measurement,
-                            reliability: measurementReliability(for: protocolMatch.descriptor),
+                            reliability: measurementReliability(
+                                for: protocolMatch.descriptor,
+                                measurement: measurement
+                            ),
                             deviceID: peripheral.identifier,
                             deviceName: pairedScales.names[peripheral.identifier] ?? peripheral.name
                         )
@@ -1659,11 +1694,12 @@ extension BluetoothScaleCoordinator: CBCentralManagerDelegate {
             if case .measuring = scanPurpose,
                isMonitoredScale(peripheral.identifier),
                connected?.identifier != peripheral.identifier,
-               (item.isVerifiedCompatible
-                    || selectedRule(for: peripheral.identifier)?.match.transport == .characteristicNotification),
-               protocolMatch == nil,
-               (!hasVerifiedXiaomiPayload
-                    || selectedRule(for: peripheral.identifier)?.match.transport == .characteristicNotification) {
+               pairedScales.automaticHistoryIDs.contains(peripheral.identifier)
+                    || ((item.isVerifiedCompatible
+                        || effectiveRule(for: peripheral.identifier)?.match.transport == .characteristicNotification)
+                        && protocolMatch == nil
+                        && (!hasVerifiedXiaomiPayload
+                            || effectiveRule(for: peripheral.identifier)?.match.transport == .characteristicNotification)) {
                 connect(item)
             }
         }
@@ -1671,6 +1707,14 @@ extension BluetoothScaleCoordinator: CBCentralManagerDelegate {
 
     nonisolated func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
         Task { @MainActor in
+            if settingsScaleID != peripheral.identifier {
+                guard case .measuring = scanPurpose,
+                      isMonitoredScale(peripheral.identifier),
+                      connected === peripheral else {
+                    central.cancelPeripheralConnection(peripheral)
+                    return
+                }
+            }
             connectionTimeoutTask?.cancel()
             if settingsScaleID == peripheral.identifier {
                 appendDiagnosticEvent(kind: .service, source: "CONNECTION", summary: "设备已连接")
@@ -1701,6 +1745,7 @@ extension BluetoothScaleCoordinator: CBCentralManagerDelegate {
 
     nonisolated func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: Error?) {
         Task { @MainActor in
+            guard connected?.identifier == peripheral.identifier else { return }
             connectionTimeoutTask?.cancel()
             connected = nil
             if settingsScaleID == peripheral.identifier {
@@ -1779,6 +1824,7 @@ extension BluetoothScaleCoordinator: CBPeripheralDelegate {
             }
             let services = peripheral.services ?? []
             if settingsScaleID != peripheral.identifier,
+               activeProtocolSessionDeviceID == peripheral.identifier,
                let session = activeProtocolSession {
                 let serviceUUIDs = Set(services.map {
                     CommunicationRuleCodec.normalizeUUID($0.uuid.uuidString)
@@ -1823,6 +1869,7 @@ extension BluetoothScaleCoordinator: CBPeripheralDelegate {
                 return
             }
             if settingsScaleID != peripheral.identifier,
+               activeProtocolSessionDeviceID == peripheral.identifier,
                let session = activeProtocolSession {
                 let serviceUUID = CommunicationRuleCodec.normalizeUUID(service.uuid.uuidString)
                 let characteristicUUIDs = Set((service.characteristics ?? []).map {
@@ -1944,7 +1991,13 @@ extension BluetoothScaleCoordinator: CBPeripheralDelegate {
         }
         guard let data = characteristic.value else { return }
         Task { @MainActor in
+            if settingsScaleID != peripheral.identifier {
+                guard case .measuring = scanPurpose,
+                      isMonitoredScale(peripheral.identifier),
+                      connected === peripheral else { return }
+            }
             if activeProtocolHistoryOrigin != nil,
+               activeProtocolSessionDeviceID == peripheral.identifier,
                let session = activeProtocolSession,
                let serviceUUID = characteristic.service?.uuid.uuidString,
                historyOperation(for: peripheral.identifier)?.subscriptions.contains(where: {
@@ -2012,9 +2065,12 @@ extension BluetoothScaleCoordinator: CBPeripheralDelegate {
             }
 
             if settingsScaleID != peripheral.identifier,
+               activeProtocolSessionDeviceID == peripheral.identifier,
                let session = activeProtocolSession,
                let serviceUUID = characteristic.service?.uuid.uuidString {
-                guard case .measuring = scanPurpose else { return }
+                guard case .measuring = scanPurpose,
+                      connected === peripheral,
+                      isMonitoredScale(peripheral.identifier) else { return }
                 if let actions = try? session.handle(.notification(
                     serviceUUID: CommunicationRuleCodec.normalizeUUID(serviceUUID),
                     characteristicUUID: CommunicationRuleCodec.normalizeUUID(characteristic.uuid.uuidString),
@@ -2077,6 +2133,7 @@ extension BluetoothScaleCoordinator: CBPeripheralDelegate {
     nonisolated func peripheral(_ peripheral: CBPeripheral, didUpdateNotificationStateFor characteristic: CBCharacteristic, error: Error?) {
         Task { @MainActor in
             if error == nil,
+               activeProtocolSessionDeviceID == peripheral.identifier,
                let session = activeProtocolSession,
                let serviceUUID = characteristic.service?.uuid.uuidString {
                 if settingsScaleID != peripheral.identifier,
@@ -2134,6 +2191,7 @@ extension BluetoothScaleCoordinator: CBPeripheralDelegate {
     nonisolated func peripheral(_ peripheral: CBPeripheral, didWriteValueFor characteristic: CBCharacteristic, error: Error?) {
         Task { @MainActor in
             if let session = activeProtocolSession,
+               activeProtocolSessionDeviceID == peripheral.identifier,
                let serviceUUID = characteristic.service?.uuid.uuidString {
                 let writtenTarget = CommunicationGATTTarget(
                     serviceUUID: CommunicationRuleCodec.normalizeUUID(serviceUUID),

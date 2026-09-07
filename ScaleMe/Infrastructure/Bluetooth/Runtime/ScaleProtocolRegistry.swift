@@ -35,8 +35,18 @@ struct ScaleProtocolRegistry {
         self.connectedDescriptors = connectedDescriptors
     }
 
-    func decodeAdvertisement(_ input: ScaleAdvertisementInput) -> ScaleProtocolMatch? {
-        for adapter in advertisementAdapters {
+    func decodeAdvertisement(
+        _ input: ScaleAdvertisementInput,
+        preferredProtocolID: String? = nil
+    ) -> ScaleProtocolMatch? {
+        let preferredAdapter = preferredProtocolID.flatMap { protocolID in
+            advertisementAdapters.first { $0.descriptor.id == protocolID }
+        }
+        if let preferredAdapter,
+           let packet = try? preferredAdapter.decodeAdvertisement(input) {
+            return ScaleProtocolMatch(descriptor: preferredAdapter.descriptor, packet: packet)
+        }
+        for adapter in advertisementAdapters where adapter.descriptor.id != preferredProtocolID {
             if let packet = try? adapter.decodeAdvertisement(input) {
                 return ScaleProtocolMatch(descriptor: adapter.descriptor, packet: packet)
             }

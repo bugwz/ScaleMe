@@ -419,31 +419,50 @@ enum ParserSmoke {
         )
         precondition(abs(aaa.weightKG - 68.25) < 0.001)
         precondition(aaa.isStable)
+        precondition(ScaleProtocolRegistry.builtIn.decodeAdvertisement(.init(
+            name: "AAA007",
+            manufacturerData: Data([0x34, 0x12]) + aaaPayload
+        ))?.descriptor.id == AAASeriesScaleParser.descriptor.id)
 
+        let sinocarePayload = Data([0, 0, 0, 0, 0, 0, 0, 0, 0, 0x43, 0x1C, 0, 0, 0, 0, 0, 0x5F])
         let sinocare = try SinocareScaleParser.parse(.init(
             companyID: 0xFF64,
-            payload: Data([0, 0, 0, 0, 0, 0, 0, 0, 0, 0x43, 0x1C, 0, 0, 0, 0, 0, 0x5F])
+            payload: sinocarePayload
         ))
         precondition(abs(sinocare.weightKG - 72.35) < 0.001)
         precondition(!sinocare.isStable)
+        precondition(ScaleProtocolRegistry.builtIn.decodeAdvertisement(.init(
+            name: "Sinocare",
+            manufacturerData: Data([0x64, 0xFF]) + sinocarePayload
+        ))?.descriptor.id == SinocareScaleParser.descriptor.id)
 
+        let scaleupPayload = Data([0x43, 0x01, 0xF4, 0, 0, 0, 0, 0, 0])
         let scaleup = try ScaleupScaleParser.parse(.init(
             companyID: 0x1CE0,
-            payload: Data([0x43, 0x01, 0xF4, 0, 0, 0, 0, 0, 0])
+            payload: scaleupPayload
         ))
         precondition(abs(scaleup.weightKG - 72.35) < 0.001)
         precondition(scaleup.isStable)
+        precondition(ScaleProtocolRegistry.builtIn.decodeAdvertisement(.init(
+            name: "Scaleup",
+            manufacturerData: Data([0xE0, 0x1C]) + scaleupPayload
+        ))?.descriptor.id == ScaleupScaleParser.descriptor.id)
 
+        let okokPayload = Data([0, 0, 0, 0, 0, 0, 0x05, 0, 0x1C, 0x43, 0x13, 0x88, 0xE1, 0, 0, 0, 0, 0, 0])
         let okokV20 = try OKOKScaleParser.parse(
             .init(
                 companyID: 0x20CA,
-                payload: Data([0, 0, 0, 0, 0, 0, 0x05, 0, 0x1C, 0x43, 0x13, 0x88, 0xE1, 0, 0, 0, 0, 0, 0])
+                payload: okokPayload
             ),
             advertisedName: "Chipsea-BLE"
         )
         precondition(abs(okokV20.weightKG - 72.35) < 0.001)
         precondition(okokV20.impedanceOhm == 500)
         precondition(okokV20.isStable)
+        precondition(ScaleProtocolRegistry.builtIn.decodeAdvertisement(.init(
+            name: "Chipsea-BLE",
+            manufacturerData: Data([0xCA, 0x20]) + okokPayload
+        ))?.descriptor.id == OKOKScaleParser.descriptor.id)
 
         do {
             _ = try OKOKScaleParser.parse(
@@ -474,7 +493,7 @@ enum ParserSmoke {
             name: "Etekcity Fit 8S",
             manufacturerData: Data([0xD0, 0x06]) + etekcityPayload,
             advertisedServiceUUIDs: ["FFD0"]
-        ))
+        ), preferredProtocolID: EtekcityFit8SScaleParser.descriptor.id)
         precondition(etekcityRegistryMatch?.descriptor.id == "protocol.builtin.fit8s")
 
         let eufyPayload = Data([
@@ -485,6 +504,10 @@ enum ParserSmoke {
         precondition(abs(eufy.weightKG - 72.35) < 0.001)
         precondition(eufy.impedanceOhm == 500)
         precondition(eufy.isStable)
+        precondition(ScaleProtocolRegistry.builtIn.decodeAdvertisement(.init(
+            name: "Eufy C20",
+            manufacturerData: Data([0x64, 0xBC]) + eufyPayload
+        ))?.descriptor.id == EufyC20ScaleParser.descriptor.id)
 
         let yunmaiXPayload = Data([
             0, 0, 0, 0, 0x0B, 0x74, 0x17,
@@ -497,6 +520,11 @@ enum ParserSmoke {
         precondition(abs(yunmaiX.weightKG - 72.35) < 0.001)
         precondition(yunmaiX.impedanceOhm == 500)
         precondition(yunmaiX.isStable)
+        precondition(ScaleProtocolRegistry.builtIn.decodeAdvertisement(.init(
+            name: "Yunmai X",
+            manufacturerData: Data([0x34, 0x12]) + yunmaiXPayload,
+            advertisedServiceUUIDs: ["1320"]
+        ))?.descriptor.id == YunmaiXScaleParser.descriptor.id)
 
         let xiaomiMiScale2Payload = hexData("23B036E4070102030405")
         guard case .measurement(let xiaomiMiScale2) = try XiaomiMiScale2BroadcastParser.parsePacket(
@@ -524,6 +552,7 @@ enum ParserSmoke {
             serviceData: ["181D": xiaomiMiScale2Payload]
         ))
         precondition(xiaomiMiScale2Match?.descriptor.id == "protocol.builtin.xiaomi-181d")
+        precondition(xiaomiMiScale2Match?.descriptor.stabilityPolicy == .lockedSampleIsFinal)
         precondition(ScaleProtocolRegistry.builtIn.decodeAdvertisement(.init(
             name: "Generic Scale",
             manufacturerData: Data([0x34, 0x12]),

@@ -20,9 +20,23 @@ enum MeasurementSessionSmoke {
         precondition(descending.phase == .ignored)
         precondition(descending.liveMeasurement == nil)
 
-        _ = session.ingest(sample(60), reliability: .requiresStability, receivedAt: start.addingTimeInterval(7))
-        let stillStanding = session.ingest(sample(60), reliability: .requiresStability, receivedAt: start.addingTimeInterval(12))
-        precondition(stillStanding.phase == .ignored)
+        let nextLoad = session.ingest(
+            sample(60),
+            reliability: .requiresStability,
+            receivedAt: start.addingTimeInterval(7)
+        )
+        precondition(nextLoad.phase == .measuring, "a new load after the weight drops should start another measurement")
+        _ = session.ingest(
+            sample(60.05),
+            reliability: .requiresStability,
+            receivedAt: start.addingTimeInterval(7.4)
+        )
+        let repeatedCompletion = session.ingest(
+            sample(60),
+            reliability: .requiresStability,
+            receivedAt: start.addingTimeInterval(7.9)
+        )
+        precondition(repeatedCompletion.phase == .completed, "the same device should complete consecutive measurements")
 
         var indicatedSession = MeasurementSession()
         let indicated = indicatedSession.ingest(sample(61.25), reliability: .protocolFinal, receivedAt: start)
@@ -35,6 +49,20 @@ enum MeasurementSessionSmoke {
         )
         precondition(nextIndication.phase == .completed)
         precondition(abs((nextIndication.completedMeasurement?.weightKG ?? 0) - 62) < 0.001)
+
+        var lockedBroadcastSession = MeasurementSession()
+        let lockedBroadcast = lockedBroadcastSession.ingest(
+            xiaomiSample(72.35, isStable: true),
+            reliability: .protocolLocked,
+            receivedAt: start
+        )
+        precondition(lockedBroadcast.phase == .completed)
+        let lockedReplay = lockedBroadcastSession.ingest(
+            xiaomiSample(72.35, isStable: true),
+            reliability: .protocolLocked,
+            receivedAt: start.addingTimeInterval(0.5)
+        )
+        precondition(lockedReplay.phase == .ignored, "a repeated MI SCALE2 locked frame must not save twice")
 
         var xiaomiSession = MeasurementSession()
         let partialStart = xiaomiSession.ingest(

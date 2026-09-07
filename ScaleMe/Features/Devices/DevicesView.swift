@@ -269,7 +269,7 @@ struct DevicesView: View {
                     .foregroundStyle(AppColor.ink)
                 AppLocalizedText(store.isUsingPlaceholderData
                     ? "请先添加成员，再添加设备"
-                    : "添加设备后，测量页会自动接收并关联这些设备上报的健康数据。")
+                    : "添加设备后，请在测量页选择本次使用的设备。")
                     .font(.caption)
                     .foregroundStyle(AppColor.secondary)
                     .multilineTextAlignment(.center)

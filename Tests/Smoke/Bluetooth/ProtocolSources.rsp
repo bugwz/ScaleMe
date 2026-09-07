@@ -6,6 +6,7 @@ ScaleMe/Infrastructure/Persistence/LocalDataTransferService.swift
 ScaleMe/Domain/Trends/TrendAnalysis.swift
 ScaleMe/Infrastructure/Bluetooth/ScaleDiscoveryClassifier.swift
 ScaleMe/Infrastructure/Bluetooth/MeasurementSession.swift
+ScaleMe/Infrastructure/Bluetooth/PairedScaleRegistry.swift
 ScaleMe/Infrastructure/Bluetooth/Contracts/ScaleProtocolAdapter.swift
 ScaleMe/Infrastructure/Bluetooth/Runtime/ScaleProtocolRegistry.swift
 ScaleMe/Infrastructure/Bluetooth/Protocols/ScalePayloadError.swift

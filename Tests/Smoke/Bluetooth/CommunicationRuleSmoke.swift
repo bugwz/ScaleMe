@@ -155,6 +155,40 @@ struct CommunicationRuleSmoke {
                 && wolaiRule?.operations?.historyRead?.historyResponse?.builtInParser == "wolaiHistory20",
             "automatic Wolai AFU selection should expose the captured history operation"
         )
+        guard let automaticWolaiID = UUID(uuidString: "B9A86CC2-299B-4D52-AD2D-8E19AF1A0AF1") else {
+            preconditionFailure("invalid deterministic Wolai device ID")
+        }
+        var pairedScaleRegistry = PairedScaleRegistry()
+        pairedScaleRegistry.updateScales([PairedScale(
+            id: automaticWolaiID,
+            name: "AFU-WL-TZ-A1",
+            modelName: "AFU-WL-TZ-A1",
+            compatibility: ScaleDiscoveryCompatibility.wolaiAFU.rawValue
+        )])
+        expect(
+            pairedScaleRegistry.selectedRule(for: automaticWolaiID) == nil
+                && pairedScaleRegistry.effectiveRule(for: automaticWolaiID)?.id
+                    == WolaiAFUProtocolSession.communicationRule.id,
+            "an automatically identified Wolai scale should resolve its built-in connected protocol before app state refresh"
+        )
+        guard let automaticXiaomiID = UUID(uuidString: "B9A86CC2-299B-4D52-AD2D-8E19AF1A0AF2"),
+              let automaticHuaweiID = UUID(uuidString: "B9A86CC2-299B-4D52-AD2D-8E19AF1A0AF3") else {
+            preconditionFailure("invalid deterministic connected protocol device IDs")
+        }
+        let automaticConnectedProtocols: [(UUID, String, String)] = [
+            (automaticWolaiID, ScaleDiscoveryCompatibility.wolaiAFU.rawValue, WolaiAFUProtocolSession.communicationRule.id),
+            (automaticXiaomiID, ScaleDiscoveryCompatibility.xiaomiMiScale2Advertisement.rawValue, XiaomiMiScale2BroadcastParser.communicationRule.id),
+            (automaticHuaweiID, ScaleDiscoveryCompatibility.huaweiHagridAuthorizationRequired.rawValue, HuaweiHagridProtocolSession.communicationRule.id)
+        ]
+        pairedScaleRegistry.updateScales(automaticConnectedProtocols.map { deviceID, compatibility, _ in
+            PairedScale(id: deviceID, name: "Fixture scale", modelName: "Fixture scale", compatibility: compatibility)
+        })
+        for (deviceID, _, expectedRuleID) in automaticConnectedProtocols {
+            expect(
+                pairedScaleRegistry.effectiveRule(for: deviceID)?.id == expectedRuleID,
+                "each automatically recognized connected protocol should resolve before app state refresh"
+            )
+        }
 
         let rendered = try CommunicationPayloadTemplate.render(
             "01FFFF{{sessionToken16BE}}",
@@ -341,10 +375,15 @@ struct CommunicationRuleSmoke {
             "every built-in protocol ID should be unique"
         )
         let selectionRules = CommunicationRuleCatalog.rulesForSelection(custom: rules)
+        let selectableBuiltIn = CommunicationRuleCatalog.builtInForDisplay.filter(\.canMeasure)
         expect(
-            Array(selectionRules.prefix(CommunicationRuleCatalog.builtInForDisplay.count)).map(\.id)
-                == CommunicationRuleCatalog.builtInForDisplay.map(\.id),
-            "device protocol selection should show every built-in protocol before external protocols"
+            Array(selectionRules.prefix(selectableBuiltIn.count)).map(\.id) == selectableBuiltIn.map(\.id),
+            "device protocol selection should show executable built-in protocols before external protocols"
+        )
+        expect(
+            selectionRules.allSatisfy(\.canMeasure)
+                && Set(selectionRules.map(\.id)).isDisjoint(with: Set(catalogedPendingProtocols.map(\.id))),
+            "protocol skeletons should remain cataloged but must not be selectable for live measurement"
         )
         let invalidID = json.replacingOccurrences(of: "protocol.custom.demo-scale", with: "demo-scale")
         do {

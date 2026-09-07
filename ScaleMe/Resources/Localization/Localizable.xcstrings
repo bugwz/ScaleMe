@@ -5203,67 +5203,67 @@
         }
       }
     },
-    "添加设备后，测量页会自动接收并关联这些设备上报的健康数据。" : {
+    "添加设备后，请在测量页选择本次使用的设备。" : {
       "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Waage hinzufügen, um Messungen automatisch zuzuordnen."
+            "value" : "Füge eine Waage hinzu und wähle sie auf der Messseite aus."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Add a scale to receive and link its measurements automatically."
+            "value" : "Add a scale, then select it on the measurement page."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Añade una báscula para vincular sus mediciones automáticamente."
+            "value" : "Añade una báscula y selecciónala en la página de medición."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ajoutez une balance pour associer automatiquement ses mesures."
+            "value" : "Ajoutez une balance, puis sélectionnez-la sur la page de mesure."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "体重計を追加すると、測定値を自動で受信して関連付けます。"
+            "value" : "体重計を追加し、測定ページで使用する機器を選択してください。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "체중계를 추가하면 측정값을 자동으로 받아 연결합니다."
+            "value" : "체중계를 추가한 후 측정 페이지에서 사용할 기기를 선택하세요."
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Adicione uma balança para associar as medições automaticamente."
+            "value" : "Adicione uma balança e selecione-a na página de medição."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Добавьте весы для автоматической привязки измерений."
+            "value" : "Добавьте весы и выберите их на странице измерения."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "添加设备后，测量页会自动接收并关联这些设备上报的健康数据。"
+            "value" : "添加设备后，请在测量页选择本次使用的设备。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "新增體重計後，測量頁會自動接收並關聯資料。"
+            "value" : "新增裝置後，請在測量頁選擇本次使用的裝置。"
           }
         }
       }

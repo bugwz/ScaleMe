@@ -564,9 +564,9 @@ enum CommunicationRuleCatalog {
     static func rulesForSelection(custom: [CommunicationRule]) -> [CommunicationRule] {
         let builtInIDs = Set(builtIn.map(\.id))
         let external = custom
-            .filter { !builtInIDs.contains($0.id) }
+            .filter { !builtInIDs.contains($0.id) && $0.canMeasure }
             .sorted(by: displayOrder)
-        return builtInForDisplay + external
+        return builtInForDisplay.filter(\.canMeasure) + external
     }
 
     static func rules(custom: [CommunicationRule]) -> [CommunicationRule] {

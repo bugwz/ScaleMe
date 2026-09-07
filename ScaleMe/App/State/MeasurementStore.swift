@@ -654,22 +654,22 @@ final class MeasurementStore: ObservableObject {
 
     func effectiveCommunicationRule(for scale: PairedScale) -> CommunicationRule? {
         if let selectedRule = communicationRule(for: scale) {
-            return selectedRule
+            return selectedRule.canMeasure ? selectedRule : nil
         }
 
         let ruleID = CommunicationRuleCatalog.automaticRuleID(for: scale.compatibility)
         guard let ruleID else { return nil }
-        return communicationRules.first { $0.id == ruleID }
+        return communicationRules.first { $0.id == ruleID && $0.canMeasure }
     }
 
     func setCommunicationRule(_ ruleID: String?, for scaleID: UUID) {
         if isSimulationEnabled {
-            guard ruleID == nil || communicationRules.contains(where: { $0.id == ruleID }),
+            guard ruleID == nil || communicationRules.contains(where: { $0.id == ruleID && $0.canMeasure }),
                   let index = simulationData.pairedScales.firstIndex(where: { $0.id == scaleID }) else { return }
             simulationData.pairedScales[index].communicationRuleID = ruleID
             return
         }
-        guard ruleID == nil || communicationRules.contains(where: { $0.id == ruleID }),
+        guard ruleID == nil || communicationRules.contains(where: { $0.id == ruleID && $0.canMeasure }),
               let index = pairedScales.firstIndex(where: { $0.id == scaleID }) else { return }
         pairedScales[index].communicationRuleID = ruleID
     }

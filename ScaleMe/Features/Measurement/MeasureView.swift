@@ -28,7 +28,6 @@ struct MeasureView: View {
     @State private var simulatedWeightKG: Double?
     @State private var simulationMeasurementTask: Task<Void, Never>?
     @State private var detailMeasurement: BodyMeasurement?
-    @State private var statusPresentation = MeasurementStatusPresentation()
     let scrollToTopRequest: Int
 
     private var liveMeasurement: BodyMeasurement? {
@@ -56,14 +55,7 @@ struct MeasureView: View {
     }
 
     private var scaleOptions: [TrendDropdownOption<UUID?>] {
-        let automatic = TrendDropdownOption<UUID?>(
-            id: "automatic",
-            value: nil,
-            title: "自动选择",
-            subtitle: "等待任一已关联设备",
-            icon: .asset("ScaleDeviceTabIcon")
-        )
-        return [automatic] + store.displayPairedScales.map { scale in
+        store.displayPairedScales.map { scale in
             TrendDropdownOption(
                 id: scale.id.uuidString,
                 value: Optional(scale.id),
@@ -77,7 +69,7 @@ struct MeasureView: View {
     private var selectedScaleName: String {
         guard let selectedScaleID,
               let scale = store.displayPairedScales.first(where: { $0.id == selectedScaleID }) else {
-            return store.appLanguage.text("自动选择")
+            return store.appLanguage.text("请先在“设备”页添加体重秤")
         }
         return scale.name
     }
@@ -113,42 +105,35 @@ struct MeasureView: View {
             }
             .onAppear {
                 isPulsing = true
+                selectFirstScaleIfNeeded()
+                isMeasurementViewActive = true
                 if store.isSimulationEnabled {
                     resetSimulatedMeasurement()
                 } else {
                     startMeasurementMonitoring()
                 }
-                isMeasurementViewActive = true
             }
             .onDisappear {
                 isMeasurementViewActive = false
                 isPulsing = false
                 simulationMeasurementTask?.cancel()
-                bluetooth.stopScanning()
+                bluetooth.stopMeasurementMonitoring()
             }
             .onChange(of: store.pairedScales) {
                 guard !store.isSimulationEnabled else { return }
                 bluetooth.updatePairedScales(store.pairedScales, communicationRules: store.communicationRules)
-                if let selectedScaleID,
-                   !store.pairedScales.contains(where: { $0.id == selectedScaleID }) {
-                    self.selectedScaleID = nil
-                } else {
-                    startMeasurementMonitoring()
-                }
+                selectFirstScaleIfNeeded()
+                startMeasurementMonitoring()
             }
             .onChange(of: store.isSimulationEnabled) { _, isEnabled in
+                selectFirstScaleIfNeeded()
                 if isEnabled {
-                    bluetooth.stopScanning()
+                    bluetooth.stopMeasurementMonitoring()
                     resetSimulatedMeasurement()
                 } else {
                     simulationMeasurementTask?.cancel()
                     simulatedWeightKG = nil
-                    if let selectedScaleID,
-                       !store.pairedScales.contains(where: { $0.id == selectedScaleID }) {
-                        self.selectedScaleID = nil
-                    } else {
-                        startMeasurementMonitoring()
-                    }
+                    startMeasurementMonitoring()
                 }
             }
             .onChange(of: store.displaySelectedProfileID) {
@@ -168,15 +153,7 @@ struct MeasureView: View {
                 }
             }
             .onChange(of: displayedMeasurementState) { _, state in
-                if store.isSimulationEnabled {
-                    announceMeasurementState(state)
-                } else {
-                    let previous = statusPresentation.state
-                    statusPresentation.receive(state)
-                    if statusPresentation.state != previous {
-                        announceMeasurementState(statusPresentation.state)
-                    }
-                }
+                announceMeasurementState(state)
             }
             .accessibilityAnnounceChanges(store.storageError)
         }
@@ -378,6 +355,7 @@ struct MeasureView: View {
 
     private var scaleSwitchButton: some View {
         Button {
+            guard !scaleOptions.isEmpty else { return }
             withAnimation(.easeOut(duration: 0.18)) {
                 showProfileDropdown = false
                 showScaleDropdown.toggle()
@@ -414,6 +392,7 @@ struct MeasureView: View {
             .shadow(color: AppColor.mint.opacity(0.08), radius: 8, y: 3)
         }
         .buttonStyle(.plain)
+        .disabled(scaleOptions.isEmpty)
         .frame(maxWidth: 156, alignment: .leading)
         .anchorPreference(key: MeasureScaleAnchorKey.self, value: .bounds) { $0 }
         .accessibilityLabel(store.appLanguage.format("切换测量设备，当前为 %@", selectedScaleName))
@@ -422,9 +401,10 @@ struct MeasureView: View {
     }
 
     private func startMeasurementMonitoring() {
-        statusPresentation.reset()
-        guard !store.isUsingPlaceholderData else {
-            bluetooth.stopScanning()
+        guard !store.isUsingPlaceholderData,
+              let selectedScaleID,
+              store.pairedScales.contains(where: { $0.id == selectedScaleID }) else {
+            bluetooth.stopMeasurementMonitoring()
             return
         }
         bluetooth.startMeasurementMonitoring(
@@ -432,7 +412,13 @@ struct MeasureView: View {
             selectedScaleID: selectedScaleID,
             profile: store.displaySelectedProfile
         )
-        statusPresentation.receive(bluetooth.state)
+    }
+
+    private func selectFirstScaleIfNeeded() {
+        let scales = store.displayPairedScales
+        guard selectedScaleID == nil
+                || !scales.contains(where: { $0.id == selectedScaleID }) else { return }
+        selectedScaleID = scales.first?.id
     }
 
     private var displayedWeightKG: Double? {
@@ -450,7 +436,7 @@ struct MeasureView: View {
         if store.isSimulationEnabled { return simulationState.title(in: store.appLanguage) }
         if store.isUsingPlaceholderData { return "需要成员资料" }
         if store.pairedScales.isEmpty { return "请先在“设备”页添加体重秤" }
-        return statusPresentation.state.title(in: store.appLanguage)
+        return bluetooth.state.title(in: store.appLanguage)
     }
 
     private var displayedMeasurementState: BluetoothScaleState {

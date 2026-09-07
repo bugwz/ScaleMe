@@ -64,7 +64,8 @@ extension XiaomiMiScale2BroadcastParser: ScaleAdvertisementProtocolAdapter {
             .historyRead,
             .hardwareUnitConfiguration,
             .timeSynchronization
-        ]
+        ],
+        stabilityPolicy: .lockedSampleIsFinal
     )
 
     static let communicationRule = CommunicationRule(
