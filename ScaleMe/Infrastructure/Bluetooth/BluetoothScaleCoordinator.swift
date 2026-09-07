@@ -16,6 +16,11 @@ final class BluetoothScaleCoordinator: NSObject, ObservableObject {
         case wolaiAFU
         case senssunIF2121
     }
+    private struct PendingAdvertisementMeasurement {
+        var measurement: BodyMeasurement
+        var reliability: MeasurementSampleReliability
+        var deviceName: String?
+    }
     @Published private(set) var state: BluetoothScaleState = .idle
     @Published private(set) var devices: [DiscoveredScale] = []
     @Published private(set) var latestMeasurement: BodyMeasurement?
@@ -47,6 +52,10 @@ final class BluetoothScaleCoordinator: NSObject, ObservableObject {
     private var activeProtocolSession: (any ScaleConnectedProtocolSession)?
     private var protocolTimerTasks: [String: Task<Void, Never>] = [:]
     private var measurementScaleID: UUID?
+    private var measurementScales: [PairedScale] = []
+    private var measurementDeviceSelection = MeasurementDeviceSelection()
+    private var measurementDiscoveryWindowTask: Task<Void, Never>?
+    private var pendingAdvertisementMeasurements: [UUID: PendingAdvertisementMeasurement] = [:]
     private var activeScaleID: UUID?
     private var activeScaleName: String?
     private var settingsScaleID: UUID?
@@ -111,6 +120,13 @@ final class BluetoothScaleCoordinator: NSObject, ObservableObject {
     ) {
         pairedScales.updateScales(scales)
         measurementScaleID = selectedScaleID.flatMap { pairedScales.contains($0) ? $0 : nil }
+        measurementScales = scales
+        measurementDeviceSelection.reset(
+            orderedDeviceIDs: scales.map(\.id),
+            manuallySelectedDeviceID: measurementScaleID
+        )
+        measurementDiscoveryWindowTask?.cancel()
+        pendingAdvertisementMeasurements.removeAll()
         scanPurpose = .measuring
         liveWeightKG = nil
         latestMeasurement = nil
@@ -120,7 +136,8 @@ final class BluetoothScaleCoordinator: NSObject, ObservableObject {
         minimumWeightAfterCompletionKG = nil
         resetActiveProtocolSession()
         measurementProfile = profile
-        if let connected, !isMonitoredScale(connected.identifier) {
+        if let connected,
+           measurementDeviceSelection.isAutomatic || !isMonitoredScale(connected.identifier) {
             connectionTimeoutTask?.cancel()
             central.cancelPeripheralConnection(connected)
             self.connected = nil
@@ -134,10 +151,13 @@ final class BluetoothScaleCoordinator: NSObject, ObservableObject {
             return
         }
         if let connected, isMonitoredScale(connected.identifier) {
+            _ = lockMeasurementDevice(connected.identifier)
             _ = startConnectedProtocolSessionIfAvailable(on: connected)
         }
         beginScanning(clearDevices: false)
-        connectKnownScale(from: scales)
+        if !measurementDeviceSelection.isAutomatic {
+            connectKnownScale(from: scales)
+        }
     }
 
     func updatePairedScales(
@@ -146,6 +166,10 @@ final class BluetoothScaleCoordinator: NSObject, ObservableObject {
     ) {
         pairedScales.updateScales(scales)
         pairedScales.updateRules(communicationRules)
+        if case .measuring = scanPurpose {
+            measurementScales = scales
+            measurementDeviceSelection.updateOrderedDeviceIDs(scales.map(\.id))
+        }
         if let activeScaleID, let scale = scales.first(where: { $0.id == activeScaleID }) {
             activeScaleName = scale.name
         }
@@ -254,8 +278,112 @@ final class BluetoothScaleCoordinator: NSObject, ObservableObject {
     }
 
     private func isMonitoredScale(_ deviceID: UUID) -> Bool {
-        pairedScales.contains(deviceID)
-            && (measurementScaleID == nil || measurementScaleID == deviceID)
+        pairedScales.contains(deviceID) && measurementDeviceSelection.accepts(deviceID)
+    }
+
+    private func isAutomaticMeasurementCandidate(_ deviceID: UUID) -> Bool {
+        guard measurementDeviceSelection.isAutomatic,
+              pairedScales.contains(deviceID) else { return false }
+        if pairedScales.automaticHistoryIDs.contains(deviceID) { return true }
+        if ScaleDiscoveryCompatibility(rawValue: pairedScales.compatibilities[deviceID] ?? "")?
+            .isVerified == true {
+            return true
+        }
+        guard let rule = selectedRule(for: deviceID) else { return false }
+        return rule.match.transport == .advertisementServiceData
+            || rule.match.transport == .characteristicNotification
+    }
+
+    private func lockMeasurementDevice(_ deviceID: UUID) -> Bool {
+        guard measurementDeviceSelection.lock(deviceID) else { return false }
+        measurementDiscoveryWindowTask?.cancel()
+        measurementDiscoveryWindowTask = nil
+        pendingAdvertisementMeasurements = pendingAdvertisementMeasurements.filter { $0.key == deviceID }
+        activeScaleID = deviceID
+        activeScaleName = pairedScales.names[deviceID] ?? activeScaleName
+        return true
+    }
+
+    private func observeAutomaticMeasurementDevice(_ deviceID: UUID) {
+        guard case .measuring = scanPurpose,
+              measurementDeviceSelection.isAutomatic,
+              !measurementDeviceSelection.isLocked,
+              isAutomaticMeasurementCandidate(deviceID) else { return }
+        let wasNewlyDiscovered = measurementDeviceSelection.observe(deviceID)
+        guard wasNewlyDiscovered,
+              measurementDeviceSelection.candidateDeviceID == nil,
+              measurementDiscoveryWindowTask == nil else { return }
+        measurementDiscoveryWindowTask = Task { [weak self] in
+            try? await Task.sleep(for: .milliseconds(800))
+            guard !Task.isCancelled, let self else { return }
+            self.measurementDiscoveryWindowTask = nil
+            guard self.measurementDeviceSelection.selectHighestPriorityDiscoveredDevice() != nil else { return }
+            self.activateAutomaticMeasurementCandidate()
+        }
+    }
+
+    private func activateAutomaticMeasurementCandidate() {
+        guard case .measuring = scanPurpose,
+              let candidateID = measurementDeviceSelection.candidateDeviceID else { return }
+        if let pending = pendingAdvertisementMeasurements.removeValue(forKey: candidateID) {
+            consume(
+                pending.measurement,
+                reliability: pending.reliability,
+                deviceID: candidateID,
+                deviceName: pending.deviceName
+            )
+            return
+        }
+        connectKnownScale(from: measurementScales)
+    }
+
+    private func failAutomaticMeasurementCandidate(_ deviceID: UUID) {
+        guard case .measuring = scanPurpose,
+              measurementDeviceSelection.isAutomatic,
+              !measurementDeviceSelection.isLocked,
+              measurementDeviceSelection.candidateDeviceID == deviceID else { return }
+
+        connectionTimeoutTask?.cancel()
+        if let connected, connected.identifier == deviceID {
+            self.connected = nil
+            central.cancelPeripheralConnection(connected)
+        }
+        activeScaleID = nil
+        activeScaleName = nil
+        pendingBodyComposition = nil
+        measurementSession.reset()
+        resetActiveProtocolSession()
+        _ = measurementDeviceSelection.advanceAfterFailure(of: deviceID)
+        beginScanning(clearDevices: false)
+        if measurementDeviceSelection.candidateDeviceID == nil {
+            pendingAdvertisementMeasurements.removeValue(forKey: deviceID)
+        } else {
+            activateAutomaticMeasurementCandidate()
+        }
+    }
+
+    private func consumeAdvertisementMeasurement(
+        _ measurement: BodyMeasurement,
+        reliability: MeasurementSampleReliability,
+        deviceID: UUID,
+        deviceName: String?
+    ) {
+        if isMonitoredScale(deviceID) {
+            consume(
+                measurement,
+                reliability: reliability,
+                deviceID: deviceID,
+                deviceName: deviceName
+            )
+        } else if measurementDeviceSelection.isAutomatic,
+                  !measurementDeviceSelection.isLocked,
+                  isAutomaticMeasurementCandidate(deviceID) {
+            pendingAdvertisementMeasurements[deviceID] = PendingAdvertisementMeasurement(
+                measurement: measurement,
+                reliability: reliability,
+                deviceName: deviceName
+            )
+        }
     }
 
     private func allowsBuiltInParser(_ parser: String, for deviceID: UUID) -> Bool {
@@ -278,18 +406,39 @@ final class BluetoothScaleCoordinator: NSObject, ObservableObject {
         return selected
     }
 
-    private func consumeCustomPacket(_ data: Data, rule: CommunicationRule, deviceID: UUID) {
+    private func consumeCustomPacket(
+        _ data: Data,
+        rule: CommunicationRule,
+        deviceID: UUID,
+        canStageAdvertisement: Bool = false
+    ) {
         guard let packet = try? DeclarativeCommunicationRuleParser.parse(data, rule: rule) else { return }
         switch packet {
         case .measurement(let measurement):
-            consume(
-                measurement,
-                reliability: measurement.isStable ? .protocolStable : .requiresStability,
-                deviceID: deviceID,
-                deviceName: pairedScales.names[deviceID]
-            )
+            let reliability: MeasurementSampleReliability = measurement.isStable
+                ? .protocolStable
+                : .requiresStability
+            if canStageAdvertisement {
+                consumeAdvertisementMeasurement(
+                    measurement,
+                    reliability: reliability,
+                    deviceID: deviceID,
+                    deviceName: pairedScales.names[deviceID]
+                )
+            } else {
+                consume(
+                    measurement,
+                    reliability: reliability,
+                    deviceID: deviceID,
+                    deviceName: pairedScales.names[deviceID]
+                )
+            }
         case .weightRemoved:
-            weightWasRemoved()
+            if !canStageAdvertisement || isMonitoredScale(deviceID) {
+                weightWasRemoved()
+            } else {
+                pendingAdvertisementMeasurements.removeValue(forKey: deviceID)
+            }
         }
     }
 
@@ -306,6 +455,8 @@ final class BluetoothScaleCoordinator: NSObject, ObservableObject {
     }
 
     func stopScanning() {
+        measurementDiscoveryWindowTask?.cancel()
+        measurementDiscoveryWindowTask = nil
         scanRequested = false
         central.stopScan()
         if case .scanning = state { state = .idle }
@@ -906,13 +1057,17 @@ final class BluetoothScaleCoordinator: NSObject, ObservableObject {
     }
 
     func connect(_ device: DiscoveredScale) {
+        if case .measuring = scanPurpose {
+            guard isMonitoredScale(device.id),
+                  connected == nil || connected?.identifier == device.id else { return }
+        }
         connectionTimeoutTask?.cancel()
         central.stopScan()
         connected = device.peripheral
         activeScaleID = device.id
         activeScaleName = pairedScales.names[device.id] ?? device.name
         device.peripheral.delegate = self
-        state = .connecting(device.name)
+        state = .connecting(activeScaleName ?? device.name)
         central.connect(device.peripheral)
         if case .measuring = scanPurpose {
             let peripheralID = device.id
@@ -923,13 +1078,20 @@ final class BluetoothScaleCoordinator: NSObject, ObservableObject {
                       case .connecting = self.state else { return }
                 self.central.cancelPeripheralConnection(device.peripheral)
                 self.connected = nil
-                self.beginScanning(clearDevices: false)
+                self.activeScaleID = nil
+                self.activeScaleName = nil
+                self.failAutomaticMeasurementCandidate(peripheralID)
+                if !self.measurementDeviceSelection.isAutomatic {
+                    self.beginScanning(clearDevices: false)
+                }
             }
         }
     }
 
     func disconnect() {
         connectionTimeoutTask?.cancel()
+        measurementDiscoveryWindowTask?.cancel()
+        measurementDiscoveryWindowTask = nil
         if let connected { central.cancelPeripheralConnection(connected) }
         resetActiveProtocolSession()
         connected = nil
@@ -944,8 +1106,11 @@ final class BluetoothScaleCoordinator: NSObject, ObservableObject {
         deviceID: UUID? = nil,
         deviceName: String? = nil
     ) {
+        guard let sourceDeviceID = deviceID ?? activeScaleID,
+              isMonitoredScale(sourceDeviceID),
+              lockMeasurementDevice(sourceDeviceID) else { return }
         var attributed = measurement
-        attributed.deviceID = deviceID ?? activeScaleID
+        attributed.deviceID = sourceDeviceID
         attributed.deviceName = deviceName ?? activeScaleName
 
         if reliability == .protocolStable, let completed = latestMeasurement {
@@ -1591,42 +1756,59 @@ extension BluetoothScaleCoordinator: CBCentralManagerDelegate {
             if isHuaweiHagrid {
                 huaweiHagridDeviceIDs.insert(peripheral.identifier)
             }
+            if case .measuring = scanPurpose {
+                observeAutomaticMeasurementDevice(peripheral.identifier)
+            }
             if case .measuring = scanPurpose,
-               isMonitoredScale(peripheral.identifier) {
+               pairedScales.contains(peripheral.identifier),
+               measurementDeviceSelection.isAutomatic || isMonitoredScale(peripheral.identifier) {
                 if let protocolMatch,
                    allowsBuiltInParser(protocolMatch.descriptor.parserID, for: peripheral.identifier) {
                     switch protocolMatch.packet {
                     case .measurement(let measurement):
-                        consume(
+                        consumeAdvertisementMeasurement(
                             measurement,
                             reliability: measurementReliability(for: protocolMatch.descriptor),
                             deviceID: peripheral.identifier,
                             deviceName: pairedScales.names[peripheral.identifier] ?? peripheral.name
                         )
                     case .weightRemoved:
-                        weightWasRemoved()
+                        if isMonitoredScale(peripheral.identifier) {
+                            weightWasRemoved()
+                        } else {
+                            pendingAdvertisementMeasurements.removeValue(forKey: peripheral.identifier)
+                        }
                     }
                 } else if let custom = selectedRule(for: peripheral.identifier), custom.isDeclarative,
                    custom.match.transport == .advertisementServiceData,
                    let payload = serviceData?.first(where: {
                        CommunicationRuleCodec.normalizeUUID($0.key.uuidString) == custom.match.serviceUUID
                    })?.value {
-                    consumeCustomPacket(payload, rule: custom, deviceID: peripheral.identifier)
+                    consumeCustomPacket(
+                        payload,
+                        rule: custom,
+                        deviceID: peripheral.identifier,
+                        canStageAdvertisement: true
+                    )
                 } else if allowsBuiltInParser("xiaomiLegacyAdvertisement", for: peripheral.identifier),
                           let payload = serviceData?[Self.bodyService] {
-                if let packet = try? XiaomiScaleParser.parsePacket(payload, now: receivedAt) {
-                    switch packet {
-                    case .measurement(let measurement):
-                        consume(
-                            measurement,
-                            reliability: .protocolStable,
-                            deviceID: peripheral.identifier,
-                            deviceName: pairedScales.names[peripheral.identifier] ?? peripheral.name
-                        )
-                    case .weightRemoved:
-                        weightWasRemoved()
+                    if let packet = try? XiaomiScaleParser.parsePacket(payload, now: receivedAt) {
+                        switch packet {
+                        case .measurement(let measurement):
+                            consumeAdvertisementMeasurement(
+                                measurement,
+                                reliability: .protocolStable,
+                                deviceID: peripheral.identifier,
+                                deviceName: pairedScales.names[peripheral.identifier] ?? peripheral.name
+                            )
+                        case .weightRemoved:
+                            if isMonitoredScale(peripheral.identifier) {
+                                weightWasRemoved()
+                            } else {
+                                pendingAdvertisementMeasurements.removeValue(forKey: peripheral.identifier)
+                            }
+                        }
                     }
-                }
                 }
             }
 
@@ -1660,13 +1842,13 @@ extension BluetoothScaleCoordinator: CBCentralManagerDelegate {
 
             if case .measuring = scanPurpose,
                isMonitoredScale(peripheral.identifier),
-               connected?.identifier != peripheral.identifier,
-               pairedScales.automaticHistoryIDs.contains(peripheral.identifier)
-                    || (item.isVerifiedCompatible
+               connected == nil,
+               (pairedScales.automaticHistoryIDs.contains(peripheral.identifier)
+                    || ((item.isVerifiedCompatible
                         || selectedRule(for: peripheral.identifier)?.match.transport == .characteristicNotification)
                         && protocolMatch == nil
                         && (!hasVerifiedXiaomiPayload
-                            || selectedRule(for: peripheral.identifier)?.match.transport == .characteristicNotification) {
+                            || selectedRule(for: peripheral.identifier)?.match.transport == .characteristicNotification))) {
                 connect(item)
             }
         }
@@ -1674,6 +1856,11 @@ extension BluetoothScaleCoordinator: CBCentralManagerDelegate {
 
     nonisolated func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
         Task { @MainActor in
+            if case .measuring = scanPurpose,
+               !lockMeasurementDevice(peripheral.identifier) {
+                central.cancelPeripheralConnection(peripheral)
+                return
+            }
             connectionTimeoutTask?.cancel()
             if settingsScaleID == peripheral.identifier {
                 appendDiagnosticEvent(kind: .service, source: "CONNECTION", summary: "设备已连接")
@@ -1683,7 +1870,7 @@ extension BluetoothScaleCoordinator: CBCentralManagerDelegate {
                 lastHuaweiHagridMeasurementStatus = nil
                 huaweiHagridNotificationAccumulators.removeAll()
             }
-            state = .connected(peripheral.name ?? "体重秤")
+            state = .connected(activeScaleName ?? peripheral.name ?? "体重秤")
             if settingsScaleID == peripheral.identifier {
                 settingsState = .discovering
                 armSettingsTimeout(for: peripheral.identifier)
@@ -1704,8 +1891,12 @@ extension BluetoothScaleCoordinator: CBCentralManagerDelegate {
 
     nonisolated func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: Error?) {
         Task { @MainActor in
-            connectionTimeoutTask?.cancel()
-            connected = nil
+            if connected?.identifier == peripheral.identifier {
+                connectionTimeoutTask?.cancel()
+                connected = nil
+                activeScaleID = nil
+                activeScaleName = nil
+            }
             if settingsScaleID == peripheral.identifier {
                 appendDiagnosticEvent(
                     kind: .error,
@@ -1714,7 +1905,10 @@ extension BluetoothScaleCoordinator: CBCentralManagerDelegate {
                 )
                 settingsState = .failed(error?.localizedDescription ?? "无法连接设备，请唤醒秤后重试")
             } else if case .measuring = scanPurpose, !pairedScales.ids.isEmpty {
-                beginScanning(clearDevices: false)
+                failAutomaticMeasurementCandidate(peripheral.identifier)
+                if !measurementDeviceSelection.isAutomatic {
+                    beginScanning(clearDevices: false)
+                }
             } else {
                 state = .unavailable(error?.localizedDescription ?? "连接失败，请重试")
             }
@@ -1723,8 +1917,8 @@ extension BluetoothScaleCoordinator: CBCentralManagerDelegate {
 
     nonisolated func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
         Task { @MainActor in
-            connectionTimeoutTask?.cancel()
             guard connected?.identifier == peripheral.identifier else { return }
+            connectionTimeoutTask?.cancel()
             let reconnectScale = pendingSettingsReconnect?.id == peripheral.identifier
                 ? pendingSettingsReconnect
                 : nil
@@ -1947,6 +2141,11 @@ extension BluetoothScaleCoordinator: CBPeripheralDelegate {
         }
         guard let data = characteristic.value else { return }
         Task { @MainActor in
+            if settingsScaleID != peripheral.identifier {
+                guard case .measuring = scanPurpose,
+                      isMonitoredScale(peripheral.identifier),
+                      connected?.identifier == peripheral.identifier else { return }
+            }
             if activeProtocolHistoryOrigin != nil,
                let session = activeProtocolSession,
                let serviceUUID = characteristic.service?.uuid.uuidString,
