@@ -522,38 +522,54 @@ private struct FilteredMeasurementRecordsView: View {
 
 struct MeasurementDetailView: View {
     @EnvironmentObject private var store: MeasurementStore
+    @Environment(\.dismiss) private var dismiss
+    @State private var isOwnerDropdownExpanded = false
+    @State private var confirmsDeletion = false
     let measurement: BodyMeasurement
 
+    private var currentMeasurement: BodyMeasurement {
+        store.displayMeasurement(id: measurement.id) ?? measurement
+    }
+
     private var profile: UserProfile {
-        store.displayProfiles.first(where: { $0.id == measurement.profileID }) ?? store.displaySelectedProfile
+        store.displayProfiles.first(where: { $0.id == currentMeasurement.profileID }) ?? store.displaySelectedProfile
     }
 
     private var sourceName: String {
-        if let deviceID = measurement.deviceID,
+        if let deviceID = currentMeasurement.deviceID,
            let scale = store.displayPairedScales.first(where: { $0.id == deviceID }) {
             return scale.name
         }
-        return measurement.deviceName ?? store.appLanguage.text(measurement.source.localizationKey)
+        return currentMeasurement.deviceName ?? store.appLanguage.text(currentMeasurement.source.localizationKey)
     }
 
     var body: some View {
         ScrollView {
             VStack(spacing: 18) {
                 VStack(spacing: 8) {
-                    Text(measurement.date, format: .dateTime.year().month().day().hour().minute())
+                    Text(currentMeasurement.date, format: .dateTime.year().month().day().hour().minute())
                         .font(.subheadline).foregroundStyle(AppColor.secondary)
                     HStack(alignment: .firstTextBaseline, spacing: 6) {
-                        Text(store.unit.value(fromKilograms: measurement.weightKG).formatted(2))
+                        Text(store.unit.value(fromKilograms: currentMeasurement.weightKG).formatted(2))
                             .font(.system(size: 58, weight: .medium, design: .rounded))
                         Text(store.unit.symbol).font(.headline)
                     }
                     ScaleDeviceLabel(title: sourceName, iconSize: 13)
                         .font(.caption).foregroundStyle(AppColor.secondary)
-                    StatusPill(text: profile.name)
+                    AppDropdownField(
+                        value: profile.name,
+                        icon: "person.crop.circle",
+                        accessibilityLabel: "修改记录归属",
+                        isExpanded: isOwnerDropdownExpanded,
+                        appearance: .compact,
+                        onToggle: toggleOwnerDropdown
+                    )
+                    .frame(maxWidth: 240)
+                    .disabled(store.isUsingPlaceholderData)
                 }
                 .padding(.vertical, 28)
                 metricCard(title: "基础指标", metrics: basicMetrics)
-                if measurement.hasBodyComposition {
+                if currentMeasurement.hasBodyComposition {
                     metricCard(title: "身体成分估算", metrics: compositionMetrics)
                     Text("体脂及相关指标是基于生物电阻抗和个人资料的消费级估算值，仅用于日常趋势参考，不构成医疗诊断。")
                         .font(.caption).foregroundStyle(AppColor.secondary).padding(.horizontal)
@@ -570,26 +586,69 @@ struct MeasurementDetailView: View {
         .navigationTitle("测量详情")
         .navigationBarTitleDisplayMode(.inline)
         .localizedNavigationBackButton()
+        .toolbar {
+            if !store.isUsingPlaceholderData {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button(role: .destructive, action: showDeleteConfirmation) {
+                        Image(systemName: "trash")
+                            .foregroundStyle(AppColor.rose)
+                    }
+                    .accessibilityLabel("删除测量记录")
+                }
+            }
+        }
+        .accessibilityHidden(isOwnerDropdownExpanded || confirmsDeletion)
+        .overlayPreferenceValue(AppDropdownAnchorPreferenceKey.self) { anchor in
+            GeometryReader { proxy in
+                if isOwnerDropdownExpanded, let anchor {
+                    AppDropdownMenuLayer(
+                        anchorFrame: proxy[anchor],
+                        availableSize: proxy.size,
+                        options: store.displayProfiles.map(\.id),
+                        isSelected: { $0 == currentMeasurement.profileID },
+                        title: { profileName(for: $0) },
+                        detail: { profileRole(for: $0) },
+                        appearance: .compact,
+                        onSelect: reassignMeasurement,
+                        onDismiss: hideOwnerDropdown
+                    )
+                }
+            }
+        }
+        .overlay {
+            if confirmsDeletion {
+                DestructiveConfirmationOverlay(
+                    icon: "trash.fill",
+                    title: "删除这条测量记录？",
+                    message: "这条测量记录将被永久删除，且无法恢复。",
+                    confirmTitle: "删除测量记录",
+                    onCancel: hideDeleteConfirmation,
+                    onConfirm: deleteMeasurement
+                )
+                .transition(.opacity)
+            }
+        }
+        .interactiveDismissDisabled(isOwnerDropdownExpanded || confirmsDeletion)
     }
 
     private var basicMetrics: [(String, String)] {
-        [("BMI", measurement.bmi(heightCM: profile.heightCM).formatted(2))]
+        [("BMI", currentMeasurement.bmi(heightCM: profile.heightCM).formatted(2))]
     }
 
     private var compositionMetrics: [(String, String)] {
         var metrics: [(String, String)] = []
-        append(measurement.bodyFatPercent, name: "体脂率", suffix: "%", to: &metrics)
-        append(measurement.fatMassKG, name: "脂肪量", suffix: " kg", to: &metrics)
-        append(measurement.musclePercent, name: "肌肉率", suffix: "%", to: &metrics)
-        append(measurement.muscleMassKG, name: "肌肉量", suffix: " kg", to: &metrics)
-        append(measurement.waterPercent, name: "身体水分", suffix: "%", to: &metrics)
-        append(measurement.waterMassKG, name: "水分量", suffix: " kg", to: &metrics)
-        append(measurement.proteinPercent, name: "蛋白质占比", suffix: "%", to: &metrics)
-        append(measurement.proteinMassKG, name: "蛋白质量", suffix: " kg", to: &metrics)
-        append(measurement.bonePercent, name: "骨量占比", suffix: "%", to: &metrics)
-        append(measurement.boneMassKG, name: "骨量", suffix: " kg", to: &metrics)
-        append(measurement.visceralFat, name: "内脏脂肪", suffix: "", to: &metrics)
-        if let value = measurement.basalMetabolismKCal {
+        append(currentMeasurement.bodyFatPercent, name: "体脂率", suffix: "%", to: &metrics)
+        append(currentMeasurement.fatMassKG, name: "脂肪量", suffix: " kg", to: &metrics)
+        append(currentMeasurement.musclePercent, name: "肌肉率", suffix: "%", to: &metrics)
+        append(currentMeasurement.muscleMassKG, name: "肌肉量", suffix: " kg", to: &metrics)
+        append(currentMeasurement.waterPercent, name: "身体水分", suffix: "%", to: &metrics)
+        append(currentMeasurement.waterMassKG, name: "水分量", suffix: " kg", to: &metrics)
+        append(currentMeasurement.proteinPercent, name: "蛋白质占比", suffix: "%", to: &metrics)
+        append(currentMeasurement.proteinMassKG, name: "蛋白质量", suffix: " kg", to: &metrics)
+        append(currentMeasurement.bonePercent, name: "骨量占比", suffix: "%", to: &metrics)
+        append(currentMeasurement.boneMassKG, name: "骨量", suffix: " kg", to: &metrics)
+        append(currentMeasurement.visceralFat, name: "内脏脂肪", suffix: "", to: &metrics)
+        if let value = currentMeasurement.basalMetabolismKCal {
             metrics.append(("基础代谢", "\(value.formatted(2)) kcal"))
         }
         return metrics
@@ -597,13 +656,58 @@ struct MeasurementDetailView: View {
 
     private var rawMetrics: [(String, String)] {
         var metrics: [(String, String)] = []
-        if let value = measurement.impedanceOhm {
+        if let value = currentMeasurement.impedanceOhm {
             metrics.append(("阻抗通道 1", "\(value.formatted(2)) Ω"))
         }
-        if let value = measurement.secondaryImpedanceOhm {
+        if let value = currentMeasurement.secondaryImpedanceOhm {
             metrics.append(("阻抗通道 2", "\(value.formatted(2)) Ω"))
         }
         return metrics
+    }
+
+    private func toggleOwnerDropdown() {
+        withAnimation(.easeOut(duration: 0.18)) {
+            isOwnerDropdownExpanded.toggle()
+        }
+    }
+
+    private func hideOwnerDropdown() {
+        withAnimation(.easeOut(duration: 0.16)) {
+            isOwnerDropdownExpanded = false
+        }
+    }
+
+    private func profileName(for profileID: UUID) -> String {
+        store.displayProfiles.first(where: { $0.id == profileID })?.name ?? ""
+    }
+
+    private func profileRole(for profileID: UUID) -> String? {
+        store.displayProfiles.first(where: { $0.id == profileID })?.role
+    }
+
+    private func reassignMeasurement(to profileID: UUID) {
+        _ = store.reassignMeasurement(measurement.id, to: profileID)
+        hideOwnerDropdown()
+    }
+
+    private func showDeleteConfirmation() {
+        isOwnerDropdownExpanded = false
+        withAnimation(.easeOut(duration: 0.12)) {
+            confirmsDeletion = true
+        }
+    }
+
+    private func hideDeleteConfirmation() {
+        withAnimation(.easeOut(duration: 0.12)) {
+            confirmsDeletion = false
+        }
+    }
+
+    private func deleteMeasurement() {
+        confirmsDeletion = false
+        if store.deleteMeasurement(measurement.id) {
+            dismiss()
+        }
     }
 
     private func append(

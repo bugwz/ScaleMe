@@ -17,9 +17,9 @@ enum RecordFileCodec {
             ("references", references.jsonValue),
             ("columns", .array(columns.map { .string($0) })),
             ("records", .array(try archive.measurements.map { try references.row(for: $0) })),
-            ("deletedRecordIDs", .array(archive.deletedMeasurementIDs
-                .sorted { $0.uuidString < $1.uuidString }
-                .map { .string($0.uuidString) }))
+            ("deletedRecords", .array(try archive.deletedMeasurements
+                .sorted { $0.id.uuidString < $1.id.uuidString }
+                .map(deletedRecordValue)))
         ])
         return Data(value.rendered(prettyPrinted: prettyPrinted).utf8)
     }
@@ -42,6 +42,16 @@ enum RecordFileCodec {
     fileprivate static func numberValue(_ value: Double?) throws -> OrderedJSONValue {
         guard let value else { return .null }
         return .number(try numberString(value))
+    }
+
+    private static func deletedRecordValue(_ marker: DeletedMeasurementMarker) throws -> OrderedJSONValue {
+        .object([
+            ("id", .string(marker.id.uuidString)),
+            ("date", try dateValue(marker.date)),
+            ("weightKG", try numberValue(marker.weightKG)),
+            ("source", .string(marker.source.rawValue)),
+            ("deviceID", marker.deviceID.map { .string($0.uuidString) } ?? .null)
+        ])
     }
 
     private static func numberString(_ value: Double) throws -> String {
@@ -134,7 +144,7 @@ private struct RecordDocument: Decodable {
     var references: ReferenceDocument
     var columns: [String]
     var records: [RecordRow]
-    var deletedRecordIDs: Set<UUID>
+    var deletedRecords: Set<DeletedMeasurementMarker>
 
     func archive() throws -> MeasurementArchive {
         guard columns == RecordFileCodec.columns else {
@@ -168,7 +178,7 @@ private struct RecordDocument: Decodable {
         return MeasurementArchive(
             updatedAt: updatedAt,
             measurements: entries,
-            deletedMeasurementIDs: deletedRecordIDs
+            deletedMeasurements: deletedRecords
         )
     }
 

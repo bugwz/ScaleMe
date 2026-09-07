@@ -4,7 +4,7 @@ import Foundation
 final class MeasurementStore: ObservableObject {
     private static let placeholderProfileID = UUID()
     @Published private(set) var measurements: [BodyMeasurement]
-    @Published private(set) var deletedMeasurementIDs: Set<UUID>
+    @Published private(set) var deletedMeasurements: Set<DeletedMeasurementMarker>
     @Published private(set) var profiles: [UserProfile] { didSet { persistConfigurationIfNeeded() } }
     @Published private(set) var selectedProfileID: UUID
     @Published private(set) var pairedScales: [PairedScale] { didSet { persistConfigurationIfNeeded() } }
@@ -43,7 +43,7 @@ final class MeasurementStore: ObservableObject {
     @Published private var simulationAppleHealthDeviceIDs: Set<UUID>
     @Published private var simulationIsAppleHealthImportEnabled: Bool
     @Published private var simulationAppleHealthReadTypes: Set<AppleHealthDataType>
-    @Published private var simulationDeletedMeasurementIDs: Set<UUID>
+    @Published private var simulationDeletedMeasurements: Set<DeletedMeasurementMarker>
     private var simulationArchiveUpdatedAt: Date
     private var simulationCommunicationRuleImportSequence = SimulationCommunicationRuleImportSequence()
     private var configurationBeforeSimulation: AppConfiguration?
@@ -98,7 +98,7 @@ final class MeasurementStore: ObservableObject {
         simulationAppleHealthDeviceIDs = []
         simulationIsAppleHealthImportEnabled = false
         simulationAppleHealthReadTypes = Set(AppleHealthDataType.allCases)
-        simulationDeletedMeasurementIDs = []
+        simulationDeletedMeasurements = []
         simulationArchiveUpdatedAt = .distantPast
         isSimulationHistoryLoaded = false
         profiles = loadedConfiguration.profiles
@@ -124,7 +124,7 @@ final class MeasurementStore: ObservableObject {
         widgetTimeRange = loadedConfiguration.widgetTimeRange
         widgetDisplayStyle = loadedConfiguration.widgetDisplayStyle
         measurements = loadedArchive.measurements.sorted { $0.date > $1.date }
-        deletedMeasurementIDs = loadedArchive.deletedMeasurementIDs
+        deletedMeasurements = loadedArchive.deletedMeasurements
         archiveUpdatedAt = loadedArchive.updatedAt
         storageError = initialError
         latestHealthShareCandidate = nil
@@ -162,7 +162,7 @@ final class MeasurementStore: ObservableObject {
         MeasurementArchive(
             updatedAt: archiveUpdatedAt,
             measurements: measurements,
-            deletedMeasurementIDs: deletedMeasurementIDs
+            deletedMeasurements: deletedMeasurements
         )
     }
 
@@ -194,7 +194,7 @@ final class MeasurementStore: ObservableObject {
         return MeasurementArchive(
             updatedAt: simulationArchiveUpdatedAt,
             measurements: simulationData.measurements,
-            deletedMeasurementIDs: simulationDeletedMeasurementIDs
+            deletedMeasurements: simulationDeletedMeasurements
         )
     }
 
@@ -285,6 +285,56 @@ final class MeasurementStore: ObservableObject {
         }
     }
 
+    func displayMeasurement(id: UUID) -> BodyMeasurement? {
+        if isSimulationEnabled {
+            return simulationData.measurements.first(where: { $0.id == id })
+        }
+        if let measurement = measurements.first(where: { $0.id == id }) {
+            return measurement
+        }
+        guard isUsingPlaceholderData else { return nil }
+        return Self.demoMeasurements.first(where: { $0.id == id })
+    }
+
+    @discardableResult
+    func reassignMeasurement(_ measurementID: UUID, to profileID: UUID) -> Bool {
+        if isSimulationEnabled {
+            guard simulationData.profiles.contains(where: { $0.id == profileID }),
+                  let index = simulationData.measurements.firstIndex(where: { $0.id == measurementID }),
+                  simulationData.measurements[index].profileID != profileID else { return false }
+            simulationData.measurements[index].profileID = profileID
+            simulationArchiveUpdatedAt = .now
+            return true
+        }
+
+        guard profiles.contains(where: { $0.id == profileID }),
+              let index = measurements.firstIndex(where: { $0.id == measurementID }),
+              measurements[index].profileID != profileID else { return false }
+        measurements[index].profileID = profileID
+        persistArchive()
+        return true
+    }
+
+    @discardableResult
+    func deleteMeasurement(_ measurementID: UUID) -> Bool {
+        if isSimulationEnabled {
+            guard let deleted = simulationData.measurements.first(where: { $0.id == measurementID }) else { return false }
+            simulationDeletedMeasurements.insert(DeletedMeasurementMarker(deleted))
+            simulationData.measurements.removeAll { $0.id == measurementID }
+            simulationArchiveUpdatedAt = .now
+            return true
+        }
+
+        guard let deleted = measurements.first(where: { $0.id == measurementID }) else { return false }
+        deletedMeasurements.insert(DeletedMeasurementMarker(deleted))
+        measurements.removeAll { $0.id == measurementID }
+        if latestHealthShareCandidate?.id == measurementID {
+            latestHealthShareCandidate = nil
+        }
+        persistArchive()
+        return true
+    }
+
     func add(_ measurement: BodyMeasurement) {
         if isSimulationEnabled {
             addSimulationMeasurement(measurement)
@@ -305,12 +355,12 @@ final class MeasurementStore: ObservableObject {
            first.deviceID == enriched.deviceID,
            first.source == enriched.source,
            abs(first.date.timeIntervalSince(enriched.date)) < 30 {
-            deletedMeasurementIDs.insert(first.id)
+            deletedMeasurements.insert(DeletedMeasurementMarker(first))
             measurements[0] = enriched
         } else {
             measurements.insert(enriched, at: 0)
         }
-        deletedMeasurementIDs.remove(enriched.id)
+        deletedMeasurements = Set(deletedMeasurements.filter { $0.id != enriched.id })
         persistArchive()
         latestHealthShareCandidate = attributed
     }
@@ -320,7 +370,7 @@ final class MeasurementStore: ObservableObject {
         guard !isSimulationEnabled,
               isAppleHealthImportEnabled,
               let currentUser = profiles.first(where: { $0.role == "本人" }) else { return 0 }
-        let existingIDs = Set(measurements.map(\.id)).union(deletedMeasurementIDs)
+        let existingIDs = Set(measurements.map(\.id)).union(deletedMeasurements.map(\.id))
         let newMeasurements = importedMeasurements.compactMap { measurement -> BodyMeasurement? in
             guard !existingIDs.contains(measurement.id), measurement.source == .appleHealth else { return nil }
             var attributed = measurement
@@ -344,7 +394,8 @@ final class MeasurementStore: ObservableObject {
         let plan = DeviceHistoryMatcher.plan(
             history: history,
             profiles: profiles,
-            existingMeasurements: measurements
+            existingMeasurements: measurements,
+            deletedMeasurements: deletedMeasurements
         )
         for measurement in plan.attributedMeasurements {
             var attributed = measurement
@@ -733,13 +784,17 @@ final class MeasurementStore: ObservableObject {
             let idsToDelete = Set(offsets.compactMap { offset in
                 visibleMeasurements.indices.contains(offset) ? visibleMeasurements[offset].id : nil
             })
-            simulationDeletedMeasurementIDs.formUnion(idsToDelete)
+            simulationDeletedMeasurements.formUnion(
+                simulationData.measurements
+                    .filter { idsToDelete.contains($0.id) }
+                    .map(DeletedMeasurementMarker.init)
+            )
             simulationData.measurements.removeAll { idsToDelete.contains($0.id) }
             simulationArchiveUpdatedAt = .now
             return
         }
         for offset in offsets where measurements.indices.contains(offset) {
-            deletedMeasurementIDs.insert(measurements[offset].id)
+            deletedMeasurements.insert(DeletedMeasurementMarker(measurements[offset]))
         }
         measurements.remove(atOffsets: offsets)
         persistArchive()
@@ -799,13 +854,15 @@ final class MeasurementStore: ObservableObject {
         let normalized = MeasurementArchive(
             updatedAt: archive.updatedAt,
             measurements: archive.measurements
-                .filter { !archive.deletedMeasurementIDs.contains($0.id) }
+                .filter { measurement in
+                    !archive.deletedMeasurements.contains(where: { $0.matches(measurement) })
+                }
                 .sorted { $0.date > $1.date },
-            deletedMeasurementIDs: archive.deletedMeasurementIDs
+            deletedMeasurements: archive.deletedMeasurements
         )
         guard normalized != self.archive else { return }
         measurements = normalized.measurements
-        deletedMeasurementIDs = normalized.deletedMeasurementIDs
+        deletedMeasurements = normalized.deletedMeasurements
         archiveUpdatedAt = normalized.updatedAt
         persistArchive(markAsChanged: false)
     }
@@ -824,7 +881,7 @@ final class MeasurementStore: ObservableObject {
             } else {
                 try persistenceWriter.deleteArchive()
                 measurements = []
-                deletedMeasurementIDs = []
+                deletedMeasurements = []
                 archiveUpdatedAt = .distantPast
                 latestHealthShareCandidate = nil
             }
@@ -866,7 +923,7 @@ final class MeasurementStore: ObservableObject {
         widgetTimeRange = defaults.widgetTimeRange
         widgetDisplayStyle = defaults.widgetDisplayStyle
         measurements = []
-        deletedMeasurementIDs = []
+        deletedMeasurements = []
         archiveUpdatedAt = .distantPast
         latestHealthShareCandidate = nil
 
@@ -880,7 +937,7 @@ final class MeasurementStore: ObservableObject {
         simulationAppleHealthDeviceIDs = []
         simulationIsAppleHealthImportEnabled = false
         simulationAppleHealthReadTypes = defaults.appleHealthReadTypes
-        simulationDeletedMeasurementIDs = []
+        simulationDeletedMeasurements = []
         simulationArchiveUpdatedAt = .distantPast
         simulationCommunicationRuleImportSequence = SimulationCommunicationRuleImportSequence()
         isApplyingExternalState = false
@@ -923,13 +980,15 @@ final class MeasurementStore: ObservableObject {
         let normalized = MeasurementArchive(
             updatedAt: archive.updatedAt,
             measurements: archive.measurements
-                .filter { !archive.deletedMeasurementIDs.contains($0.id) }
+                .filter { measurement in
+                    !archive.deletedMeasurements.contains(where: { $0.matches(measurement) })
+                }
                 .sorted { $0.date > $1.date },
-            deletedMeasurementIDs: archive.deletedMeasurementIDs
+            deletedMeasurements: archive.deletedMeasurements
         )
         guard normalized != currentArchive else { return }
         simulationData.measurements = normalized.measurements
-        simulationDeletedMeasurementIDs = normalized.deletedMeasurementIDs
+        simulationDeletedMeasurements = normalized.deletedMeasurements
         simulationArchiveUpdatedAt = normalized.updatedAt
         isSimulationHistoryLoaded = true
         simulationDataLoadGeneration += 1
@@ -1061,7 +1120,7 @@ final class MeasurementStore: ObservableObject {
         } else {
             simulationData.measurements.append(enriched)
         }
-        simulationDeletedMeasurementIDs.remove(enriched.id)
+        simulationDeletedMeasurements = Set(simulationDeletedMeasurements.filter { $0.id != enriched.id })
         simulationData.measurements.sort { $0.date > $1.date }
         simulationArchiveUpdatedAt = .now
     }

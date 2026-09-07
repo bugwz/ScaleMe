@@ -126,13 +126,13 @@ struct LocalDataTransferSmoke {
         let archive = MeasurementArchive(
             updatedAt: manualRecord.date,
             measurements: [measurement, manualRecord],
-            deletedMeasurementIDs: []
+            deletedMeasurements: []
         )
         let recordFile = try service.exportRecords(archive)
         let recordJSON = String(decoding: recordFile, as: UTF8.self)
         assertOrderedKeys(
             in: recordJSON,
-            keys: ["schemaVersion", "updatedAt", "references", "columns", "records", "deletedRecordIDs"]
+            keys: ["schemaVersion", "updatedAt", "references", "columns", "records", "deletedRecords"]
         )
         let exportedObject = try JSONSerialization.jsonObject(with: recordFile) as? [String: Any]
         precondition(exportedObject?["schemaVersion"] as? Int == 1)

@@ -52,6 +52,27 @@ enum DeviceHistoryMatcherSmoke {
         )
         precondition(fallback.attributedMeasurements.first?.profileID == heavyID,
                      "没有历史轨迹时应使用成员参考体重")
+
+        let deletedRecord = measurement(
+            date: referenceDate.addingTimeInterval(-345_600),
+            weightKG: 61.4,
+            deviceID: deviceID
+        )
+        let redownloadedRecord = measurement(
+            date: deletedRecord.date,
+            weightKG: deletedRecord.weightKG,
+            deviceID: deviceID
+        )
+        precondition(deletedRecord.id != redownloadedRecord.id)
+        let deletedPlan = DeviceHistoryMatcher.plan(
+            history: [redownloadedRecord],
+            profiles: profiles,
+            existingMeasurements: [],
+            deletedMeasurements: [DeletedMeasurementMarker(deletedRecord)]
+        )
+        precondition(deletedPlan.summary.importedCount == 0)
+        precondition(deletedPlan.summary.duplicateCount == 1)
+        precondition(deletedPlan.summary.unmatchedCount == 0)
     }
 
     private static func measurement(

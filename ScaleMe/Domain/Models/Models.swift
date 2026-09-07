@@ -69,7 +69,7 @@ enum WidgetTrendDisplayStyle: String, Codable, CaseIterable, Identifiable {
     }
 }
 
-enum MeasurementSource: String, Codable {
+enum MeasurementSource: String, Codable, Hashable {
     case xiaomi
     case wolaiAFU
     case senssunIF2121
@@ -94,6 +94,32 @@ enum MeasurementSource: String, Codable {
         case .appleHealth: "Apple 健康"
         case .demo: "示例数据"
         }
+    }
+}
+
+struct DeletedMeasurementMarker: Codable, Hashable {
+    var id: UUID
+    var date: Date
+    var weightKG: Double
+    var source: MeasurementSource
+    var deviceID: UUID?
+
+    init(_ measurement: BodyMeasurement) {
+        id = measurement.id
+        date = measurement.date
+        weightKG = measurement.weightKG
+        source = measurement.source
+        deviceID = measurement.deviceID
+    }
+
+    func matches(_ measurement: BodyMeasurement) -> Bool {
+        if measurement.id == id { return true }
+        guard abs(measurement.date.timeIntervalSince(date)) < 2,
+              abs(measurement.weightKG - weightKG) < 0.02 else { return false }
+        if let deviceID, let measurementDeviceID = measurement.deviceID {
+            return measurementDeviceID == deviceID
+        }
+        return measurement.source == source
     }
 }
 
@@ -456,20 +482,20 @@ enum AppAppearance: String, CaseIterable, Codable, Identifiable {
 struct MeasurementArchive: Codable, Equatable {
     var updatedAt: Date
     var measurements: [BodyMeasurement]
-    var deletedMeasurementIDs: Set<UUID>
+    var deletedMeasurements: Set<DeletedMeasurementMarker>
 
     static let empty = MeasurementArchive(
         updatedAt: .distantPast,
         measurements: [],
-        deletedMeasurementIDs: []
+        deletedMeasurements: []
     )
 
     func merging(_ other: MeasurementArchive) -> MeasurementArchive {
-        let tombstones = deletedMeasurementIDs.union(other.deletedMeasurementIDs)
+        let tombstones = deletedMeasurements.union(other.deletedMeasurements)
         let candidates = measurements + other.measurements
         var recordsByID: [UUID: BodyMeasurement] = [:]
 
-        for measurement in candidates where !tombstones.contains(measurement.id) {
+        for measurement in candidates where !tombstones.contains(where: { $0.matches(measurement) }) {
             if let existing = recordsByID[measurement.id], existing.date >= measurement.date {
                 continue
             }
@@ -479,7 +505,7 @@ struct MeasurementArchive: Codable, Equatable {
         return MeasurementArchive(
             updatedAt: max(updatedAt, other.updatedAt),
             measurements: recordsByID.values.sorted { $0.date > $1.date },
-            deletedMeasurementIDs: tombstones
+            deletedMeasurements: tombstones
         )
     }
 }

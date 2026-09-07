@@ -34,7 +34,8 @@ struct DeviceHistoryMatcher {
     static func plan(
         history: [BodyMeasurement],
         profiles: [UserProfile],
-        existingMeasurements: [BodyMeasurement]
+        existingMeasurements: [BodyMeasurement],
+        deletedMeasurements: Set<DeletedMeasurementMarker> = []
     ) -> DeviceHistoryImportPlan {
         guard !profiles.isEmpty else {
             return DeviceHistoryImportPlan(
@@ -55,7 +56,8 @@ struct DeviceHistoryMatcher {
         // Remove duplicates before matching so repeated imports are idempotent
         // even when a protocol creates a fresh UUID for every decoded record.
         for measurement in history.sorted(by: { $0.date > $1.date }) {
-            if knownMeasurements.contains(where: { isDuplicate(measurement, of: $0) })
+            if deletedMeasurements.contains(where: { $0.matches(measurement) })
+                || knownMeasurements.contains(where: { isDuplicate(measurement, of: $0) })
                 || pending.contains(where: { isDuplicate(measurement, of: $0) }) {
                 duplicateCount += 1
                 continue

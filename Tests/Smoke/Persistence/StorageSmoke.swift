@@ -29,12 +29,12 @@ enum StorageSmoke {
         let local = MeasurementArchive(
             updatedAt: .now,
             measurements: [retained],
-            deletedMeasurementIDs: [removed.id]
+            deletedMeasurements: [DeletedMeasurementMarker(removed)]
         )
         let incomingArchive = MeasurementArchive(
             updatedAt: .now.addingTimeInterval(-30),
             measurements: [removed],
-            deletedMeasurementIDs: []
+            deletedMeasurements: []
         )
         let merged = local.merging(incomingArchive)
 
@@ -52,7 +52,7 @@ enum StorageSmoke {
         let conflictVersion = MeasurementArchive(
             updatedAt: .now.addingTimeInterval(-10),
             measurements: [conflictRecord, retained],
-            deletedMeasurementIDs: [retained.id]
+            deletedMeasurements: [DeletedMeasurementMarker(retained)]
         )
         let conflictMerged = merged.merging(conflictVersion)
 
@@ -127,7 +127,7 @@ enum StorageSmoke {
         let persistedArchive = MeasurementArchive(
             updatedAt: .now,
             measurements: [manualMeasurement, retained],
-            deletedMeasurementIDs: [removed.id]
+            deletedMeasurements: [DeletedMeasurementMarker(removed)]
         )
         try repository.saveArchive(persistedArchive)
         let storedRecordData = try Data(
