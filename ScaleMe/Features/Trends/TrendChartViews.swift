@@ -208,7 +208,11 @@ struct ExpandedTrendChartView: View {
                     Image(systemName: "xmark")
                         .font(.body.weight(.semibold))
                         .frame(width: 40, height: 40)
-                        .background(.white, in: Circle())
+                        .background(AppColor.paleMint, in: Circle())
+                        .overlay(
+                            Circle()
+                                .stroke(AppColor.mint.opacity(0.18), lineWidth: 1)
+                        )
                 }
                 .buttonStyle(.plain)
                 .foregroundStyle(AppColor.ink)
