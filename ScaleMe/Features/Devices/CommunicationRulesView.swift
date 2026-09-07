@@ -12,15 +12,15 @@ struct CommunicationRulesView: View {
                 SettingsPanel(title: "内置协议", icon: "checkmark.seal.fill") {
                     builtInGroupLink(
                         title: "可执行协议",
-                        detail: "已完整实现并具有明确验证依据",
+                        detail: "已实现并验证",
                         icon: "checkmark.circle.fill",
                         color: AppColor.mint,
                         rules: CommunicationRuleCatalog.confirmedExecutableBuiltIn
                     )
                     SettingsSeparator()
                     builtInGroupLink(
-                        title: "待完善或验证的协议",
-                        detail: "实现、验证或运行条件尚未完整确认",
+                        title: "待完善协议",
+                        detail: "待完善或验证",
                         icon: "wrench.and.screwdriver.fill",
                         color: AppColor.apricot,
                         rules: CommunicationRuleCatalog.pendingBuiltIn
