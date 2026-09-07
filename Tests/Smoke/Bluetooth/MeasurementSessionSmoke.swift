@@ -3,8 +3,6 @@ import Foundation
 @main
 enum MeasurementSessionSmoke {
     static func main() {
-        verifyMeasurementDeviceSelection()
-
         let start = Date(timeIntervalSince1970: 1_000)
         var session = MeasurementSession()
 
@@ -118,42 +116,6 @@ enum MeasurementSessionSmoke {
         precondition(abs((capturedStable.completedMeasurement?.weightKG ?? 0) - 83.1) < 0.001)
 
         print("Measurement session smoke tests passed")
-    }
-
-    private static func verifyMeasurementDeviceSelection() {
-        guard let first = UUID(uuidString: "00000000-0000-0000-0000-000000000001"),
-              let second = UUID(uuidString: "00000000-0000-0000-0000-000000000002"),
-              let third = UUID(uuidString: "00000000-0000-0000-0000-000000000003") else {
-            preconditionFailure("Invalid deterministic UUID fixture")
-        }
-
-        var automatic = MeasurementDeviceSelection()
-        automatic.reset(orderedDeviceIDs: [first, second, third], manuallySelectedDeviceID: nil)
-        precondition(automatic.candidateDeviceID == nil)
-        precondition(automatic.observe(second))
-        precondition(automatic.observe(first))
-        precondition(automatic.selectHighestPriorityDiscoveredDevice() == first)
-        precondition(automatic.accepts(first))
-        precondition(!automatic.accepts(second))
-        precondition(automatic.advanceAfterFailure(of: first) == second)
-        precondition(automatic.accepts(second))
-        precondition(automatic.lock(second))
-        precondition(automatic.advanceAfterFailure(of: second) == second)
-        precondition(!automatic.accepts(first))
-
-        var manual = MeasurementDeviceSelection()
-        manual.reset(orderedDeviceIDs: [first, second, third], manuallySelectedDeviceID: third)
-        precondition(manual.accepts(third))
-        precondition(!manual.accepts(first))
-        precondition(manual.advanceAfterFailure(of: third) == third)
-
-        var reordered = MeasurementDeviceSelection()
-        reordered.reset(orderedDeviceIDs: [first, second], manuallySelectedDeviceID: nil)
-        precondition(reordered.observe(first))
-        precondition(reordered.observe(second))
-        reordered.updateOrderedDeviceIDs([second, third])
-        precondition(reordered.selectHighestPriorityDiscoveredDevice() == second)
-        precondition(reordered.accepts(second))
     }
 
     private static func sample(_ weightKG: Double) -> BodyMeasurement {

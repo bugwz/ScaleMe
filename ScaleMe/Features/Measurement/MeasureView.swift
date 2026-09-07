@@ -28,8 +28,7 @@ struct MeasureView: View {
     @State private var simulatedWeightKG: Double?
     @State private var simulationMeasurementTask: Task<Void, Never>?
     @State private var detailMeasurement: BodyMeasurement?
-    @State private var displayedActualWeightKG: Double?
-    @State private var actualWeightPresentationTask: Task<Void, Never>?
+    @State private var statusPresentation = MeasurementStatusPresentation()
     let scrollToTopRequest: Int
 
     private var liveMeasurement: BodyMeasurement? {
@@ -37,7 +36,8 @@ struct MeasureView: View {
             guard simulationState == .completed else { return nil }
             return store.latest
         }
-        guard !store.isUsingPlaceholderData, bluetooth.state == .completed else { return nil }
+        guard isMeasurementViewActive, !store.isUsingPlaceholderData,
+              bluetooth.state == .completed else { return nil }
         return bluetooth.latestMeasurement.map {
             BodyCompositionEstimator.enriching($0, profile: store.displaySelectedProfile)
         }
@@ -112,20 +112,18 @@ struct MeasureView: View {
                 MeasurementDetailView(measurement: measurement)
             }
             .onAppear {
-                isMeasurementViewActive = true
                 isPulsing = true
                 if store.isSimulationEnabled {
                     resetSimulatedMeasurement()
-                } else if !store.isUsingPlaceholderData {
-                    displayedActualWeightKG = bluetooth.liveWeightKG
+                } else {
                     startMeasurementMonitoring()
                 }
+                isMeasurementViewActive = true
             }
             .onDisappear {
                 isMeasurementViewActive = false
                 isPulsing = false
                 simulationMeasurementTask?.cancel()
-                actualWeightPresentationTask?.cancel()
                 bluetooth.stopScanning()
             }
             .onChange(of: store.pairedScales) {
@@ -141,13 +139,10 @@ struct MeasureView: View {
             .onChange(of: store.isSimulationEnabled) { _, isEnabled in
                 if isEnabled {
                     bluetooth.stopScanning()
-                    actualWeightPresentationTask?.cancel()
-                    displayedActualWeightKG = nil
                     resetSimulatedMeasurement()
                 } else {
                     simulationMeasurementTask?.cancel()
                     simulatedWeightKG = nil
-                    displayedActualWeightKG = bluetooth.liveWeightKG
                     if let selectedScaleID,
                        !store.pairedScales.contains(where: { $0.id == selectedScaleID }) {
                         self.selectedScaleID = nil
@@ -172,12 +167,16 @@ struct MeasureView: View {
                     startMeasurementMonitoring()
                 }
             }
-            .onChange(of: bluetooth.liveWeightKG) { _, weightKG in
-                guard isMeasurementViewActive, !store.isSimulationEnabled else { return }
-                presentActualWeight(weightKG)
-            }
             .onChange(of: displayedMeasurementState) { _, state in
-                announceMeasurementState(state)
+                if store.isSimulationEnabled {
+                    announceMeasurementState(state)
+                } else {
+                    let previous = statusPresentation.state
+                    statusPresentation.receive(state)
+                    if statusPresentation.state != previous {
+                        announceMeasurementState(statusPresentation.state)
+                    }
+                }
             }
             .accessibilityAnnounceChanges(store.storageError)
         }
@@ -297,7 +296,7 @@ struct MeasureView: View {
                     HStack(alignment: .firstTextBaseline, spacing: 5) {
                         Text(liveWeightText)
                             .font(.system(size: 54, weight: .medium, design: .rounded))
-                            .contentTransition(.numericText())
+                            .contentTransition(store.isSimulationEnabled ? .numericText() : .identity)
                         if hasLiveWeight {
                             Text(store.unit.symbol).font(.headline)
                         }
@@ -423,9 +422,9 @@ struct MeasureView: View {
     }
 
     private func startMeasurementMonitoring() {
+        statusPresentation.reset()
         guard !store.isUsingPlaceholderData else {
             bluetooth.stopScanning()
-            displayedActualWeightKG = nil
             return
         }
         bluetooth.startMeasurementMonitoring(
@@ -433,13 +432,17 @@ struct MeasureView: View {
             selectedScaleID: selectedScaleID,
             profile: store.displaySelectedProfile
         )
+        statusPresentation.receive(bluetooth.state)
+    }
+
+    private var displayedWeightKG: Double? {
+        if store.isSimulationEnabled { return simulatedDisplayWeightKG }
+        guard isMeasurementViewActive, !store.isUsingPlaceholderData else { return nil }
+        return bluetooth.liveWeightKG
     }
 
     private var liveWeightText: String {
-        if store.isSimulationEnabled, let weightKG = simulatedDisplayWeightKG {
-            return store.unit.value(fromKilograms: weightKG).formatted(2)
-        }
-        guard let weightKG = displayedActualWeightKG else { return "— —" }
+        guard let weightKG = displayedWeightKG else { return "— —" }
         return store.unit.value(fromKilograms: weightKG).formatted(2)
     }
 
@@ -447,11 +450,13 @@ struct MeasureView: View {
         if store.isSimulationEnabled { return simulationState.title(in: store.appLanguage) }
         if store.isUsingPlaceholderData { return "需要成员资料" }
         if store.pairedScales.isEmpty { return "请先在“设备”页添加体重秤" }
-        return bluetooth.state.title(in: store.appLanguage)
+        return statusPresentation.state.title(in: store.appLanguage)
     }
 
     private var displayedMeasurementState: BluetoothScaleState {
-        store.isSimulationEnabled ? simulationState : bluetooth.state
+        if store.isSimulationEnabled { return simulationState }
+        guard isMeasurementViewActive, !store.isUsingPlaceholderData else { return .idle }
+        return bluetooth.state
     }
 
     private var simulatedDisplayWeightKG: Double? {
@@ -464,7 +469,7 @@ struct MeasureView: View {
     }
 
     private var hasLiveWeight: Bool {
-        store.isSimulationEnabled ? simulatedDisplayWeightKG != nil : displayedActualWeightKG != nil
+        displayedWeightKG != nil
     }
 
     private var measurementStageAccessibilityValue: String {
@@ -619,40 +624,9 @@ struct MeasureView: View {
     private func waitForSimulation(milliseconds: Int) async -> Bool {
         do {
             try await Task.sleep(for: .milliseconds(milliseconds))
-            return !Task.isCancelled
+            return !Task.isCancelled && store.isSimulationEnabled && isMeasurementViewActive
         } catch {
             return false
-        }
-    }
-
-    private func presentActualWeight(_ targetWeightKG: Double?) {
-        actualWeightPresentationTask?.cancel()
-        guard let targetWeightKG else {
-            displayedActualWeightKG = nil
-            return
-        }
-        guard !reduceMotion else {
-            displayedActualWeightKG = targetWeightKG
-            return
-        }
-
-        if displayedActualWeightKG != nil {
-            withAnimation(.easeOut(duration: 0.12)) {
-                displayedActualWeightKG = targetWeightKG
-            }
-            return
-        }
-
-        displayedActualWeightKG = targetWeightKG * 0.94
-        actualWeightPresentationTask = Task { @MainActor in
-            do {
-                try await Task.sleep(for: .milliseconds(110))
-            } catch {
-                return
-            }
-            withAnimation(.easeOut(duration: 0.12)) {
-                displayedActualWeightKG = targetWeightKG
-            }
         }
     }
 

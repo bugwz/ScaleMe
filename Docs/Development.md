@@ -76,6 +76,19 @@ swiftc -module-cache-path /tmp/scaleme-swift-module-cache \
 
 按改动范围还可运行以下测试入口：
 
+圆圈下方测量提示的优先级与多设备提示防抖可单独验证：
+
+```sh
+swiftc -module-cache-path /tmp/scaleme-swift-module-cache \
+  @Tests/Smoke/Bluetooth/ProtocolSources.rsp \
+  ScaleMe/Domain/Measurements/DeviceHistoryMatcher.swift \
+  ScaleMe/Infrastructure/Bluetooth/BluetoothScaleState.swift \
+  ScaleMe/Features/Measurement/MeasurementStatusPresentation.swift \
+  Tests/Smoke/Features/MeasurementStatusSmoke.swift \
+  -o /tmp/scaleme-measurement-status-smoke
+/tmp/scaleme-measurement-status-smoke
+```
+
 | 范围 | 测试文件 |
 | --- | --- |
 | 测量稳定与完成态 | `Tests/Smoke/Bluetooth/MeasurementSessionSmoke.swift` |
