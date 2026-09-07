@@ -260,7 +260,6 @@ struct CommunicationRuleTags: View {
         case .executable: AppColor.mint
         case .experimental: AppColor.sky
         case .protocolSkeleton: AppColor.apricot
-        case .unsupportedPlatform: AppColor.rose
         }
     }
 
@@ -269,7 +268,6 @@ struct CommunicationRuleTags: View {
         case .characteristicNotification: AppColor.mint
         case .advertisementServiceData: AppColor.sky
         case .advertisementManufacturerData: AppColor.violet
-        case .classicSPP: AppColor.rose
         }
     }
 }
@@ -818,6 +816,5 @@ private func transportTitle(_ transport: CommunicationTransport) -> String {
     case .advertisementServiceData: "服务广播数据"
     case .advertisementManufacturerData: "厂商广播数据"
     case .characteristicNotification: "GATT特征通知"
-    case .classicSPP: "经典蓝牙串口"
     }
 }

@@ -54,7 +54,6 @@ ScaleMe/Infrastructure/Bluetooth/Protocols/Hoffen/HoffenPendingProtocols.swift
 ScaleMe/Infrastructure/Bluetooth/Protocols/Huawei/HuaweiPendingProtocols.swift
 ScaleMe/Infrastructure/Bluetooth/Protocols/Hume/HumePendingProtocols.swift
 ScaleMe/Infrastructure/Bluetooth/Protocols/Hutbit/HutbitPendingProtocols.swift
-ScaleMe/Infrastructure/Bluetooth/Protocols/IHealth/IHealthPendingProtocols.swift
 ScaleMe/Infrastructure/Bluetooth/Protocols/Inlife/InlifePendingProtocols.swift
 ScaleMe/Infrastructure/Bluetooth/Protocols/Keep/KeepPendingProtocols.swift
 ScaleMe/Infrastructure/Bluetooth/Protocols/Koogeek/KoogeekPendingProtocols.swift

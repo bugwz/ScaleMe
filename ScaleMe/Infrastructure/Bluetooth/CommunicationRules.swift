@@ -30,14 +30,12 @@ enum ProtocolImplementationLevel: String, Codable, CaseIterable {
     case executable
     case experimental
     case protocolSkeleton
-    case unsupportedPlatform
 
     var title: String {
         switch self {
         case .executable: "可执行"
         case .experimental: "实验性"
         case .protocolSkeleton: "协议骨架"
-        case .unsupportedPlatform: "平台不支持"
         }
     }
 
@@ -57,7 +55,6 @@ enum ProtocolRuntimeRequirement: String, Codable, CaseIterable, Hashable {
     case multiFrameSession
     case historyStateMachine
     case keepAlive
-    case classicBluetooth
 
     var title: String {
         switch self {
@@ -71,7 +68,6 @@ enum ProtocolRuntimeRequirement: String, Codable, CaseIterable, Hashable {
         case .multiFrameSession: "需要多帧状态机"
         case .historyStateMachine: "需要历史记录状态机"
         case .keepAlive: "需要持续保活"
-        case .classicBluetooth: "需要经典蓝牙"
         }
     }
 }
@@ -80,7 +76,6 @@ enum CommunicationTransport: String, Codable {
     case advertisementServiceData
     case advertisementManufacturerData
     case characteristicNotification
-    case classicSPP
 }
 
 enum CommunicationByteOrder: String, Codable {
@@ -525,7 +520,6 @@ enum CommunicationRuleCatalog {
         HuaweiPendingProtocols.communicationRules,
         HumePendingProtocols.communicationRules,
         HutbitPendingProtocols.communicationRules,
-        IHealthPendingProtocols.communicationRules,
         InlifePendingProtocols.communicationRules,
         KeepPendingProtocols.communicationRules,
         KoogeekPendingProtocols.communicationRules,

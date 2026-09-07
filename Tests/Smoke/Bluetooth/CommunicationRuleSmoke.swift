@@ -322,7 +322,7 @@ struct CommunicationRuleSmoke {
         let catalogedPendingProtocols = CommunicationRuleCatalog.pendingBuiltIn.filter {
             $0.builtInParser == nil
         }
-        expect(catalogedPendingProtocols.count == 56, "all cataloged pending device protocols should remain visible")
+        expect(catalogedPendingProtocols.count == 55, "all cataloged pending device protocols should remain visible")
         expect(
             catalogedPendingProtocols.allSatisfy {
                 $0.effectiveVerification == .unverified
