@@ -525,6 +525,7 @@ struct AppDropdownAnchorPreferenceKey: PreferenceKey {
 enum AppDropdownAppearance {
     case tinted
     case compact
+    case pill
 }
 
 struct AppDropdownField: View {
@@ -538,47 +539,66 @@ struct AppDropdownField: View {
 
     var body: some View {
         Button(action: onToggle) {
-            HStack(spacing: 12) {
-                Image(systemName: icon)
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(AppColor.mint)
-                    .frame(width: 34, height: 34)
-                    .background(
-                        appearance == .compact ? AppColor.paleMint : AppColor.surface.opacity(0.88),
-                        in: RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    )
+            if appearance == .pill {
+                HStack(spacing: 5) {
+                    AppLocalizedText(value)
+                        .font(.caption.weight(.semibold))
+                    Image(systemName: "chevron.down")
+                        .font(.system(size: 9, weight: .bold))
+                        .rotationEffect(.degrees(isExpanded ? 180 : 0))
+                }
+                .foregroundStyle(AppColor.mint)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 5)
+                .background(AppColor.mint.opacity(isExpanded ? 0.17 : 0.11), in: Capsule())
+                .overlay {
+                    Capsule()
+                        .stroke(AppColor.mint.opacity(isExpanded ? 0.32 : 0), lineWidth: 1)
+                }
+                .contentShape(Capsule())
+            } else {
+                HStack(spacing: 12) {
+                    Image(systemName: icon)
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(AppColor.mint)
+                        .frame(width: 34, height: 34)
+                        .background(
+                            appearance == .compact ? AppColor.paleMint : AppColor.surface.opacity(0.88),
+                            in: RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        )
 
-                AppLocalizedText(value)
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(AppColor.ink)
+                    AppLocalizedText(value)
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(AppColor.ink)
 
-                Spacer(minLength: 8)
+                    Spacer(minLength: 8)
 
-                Image(systemName: "chevron.down")
-                    .font(.caption.weight(.bold))
-                    .foregroundStyle(AppColor.mint)
-                    .rotationEffect(.degrees(isExpanded ? 180 : 0))
+                    Image(systemName: "chevron.down")
+                        .font(.caption.weight(.bold))
+                        .foregroundStyle(AppColor.mint)
+                        .rotationEffect(.degrees(isExpanded ? 180 : 0))
+                }
+                .padding(.horizontal, 12)
+                .frame(maxWidth: .infinity)
+                .frame(minHeight: 52)
+                .background(
+                    appearance == .compact
+                        ? AppColor.canvas
+                        : AppColor.paleMint.opacity(isExpanded ? 0.90 : 0.72),
+                    in: RoundedRectangle(cornerRadius: 14, style: .continuous)
+                )
+                .overlay {
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .stroke(
+                            isExpanded
+                                ? AppColor.mint.opacity(appearance == .compact ? 1 : 0.60)
+                                : AppColor.mint.opacity(appearance == .compact ? 0.18 : 0.14),
+                            lineWidth: isExpanded ? 1.5 : 1
+                        )
+                        .allowsHitTesting(false)
+                }
+                .contentShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
             }
-            .padding(.horizontal, 12)
-            .frame(maxWidth: .infinity)
-            .frame(minHeight: 52)
-            .background(
-                appearance == .compact
-                    ? AppColor.canvas
-                    : AppColor.paleMint.opacity(isExpanded ? 0.90 : 0.72),
-                in: RoundedRectangle(cornerRadius: 14, style: .continuous)
-            )
-            .overlay {
-                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .stroke(
-                        isExpanded
-                            ? AppColor.mint.opacity(appearance == .compact ? 1 : 0.60)
-                            : AppColor.mint.opacity(appearance == .compact ? 0.18 : 0.14),
-                        lineWidth: isExpanded ? 1.5 : 1
-                    )
-                    .allowsHitTesting(false)
-            }
-            .contentShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
         }
         .buttonStyle(.plain)
         .anchorPreference(key: AppDropdownAnchorPreferenceKey.self, value: .bounds) {
@@ -665,6 +685,7 @@ struct AppDropdownMenuLayer<Option: Hashable>: View {
     let isSelected: (Option) -> Bool
     let title: (Option) -> String
     var detail: ((Option) -> String?)? = nil
+    var preferredWidth: CGFloat? = nil
     var appearance: AppDropdownAppearance = .tinted
     let onSelect: (Option) -> Void
     let onDismiss: () -> Void
@@ -684,7 +705,8 @@ struct AppDropdownMenuLayer<Option: Hashable>: View {
         let menuY = opensBelow
             ? anchorFrame.maxY + 7
             : max(8, anchorFrame.minY - menuHeight - 7)
-        let menuWidth = min(anchorFrame.width, availableSize.width - 16)
+        let requestedWidth = max(anchorFrame.width, preferredWidth ?? anchorFrame.width)
+        let menuWidth = min(requestedWidth, availableSize.width - 16)
         let menuX = min(
             max(anchorFrame.minX, 8),
             max(8, availableSize.width - menuWidth - 8)

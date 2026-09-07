@@ -561,10 +561,9 @@ struct MeasurementDetailView: View {
                         icon: "person.crop.circle",
                         accessibilityLabel: "修改记录归属",
                         isExpanded: isOwnerDropdownExpanded,
-                        appearance: .compact,
+                        appearance: .pill,
                         onToggle: toggleOwnerDropdown
                     )
-                    .frame(maxWidth: 240)
                     .disabled(store.isUsingPlaceholderData)
                 }
                 .padding(.vertical, 28)
@@ -593,7 +592,7 @@ struct MeasurementDetailView: View {
                         Image(systemName: "trash")
                             .foregroundStyle(AppColor.rose)
                     }
-                    .accessibilityLabel("删除测量记录")
+                    .accessibilityLabel(Text(store.appLanguage.text("删除测量记录")))
                 }
             }
         }
@@ -607,7 +606,7 @@ struct MeasurementDetailView: View {
                         options: store.displayProfiles.map(\.id),
                         isSelected: { $0 == currentMeasurement.profileID },
                         title: { profileName(for: $0) },
-                        detail: { profileRole(for: $0) },
+                        preferredWidth: ownerMenuWidth,
                         appearance: .compact,
                         onSelect: reassignMeasurement,
                         onDismiss: hideOwnerDropdown
@@ -681,8 +680,9 @@ struct MeasurementDetailView: View {
         store.displayProfiles.first(where: { $0.id == profileID })?.name ?? ""
     }
 
-    private func profileRole(for profileID: UUID) -> String? {
-        store.displayProfiles.first(where: { $0.id == profileID })?.role
+    private var ownerMenuWidth: CGFloat {
+        let longestNameLength = store.displayProfiles.map(\.name.count).max() ?? 0
+        return min(260, max(132, CGFloat(longestNameLength) * 14 + 68))
     }
 
     private func reassignMeasurement(to profileID: UUID) {
