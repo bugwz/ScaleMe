@@ -102,7 +102,7 @@ struct AboutView: View {
     }
 
     private func aboutRow(icon: String, title: String, detail: String) -> some View {
-        HStack(alignment: .top, spacing: 12) {
+        HStack(alignment: .center, spacing: 12) {
             Image(systemName: icon)
                 .foregroundStyle(AppColor.mint)
                 .frame(width: 24)

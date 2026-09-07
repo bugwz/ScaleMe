@@ -69,7 +69,7 @@ struct CommunicationRulesView: View {
         rules: [CommunicationRule]
     ) -> some View {
         NavigationLink {
-            BuiltInProtocolsView(title: title, rules: rules)
+            BuiltInProtocolsView(title: title, icon: icon, iconColor: color, rules: rules)
         } label: {
             HStack(spacing: 12) {
                 Image(systemName: icon)
@@ -108,6 +108,8 @@ private struct BuiltInProtocolsView: View {
     @State private var searchText = ""
     @State private var isSearchFocused = false
     let title: String
+    let icon: String
+    let iconColor: Color
     let rules: [CommunicationRule]
 
     private var filteredRules: [CommunicationRule] {
@@ -156,7 +158,9 @@ private struct BuiltInProtocolsView: View {
 
                 SettingsPanel(
                     title: title,
-                    icon: "checkmark.seal.fill",
+                    icon: icon,
+                    iconColor: iconColor,
+                    iconBackgroundColor: iconColor.opacity(0.11),
                     headerValue: String(rules.count)
                 ) {
                     if filteredRules.isEmpty {

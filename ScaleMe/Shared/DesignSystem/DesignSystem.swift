@@ -345,6 +345,8 @@ enum SettingsPanelIcon {
 struct SettingsPanel<Content: View>: View {
     let title: String
     let icon: SettingsPanelIcon
+    let iconColor: Color
+    let iconBackgroundColor: Color
     let headerValue: String?
     let headerActionTitle: String?
     let headerAction: (() -> Void)?
@@ -353,6 +355,8 @@ struct SettingsPanel<Content: View>: View {
     init(
         title: String,
         icon: String,
+        iconColor: Color = AppColor.mint,
+        iconBackgroundColor: Color = AppColor.paleMint,
         headerValue: String? = nil,
         headerActionTitle: String? = nil,
         headerAction: (() -> Void)? = nil,
@@ -360,6 +364,8 @@ struct SettingsPanel<Content: View>: View {
     ) {
         self.title = title
         self.icon = .system(icon)
+        self.iconColor = iconColor
+        self.iconBackgroundColor = iconBackgroundColor
         self.headerValue = headerValue
         self.headerActionTitle = headerActionTitle
         self.headerAction = headerAction
@@ -369,6 +375,8 @@ struct SettingsPanel<Content: View>: View {
     init(
         title: String,
         assetIcon: String,
+        iconColor: Color = AppColor.mint,
+        iconBackgroundColor: Color = AppColor.paleMint,
         headerValue: String? = nil,
         headerActionTitle: String? = nil,
         headerAction: (() -> Void)? = nil,
@@ -376,6 +384,8 @@ struct SettingsPanel<Content: View>: View {
     ) {
         self.title = title
         self.icon = .asset(assetIcon)
+        self.iconColor = iconColor
+        self.iconBackgroundColor = iconBackgroundColor
         self.headerValue = headerValue
         self.headerActionTitle = headerActionTitle
         self.headerAction = headerAction
@@ -389,18 +399,18 @@ struct SettingsPanel<Content: View>: View {
                 case let .system(systemIcon):
                     Image(systemName: systemIcon)
                         .font(.caption.weight(.semibold))
-                        .foregroundStyle(AppColor.mint)
+                        .foregroundStyle(iconColor)
                         .frame(width: 26, height: 26)
-                        .background(AppColor.paleMint, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                        .background(iconBackgroundColor, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
                 case let .asset(assetName):
                     Image(assetName)
                         .renderingMode(.template)
                         .resizable()
                         .scaledToFit()
                         .padding(6)
-                        .foregroundStyle(AppColor.mint)
+                        .foregroundStyle(iconColor)
                         .frame(width: 26, height: 26)
-                        .background(AppColor.paleMint, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                        .background(iconBackgroundColor, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
                 }
                 AppLocalizedText(title)
                     .font(.headline)
