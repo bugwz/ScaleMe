@@ -527,26 +527,26 @@ private struct CommunicationRuleDetailView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
                 SettingsPanel(title: "协议信息", icon: "doc.text.fill") {
-                    SettingsValueRow(title: "名称", value: rule.name)
+                    ProtocolDetailValueRow(title: "名称", value: rule.name)
                     Divider()
-                    SettingsValueRow(title: "ID", value: rule.id)
+                    ProtocolDetailValueRow(title: "ID", value: rule.id)
                     Divider()
-                    SettingsValueRow(title: "版本", value: String(rule.version))
+                    ProtocolDetailValueRow(title: "版本", value: String(rule.version))
                     Divider()
-                    SettingsValueRow(title: "来源", value: language.text(rule.origin.title))
+                    ProtocolDetailValueRow(title: "来源", value: language.text(rule.origin.title))
                     Divider()
-                    SettingsValueRow(
+                    ProtocolDetailValueRow(
                         title: "实现状态",
                         value: language.text(rule.effectiveImplementation.title)
                     )
                     Divider()
-                    SettingsValueRow(
+                    ProtocolDetailValueRow(
                         title: "验证状态",
                         value: language.text(rule.effectiveVerification.title)
                     )
                     if let models = rule.supportedModels, !models.isEmpty {
                         Divider()
-                        SettingsValueRow(title: "支持型号", value: models.joined(separator: " · "))
+                        ProtocolDetailValueRow(title: "支持型号", value: models.joined(separator: " · "))
                     }
                 }
 
@@ -593,11 +593,11 @@ private struct CommunicationRuleDetailView: View {
                     if !rule.capabilities.isEmpty {
                         featureSection(title: "设备操作") {
                             if rule.capabilities.contains(.historyRead) {
-                                SettingsValueRow(title: "历史记录", value: language.text("支持读取"))
+                                ProtocolDetailValueRow(title: "历史记录", value: language.text("支持读取"))
                             }
                             if rule.capabilities.contains(.historyClear) {
                                 if rule.capabilities.contains(.historyRead) { SettingsSeparator() }
-                                SettingsValueRow(title: "清除设备历史", value: language.text("破坏性操作"))
+                                ProtocolDetailValueRow(title: "清除设备历史", value: language.text("破坏性操作"))
                             }
                             AppLocalizedText("操作受超时、响应字节数和最大记录数限制；清除命令不会自动运行。")
                                 .font(.caption2)
@@ -754,7 +754,7 @@ private struct CommunicationRuleDetailView: View {
 
     private func matchRows(_ match: CommunicationRuleMatch) -> some View {
         Group {
-            SettingsValueRow(title: "方式", value: language.text(transportTitle(match.transport)))
+            ProtocolDetailValueRow(title: "方式", value: language.text(transportTitle(match.transport)))
             SettingsSeparator()
             uuidRow(title: "服务 UUID", value: match.serviceUUID)
             if let characteristic = match.characteristicUUID {
@@ -762,10 +762,10 @@ private struct CommunicationRuleDetailView: View {
                 uuidRow(title: "特征 UUID", value: characteristic)
             }
             SettingsSeparator()
-            SettingsValueRow(title: "长度", value: lengthDescription(match))
+            ProtocolDetailValueRow(title: "长度", value: lengthDescription(match))
             if let prefix = match.prefixHex {
                 SettingsSeparator()
-                SettingsValueRow(title: "帧前缀", value: prefix)
+                ProtocolDetailValueRow(title: "帧前缀", value: prefix, usesMonospacedFont: true)
             }
         }
     }
@@ -782,21 +782,29 @@ private struct CommunicationRuleDetailView: View {
     }
 
     private func uuidRow(title: String, value: String) -> some View {
-        HStack(alignment: .firstTextBaseline, spacing: 12) {
+        ProtocolDetailValueRow(title: title, value: value, usesMonospacedFont: true)
+    }
+}
+
+private struct ProtocolDetailValueRow: View {
+    let title: String
+    let value: String
+    var usesMonospacedFont = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
             AppLocalizedText(title)
-                .font(.subheadline)
+                .font(.caption)
                 .foregroundStyle(AppColor.secondary)
-                .fixedSize(horizontal: true, vertical: false)
-            Spacer(minLength: 0)
+
             Text(value)
-                .font(.subheadline.monospaced())
+                .font(usesMonospacedFont ? .subheadline.monospaced() : .subheadline)
                 .foregroundStyle(AppColor.ink)
-                .lineLimit(1)
-                .minimumScaleFactor(0.56)
-                .frame(maxWidth: .infinity, alignment: .trailing)
+                .multilineTextAlignment(.leading)
+                .fixedSize(horizontal: false, vertical: true)
                 .textSelection(.enabled)
         }
-        .frame(maxWidth: .infinity)
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 
