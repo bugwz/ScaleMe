@@ -1546,8 +1546,6 @@ private struct ScaleSettingsView: View {
 
     private func protocolDropdown(for scale: PairedScale) -> some View {
         ScrollView {
-            Button(store.appLanguage.text("完成")) { showsProtocolMenu = false }
-                .frame(maxWidth: .infinity, minHeight: 44)
             LazyVStack(spacing: 4) {
                 protocolDropdownRow(
                     title: "自动识别",
@@ -1616,6 +1614,9 @@ private struct ScaleSettingsView: View {
         }
         .buttonStyle(.plain)
         .accessibilityValue(store.appLanguage.text(isSelected ? "已选择" : "未选择"))
+        .accessibilityAction(named: Text(store.appLanguage.text("收起选项"))) {
+            showsProtocolMenu = false
+        }
     }
 
     private func selectCommunicationRule(_ ruleID: String?) {

@@ -745,7 +745,7 @@ struct AppDropdownMenuLayer<Option: Hashable>: View {
         // Cap visible rows so long option lists (e.g. languages) scroll instead of forcing the menu to the top of the screen.
         let maxVisibleRows: CGFloat = 6
         let visibleRows = min(CGFloat(options.count), maxVisibleRows)
-        let desiredHeight = visibleRows * rowHeight + max(0, visibleRows - 1) * rowSpacing + listPadding + 44
+        let desiredHeight = visibleRows * rowHeight + max(0, visibleRows - 1) * rowSpacing + listPadding
         let spaceBelow = availableSize.height - anchorFrame.maxY - 10
         let spaceAbove = anchorFrame.minY - 10
         let opensBelow = spaceBelow >= desiredHeight || spaceBelow >= spaceAbove
@@ -767,8 +767,6 @@ struct AppDropdownMenuLayer<Option: Hashable>: View {
                 .onTapGesture(perform: onDismiss)
 
             ScrollView {
-                Button(language.text("完成"), action: onDismiss)
-                    .frame(maxWidth: .infinity, minHeight: 44)
                 LazyVStack(spacing: 4) {
                     ForEach(options, id: \.self) { option in
                         let optionIsSelected = isSelected(option)
@@ -840,6 +838,9 @@ struct AppDropdownMenuLayer<Option: Hashable>: View {
                         .buttonStyle(.plain)
                         .accessibilityAddTraits(optionIsSelected ? .isSelected : [])
                         .accessibilityFocused($focusedOption, equals: option)
+                        // Keep dismissal available from every option, including multi-select
+                        // menus, without adding a visible control or changing menu geometry.
+                        .accessibilityAction(named: Text(language.text("收起选项")), onDismiss)
                     }
                 }
                 .padding(6)
