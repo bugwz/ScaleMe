@@ -1043,18 +1043,37 @@ final class MeasurementStore: ObservableObject {
         let metadata = simulationData
         let launchDay = simulationLaunchDay
         let calendar = simulationCalendar
-        if simulationData.measurements.isEmpty {
-            simulationData.measurements = metadata.generatedMeasurements(
-                dayOffsets: 0...6,
-                launchDay: launchDay,
-                calendar: calendar
-            )
-        }
+        let needsRecentMeasurements = simulationData.measurements.isEmpty
         simulationDataLoadGeneration += 1
         let loadGeneration = simulationDataLoadGeneration
         isSimulationDataLoading = true
         simulationDataLoadTask = Task {
-            let result = await Task.detached(priority: .userInitiated) {
+            // Let SwiftUI commit the switch state before starting any simulation work.
+            await Task.yield()
+
+            let recentMeasurements: [BodyMeasurement]
+            if needsRecentMeasurements {
+                recentMeasurements = await Task.detached(priority: .userInitiated) {
+                    metadata.generatedMeasurements(
+                        dayOffsets: 0...6,
+                        launchDay: launchDay,
+                        calendar: calendar
+                    )
+                }.value
+            } else {
+                recentMeasurements = []
+            }
+
+            guard !Task.isCancelled,
+                  loadGeneration == simulationDataLoadGeneration else { return }
+
+            if !recentMeasurements.isEmpty {
+                let pendingMeasurements = simulationData.measurements
+                simulationData.measurements = (recentMeasurements + pendingMeasurements)
+                    .sorted { $0.date > $1.date }
+            }
+
+            let historicalMeasurements = await Task.detached(priority: .utility) {
                 metadata.generatedMeasurements(
                     dayOffsets: 7...364,
                     launchDay: launchDay,
@@ -1062,10 +1081,12 @@ final class MeasurementStore: ObservableObject {
                 )
             }.value
 
-            guard loadGeneration == simulationDataLoadGeneration else { return }
+            guard !Task.isCancelled,
+                  loadGeneration == simulationDataLoadGeneration else { return }
 
-            let pendingMeasurements = simulationData.measurements
-            simulationData.measurements = (result + pendingMeasurements).sorted { $0.date > $1.date }
+            let measurementsAwaitingHistory = simulationData.measurements
+            simulationData.measurements = (historicalMeasurements + measurementsAwaitingHistory)
+                .sorted { $0.date > $1.date }
             isSimulationHistoryLoaded = true
             isSimulationDataLoading = false
             simulationDataLoadTask = nil
