@@ -201,6 +201,42 @@ struct LocalizationSmoke {
             }
         }
 
+        let japaneseProtocolDetailValues = [
+            "协议详情": "プロトコルの詳細",
+            "协议信息": "プロトコル情報",
+            "名称": "名称",
+            "版本": "バージョン",
+            "来源": "提供元",
+            "内置": "内蔵",
+            "实现状态": "実装状態",
+            "可执行": "実行可能",
+            "协议特征": "プロトコルの特性",
+            "传输特征": "通信方式の特性",
+            "方式": "方式",
+            "服务 UUID": "サービス UUID",
+            "特征 UUID": "特性 UUID",
+            "长度": "長さ",
+            "至少 %lld 字节": "%lld バイト以上",
+            "备用特征": "代替特性",
+            "订阅特征": "通知特性",
+            "写入特征": "書き込み特性",
+            "运行要求": "実行要件",
+            "支持型号": "対応モデル",
+            "帧前缀": "フレーム接頭辞",
+            "说明": "説明"
+        ]
+        for (key, expectedValue) in japaneseProtocolDetailValues {
+            guard
+                let entry = strings[key] as? [String: Any],
+                let localizations = entry["localizations"] as? [String: Any],
+                let japanese = localizations[AppLanguage.japanese.rawValue] as? [String: Any],
+                let stringUnit = japanese["stringUnit"] as? [String: Any],
+                stringUnit["value"] as? String == expectedValue
+            else {
+                preconditionFailure("Japanese protocol detail localization is incorrect: \(key)")
+            }
+        }
+
         precondition(
             ((strings["标准"] as? [String: Any])?["localizations"] as? [String: Any])
                 .flatMap { $0[AppLanguage.english.rawValue] as? [String: Any] }

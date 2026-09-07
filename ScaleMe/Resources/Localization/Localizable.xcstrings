@@ -1957,7 +1957,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Protocol details"
+            "value" : "Protokolldetails"
           }
         },
         "en" : {
@@ -1969,37 +1969,37 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Protocol details"
+            "value" : "Detalles del protocolo"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Protocol details"
+            "value" : "Détails du protocole"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Protocol details"
+            "value" : "プロトコルの詳細"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Protocol details"
+            "value" : "프로토콜 상세 정보"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Protocol details"
+            "value" : "Detalhes do protocolo"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Protocol details"
+            "value" : "Сведения о протоколе"
           }
         },
         "zh-Hans" : {
@@ -2011,7 +2011,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "协议详情"
+            "value" : "通訊協定詳細資訊"
           }
         }
       }
