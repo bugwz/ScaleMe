@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 import UniformTypeIdentifiers
 
 private enum DiagnosticExportState {
@@ -326,7 +327,7 @@ struct DevicesView: View {
         if canReorder {
             row
                 .simultaneousGesture(reorderGesture(for: scale.id), including: .all)
-                .accessibilityHint("长按后上下拖动可调整顺序")
+                .accessibilityHint(store.appLanguage.text("可通过上移、下移操作调整顺序"))
                 .accessibilityAction(named: "上移") {
                     moveScale(scale.id, by: -1)
                 }
@@ -607,6 +608,7 @@ private struct DeviceScannerView: View {
         .onAppear {
             startScan()
         }
+        .accessibilityAnnounceChanges(scanDescription)
         .onDisappear {
             scanTask?.cancel()
             if !store.isSimulationEnabled {
@@ -780,6 +782,7 @@ private struct DeviceScannerView: View {
             Image(systemName: signalSymbol(for: device.rssi))
                 .font(.caption)
                 .foregroundStyle(AppColor.secondary)
+                .accessibilityLabel(store.appLanguage.text(signalDescription(for: device.rssi)))
 
             Button {
                 guard !existing, !store.isUsingPlaceholderData else { return }
@@ -803,6 +806,7 @@ private struct DeviceScannerView: View {
             }
             .buttonStyle(.plain)
             .disabled(existing || store.isUsingPlaceholderData)
+            .accessibilityLabel(store.appLanguage.format("%@，%@", store.appLanguage.text(existing ? "已绑定" : "关联"), device.name))
         }
         .padding(.vertical, 8)
     }
@@ -907,6 +911,7 @@ private struct ScaleSettingsView: View {
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
+                .accessibilityReturnFocus(when: confirmDelete)
 
                 Text("删除设备不会删除该设备历史记录的健康测量数据。")
                     .font(.caption2)
@@ -917,6 +922,7 @@ private struct ScaleSettingsView: View {
             .padding(.bottom, 28)
         }
         .scrollDismissesKeyboard(.interactively)
+        .accessibilityHidden(showsProtocolMenu || showsHardwareUnitMenu)
         .overlayPreferenceValue(ScaleProtocolMenuAnchorKey.self) { anchor in
             GeometryReader { proxy in
                 if showsProtocolMenu, let anchor, let scale {
@@ -989,6 +995,9 @@ private struct ScaleSettingsView: View {
         .onChange(of: bluetooth.settingsSnapshot.hardwareUnit) { _, unit in
             if let unit { selectedHardwareUnit = unit }
         }
+        .accessibilityAnnounceChanges(bluetooth.settingsState.title(in: store.appLanguage))
+        .accessibilityAnnounceChanges(bluetooth.settingsOperationMessage)
+        .accessibilityAnnounceChanges(historyAccessibilityMessage)
         .accessibilityHidden(confirmDelete || confirmClearHistory || diagnosticExportState != nil)
         .overlay {
             if confirmDelete {
@@ -1038,6 +1047,19 @@ private struct ScaleSettingsView: View {
     private var scaleDisplayName: String {
         let trimmedName = scale?.name.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         return trimmedName.isEmpty ? "该设备" : trimmedName
+    }
+
+    private var historyAccessibilityMessage: String? {
+        switch bluetooth.historyState {
+        case .awaitingImport(let records):
+            store.appLanguage.format("已读取 %lld 条记录，确认后将根据参考体重与已有趋势自动匹配成员。", Int64(records.count))
+        case .imported(let summary):
+            store.appLanguage.format("已新增 %lld 条，跳过 %lld 条重复记录，%lld 条无法可靠识别", Int64(summary.importedCount), Int64(summary.duplicateCount), Int64(summary.unmatchedCount))
+        case .empty: store.appLanguage.text("设备中没有待同步的历史记录")
+        case .clearCommandSent: store.appLanguage.text("清除命令已发送；请重新读取设备历史确认结果。")
+        case .failed(let message): message
+        default: nil
+        }
     }
 
     private var showsHuaweiHagridCredentials: Bool {
@@ -1353,6 +1375,7 @@ private struct ScaleSettingsView: View {
                     }
                     .buttonStyle(.plain)
                     .disabled(bluetooth.settingsState != .ready)
+                    .accessibilityReturnFocus(when: confirmClearHistory)
                 }
             }
         }
@@ -1518,10 +1541,13 @@ private struct ScaleSettingsView: View {
         .accessibilityLabel(store.appLanguage.text(.communicationProtocol))
         .accessibilityValue(store.appLanguage.text(selectedRule?.name ?? "自动识别"))
         .accessibilityHint(store.appLanguage.text(showsProtocolMenu ? "收起选项" : "展开选项"))
+        .accessibilityReturnFocus(when: showsProtocolMenu)
     }
 
     private func protocolDropdown(for scale: PairedScale) -> some View {
         ScrollView {
+            Button(store.appLanguage.text("完成")) { showsProtocolMenu = false }
+                .frame(maxWidth: .infinity, minHeight: 44)
             LazyVStack(spacing: 4) {
                 protocolDropdownRow(
                     title: "自动识别",
@@ -1548,6 +1574,10 @@ private struct ScaleSettingsView: View {
         .background(AppColor.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
         .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(AppColor.mint.opacity(0.14)))
         .shadow(color: AppColor.ink.opacity(0.12), radius: 16, y: 6)
+        .accessibilityElement(children: .contain)
+        .accessibilityAddTraits(.isModal)
+        .accessibilityAction(.escape) { showsProtocolMenu = false }
+        .onAppear { UIAccessibility.post(notification: .screenChanged, argument: nil) }
     }
 
     private func protocolDropdownRow(
@@ -1657,6 +1687,7 @@ private struct ScaleSettingsView: View {
                 }
                 .buttonStyle(.plain)
                 .disabled(bluetooth.deviceDiagnosticEvents.isEmpty)
+                .accessibilityReturnFocus(when: diagnosticExportState != nil)
             }
 
             if !bluetooth.isDeviceDiagnosticCaptureEnabled, bluetooth.deviceDiagnosticEvents.isEmpty {
@@ -1782,6 +1813,7 @@ private struct ScaleSettingsView: View {
 }
 
 private struct DiagnosticExportOverlay: View {
+    @AccessibilityFocusState private var isTitleFocused: Bool
     let state: DiagnosticExportState
     let onSave: () -> Void
     let onDismiss: () -> Void
@@ -1800,6 +1832,7 @@ private struct DiagnosticExportOverlay: View {
                     AppLocalizedText(title)
                         .font(.title3.weight(.bold))
                         .foregroundStyle(AppColor.ink)
+                        .accessibilityFocused($isTitleFocused)
 
                     AppLocalizedText(message)
                         .font(.subheadline)
@@ -1859,6 +1892,9 @@ private struct DiagnosticExportOverlay: View {
         }
         .accessibilityElement(children: .contain)
         .accessibilityAddTraits(.isModal)
+        .onAppear { isTitleFocused = true }
+        .accessibilityAnnounceChanges(title)
+        .accessibilityAction(.escape, onDismiss)
     }
 
     @ViewBuilder

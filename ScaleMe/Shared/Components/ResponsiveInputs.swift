@@ -73,6 +73,7 @@ struct ResponsiveTextField: UIViewRepresentable {
 
     private func configure(_ textField: UITextField, coordinator: Coordinator) {
         let localizedPlaceholder = appLanguage.text(placeholder)
+        textField.accessibilityLabel = localizedPlaceholder
         if textField.placeholder != localizedPlaceholder { textField.placeholder = localizedPlaceholder }
         if textField.keyboardType != keyboardType { textField.keyboardType = keyboardType }
         if textField.returnKeyType != returnKeyType { textField.returnKeyType = returnKeyType }
@@ -248,7 +249,7 @@ private enum AppInputAccessory {
         let toolbar = UIToolbar(frame: .zero)
         toolbar.items = [
             UIBarButtonItem(systemItem: .flexibleSpace),
-            UIBarButtonItem(title: "完成", style: .done, target: target, action: action)
+            UIBarButtonItem(barButtonSystemItem: .done, target: target, action: action)
         ]
         toolbar.tintColor = UIColor(AppColor.mint)
         toolbar.sizeToFit()
@@ -258,13 +259,13 @@ private enum AppInputAccessory {
 
 private enum AppInputFont {
     static func scaled(_ textStyle: UIFont.TextStyle, weight: UIFont.Weight) -> UIFont {
-        let preferred = UIFont.preferredFont(forTextStyle: textStyle)
+        let preferred = UIFont.preferredFont(forTextStyle: textStyle, compatibleWith: UITraitCollection(preferredContentSizeCategory: .large))
         let base = UIFont.systemFont(ofSize: preferred.pointSize, weight: weight)
         return UIFontMetrics(forTextStyle: textStyle).scaledFont(for: base)
     }
 
     static func scaledMonospaced(_ textStyle: UIFont.TextStyle) -> UIFont {
-        let preferred = UIFont.preferredFont(forTextStyle: textStyle)
+        let preferred = UIFont.preferredFont(forTextStyle: textStyle, compatibleWith: UITraitCollection(preferredContentSizeCategory: .large))
         let base = UIFont.monospacedSystemFont(ofSize: preferred.pointSize, weight: .regular)
         return UIFontMetrics(forTextStyle: textStyle).scaledFont(for: base)
     }

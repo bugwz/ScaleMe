@@ -309,6 +309,7 @@ private struct AddExternalProtocolView: View {
                 allowsMultipleSelection: false,
                 onCompletion: selectFile
             )
+            .accessibilityAnnounceChanges(errorMessage)
         }
     }
 
@@ -651,6 +652,7 @@ private struct CommunicationRuleDetailView: View {
                         .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
+                    .accessibilityReturnFocus(when: confirmsDeletion)
 
                     AppLocalizedText("删除后，使用该协议的设备会恢复为自动识别。")
                         .font(.caption2)
@@ -807,6 +809,7 @@ private struct ProtocolDetailValueRow: View {
                 .textSelection(.enabled)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityElement(children: .combine)
     }
 }
 

@@ -51,6 +51,15 @@ struct AppleHealthSettingsView: View {
             }
         }
         .onAppear { appleHealth.refreshAuthorizationState() }
+        .accessibilityAnnounceChanges(authorizationTitle)
+        .accessibilityAnnounceChanges(appleHealth.lastImportError)
+        .accessibilityAnnounceChanges(appleHealth.lastShareError)
+        .accessibilityAnnounceChanges(appleHealth.isImporting ? store.appLanguage.text("正在从 Apple 健康获取数据") : nil)
+        .onChange(of: appleHealth.isImporting) { wasImporting, importing in
+            if wasImporting && !importing && appleHealth.lastImportError == nil {
+                AppAccessibility.announce(store.appLanguage.format("%@，%@", store.appLanguage.text("从 Apple 健康获取数据"), store.appLanguage.text("完成")))
+            }
+        }
         .onDisappear { expandedDropdown = nil }
     }
 

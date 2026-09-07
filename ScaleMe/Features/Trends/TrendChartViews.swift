@@ -1,3 +1,4 @@
+import Accessibility
 import Charts
 import SwiftUI
 import UIKit
@@ -36,6 +37,7 @@ struct TrendChartCard: View {
     let displayScope: TrendDisplayScope
     let chartMode: TrendChartMode
     let onExpand: (ExpandedTrendContext) -> Void
+    var isExpanded = false
 
     @State private var selectedDate: Date?
 
@@ -118,6 +120,7 @@ struct TrendChartCard: View {
                     .buttonStyle(.plain)
                     .foregroundStyle(AppColor.secondary)
                     .accessibilityLabel(language.format("放大%@趋势图", language.text(metric.title)))
+                    .accessibilityReturnFocus(when: isExpanded)
                 }
 
                 TrendChartPlot(
@@ -153,6 +156,7 @@ struct ExpandedTrendChartView: View {
     @State private var visibleDateRange: ClosedRange<Date>?
     @State private var isContentVisible = true
     @State private var isClosing = false
+    @AccessibilityFocusState private var isTitleFocused: Bool
 
     private var context: ExpandedTrendContext { presentation.context }
 
@@ -183,6 +187,8 @@ struct ExpandedTrendChartView: View {
                     Text(language.format("%@趋势", language.text(context.metric.title)))
                         .font(.title2.bold())
                         .foregroundStyle(AppColor.ink)
+                        .accessibilityAddTraits(.isHeader)
+                        .accessibilityFocused($isTitleFocused)
                     Text(
                         language.format(
                             "%@ · %lld 次测量",
@@ -241,6 +247,13 @@ struct ExpandedTrendChartView: View {
         .opacity(isContentVisible ? 1 : 0)
         .scaleEffect(isContentVisible || reduceMotion ? 1 : 0.99)
         .compositingGroup()
+        .accessibilityAction(.escape, onClose)
+        .accessibilityElement(children: .contain)
+        .accessibilityAddTraits(.isModal)
+        .task {
+            await Task.yield()
+            isTitleFocused = true
+        }
     }
 }
 
@@ -267,6 +280,7 @@ struct TrendMetricDropdown: View {
     @Environment(\.appLanguage) private var language
     @Binding var selection: Set<TrendMetric>
     let onDismiss: () -> Void
+    @AccessibilityFocusState private var isTitleFocused: Bool
 
     var body: some View {
         VStack(spacing: 0) {
@@ -275,6 +289,8 @@ struct TrendMetricDropdown: View {
                     Text("展示类别")
                         .font(.headline)
                         .foregroundStyle(AppColor.ink)
+                        .accessibilityAddTraits(.isHeader)
+                        .accessibilityFocused($isTitleFocused)
                     Text(language.format("已选择 %lld 项", Int64(selection.count)))
                         .font(.caption2)
                         .foregroundStyle(AppColor.secondary)
@@ -338,7 +354,7 @@ struct TrendMetricDropdown: View {
                                 }
                             }
                             .padding(.horizontal, 12)
-                            .frame(height: 46)
+                            .frame(minHeight: 46)
                             .background(
                                 selection.contains(metric) ? AppColor.paleMint.opacity(0.68) : Color.clear,
                                 in: RoundedRectangle(cornerRadius: 11, style: .continuous)
@@ -348,6 +364,7 @@ struct TrendMetricDropdown: View {
                         .buttonStyle(.plain)
                         .accessibilityLabel(language.text(metric.title))
                         .accessibilityValue(language.text(selection.contains(metric) ? "已选择" : "未选择"))
+                        .accessibilityAddTraits(selection.contains(metric) ? .isSelected : [])
                     }
                 }
                 .padding(8)
@@ -362,6 +379,12 @@ struct TrendMetricDropdown: View {
         )
         .shadow(color: AppColor.ink.opacity(0.12), radius: 22, y: 10)
         .accessibilityElement(children: .contain)
+        .accessibilityAddTraits(.isModal)
+        .task {
+            await Task.yield()
+            isTitleFocused = true
+        }
+        .accessibilityAction(.escape, onDismiss)
     }
 
     private func toggle(_ metric: TrendMetric) {
@@ -382,6 +405,7 @@ struct TrendTimeRangeDropdown: View {
 
     @State private var editsCustomRange = false
     @State private var activeBoundary = CustomRangeBoundary.start
+    @AccessibilityFocusState private var isTitleFocused: Bool
 
     var body: some View {
         VStack(spacing: 0) {
@@ -406,6 +430,13 @@ struct TrendTimeRangeDropdown: View {
                 .stroke(AppColor.mint.opacity(0.13), lineWidth: 1)
         )
         .shadow(color: AppColor.ink.opacity(0.12), radius: 22, y: 10)
+        .accessibilityElement(children: .contain)
+        .accessibilityAddTraits(.isModal)
+        .accessibilityAction(.escape, onDismiss)
+        .task {
+            await Task.yield()
+            isTitleFocused = true
+        }
     }
 
     private var dropdownHeader: some View {
@@ -426,6 +457,8 @@ struct TrendTimeRangeDropdown: View {
             AppLocalizedText(editsCustomRange ? "自定义时间" : "时间范围")
                 .font(.headline)
                 .foregroundStyle(AppColor.ink)
+                .accessibilityAddTraits(.isHeader)
+                .accessibilityFocused($isTitleFocused)
             Spacer()
             Button(action: onDismiss) {
                 Image(systemName: "xmark")
@@ -471,7 +504,7 @@ struct TrendTimeRangeDropdown: View {
                         .foregroundStyle(selection == .custom ? AppColor.mint : AppColor.secondary)
                 }
                 .padding(.horizontal, 12)
-                .frame(height: 46)
+                .frame(minHeight: 46)
                 .background(
                     selection == .custom ? AppColor.paleMint.opacity(0.68) : Color.clear,
                     in: RoundedRectangle(cornerRadius: 11, style: .continuous)
@@ -507,7 +540,7 @@ struct TrendTimeRangeDropdown: View {
                 }
             }
             .padding(.horizontal, 12)
-            .frame(height: 46)
+            .frame(minHeight: 46)
             .background(
                 selection == item ? AppColor.paleMint.opacity(0.68) : Color.clear,
                 in: RoundedRectangle(cornerRadius: 11, style: .continuous)
@@ -515,6 +548,7 @@ struct TrendTimeRangeDropdown: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .accessibilityAddTraits(selection == item ? .isSelected : [])
     }
 
     private var customRangeEditor: some View {
@@ -553,7 +587,7 @@ struct TrendTimeRangeDropdown: View {
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(AppColor.onAccent)
                     .frame(maxWidth: .infinity)
-                    .frame(height: 42)
+                    .frame(minHeight: 44)
                     .background(AppColor.mint, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
             }
             .buttonStyle(.plain)
@@ -578,7 +612,7 @@ struct TrendTimeRangeDropdown: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, 10)
-            .frame(height: 48)
+            .frame(minHeight: 48)
             .background(
                 isActive ? AppColor.paleMint : AppColor.canvas,
                 in: RoundedRectangle(cornerRadius: 9, style: .continuous)
@@ -634,6 +668,7 @@ struct TrendDisplayDropdown: View {
     @Binding var scope: TrendDisplayScope
     @Binding var chartMode: TrendChartMode
     let onDismiss: () -> Void
+    @AccessibilityFocusState private var isTitleFocused: Bool
 
     var body: some View {
         VStack(spacing: 0) {
@@ -641,6 +676,8 @@ struct TrendDisplayDropdown: View {
                 Text("图表显示")
                     .font(.headline)
                     .foregroundStyle(AppColor.ink)
+                    .accessibilityAddTraits(.isHeader)
+                    .accessibilityFocused($isTitleFocused)
                 Spacer()
                 Button(action: onDismiss) {
                     Image(systemName: "xmark")
@@ -712,6 +749,13 @@ struct TrendDisplayDropdown: View {
                 .stroke(AppColor.mint.opacity(0.13), lineWidth: 1)
         )
         .shadow(color: AppColor.ink.opacity(0.12), radius: 22, y: 10)
+        .accessibilityElement(children: .contain)
+        .accessibilityAddTraits(.isModal)
+        .accessibilityAction(.escape, onDismiss)
+        .task {
+            await Task.yield()
+            isTitleFocused = true
+        }
     }
 
     private func optionRow(
@@ -754,6 +798,7 @@ struct TrendDisplayDropdown: View {
         }
         .buttonStyle(.plain)
         .accessibilityValue(language.text(isSelected ? "已选择" : "未选择"))
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 }
 
@@ -763,6 +808,7 @@ struct TrendSingleChoiceDropdown<Value: Hashable>: View {
     let options: [TrendDropdownOption<Value>]
     @Binding var selection: Value
     let onDismiss: () -> Void
+    @AccessibilityFocusState private var isTitleFocused: Bool
 
     var body: some View {
         VStack(spacing: 0) {
@@ -770,6 +816,8 @@ struct TrendSingleChoiceDropdown<Value: Hashable>: View {
                 AppLocalizedText(title)
                     .font(.headline)
                     .foregroundStyle(AppColor.ink)
+                    .accessibilityAddTraits(.isHeader)
+                    .accessibilityFocused($isTitleFocused)
                 Spacer()
                 Button(action: onDismiss) {
                     Image(systemName: "xmark")
@@ -830,6 +878,7 @@ struct TrendSingleChoiceDropdown<Value: Hashable>: View {
                         }
                         .buttonStyle(.plain)
                         .accessibilityValue(language.text(selection == option.value ? "已选择" : "未选择"))
+                        .accessibilityAddTraits(selection == option.value ? .isSelected : [])
                     }
                 }
                 .padding(8)
@@ -843,6 +892,13 @@ struct TrendSingleChoiceDropdown<Value: Hashable>: View {
                 .stroke(AppColor.mint.opacity(0.13), lineWidth: 1)
         )
         .shadow(color: AppColor.ink.opacity(0.12), radius: 22, y: 10)
+        .accessibilityElement(children: .contain)
+        .accessibilityAddTraits(.isModal)
+        .accessibilityAction(.escape, onDismiss)
+        .task {
+            await Task.yield()
+            isTitleFocused = true
+        }
     }
 
     @ViewBuilder
@@ -875,6 +931,66 @@ private struct TrendAxisMarkValue: Identifiable {
     let date: Date
 
     var id: Double { x }
+}
+
+private struct AccessibleTrendPoint {
+    let x: Double
+    let dateDescription: String
+    let value: Double
+    let label: String?
+}
+
+private struct TrendChartAccessibilityDescriptor: AXChartDescriptorRepresentable {
+    let title: String
+    let summary: String
+    let xAxisTitle: String
+    let yAxisTitle: String
+    let unit: String
+    let fractionDigits: Int
+    let points: [AccessibleTrendPoint]
+
+    func makeChartDescriptor() -> AXChartDescriptor {
+        let values = points.map(\.value)
+        let minimum = values.min() ?? 0
+        let maximum = values.max() ?? 1
+        let padding = minimum == maximum ? max(abs(minimum) * 0.05, 1) : 0
+        let yRange = (minimum - padding) ... (maximum + padding)
+        let suffix = unit.isEmpty ? "" : " \(unit)"
+
+        let firstX = points.first?.x ?? 0
+        let lastX = points.last?.x ?? 1
+        let xPadding = firstX == lastX ? 0.5 : 0
+        let xAxis = AXNumericDataAxisDescriptor(
+            title: xAxisTitle, range: (firstX - xPadding)...(lastX + xPadding), gridlinePositions: []
+        ) { x in
+            points.min(by: { abs($0.x - x) < abs($1.x - x) })?.dateDescription ?? ""
+        }
+        let yAxis = AXNumericDataAxisDescriptor(
+            title: yAxisTitle,
+            range: yRange,
+            gridlinePositions: []
+        ) { value in
+            "\(value.formatted(.number.precision(.fractionLength(fractionDigits))))\(suffix)"
+        }
+        let series = AXDataSeriesDescriptor(
+            name: title,
+            isContinuous: true,
+            dataPoints: points.map {
+                AXDataPoint(
+                    x: $0.x,
+                    y: $0.value,
+                    label: $0.label
+                )
+            }
+        )
+        return AXChartDescriptor(
+            title: title,
+            summary: summary,
+            xAxis: xAxis,
+            yAxis: yAxis,
+            series: [series]
+        )
+    }
 }
 
 private extension RandomAccessCollection {
@@ -1235,6 +1351,51 @@ private struct TrendChartPlot: View {
                 )
             }
         }
+        .accessibilityChartDescriptor(
+            TrendChartAccessibilityDescriptor(
+                title: language.format("%@趋势", language.text(metric.title)),
+                summary: language.format(
+                    "%@ · %lld 次测量",
+                    language.text(metric.title),
+                    Int64(sourcePoints.reduce(0) { $0 + $1.measurementCount })
+                ),
+                xAxisTitle: language.text("时间"),
+                yAxisTitle: language.text(metric.title),
+                unit: verticalAxisUnit,
+                fractionDigits: metric.displayFractionDigits,
+                points: allPlottedPoints.map { plottedPoint in
+                    let point = plottedPoint.source
+                    return AccessibleTrendPoint(
+                        x: plottedPoint.x,
+                        dateDescription: point.date.formatted(
+                            .dateTime
+                                .year()
+                                .month()
+                                .day()
+                                .hour()
+                                .minute()
+                                .second()
+                                .locale(language.locale)
+                        ),
+                        value: metric.displayValue(point.value, unit: unit),
+                        label: point.measurementCount > 1
+                            ? language.format("%lld 次测量均值", Int64(point.measurementCount))
+                            : nil
+                    )
+                }
+            )
+        )
+        .accessibilityActions {
+            if isExpanded {
+                Button(language.text("放大图表")) { accessibleZoom(2) }
+                Button(language.text("缩小图表")) { accessibleZoom(0.5) }
+                Button(language.text("恢复图表范围")) {
+                    zoomedXDomain = nil
+                    selectedDate = nil
+                    onVisibleDateRangeChange?(nil)
+                }
+            }
+        }
         .background {
             if isExpanded {
                 TrendPinchGestureBridge { state, magnification, anchor in
@@ -1270,6 +1431,12 @@ private struct TrendChartPlot: View {
             magnificationStartDomain = nil
         default:
             break
+        }
+    }
+
+    private func accessibleZoom(_ magnification: Double) {
+        if let domain = updateZoom(from: xDomain, magnification: magnification, anchor: 0.5) {
+            onVisibleDateRangeChange?(dateRange(for: domain))
         }
     }
 

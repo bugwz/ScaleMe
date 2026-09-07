@@ -399,7 +399,7 @@ private struct MemberManagementView: View {
         if canReorder {
             row
                 .simultaneousGesture(reorderGesture(for: profile.id), including: .all)
-                .accessibilityHint("长按后上下拖动可调整顺序")
+                .accessibilityHint(store.appLanguage.text("可通过上移、下移操作调整顺序"))
                 .accessibilityAction(named: "上移") {
                     moveProfile(profile.id, by: -1)
                 }
@@ -718,6 +718,11 @@ private struct MemberEditorView: View {
                         avatarPanel
                         informationPanel
                         usagePanel
+                        if !canSave {
+                            Text(store.appLanguage.format("请检查输入：%@", invalidFieldNames.joined(separator: ", ")))
+                                .font(.caption)
+                                .foregroundStyle(AppColor.rose)
+                        }
                         deletePanel
                     }
                     .padding(.horizontal, 18)
@@ -822,6 +827,7 @@ private struct MemberEditorView: View {
             }
         }
         .interactiveDismissDisabled(confirmDelete || expandedDropdown != nil)
+        .accessibilityAnnounceChanges(invalidFieldNames.isEmpty ? nil : store.appLanguage.format("请检查输入：%@", invalidFieldNames.joined(separator: ", ")))
     }
 
     private func hideDeleteConfirmation() {
@@ -943,6 +949,9 @@ private struct MemberEditorView: View {
                     .settingsInputSurface()
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel(store.appLanguage.text("出生日期"))
+                .accessibilityValue(selectedBirthDate?.formatted(.dateTime.year().month().day()) ?? store.appLanguage.text("未选择"))
+                .accessibilityReturnFocus(when: isSelectingBirthDate)
             }
 
             SettingsSeparator()
@@ -996,7 +1005,7 @@ private struct MemberEditorView: View {
                 }
             }
         }
-        .presentationDetents([.medium])
+        .presentationDetents([.medium, .large])
     }
 
     @ViewBuilder
@@ -1012,6 +1021,7 @@ private struct MemberEditorView: View {
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
+            .accessibilityReturnFocus(when: confirmDelete)
 
             Text("删除成员不会自动删除其历史测量记录。")
                 .font(.caption2)
@@ -1029,6 +1039,18 @@ private struct MemberEditorView: View {
             && selectedBirthDate != nil
             && parsedHeight.map { (50...250).contains($0) } == true
             && parsedWeight.map { (5...350).contains($0) } == true
+    }
+
+    private var invalidFieldNames: [String] {
+        var fields: [String] = []
+        if draft.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { fields.append("名称") }
+        if draft.role.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || (!isOwner && draft.role == "本人") { fields.append("角色") }
+        if selectedAvatar == nil { fields.append("人物形象") }
+        if selectedSex == nil { fields.append("性别") }
+        if selectedBirthDate == nil { fields.append("出生日期") }
+        if parsedHeight.map({ (50...250).contains($0) }) != true { fields.append("身高") }
+        if parsedWeight.map({ (5...350).contains($0) }) != true { fields.append("参考体重") }
+        return fields.map(store.appLanguage.text)
     }
 
     private var parsedHeight: Double? {
@@ -1155,6 +1177,7 @@ private struct MemberNameInput: View {
 }
 
 private struct MemberHeightInput: View {
+    @Environment(\.appLanguage) private var language
     @Binding var text: String
     @State private var isFocused = false
 
@@ -1170,6 +1193,7 @@ private struct MemberHeightInput: View {
                 showsDoneAccessory: true
             )
             .frame(minHeight: 24)
+            .accessibilityLabel(language.format("%@，%@", language.text("身高"), "cm"))
             Text(verbatim: "cm")
                 .font(.subheadline.weight(.semibold))
                 .foregroundStyle(AppColor.secondary)
@@ -1179,6 +1203,7 @@ private struct MemberHeightInput: View {
 }
 
 private struct MemberWeightInput: View {
+    @Environment(\.appLanguage) private var language
     @Binding var text: String
     @State private var isFocused = false
 
@@ -1194,6 +1219,7 @@ private struct MemberWeightInput: View {
                 showsDoneAccessory: true
             )
             .frame(minHeight: 24)
+            .accessibilityLabel(language.format("%@，%@", language.text("参考体重"), "kg"))
             Text(verbatim: "kg")
                 .font(.subheadline.weight(.semibold))
                 .foregroundStyle(AppColor.secondary)

@@ -6,6 +6,7 @@ private enum TrendFilterIcon {
 }
 
 struct HistoryView: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @EnvironmentObject private var store: MeasurementStore
     @Binding var expandedTrend: ExpandedTrendPresentation?
     let scrollToTopRequest: Int
@@ -92,7 +93,8 @@ struct HistoryView: View {
                             dateInterval: selectedDateInterval,
                             displayScope: displayScope,
                             chartMode: chartMode,
-                            onExpand: presentExpandedTrend
+                            onExpand: presentExpandedTrend,
+                            isExpanded: expandedTrend?.context.metric == metric
                         )
                     }
                     if orderedMetrics.contains(where: \.isEstimatedComposition) {
@@ -116,6 +118,7 @@ struct HistoryView: View {
                 }
             }
         }
+        .accessibilityHidden(activeFilterPopover != nil)
         .overlayPreferenceValue(TrendFilterAnchorKey.self) { anchors in
             GeometryReader { proxy in
                 if let activeFilterPopover,
@@ -147,7 +150,7 @@ struct HistoryView: View {
     }
 
     private var filters: some View {
-        HStack(spacing: 8) {
+        LazyVGrid(columns: Array(repeating: .init(.flexible()), count: dynamicTypeSize.isAccessibilitySize ? 2 : 5), spacing: 8) {
             filterButton(
                 popover: .metrics,
                 title: "类别",
@@ -213,7 +216,7 @@ struct HistoryView: View {
             }
             .foregroundStyle(isActive ? AppColor.onAccent : AppColor.ink)
             .frame(maxWidth: .infinity)
-            .frame(height: 44)
+            .frame(minHeight: 44)
             .background(
                 isActive ? AppColor.mint : Color.clear,
                 in: RoundedRectangle(cornerRadius: 10, style: .continuous)
@@ -224,6 +227,7 @@ struct HistoryView: View {
         .anchorPreference(key: TrendFilterAnchorKey.self, value: .bounds) { [popover: $0] }
         .accessibilityLabel(store.appLanguage.text(title))
         .accessibilityValue(value)
+        .accessibilityReturnFocus(when: activeFilterPopover == popover)
         .help(store.appLanguage.format("%@：%@", store.appLanguage.text(title), value))
     }
 
@@ -593,6 +597,7 @@ struct MeasurementDetailView: View {
                             .foregroundStyle(AppColor.rose)
                     }
                     .accessibilityLabel(Text(store.appLanguage.text("删除测量记录")))
+                    .accessibilityReturnFocus(when: confirmsDeletion)
                 }
             }
         }
@@ -746,6 +751,7 @@ private struct DetailRow: View {
                 Text(value).fontWeight(.semibold)
             }
             .padding(.vertical, 15)
+            .accessibilityElement(children: .combine)
             if divider { Divider() }
         }
     }

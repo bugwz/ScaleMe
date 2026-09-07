@@ -13,6 +13,16 @@ enum KeyboardFocus {
     }
 }
 
+@MainActor
+enum AppAccessibility {
+    /// Announces short, meaningful state transitions without making rapidly
+    /// changing measurement values into an always-chatty live region.
+    static func announce(_ message: String) {
+        guard UIAccessibility.isVoiceOverRunning, !message.isEmpty else { return }
+        UIAccessibility.post(notification: .announcement, argument: message)
+    }
+}
+
 struct AppVisualThemeTrait: UITraitDefinition {
     static let defaultValue = AppVisualTheme.standard
     // Invalidate dynamic colors throughout existing SwiftUI and UIKit views,
@@ -169,6 +179,7 @@ struct ScaleDeviceLabel: View {
                 .resizable()
                 .scaledToFit()
                 .frame(width: iconSize, height: iconSize)
+                .accessibilityHidden(true)
         }
     }
 }
@@ -422,6 +433,7 @@ struct SettingsPanel<Content: View>: View {
                         .foregroundStyle(iconColor)
                         .frame(width: 26, height: 26)
                         .background(iconBackgroundColor, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                        .accessibilityHidden(true)
                 case let .asset(assetName):
                     Image(assetName)
                         .renderingMode(.template)
@@ -431,10 +443,12 @@ struct SettingsPanel<Content: View>: View {
                         .foregroundStyle(iconColor)
                         .frame(width: 26, height: 26)
                         .background(iconBackgroundColor, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                        .accessibilityHidden(true)
                 }
                 AppLocalizedText(title)
                     .font(.headline)
                     .foregroundStyle(AppColor.ink)
+                    .accessibilityAddTraits(.isHeader)
                 Spacer()
                 if let headerValue {
                     Text(headerValue)
@@ -531,6 +545,10 @@ struct SettingsSwitch: View {
         .accessibilityValue(language.text(isOn ? "已开启" : "已关闭"))
         .accessibilityHint(detail.map(language.text) ?? "")
         .accessibilityAddTraits(.isButton)
+        .accessibilityRepresentation {
+            Toggle(language.text(title), isOn: $isOn)
+                .accessibilityHint(detail.map(language.text) ?? "")
+        }
     }
 }
 
@@ -549,6 +567,7 @@ enum AppDropdownAppearance {
 }
 
 struct AppDropdownField: View {
+    @AccessibilityFocusState private var isAccessibilityFocused: Bool
     @Environment(\.appLanguage) private var language
     let value: String
     let icon: String
@@ -627,6 +646,10 @@ struct AppDropdownField: View {
         .accessibilityLabel(language.text(accessibilityLabel))
         .accessibilityValue(language.text(value))
         .accessibilityHint(language.text(isExpanded ? "点击收起选项" : "点击展开选项"))
+        .accessibilityFocused($isAccessibilityFocused)
+        .onChange(of: isExpanded) { wasExpanded, expanded in
+            if wasExpanded && !expanded { isAccessibilityFocused = true }
+        }
     }
 }
 
@@ -672,6 +695,7 @@ struct AppEditableDropdownField: View {
             .buttonStyle(.plain)
             .accessibilityLabel(language.text(accessibilityLabel))
             .accessibilityHint(language.text(isExpanded ? "点击收起选项" : "点击展开选项"))
+            .accessibilityReturnFocus(when: isExpanded)
         }
         .padding(.horizontal, 12)
         .frame(maxWidth: .infinity)
@@ -699,6 +723,8 @@ struct AppEditableDropdownField: View {
 }
 
 struct AppDropdownMenuLayer<Option: Hashable>: View {
+    @Environment(\.appLanguage) private var language
+    @ScaledMetric(relativeTo: .body) private var rowScale: CGFloat = 1
     let anchorFrame: CGRect
     let availableSize: CGSize
     let options: [Option]
@@ -710,14 +736,16 @@ struct AppDropdownMenuLayer<Option: Hashable>: View {
     let onSelect: (Option) -> Void
     let onDismiss: () -> Void
 
+    @AccessibilityFocusState private var focusedOption: Option?
+
     var body: some View {
-        let rowHeight: CGFloat = detail == nil ? (appearance == .compact ? 48 : 44) : 58
+        let rowHeight: CGFloat = (detail == nil ? (appearance == .compact ? 48 : 44) : 58) * rowScale
         let rowSpacing: CGFloat = 4
         let listPadding: CGFloat = 12 // matches the `.padding(6)` applied around the option list
         // Cap visible rows so long option lists (e.g. languages) scroll instead of forcing the menu to the top of the screen.
         let maxVisibleRows: CGFloat = 6
         let visibleRows = min(CGFloat(options.count), maxVisibleRows)
-        let desiredHeight = visibleRows * rowHeight + max(0, visibleRows - 1) * rowSpacing + listPadding
+        let desiredHeight = visibleRows * rowHeight + max(0, visibleRows - 1) * rowSpacing + listPadding + 44
         let spaceBelow = availableSize.height - anchorFrame.maxY - 10
         let spaceAbove = anchorFrame.minY - 10
         let opensBelow = spaceBelow >= desiredHeight || spaceBelow >= spaceAbove
@@ -739,6 +767,8 @@ struct AppDropdownMenuLayer<Option: Hashable>: View {
                 .onTapGesture(perform: onDismiss)
 
             ScrollView {
+                Button(language.text("完成"), action: onDismiss)
+                    .frame(maxWidth: .infinity, minHeight: 44)
                 LazyVStack(spacing: 4) {
                     ForEach(options, id: \.self) { option in
                         let optionIsSelected = isSelected(option)
@@ -776,7 +806,7 @@ struct AppDropdownMenuLayer<Option: Hashable>: View {
                             }
                             .padding(.horizontal, appearance == .compact ? 10 : 14)
                             .frame(maxWidth: .infinity)
-                            .frame(height: rowHeight)
+                            .frame(minHeight: rowHeight)
                             .background {
                                 if optionIsSelected {
                                     RoundedRectangle(cornerRadius: appearance == .compact ? 10 : 12, style: .continuous)
@@ -809,6 +839,7 @@ struct AppDropdownMenuLayer<Option: Hashable>: View {
                         }
                         .buttonStyle(.plain)
                         .accessibilityAddTraits(optionIsSelected ? .isSelected : [])
+                        .accessibilityFocused($focusedOption, equals: option)
                     }
                 }
                 .padding(6)
@@ -849,6 +880,11 @@ struct AppDropdownMenuLayer<Option: Hashable>: View {
         .frame(width: availableSize.width, height: availableSize.height)
         .accessibilityElement(children: .contain)
         .accessibilityAddTraits(.isModal)
+        .accessibilityAction(.escape, onDismiss)
+        .task {
+            await Task.yield()
+            focusedOption = options.first
+        }
     }
 }
 
@@ -888,6 +924,7 @@ struct DestructiveConfirmationOverlay: View {
     let onCancel: () -> Void
     let onConfirm: () -> Void
     @State private var remainingSeconds: Int
+    @AccessibilityFocusState private var isTitleFocused: Bool
 
     init(
         icon: String,
@@ -929,6 +966,8 @@ struct DestructiveConfirmationOverlay: View {
                     AppLocalizedText(title)
                         .font(.title3.weight(.bold))
                         .foregroundStyle(AppColor.ink)
+                        .accessibilityAddTraits(.isHeader)
+                        .accessibilityFocused($isTitleFocused)
 
                     AppLocalizedText(message)
                         .font(.subheadline)
@@ -984,6 +1023,10 @@ struct DestructiveConfirmationOverlay: View {
         }
         .accessibilityElement(children: .contain)
         .accessibilityAddTraits(.isModal)
+        .onAppear {
+            isTitleFocused = true
+        }
+        .accessibilityAction(.escape, onCancel)
         .task(id: countdownSeconds) {
             remainingSeconds = countdownSeconds
             while remainingSeconds > 0 {
@@ -1015,6 +1058,7 @@ struct ScaleDeviceIconView: View {
                 accent.opacity(0.12),
                 in: RoundedRectangle(cornerRadius: size * 0.3, style: .continuous)
             )
+            .accessibilityHidden(true)
     }
 }
 
@@ -1169,6 +1213,7 @@ struct SettingsValueRow: View {
                 .fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity)
+        .accessibilityElement(children: .combine)
     }
 }
 

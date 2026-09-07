@@ -246,6 +246,25 @@ private struct TrendWidgetView: View {
             if let series = entry.series { content(series) } else { unavailableContent }
         }
         .widgetURL(URL(string: "scaleme://trends"))
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(accessibilitySummary)
+    }
+
+    private var accessibilitySummary: String {
+        guard let series = entry.series else { return String(localized: "打开观我后即可配置用户与设备趋势") }
+        var parts = [series.metadata.title, series.profileName, series.deviceName, series.rangeTitle]
+        if series.points.isEmpty { parts.append(String(localized: "所选范围暂无此项数据")) }
+        if let latest = series.latestPoint {
+            parts.append("\(latest.date.formatted(date: .abbreviated, time: .shortened)), \(series.metadata.formattedValue(latest.value)) \(series.metadata.unit)")
+            if let change = change(for: series.points) {
+                parts.append("\(String(localized: "较期初")), \(series.metadata.formattedSignedValue(change)) \(series.metadata.unit)")
+            }
+            parts.append("\(String(localized: "平均")), \(series.metadata.formattedValue(average(of: series.points))) \(series.metadata.unit)")
+            parts.append("\(String(localized: "区间")), \(formattedRange(of: series.points)) \(series.metadata.unit)")
+        }
+        parts.append("\(series.measurementCount) \(String(localized: "次记录"))")
+        if series.metadata.isEstimated { parts.append(String(localized: "估算数据，仅供趋势参考")) }
+        return parts.joined(separator: ", ")
     }
 
     @ViewBuilder

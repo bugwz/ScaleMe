@@ -64,6 +64,7 @@ struct HuaweiHagridCredentialsPanel: View {
                 .lineSpacing(2)
         }
         .task { loadStatus() }
+        .accessibilityAnnounceChanges(message)
     }
 
     private var canSave: Bool {

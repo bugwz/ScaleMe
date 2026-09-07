@@ -45,6 +45,7 @@ struct LocalizationSmoke {
         precondition(AppLanguageSelection.system.resolvedLanguage == AppLanguage.systemDefault)
 
         let requiredLocalizedKeys = [
+            "必填", "选填", "请检查输入：%@", "放大图表", "缩小图表", "恢复图表范围", "可通过上移、下移操作调整顺序",
             "健康指标", "体脂率", "基础代谢", "测量", "选择测量成员", "选择测量设备",
             "测量中", "测量完成", "正在测量体重，请保持站立", "体重测量完成，正在测量身体成分，请保持站立",
             "正在确认测量结果，请保持站立",

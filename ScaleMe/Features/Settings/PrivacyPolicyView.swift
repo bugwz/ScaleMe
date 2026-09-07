@@ -9,7 +9,12 @@ struct PrivacyPolicyView: View {
                 policyHeader
 
                 SoftCard {
-                    Text(policyBody)
+                    VStack(alignment: .leading, spacing: 16) {
+                        ForEach(Array(store.appLanguage.text(.privacyPolicyBody).components(separatedBy: "\n").filter { !$0.isEmpty }.enumerated()), id: \.offset) { _, paragraph in
+                            Text((try? AttributedString(markdown: paragraph, options: .init(interpretedSyntax: .inlineOnlyPreservingWhitespace))) ?? AttributedString(paragraph))
+                                .accessibilityAddTraits(paragraph.hasPrefix("#") || (paragraph.hasPrefix("**") && !paragraph.contains("\n")) ? .isHeader : [])
+                        }
+                    }
                         .font(.subheadline)
                         .foregroundStyle(AppColor.ink)
                         .lineSpacing(5)
@@ -54,9 +59,4 @@ struct PrivacyPolicyView: View {
         .padding(.vertical, 8)
     }
 
-    private var policyBody: AttributedString {
-        let source = store.appLanguage.text(.privacyPolicyBody)
-        let options = AttributedString.MarkdownParsingOptions(interpretedSyntax: .inlineOnlyPreservingWhitespace)
-        return (try? AttributedString(markdown: source, options: options)) ?? AttributedString(source)
-    }
 }

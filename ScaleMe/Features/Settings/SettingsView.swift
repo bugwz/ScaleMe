@@ -288,6 +288,7 @@ struct DataManagementSettingsView: View {
         .navigationBarTitleDisplayMode(.inline)
         .localizedNavigationBackButton()
         .accessibilityHidden(expandedDropdown != nil || pendingDeletionFileKind != nil)
+        .accessibilityAnnounceChanges(store.storageError)
         .fileImporter(
             isPresented: $showsImporter,
             allowedContentTypes: [.json]
@@ -461,6 +462,7 @@ struct DataManagementSettingsView: View {
             }
             .buttonStyle(MintActionButtonStyle(isDestructive: true))
             .disabled(selectedDeletionFileKind == nil)
+            .accessibilityReturnFocus(when: pendingDeletionFileKind != nil)
         }
     }
 

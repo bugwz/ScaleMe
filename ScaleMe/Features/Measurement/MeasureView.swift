@@ -176,7 +176,12 @@ struct MeasureView: View {
                 guard isMeasurementViewActive, !store.isSimulationEnabled else { return }
                 presentActualWeight(weightKG)
             }
+            .onChange(of: displayedMeasurementState) { _, state in
+                announceMeasurementState(state)
+            }
+            .accessibilityAnnounceChanges(store.storageError)
         }
+        .accessibilityHidden(showProfileDropdown || showScaleDropdown)
         .overlayPreferenceValue(MeasureProfileAnchorKey.self) { anchor in
             GeometryReader { proxy in
                 if showProfileDropdown, let anchor {
@@ -319,6 +324,14 @@ struct MeasureView: View {
                 .frame(maxWidth: 340, minHeight: 44)
         }
         .frame(maxWidth: .infinity, minHeight: 330)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(store.appLanguage.text(.measure))
+        .accessibilityValue(measurementStageAccessibilityValue)
+        .accessibilityActions {
+            if store.isSimulationEnabled {
+                Button(store.appLanguage.text("模拟一次测量"), action: runSimulatedMeasurement)
+            }
+        }
     }
 
     private var userSwitchButton: some View {
@@ -361,6 +374,7 @@ struct MeasureView: View {
         .anchorPreference(key: MeasureProfileAnchorKey.self, value: .bounds) { $0 }
         .accessibilityLabel(store.appLanguage.format("切换测量成员，当前为 %@", store.displaySelectedProfile.name))
         .accessibilityHint(store.appLanguage.text("点击选择本次测量数据所属的成员"))
+        .accessibilityReturnFocus(when: showProfileDropdown)
     }
 
     private var scaleSwitchButton: some View {
@@ -405,6 +419,7 @@ struct MeasureView: View {
         .anchorPreference(key: MeasureScaleAnchorKey.self, value: .bounds) { $0 }
         .accessibilityLabel(store.appLanguage.format("切换测量设备，当前为 %@", selectedScaleName))
         .accessibilityHint(store.appLanguage.text("点击选择本次测量使用的体重秤或体脂秤"))
+        .accessibilityReturnFocus(when: showScaleDropdown)
     }
 
     private func startMeasurementMonitoring() {
@@ -450,6 +465,35 @@ struct MeasureView: View {
 
     private var hasLiveWeight: Bool {
         store.isSimulationEnabled ? simulatedDisplayWeightKG != nil : displayedActualWeightKG != nil
+    }
+
+    private var measurementStageAccessibilityValue: String {
+        guard hasLiveWeight else { return store.appLanguage.text(statusText) }
+        let weight = "\(liveWeightText) \(store.unit.symbol)"
+        return store.appLanguage.format(
+            "%@，%@",
+            store.appLanguage.text(statusText),
+            weight
+        )
+    }
+
+    private func announceMeasurementState(_ state: BluetoothScaleState) {
+        guard isMeasurementViewActive else { return }
+        let stateText = state == .completed && store.storageError != nil
+            ? store.appLanguage.text("测量完成")
+            : state.title(in: store.appLanguage)
+        let finalWeight = store.isSimulationEnabled ? simulatedWeightKG : bluetooth.latestMeasurement?.weightKG
+        if state == .completed, let finalWeight {
+            AppAccessibility.announce(
+                store.appLanguage.format(
+                    "%@，%@",
+                    stateText,
+                    "\(store.unit.value(fromKilograms: finalWeight).formatted(2)) \(store.unit.symbol)"
+                )
+            )
+        } else {
+            AppAccessibility.announce(stateText)
+        }
     }
 
     @ViewBuilder
@@ -741,6 +785,7 @@ private struct ManualEntryProfileAnchorKey: PreferenceKey {
 }
 
 struct ManualEntryView: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @EnvironmentObject private var store: MeasurementStore
     @Environment(\.dismiss) private var dismiss
     @State private var weight = ""
@@ -806,6 +851,7 @@ struct ManualEntryView: View {
                 }
             }
         }
+        .accessibilityHidden(showProfileDropdown)
         .overlayPreferenceValue(ManualEntryProfileAnchorKey.self) { anchor in
             GeometryReader { proxy in
                 if showProfileDropdown, let anchor {
@@ -900,6 +946,7 @@ struct ManualEntryView: View {
                 store.appLanguage.text(store.displaySelectedProfile.role)
             ))
             .accessibilityHint(store.appLanguage.text("点击展开选择记录成员"))
+            .accessibilityReturnFocus(when: showProfileDropdown)
         }
     }
 
@@ -912,7 +959,7 @@ struct ManualEntryView: View {
                     placeholder: "必填，5.00 ~ 350.00",
                     text: $weight,
                     isRequired: true,
-                    isValid: isOptionalValid(weight, range: 5...350)
+                    isValid: parsedWeight != nil
                 )
 
                 manualInputField(
@@ -934,7 +981,7 @@ struct ManualEntryView: View {
                     .font(.caption)
                     .foregroundStyle(AppColor.secondary)
 
-                LazyVGrid(columns: [.init(.flexible()), .init(.flexible())], spacing: 12) {
+                LazyVGrid(columns: Array(repeating: .init(.flexible()), count: dynamicTypeSize.isAccessibilitySize ? 1 : 2), spacing: 12) {
                     manualGridField(
                         title: "体脂率",
                         unit: "%",
@@ -1172,6 +1219,8 @@ private struct ManualNumericInputField: View {
                     showsDoneAccessory: true
                 )
                 .frame(minHeight: layout == .regular ? 24 : 21)
+                .accessibilityLabel(language.format("%@，%@", language.text(title), unit))
+                .accessibilityHint(language.text(isRequired ? "必填" : "选填"))
 
                 if !text.isEmpty {
                     Button {
@@ -1200,6 +1249,12 @@ private struct ManualNumericInputField: View {
                     )
                     .allowsHitTesting(false)
             }
+            if !isValid {
+                Text(language.format("请检查输入：%@", language.text(placeholder)))
+                    .font(.caption)
+                    .foregroundStyle(AppColor.rose)
+            }
         }
+        .accessibilityAnnounceChanges(isValid ? nil : language.format("请检查输入：%@", language.text(title)))
     }
 }

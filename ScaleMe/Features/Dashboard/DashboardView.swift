@@ -3,6 +3,7 @@ import SwiftUI
 import UIKit
 
 struct DashboardView: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @EnvironmentObject private var store: MeasurementStore
     let scrollToTopRequest: Int
     let onMeasure: (UUID) -> Void
@@ -35,7 +36,16 @@ struct DashboardView: View {
                 VStack(spacing: 18) {
                     brandTitle
                         .padding(.horizontal, 18)
-                    memberPager
+                    if dynamicTypeSize.isAccessibilitySize {
+                        VStack(spacing: 16) {
+                            ForEach(store.displayProfiles) { profile in
+                                accessibleMemberCard(profile)
+                            }
+                        }
+                        .padding(.horizontal, 18)
+                    } else {
+                        memberPager
+                    }
                     metricsSection
                         .padding(.horizontal, 18)
                 }
@@ -72,6 +82,25 @@ struct DashboardView: View {
     private var visibleProfileAvatar: MemberAvatar {
         store.displayProfiles.first(where: { $0.id == visibleProfileID })?.avatar
             ?? store.displaySelectedProfile.avatar
+    }
+
+    private func accessibleMemberCard(_ profile: UserProfile) -> some View {
+        let latest = cardMeasurements(for: profile.id).first
+        return SoftCard {
+            VStack(alignment: .leading, spacing: 12) {
+                Text(profile.name).font(.title2.bold()).accessibilityAddTraits(.isHeader)
+                Text(store.appLanguage.text(profile.role))
+                Text(store.appLanguage.format("%@：%@", store.appLanguage.text("最近体重"), latest.map { "\(store.unit.value(fromKilograms: $0.weightKG).formatted(2)) \(store.unit.symbol)" } ?? "--"))
+                Text(verbatim: "BMI \(latest.map { $0.bmi(heightCM: profile.heightCM).formatted(2) } ?? "--")")
+                Text(store.appLanguage.format("%@：%@", store.appLanguage.text("体脂率"), latest?.bodyFatPercent.map { "\($0.formatted(2))%" } ?? "--"))
+                if let latest { Text(latest.date, format: .dateTime.year().month().day().hour().minute()) }
+                Button(store.appLanguage.text("查看近期趋势"), action: onShowTrends)
+                Button(store.appLanguage.text(store.isUsingPlaceholderData ? "添加成员" : "开始测量")) { onMeasure(profile.id) }
+                Button(store.appLanguage.text("选择用户")) { selectedProfileID = profile.id }
+                    .accessibilityAddTraits(visibleProfileID == profile.id ? .isSelected : [])
+            }
+            .foregroundStyle(AppColor.ink)
+        }
     }
 
     private func scheduleProfileSelectionCommit(_ profileID: UUID?) {
@@ -841,6 +870,11 @@ private struct DashboardMetricsEditorView: View {
         )
         .opacity(isDragging ? 0 : (isShown ? 1 : 0.55))
         .matchedGeometryEffect(id: kind, in: metricAnimation)
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(language.text(kind.title))
+        .accessibilityHint(language.text("可通过上移、下移操作调整顺序"))
+        .accessibilityAction(named: Text(language.text("上移"))) { moveMetric(kind, isShown: isShown, offset: -1) }
+        .accessibilityAction(named: Text(language.text("下移"))) { moveMetric(kind, isShown: isShown, offset: 1) }
         .transition(.identity)
         // Reordering is a strict long-press-then-drag sequence. Ordinary vertical movement
         // exceeds the long press tolerance first and remains a ScrollView gesture.
@@ -885,6 +919,13 @@ private struct DashboardMetricsEditorView: View {
                 isDragLifted = true
             }
         }
+    }
+
+    private func moveMetric(_ kind: DashboardMetricKind, isShown: Bool, offset: Int) {
+        var items = isShown ? shown : hidden
+        guard let index = items.firstIndex(of: kind), items.indices.contains(index + offset) else { return }
+        items.swapAt(index, index + offset)
+        if isShown { shown = items } else { hidden = items }
     }
 
     private func updateDragging(_ kind: DashboardMetricKind, with drag: DragGesture.Value) {
