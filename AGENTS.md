@@ -196,3 +196,4 @@ swiftc -module-cache-path /tmp/scaleme-swift-module-cache \
 - Never use destructive Git commands to discard local changes.
 - If real hardware, credentials, signing capabilities, or a material product decision is required, complete all safe local work first and then state the exact remaining blocker.
 - When the user asks to create a Git commit or prepare commit information, use the project skill at `.agents/skills/commit/SKILL.md`. The skill's explicit confirmation step is mandatory.
+- When the user asks to release a version, create a release tag, publish a GitHub Release, or update its description, use the project skill at `.agents/skills/release/SKILL.md`. Its separate commit, tag, and remote-publication confirmations are mandatory.
