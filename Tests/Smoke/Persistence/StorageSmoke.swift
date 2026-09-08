@@ -3,6 +3,7 @@ import Foundation
 @main
 enum StorageSmoke {
     static func main() throws {
+        try verifyContinuousMeasurementImport()
         precondition(AppConfiguration.standard.appleHealthProfileID == nil)
         precondition(AppConfiguration.standard.appleHealthDeviceIDs.isEmpty)
         precondition(!AppConfiguration.standard.isAppleHealthImportEnabled)
@@ -167,5 +168,52 @@ enum StorageSmoke {
         precondition(configurationAfterFullClear == nil, "full deletion must remove the configuration file")
         precondition(archiveAfterFullClear == nil, "full deletion must remove the data file")
         print("Storage smoke tests passed")
+    }
+
+    private static func verifyContinuousMeasurementImport() throws {
+        let first = BodyMeasurement(
+            date: Date(timeIntervalSince1970: 1_700_000_000),
+            weightKG: 60,
+            source: .xiaomi,
+            isStable: true,
+            profileID: UUID(),
+            deviceID: UUID()
+        )
+        var next = first
+        next.id = UUID()
+        next.date = first.date.addingTimeInterval(1)
+        next.bodyFatPercent = 22
+        guard let retained = first.mergingContinuousMeasurement(next) else {
+            preconditionFailure("continuous samples should merge")
+        }
+        precondition(retained.id == first.id, "continuous measurements must retain their record identity")
+        precondition(retained.date == next.date && retained.bodyFatPercent == 22, "the latest sample must update the record")
+        let archive = MeasurementArchive(updatedAt: next.date, measurements: [retained], deletedMeasurements: [])
+        let transfer = LocalDataTransferService()
+        let restored = try transfer.importRecords(from: transfer.exportRecords(archive))
+        precondition(restored.merging(.empty).measurements == [retained], "import must not discard a retained continuous measurement")
+        precondition(restored.merging(restored).measurements == [retained], "repeated import must not duplicate continuous measurements")
+
+        let oldBackup = MeasurementArchive(updatedAt: first.date, measurements: [first], deletedMeasurements: [])
+        precondition(restored.merging(oldBackup).measurements == [retained], "an older backup must not resurrect the replaced sample")
+        precondition(oldBackup.merging(restored).measurements == [retained], "restoring the newer record must also work in reverse merge order")
+
+        let deleted = MeasurementArchive(updatedAt: next.date, measurements: [], deletedMeasurements: [DeletedMeasurementMarker(retained)])
+        precondition(restored.merging(deleted).measurements.isEmpty, "explicit deletion must still remove the merged record")
+        precondition(deleted.merging(oldBackup).measurements.isEmpty, "explicit deletion must prevent resurrection from older backups")
+        precondition(deleted.deletedMeasurements.contains(where: { $0.matches(next) }), "explicit deletion must still recognize device history with a different ID")
+
+        var different = next
+        different.profileID = UUID()
+        precondition(first.mergingContinuousMeasurement(different) == nil, "different members must not merge")
+        different = next
+        different.deviceID = UUID()
+        precondition(first.mergingContinuousMeasurement(different) == nil, "different devices must not merge")
+        different = next
+        different.source = .manual
+        precondition(first.mergingContinuousMeasurement(different) == nil, "different sources must not merge")
+        different = next
+        different.date = first.date.addingTimeInterval(30)
+        precondition(first.mergingContinuousMeasurement(different) == nil, "the 30-second boundary must remain exclusive")
     }
 }

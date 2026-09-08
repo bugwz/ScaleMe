@@ -354,17 +354,13 @@ final class MeasurementStore: ObservableObject {
         }
         let enriched = BodyCompositionEstimator.enriching(attributed, profile: selectedProfile)
         if mergeFrequentMeasurements,
-           let first = measurements.first,
-           first.profileID == enriched.profileID,
-           first.deviceID == enriched.deviceID,
-           first.source == enriched.source,
-           abs(first.date.timeIntervalSince(enriched.date)) < 30 {
-            deletedMeasurements.insert(DeletedMeasurementMarker(first))
-            measurements[0] = enriched
+           let merged = measurements.first?.mergingContinuousMeasurement(enriched) {
+            measurements[0] = merged
+            attributed.id = merged.id
         } else {
             measurements.insert(enriched, at: 0)
         }
-        deletedMeasurements = Set(deletedMeasurements.filter { $0.id != enriched.id })
+        deletedMeasurements = Set(deletedMeasurements.filter { $0.id != enriched.id && $0.id != attributed.id })
         persistArchive()
         latestHealthShareCandidate = attributed
     }
@@ -1140,16 +1136,15 @@ final class MeasurementStore: ObservableObject {
 
         if mergeFrequentMeasurements,
            let index = simulationData.measurements.firstIndex(where: {
-               $0.profileID == enriched.profileID
-                   && $0.deviceID == enriched.deviceID
-                   && $0.source == enriched.source
-                   && abs($0.date.timeIntervalSince(enriched.date)) < 30
-           }) {
-            simulationData.measurements[index] = enriched
+               $0.mergingContinuousMeasurement(enriched) != nil
+           }),
+           let merged = simulationData.measurements[index].mergingContinuousMeasurement(enriched) {
+            simulationData.measurements[index] = merged
+            attributed.id = merged.id
         } else {
             simulationData.measurements.append(enriched)
         }
-        simulationDeletedMeasurements = Set(simulationDeletedMeasurements.filter { $0.id != enriched.id })
+        simulationDeletedMeasurements = Set(simulationDeletedMeasurements.filter { $0.id != enriched.id && $0.id != attributed.id })
         simulationData.measurements.sort { $0.date > $1.date }
         simulationArchiveUpdatedAt = .now
     }

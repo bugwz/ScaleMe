@@ -695,9 +695,10 @@ enum CommunicationRuleCodec {
             let fields = [decoder.weight, decoder.impedance, decoder.bodyFatPercent, decoder.muscleMassKG,
                           decoder.waterPercent, decoder.visceralFat, decoder.basalMetabolismKCal, decoder.boneMassKG].compactMap { $0 } + dateFields
             for field in fields {
-                guard field.offset >= 0, (1...8).contains(field.length),
+                guard field.offset >= 0, field.offset <= rule.match.minimumLength,
+                      (1...8).contains(field.length),
                       field.scale.isFinite, field.scale > 0, field.add.isFinite,
-                      field.offset + field.length <= rule.match.minimumLength else {
+                      field.length <= rule.match.minimumLength - field.offset else {
                     throw CommunicationRuleError.invalidDocument("字段范围或缩放值无效")
                 }
             }
@@ -905,7 +906,8 @@ struct DeclarativeCommunicationRuleParser {
     }
 
     private static func value(_ field: CommunicationField, bytes: [UInt8]) throws -> Double {
-        guard field.offset >= 0, field.length > 0, field.offset + field.length <= bytes.count else {
+        guard field.offset >= 0, field.offset <= bytes.count,
+              (1...8).contains(field.length), field.length <= bytes.count - field.offset else {
             throw ScalePayloadError.tooShort
         }
         let slice = bytes[field.offset..<(field.offset + field.length)]

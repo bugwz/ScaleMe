@@ -143,6 +143,18 @@ struct BodyMeasurement: Identifiable, Codable, Hashable {
     var deviceID: UUID? = nil
     var deviceName: String? = nil
 
+    func mergingContinuousMeasurement(_ next: BodyMeasurement) -> BodyMeasurement? {
+        guard profileID == next.profileID,
+              deviceID == next.deviceID,
+              source == next.source,
+              abs(date.timeIntervalSince(next.date)) < 30 else { return nil }
+        // Continuous samples update one record. A deletion marker for the old
+        // sample would also match the retained sample during archive import.
+        var merged = next
+        merged.id = id
+        return merged
+    }
+
     func bmi(heightCM: Double) -> Double {
         guard heightCM > 0 else { return 0 }
         return weightKG / pow(heightCM / 100, 2)

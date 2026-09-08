@@ -50,6 +50,46 @@ struct CommunicationRuleSmoke {
     static func main() throws {
         let rules = try CommunicationRuleCodec.decode(Data(json.utf8))
         expect(rules.count == 1, "one rule should decode")
+        for offset in [Int.min, -1, 6, Int.max - 1, Int.max] {
+            let invalidOffsetJSON = json.replacingOccurrences(
+                of: "\"offset\": 2,",
+                with: "\"offset\": \(offset),"
+            )
+            do {
+                _ = try CommunicationRuleCodec.decode(Data(invalidOffsetJSON.utf8))
+                preconditionFailure("out-of-bounds offsets must be rejected without overflowing")
+            } catch CommunicationRuleError.invalidDocument {
+                // Expected through the actual file-import validation path.
+            }
+            var invalidRule = rules[0]
+            invalidRule.decoder?.weight.offset = offset
+            do {
+                _ = try DeclarativeCommunicationRuleParser.parse(
+                    Data([0xA5, 0x5A, 0x17, 0x70, 0xF4, 0x01]), rule: invalidRule
+                )
+                preconditionFailure("runtime parsing must reject invalid offsets even without import validation")
+            } catch ScalePayloadError.tooShort {
+                // Expected.
+            }
+        }
+        for length in [Int.min, 0, 9, Int.max] {
+            var invalidRule = rules[0]
+            invalidRule.decoder?.weight.length = length
+            do {
+                try CommunicationRuleCodec.validate(invalidRule)
+                preconditionFailure("invalid field lengths must be rejected")
+            } catch CommunicationRuleError.invalidDocument {
+                // Expected.
+            }
+            do {
+                _ = try DeclarativeCommunicationRuleParser.parse(
+                    Data([0xA5, 0x5A, 0x17, 0x70, 0xF4, 0x01]), rule: invalidRule
+                )
+                preconditionFailure("runtime parsing must reject invalid lengths without overflowing")
+            } catch ScalePayloadError.tooShort {
+                // Expected.
+            }
+        }
         expect(rules[0].id == "protocol.custom.demo-scale", "external rule should use the custom protocol namespace")
         expect(rules[0].origin == .custom, "file imports should always be identified as local imports")
         expect(rules[0].sourceURL == nil, "file imports should not create a runtime source URL")
