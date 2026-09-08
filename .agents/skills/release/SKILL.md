@@ -64,7 +64,7 @@ Translate and synthesize the history into concise, user-facing Chinese. Merge du
 
 ## 3. Prepare release files
 
-Create `release/VERSION.md` with this stable shape, using `- 无` for empty sections:
+Create `Release/VERSION.md` with this stable shape, using `- 无` for empty sections:
 
 ```markdown
 # VERSION Release Notes
@@ -114,10 +114,10 @@ After confirmation, recheck that `HEAD` is `COMMIT`, the worktree is clean, and 
 
 ## 6. Propose and publish remotely
 
-Inspect `.github/workflows/` to determine whether a tag workflow creates the GitHub Release and which assets it is expected to attach. Confirm `release/VERSION.md` exists and prepare its GitHub body by removing only the first H1 and following leading blank lines:
+Inspect `.github/workflows/` to determine whether a tag workflow creates the GitHub Release and which assets it is expected to attach. Confirm `Release/VERSION.md` exists and prepare its GitHub body by removing only the first H1 and following leading blank lines:
 
 ```sh
-awk 'NR == 1 && /^# / { next } NF { started = 1 } started { print }' release/VERSION.md
+awk 'NR == 1 && /^# / { next } NF { started = 1 } started { print }' Release/VERSION.md
 ```
 
 Show the current branch, exact commit, tag, release-note path, `origin` URL, whether publication will create or update the GitHub Release, and the expected workflow/assets. Ask:
@@ -125,7 +125,7 @@ Show the current branch, exact commit, tag, release-note path, `origin` URL, whe
 ```text
 === 需要确认发布到远端 ===
 
-本操作将推送当前分支与标签，并使用 release/VERSION.md（移除重复 H1 后）创建或更新 GitHub Release。
+本操作将推送当前分支与标签，并使用 Release/VERSION.md（移除重复 H1 后）创建或更新 GitHub Release。
 
 确认发布吗？请回复“确认”继续，或回复“取消”终止。
 ```
@@ -141,7 +141,7 @@ If a configured tag workflow creates the Release, wait for that exact workflow r
 If no workflow is configured to create a Release, create it directly as part of the already confirmed publication phase. If the Release exists, update it. In both cases pass the stripped notes through standard input rather than a temporary tracked file:
 
 ```sh
-awk 'NR == 1 && /^# / { next } NF { started = 1 } started { print }' release/VERSION.md | gh release edit VERSION --notes-file -
+awk 'NR == 1 && /^# / { next } NF { started = 1 } started { print }' Release/VERSION.md | gh release edit VERSION --notes-file -
 ```
 
 Use `gh release create VERSION --title VERSION --notes-file -` instead when the Release does not exist. Do not create a draft or prerelease unless the user explicitly asked for one.
