@@ -172,7 +172,7 @@ enum AppText: CaseIterable {
     case appSettings
     case displaySettings
     case dataManagement
-    case dataSharing
+    case appleHealthSync
     case communicationProtocol
     case about
     case privacyPolicy
@@ -206,7 +206,7 @@ enum AppText: CaseIterable {
         case .appSettings: "应用设置"
         case .displaySettings: "显示设置"
         case .dataManagement: "数据管理"
-        case .dataSharing: "数据共享"
+        case .appleHealthSync: "Apple 健康同步"
         case .communicationProtocol: "通信协议"
         case .about: "关于应用"
         case .privacyPolicy: "隐私政策"

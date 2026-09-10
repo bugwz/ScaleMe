@@ -13,6 +13,15 @@ struct AppleHealthSettingsView: View {
     var body: some View {
         ScrollView {
             SettingsPanel(title: "Apple 健康", icon: "heart.fill") {
+                notice(
+                    "此功能通过 HealthKit 读写 Apple 健康中的体重和体脂率，帮助你查看长期变化趋势。",
+                    icon: "heart.text.clipboard"
+                )
+                notice(
+                    "同步为可选功能，默认关闭。请先授权，再开启共享或获取数据；不授权也可使用本地测量。你可以在“健康”应用中管理权限。",
+                    icon: "hand.raised"
+                )
+                SettingsSeparator()
                 authorizationStatusRow
                 if shouldShowAuthorizationRequestAction {
                     authorizationRequestAction
@@ -39,7 +48,7 @@ struct AppleHealthSettingsView: View {
             .padding(.bottom, 28)
         }
         .pageBackground()
-        .navigationTitle(store.appLanguage.text(.dataSharing))
+        .navigationTitle(store.appLanguage.text(.appleHealthSync))
         .navigationBarTitleDisplayMode(.inline)
         .localizedNavigationBackButton()
         .accessibilityHidden(expandedDropdown != nil)

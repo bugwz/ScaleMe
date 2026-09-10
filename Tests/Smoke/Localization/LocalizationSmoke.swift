@@ -45,6 +45,10 @@ struct LocalizationSmoke {
         precondition(AppLanguageSelection.system.resolvedLanguage == AppLanguage.systemDefault)
 
         let requiredLocalizedKeys = [
+            "Apple 健康同步",
+            "此功能通过 HealthKit 读写 Apple 健康中的体重和体脂率，帮助你查看长期变化趋势。",
+            "同步为可选功能，默认关闭。请先授权，再开启共享或获取数据；不授权也可使用本地测量。你可以在“健康”应用中管理权限。",
+
             "必填", "选填", "请检查输入：%@", "放大图表", "缩小图表", "恢复图表范围", "可通过上移、下移操作调整顺序",
             "健康指标", "体脂率", "基础代谢", "测量", "选择测量成员", "选择测量设备",
             "测量中", "测量完成", "正在测量体重，请保持站立", "体重测量完成，正在测量身体成分，请保持站立",
