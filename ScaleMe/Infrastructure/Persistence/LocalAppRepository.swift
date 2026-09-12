@@ -83,14 +83,14 @@ final class LocalPersistenceWriter {
 
     func saveConfiguration(_ configuration: AppConfiguration, revision: Int) throws {
         guard revision > latestConfigurationRevision else { return }
-        latestConfigurationRevision = revision
         try repository.saveConfiguration(configuration)
+        latestConfigurationRevision = revision
     }
 
     func saveArchive(_ archive: MeasurementArchive, revision: Int) throws {
         guard revision > latestArchiveRevision else { return }
-        latestArchiveRevision = revision
         try repository.saveArchive(archive)
+        latestArchiveRevision = revision
     }
 
     func deleteArchive() throws {

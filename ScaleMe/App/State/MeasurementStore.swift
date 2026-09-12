@@ -1,4 +1,5 @@
 import Foundation
+import SwiftUI
 
 @MainActor
 final class MeasurementStore: ObservableObject {
@@ -25,7 +26,27 @@ final class MeasurementStore: ObservableObject {
     @Published var widgetProfileID: UUID? { didSet { persistConfigurationIfNeeded() } }
     @Published var widgetTimeRange: WidgetTrendTimeRange { didSet { persistConfigurationIfNeeded() } }
     @Published var widgetDisplayStyle: WidgetTrendDisplayStyle { didSet { persistConfigurationIfNeeded() } }
-    @Published private(set) var storageError: String?
+    @Published private(set) var configurationStorageError: String?
+    @Published private(set) var archiveStorageError: String?
+    @Published private(set) var measurementSaveError: String?
+    @Published private var pendingMeasurements: [PendingMeasurement] = []
+
+    var storageError: String? {
+        let errors = [configurationStorageError, archiveStorageError, measurementSaveError].compactMap { $0 }
+        return errors.isEmpty ? nil : errors.joined(separator: "\n")
+    }
+
+    var hasPendingMeasurements: Bool { !pendingMeasurements.isEmpty }
+
+    func isMeasurementPending(_ id: UUID) -> Bool {
+        pendingMeasurements.contains { $0.raw.id == id }
+    }
+
+    private struct PendingMeasurement {
+        let raw: BodyMeasurement
+        let enriched: BodyMeasurement
+        let mergesContinuousMeasurements: Bool
+    }
     @Published private(set) var latestHealthShareCandidate: BodyMeasurement?
     @Published private(set) var isSimulationDataLoading = false
     private let persistenceWriter: LocalPersistenceWriter?
@@ -49,29 +70,30 @@ final class MeasurementStore: ObservableObject {
     private var simulationCommunicationRuleImportSequence = SimulationCommunicationRuleImportSequence()
     private var configurationBeforeSimulation: AppConfiguration?
 
-    init() {
+    init(repository suppliedRepository: LocalAppRepository? = nil) {
         var loadedRepository: LocalAppRepository?
         var loadedConfiguration = AppConfiguration.standard
         var loadedArchive = MeasurementArchive.empty
-        var initialError: String?
+        var configurationError: String?
+        var archiveError: String?
 
         do {
-            let repository = try LocalAppRepository()
+            let repository = try suppliedRepository ?? LocalAppRepository()
             loadedRepository = repository
 
             do {
                 loadedConfiguration = try repository.loadConfiguration() ?? .standard
             } catch {
-                initialError = "无法读取本地配置：\(error.localizedDescription)"
+                configurationError = "无法读取本地配置：\(error.localizedDescription)"
             }
 
             do {
                 loadedArchive = try repository.loadArchive() ?? .empty
             } catch {
-                initialError = "无法读取本地数据：\(error.localizedDescription)"
+                archiveError = "无法读取本地数据：\(error.localizedDescription)"
             }
         } catch {
-            initialError = "无法初始化本地存储：\(error.localizedDescription)"
+            configurationError = "无法初始化本地存储：\(error.localizedDescription)"
         }
 
         loadedConfiguration.profiles = Self.normalizedProfiles(loadedConfiguration.profiles)
@@ -128,7 +150,8 @@ final class MeasurementStore: ObservableObject {
         measurements = loadedArchive.measurements.sorted { $0.date > $1.date }
         deletedMeasurements = loadedArchive.deletedMeasurements
         archiveUpdatedAt = loadedArchive.updatedAt
-        storageError = initialError
+        configurationStorageError = configurationError
+        archiveStorageError = archiveError
         latestHealthShareCandidate = nil
         if isSimulationEnabled {
             var baseline = loadedConfiguration
@@ -339,30 +362,77 @@ final class MeasurementStore: ObservableObject {
         return true
     }
 
-    func add(_ measurement: BodyMeasurement) {
+    @discardableResult
+    func add(_ measurement: BodyMeasurement, retainForRetry: Bool = true) -> Bool {
         if isSimulationEnabled {
             addSimulationMeasurement(measurement)
-            return
+            return true
         }
 
-        guard profiles.contains(where: { $0.id == selectedProfileID }) else { return }
+        guard profiles.contains(where: { $0.id == selectedProfileID }) else { return false }
         var attributed = measurement
         attributed.profileID = selectedProfileID
         if let deviceID = measurement.deviceID,
            let scale = pairedScales.first(where: { $0.id == deviceID }) {
             attributed.deviceName = scale.name
         }
-        let enriched = BodyCompositionEstimator.enriching(attributed, profile: selectedProfile)
-        if mergeFrequentMeasurements,
-           let merged = measurements.first?.mergingContinuousMeasurement(enriched) {
-            measurements[0] = merged
-            attributed.id = merged.id
-        } else {
-            measurements.insert(enriched, at: 0)
+        let pending = PendingMeasurement(
+            raw: attributed,
+            enriched: BodyCompositionEstimator.enriching(attributed, profile: selectedProfile),
+            mergesContinuousMeasurements: mergeFrequentMeasurements
+        )
+        if retainForRetry {
+            pendingMeasurements.removeAll { $0.raw.id == attributed.id }
+            pendingMeasurements.append(pending)
+            return retryPendingMeasurements()
         }
-        deletedMeasurements = Set(deletedMeasurements.filter { $0.id != enriched.id && $0.id != attributed.id })
-        persistArchive()
-        latestHealthShareCandidate = attributed
+        return saveMeasurement(pending)
+    }
+
+    @discardableResult
+    func retryPendingMeasurements() -> Bool {
+        guard !isSimulationEnabled else { return false }
+        for pending in pendingMeasurements {
+            guard saveMeasurement(pending) else { return false }
+        }
+        return true
+    }
+
+    private func saveMeasurement(_ pending: PendingMeasurement) -> Bool {
+        var snapshot = archive
+        var candidate = pending.raw
+        let enriched = pending.enriched
+        if let index = snapshot.measurements.firstIndex(where: { $0.id == enriched.id }) {
+            snapshot.measurements[index] = enriched
+        } else if pending.mergesContinuousMeasurements,
+                  let latest = snapshot.measurements.first,
+                  latest.date <= enriched.date,
+                  let merged = latest.mergingContinuousMeasurement(enriched) {
+            snapshot.measurements[0] = merged
+            candidate.id = merged.id
+        } else {
+            snapshot.measurements.append(enriched)
+        }
+        snapshot.measurements.sort { $0.date > $1.date }
+        snapshot.deletedMeasurements = Set(snapshot.deletedMeasurements.filter {
+            $0.id != enriched.id && $0.id != candidate.id
+        })
+        snapshot.updatedAt = .now
+        do {
+            try writeArchive(snapshot)
+        } catch {
+            measurementSaveError = error.localizedDescription
+            return false
+        }
+        measurements = snapshot.measurements
+        deletedMeasurements = snapshot.deletedMeasurements
+        archiveUpdatedAt = snapshot.updatedAt
+        pendingMeasurements.removeAll { $0.raw.id == pending.raw.id }
+        if pendingMeasurements.isEmpty { measurementSaveError = nil }
+        archiveStorageError = nil
+        // Only durable measurements may be published to Apple Health.
+        latestHealthShareCandidate = candidate
+        return true
     }
 
     @discardableResult
@@ -413,6 +483,7 @@ final class MeasurementStore: ObservableObject {
         return plan.summary
     }
 
+    @discardableResult
     func addManual(
         weightKG: Double,
         impedanceOhm: Double? = nil,
@@ -422,7 +493,7 @@ final class MeasurementStore: ObservableObject {
         visceralFat: Double? = nil,
         basalMetabolismKCal: Double? = nil,
         boneMassKG: Double? = nil
-    ) {
+    ) -> Bool {
         add(
             BodyMeasurement(
                 date: .now,
@@ -436,7 +507,8 @@ final class MeasurementStore: ObservableObject {
                 boneMassKG: boneMassKG,
                 source: .manual,
                 isStable: true
-            )
+            ),
+            retainForRetry: false
         )
     }
 
@@ -871,7 +943,7 @@ final class MeasurementStore: ObservableObject {
     @discardableResult
     func deleteLocalData(includeConfiguration: Bool) -> Bool {
         guard let persistenceWriter else {
-            storageError = "无法初始化本地存储"
+            archiveStorageError = "无法初始化本地存储"
             return false
         }
 
@@ -886,10 +958,13 @@ final class MeasurementStore: ObservableObject {
                 archiveUpdatedAt = .distantPast
                 latestHealthShareCandidate = nil
             }
-            storageError = nil
+            pendingMeasurements = []
+            measurementSaveError = nil
+            if includeConfiguration { configurationStorageError = nil }
+            archiveStorageError = nil
             return true
         } catch {
-            storageError = error.localizedDescription
+            archiveStorageError = error.localizedDescription
             return false
         }
     }
@@ -1151,35 +1226,35 @@ final class MeasurementStore: ObservableObject {
 
     private func persistConfiguration() {
         guard let persistenceWriter else {
-            storageError = "无法初始化本地存储"
+            configurationStorageError = "无法初始化本地存储"
             return
         }
         configurationRevision += 1
-        let revision = configurationRevision
         var snapshot = configurationBeforeSimulation ?? configuration
         snapshot.isSimulationEnabled = isSimulationEnabled
         do {
-            try persistenceWriter.saveConfiguration(snapshot, revision: revision)
-            storageError = nil
+            try persistenceWriter.saveConfiguration(snapshot, revision: configurationRevision)
+            configurationStorageError = nil
         } catch {
-            storageError = error.localizedDescription
+            configurationStorageError = error.localizedDescription
         }
+    }
+
+    private func writeArchive(_ snapshot: MeasurementArchive) throws {
+        guard let persistenceWriter else {
+            throw CocoaError(.fileWriteUnknown)
+        }
+        archiveRevision += 1
+        try persistenceWriter.saveArchive(snapshot, revision: archiveRevision)
     }
 
     private func persistArchive(markAsChanged: Bool = true) {
         if markAsChanged { archiveUpdatedAt = .now }
-        guard let persistenceWriter else {
-            storageError = "无法初始化本地存储"
-            return
-        }
-        archiveRevision += 1
-        let revision = archiveRevision
-        let snapshot = archive
         do {
-            try persistenceWriter.saveArchive(snapshot, revision: revision)
-            storageError = nil
+            try writeArchive(archive)
+            archiveStorageError = nil
         } catch {
-            storageError = error.localizedDescription
+            archiveStorageError = error.localizedDescription
         }
     }
 

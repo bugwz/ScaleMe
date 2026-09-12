@@ -86,6 +86,11 @@ struct MeasureView: View {
                             userSwitchButton
                         }
                     }
+                    if !store.isSimulationEnabled, store.hasPendingMeasurements {
+                        MeasurementSaveFailureCard(error: store.measurementSaveError) {
+                            store.retryPendingMeasurements()
+                        }
+                    }
                     VStack(spacing: 12) {
                         scaleStage
                         manualEntryButton
@@ -432,7 +437,13 @@ struct MeasureView: View {
         return store.unit.value(fromKilograms: weightKG).formatted(2)
     }
 
+    private var isCurrentMeasurementPending: Bool {
+        guard !store.isSimulationEnabled, let measurement = bluetooth.latestMeasurement else { return false }
+        return store.isMeasurementPending(measurement.id)
+    }
+
     private var statusText: String {
+        if isCurrentMeasurementPending { return "未保存" }
         if store.isSimulationEnabled { return simulationState.title(in: store.appLanguage) }
         if store.isUsingPlaceholderData { return "需要成员资料" }
         if store.pairedScales.isEmpty { return "请先在“设备”页添加体重秤" }
@@ -470,8 +481,8 @@ struct MeasureView: View {
 
     private func announceMeasurementState(_ state: BluetoothScaleState) {
         guard isMeasurementViewActive else { return }
-        let stateText = state == .completed && store.storageError != nil
-            ? store.appLanguage.text("测量完成")
+        let stateText = state == .completed && isCurrentMeasurementPending
+            ? store.appLanguage.text("未保存")
             : state.title(in: store.appLanguage)
         let finalWeight = store.isSimulationEnabled ? simulatedWeightKG : bluetooth.latestMeasurement?.weightKG
         if state == .completed, let finalWeight {
@@ -523,7 +534,8 @@ struct MeasureView: View {
     }
 
     private var stageLabel: String? {
-        switch displayedMeasurementState {
+        if isCurrentMeasurementPending { return "未保存" }
+        return switch displayedMeasurementState {
         case .measuringWeight, .measuringBodyComposition, .confirmingMeasurement: "测量中"
         case .completed: "测量完成"
         default: nil
@@ -531,7 +543,8 @@ struct MeasureView: View {
     }
 
     private var stageColor: Color {
-        switch displayedMeasurementState {
+        if isCurrentMeasurementPending { return AppColor.rose }
+        return switch displayedMeasurementState {
         case .measuringWeight, .measuringBodyComposition, .confirmingMeasurement: AppColor.sky
         default: AppColor.mint
         }
@@ -626,7 +639,7 @@ struct MeasureView: View {
             measurementSummaryCard(liveMeasurement)
         }
         .buttonStyle(.plain)
-        .disabled(liveMeasurement == nil)
+        .disabled(liveMeasurement == nil || isCurrentMeasurementPending)
     }
 
     private func measurementSummaryCard(_ measurement: BodyMeasurement?) -> some View {
@@ -645,7 +658,7 @@ struct MeasureView: View {
                         }
                     }
                     Spacer()
-                    if measurement != nil {
+                    if measurement != nil, !isCurrentMeasurementPending {
                         AppLocalizedText("详情")
                             .font(.caption.weight(.semibold))
                             .foregroundStyle(AppColor.mint)
@@ -748,6 +761,7 @@ struct ManualEntryView: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @EnvironmentObject private var store: MeasurementStore
     @Environment(\.dismiss) private var dismiss
+    @State private var saveFailed = false
     @State private var weight = ""
     @State private var impedance = ""
     @State private var bodyFat = ""
@@ -794,6 +808,9 @@ struct ManualEntryView: View {
                     basicMeasurementPanel
                     bodyCompositionPanel
                     calculationNoticePanel
+                    if saveFailed {
+                        MeasurementSaveFailureCard(error: store.measurementSaveError, onRetry: save)
+                    }
                     saveActionButton
                 }
                 .padding(.horizontal, 18)
@@ -811,6 +828,7 @@ struct ManualEntryView: View {
                 }
             }
         }
+        .accessibilityAnnounceChanges(saveFailed ? store.appLanguage.text("未保存") : nil)
         .accessibilityHidden(showProfileDropdown)
         .overlayPreferenceValue(ManualEntryProfileAnchorKey.self) { anchor in
             GeometryReader { proxy in
@@ -1111,7 +1129,7 @@ struct ManualEntryView: View {
     private func save() {
         guard let weightKG = parsedWeight, canSave else { return }
         KeyboardFocus.dismiss()
-        store.addManual(
+        let saved = store.addManual(
             weightKG: weightKG,
             impedanceOhm: numericValue(impedance),
             bodyFatPercent: numericValue(bodyFat),
@@ -1121,7 +1139,48 @@ struct ManualEntryView: View {
             basalMetabolismKCal: numericValue(basalMetabolism),
             boneMassKG: numericValue(boneMass)
         )
-        dismiss()
+        saveFailed = !saved
+        if saved { dismiss() }
+    }
+}
+
+private struct MeasurementSaveFailureCard: View {
+    let error: String?
+    let onRetry: () -> Void
+
+    var body: some View {
+        SoftCard {
+            VStack(alignment: .leading, spacing: 12) {
+                Label {
+                    AppLocalizedText("未保存")
+                } icon: {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                }
+                    .font(.headline)
+                    .foregroundStyle(AppColor.rose)
+                AppLocalizedText("保存失败，数据尚未写入本机。请重试；退出应用后未保存的数据可能丢失。")
+                    .font(.subheadline)
+                    .foregroundStyle(AppColor.ink)
+                if let error {
+                    Text(verbatim: error)
+                        .font(.caption)
+                        .foregroundStyle(AppColor.secondary)
+                }
+                Button(action: onRetry) {
+                    Label {
+                        AppLocalizedText("重试保存")
+                    } icon: {
+                        Image(systemName: "arrow.clockwise")
+                    }
+                        .font(.headline)
+                        .foregroundStyle(AppColor.mint)
+                        .frame(minHeight: 44)
+                }
+                .buttonStyle(.plain)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .accessibilityAnnounceChanges(error)
     }
 }
 

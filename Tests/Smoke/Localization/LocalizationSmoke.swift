@@ -45,6 +45,10 @@ struct LocalizationSmoke {
         precondition(AppLanguageSelection.system.resolvedLanguage == AppLanguage.systemDefault)
 
         let requiredLocalizedKeys = [
+            "未保存",
+            "重试保存",
+            "保存失败，数据尚未写入本机。请重试；退出应用后未保存的数据可能丢失。",
+
             "Apple 健康同步",
             "此功能通过 HealthKit 读写 Apple 健康中的体重和体脂率，帮助你查看长期变化趋势。",
             "同步为可选功能，默认关闭。请先授权，再开启共享或获取数据；不授权也可使用本地测量。你可以在“健康”应用中管理权限。",
