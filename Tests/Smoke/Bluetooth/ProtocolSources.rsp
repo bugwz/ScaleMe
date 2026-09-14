@@ -81,3 +81,5 @@ ScaleMe/Infrastructure/Bluetooth/Protocols/Xiaomi/XiaomiPendingProtocols.swift
 ScaleMe/Infrastructure/Bluetooth/Protocols/Yunmai/YunmaiPendingProtocols.swift
 ScaleMe/Infrastructure/Bluetooth/CommunicationRules.swift
 ScaleMe/Infrastructure/Bluetooth/ProtocolOperations.swift
+
+ScaleMe/Domain/Models/AppleHealthAccessRequest.swift

@@ -93,14 +93,14 @@ struct ScaleMeApp: App {
             .onChange(of: scenePhase) { _, newPhase in
                 if newPhase == .active {
                     store.refreshSystemLanguage()
-                    appleHealth.refreshAuthorizationState()
+                    appleHealth.refreshWeightWriteAuthorizationState()
                     Task { await syncAppleHealthIfNeeded() }
                 }
             }
             .task {
                 store.prepareSimulationDataIfNeeded()
                 bluetooth.updatePairedScales(store.pairedScales, communicationRules: store.communicationRules)
-                appleHealth.refreshAuthorizationState()
+                appleHealth.refreshWeightWriteAuthorizationState()
                 await syncAppleHealthIfNeeded()
                 exportWidgetSnapshot()
                 guard isShowingLaunchScreen else { return }

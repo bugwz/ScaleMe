@@ -822,16 +822,13 @@ final class MeasurementStore: ObservableObject {
         _ type: AppleHealthDataType,
         in selection: inout Set<AppleHealthDataType>
     ) {
+        // Every imported record needs a weight; body fat augments that record.
+        selection.insert(.bodyMass)
+        guard type != .bodyMass else { return }
         if selection.contains(type) {
             selection.remove(type)
-            if type == .bodyMass {
-                selection.remove(.bodyFatPercentage)
-            }
         } else {
             selection.insert(type)
-            if type == .bodyFatPercentage {
-                selection.insert(.bodyMass)
-            }
         }
     }
 

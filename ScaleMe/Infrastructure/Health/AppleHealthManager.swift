@@ -3,17 +3,17 @@ import HealthKit
 
 @MainActor
 final class AppleHealthManager: ObservableObject {
-    enum AuthorizationState: Equatable {
+    enum WeightWriteAuthorizationState: Equatable {
         case unavailable
         case notDetermined
         case authorized
         case denied
-        case failed(String)
     }
 
-    @Published private(set) var authorizationState: AuthorizationState = .notDetermined
+    @Published private(set) var weightWriteAuthorizationState: WeightWriteAuthorizationState = .notDetermined
     @Published private(set) var isRequestingAuthorization = false
     @Published private(set) var isImporting = false
+    @Published private(set) var lastAuthorizationError: String?
     @Published private(set) var lastShareError: String?
     @Published private(set) var lastImportError: String?
 
@@ -28,13 +28,13 @@ final class AppleHealthManager: ObservableObject {
         HKObjectType.quantityType(forIdentifier: .bodyFatPercentage)
     }
 
-    func refreshAuthorizationState() {
+    func refreshWeightWriteAuthorizationState() {
         guard HKHealthStore.isHealthDataAvailable(), let bodyMassType else {
-            authorizationState = .unavailable
+            weightWriteAuthorizationState = .unavailable
             return
         }
 
-        authorizationState = switch healthStore.authorizationStatus(for: bodyMassType) {
+        weightWriteAuthorizationState = switch healthStore.authorizationStatus(for: bodyMassType) {
         case .notDetermined: .notDetermined
         case .sharingAuthorized: .authorized
         case .sharingDenied: .denied
@@ -42,27 +42,24 @@ final class AppleHealthManager: ObservableObject {
         }
     }
 
+    /// A completed request does not reveal whether read access was granted.
     @discardableResult
-    func requestAuthorization() async -> Bool {
-        guard HKHealthStore.isHealthDataAvailable(),
-              let bodyMassType,
-              let bodyFatType else {
-            authorizationState = .unavailable
-            return false
-        }
-
+    func requestAuthorization(for request: AppleHealthAccessRequest) async -> Bool {
+        guard HKHealthStore.isHealthDataAvailable(), !isRequestingAuthorization else { return false }
+        let readTypes = Set<HKObjectType>(request.readTypes.compactMap { healthKitType(for: $0) })
+        let writeTypes = Set<HKSampleType>(request.writeTypes.compactMap { healthKitType(for: $0) })
+        guard !readTypes.isEmpty || !writeTypes.isEmpty else { return false }
         isRequestingAuthorization = true
-        defer { isRequestingAuthorization = false }
-
+        lastAuthorizationError = nil
+        defer {
+            isRequestingAuthorization = false
+            refreshWeightWriteAuthorizationState()
+        }
         do {
-            try await healthStore.requestAuthorization(
-                toShare: [bodyMassType, bodyFatType],
-                read: [bodyMassType, bodyFatType]
-            )
-            refreshAuthorizationState()
+            try await healthStore.requestAuthorization(toShare: writeTypes, read: readTypes)
             return true
         } catch {
-            authorizationState = .failed(error.localizedDescription)
+            lastAuthorizationError = error.localizedDescription
             return false
         }
     }
@@ -109,7 +106,7 @@ final class AppleHealthManager: ObservableObject {
     func share(_ measurement: BodyMeasurement) {
         guard measurement.isStable,
               measurement.deviceID != nil,
-              authorizationState == .authorized else { return }
+              weightWriteAuthorizationState == .authorized else { return }
         let samples = samples(for: measurement)
         guard !samples.isEmpty else { return }
 
@@ -119,7 +116,7 @@ final class AppleHealthManager: ObservableObject {
                 lastShareError = nil
             } catch {
                 lastShareError = error.localizedDescription
-                refreshAuthorizationState()
+                refreshWeightWriteAuthorizationState()
             }
         }
     }

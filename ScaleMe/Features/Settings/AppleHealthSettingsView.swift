@@ -18,14 +18,11 @@ struct AppleHealthSettingsView: View {
                     icon: "heart.text.clipboard"
                 )
                 notice(
-                    "同步为可选功能，默认关闭。请先授权，再开启共享或获取数据；不授权也可使用本地测量。你可以在“健康”应用中管理权限。",
+                    "同步为可选功能，默认关闭。开启共享或获取数据时才请求相应权限；不授权也可使用本地测量。你可以在“健康”应用中管理权限。",
                     icon: "hand.raised"
                 )
                 SettingsSeparator()
                 authorizationStatusRow
-                if shouldShowAuthorizationRequestAction {
-                    authorizationRequestAction
-                }
                 SettingsSeparator()
                 sharingSection
                 importSection
@@ -35,6 +32,9 @@ struct AppleHealthSettingsView: View {
                         "模拟数据不会写入 Apple 健康；这里的同步设置仅用于本次运行中的预览。",
                         icon: "sparkles"
                     )
+                }
+                if let error = appleHealth.lastAuthorizationError {
+                    errorBanner(title: "授权请求失败", message: error)
                 }
                 if let error = appleHealth.lastShareError {
                     errorBanner(title: "最近一次共享失败", message: error)
@@ -59,7 +59,7 @@ struct AppleHealthSettingsView: View {
                 }
             }
         }
-        .onAppear { appleHealth.refreshAuthorizationState() }
+        .onAppear { appleHealth.refreshWeightWriteAuthorizationState() }
         .accessibilityAnnounceChanges(authorizationTitle)
         .accessibilityAnnounceChanges(appleHealth.lastImportError)
         .accessibilityAnnounceChanges(appleHealth.lastShareError)
@@ -155,7 +155,7 @@ struct AppleHealthSettingsView: View {
             .disabled(isImportControlDisabled)
             .opacity(isImportControlDisabled ? 0.55 : 1)
 
-            if store.displayIsAppleHealthImportEnabled {
+            if store.currentUserProfile != nil {
                 SettingsSeparator()
                 dropdownField(
                     title: "选择数据类型",
@@ -232,9 +232,14 @@ struct AppleHealthSettingsView: View {
                 options: AppleHealthDataType.allCases,
                 isSelected: { store.displayAppleHealthReadTypes.contains($0) },
                 title: { $0.title },
+                detail: { $0 == .bodyMass ? store.appLanguage.text("必填") : nil },
                 appearance: .compact,
                 onSelect: { dataType in
+                    guard !appleHealth.isRequestingAuthorization else { return }
                     store.toggleDisplayAppleHealthReadType(dataType)
+                    if store.displayIsAppleHealthImportEnabled {
+                        Task { await importAppleHealthData() }
+                    }
                 },
                 onDismiss: dismissDropdown
             )
@@ -248,26 +253,17 @@ struct AppleHealthSettingsView: View {
         return store.managedProfiles.first { $0.id == id }
     }
 
-    private var isSharingControlDisabled: Bool {
-        guard !store.isSimulationEnabled else { return store.currentUserProfile == nil }
-        if store.displayAppleHealthProfileID != nil {
-            return appleHealth.isRequestingAuthorization
-        }
-        return isSyncControlUnavailable || appleHealth.authorizationState != .authorized
-    }
+    private var isSharingControlDisabled: Bool { isSyncControlUnavailable }
 
     private var isImportControlDisabled: Bool {
-        guard !store.isSimulationEnabled else { return store.currentUserProfile == nil }
-        return isSyncControlUnavailable
+        isSyncControlUnavailable || (!store.displayIsAppleHealthImportEnabled && store.displayAppleHealthReadTypes.isEmpty)
     }
 
     private var isSyncControlUnavailable: Bool {
-        guard store.currentUserProfile != nil,
-              !appleHealth.isRequestingAuthorization else { return true }
-        return switch appleHealth.authorizationState {
-        case .authorized, .denied: false
-        case .unavailable, .notDetermined, .failed: true
-        }
+        guard store.currentUserProfile != nil else { return true }
+        if store.isSimulationEnabled { return false }
+        return appleHealth.isRequestingAuthorization || appleHealth.isImporting
+            || appleHealth.weightWriteAuthorizationState == .unavailable
     }
 
     private var sharingBinding: Binding<Bool> {
@@ -284,7 +280,11 @@ struct AppleHealthSettingsView: View {
                     store.setDisplayAppleHealthProfileID(currentUser.id)
                     return
                 }
-                store.setDisplayAppleHealthProfileID(currentUser.id)
+                Task {
+                    guard await appleHealth.requestAuthorization(for: .sharing),
+                          appleHealth.weightWriteAuthorizationState == .authorized else { return }
+                    store.setDisplayAppleHealthProfileID(currentUser.id)
+                }
             }
         )
     }
@@ -305,8 +305,11 @@ struct AppleHealthSettingsView: View {
                     store.setDisplayAppleHealthImportEnabled(true)
                     return
                 }
-                store.setDisplayAppleHealthImportEnabled(true)
-                Task { await importAppleHealthData() }
+                Task {
+                    guard await appleHealth.requestAuthorization(for: .importing(store.displayAppleHealthReadTypes)) else { return }
+                    store.setDisplayAppleHealthImportEnabled(true)
+                    await importAppleHealthData(requestAccess: false)
+                }
             }
         )
     }
@@ -330,6 +333,9 @@ struct AppleHealthSettingsView: View {
                 .frame(width: 28)
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 3) {
+                AppLocalizedText("体重")
+                    .font(.caption)
+                    .foregroundStyle(AppColor.secondary)
                 AppLocalizedText(authorizationTitle)
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(AppColor.ink)
@@ -342,33 +348,6 @@ struct AppleHealthSettingsView: View {
             if appleHealth.isRequestingAuthorization { ProgressView().tint(AppColor.mint) }
         }
         .accessibilityElement(children: .combine)
-    }
-
-    private var shouldShowAuthorizationRequestAction: Bool {
-        switch appleHealth.authorizationState {
-        case .notDetermined, .failed: true
-        case .unavailable, .authorized, .denied: false
-        }
-    }
-
-    private var authorizationRequestAction: some View {
-        Button {
-            Task { await appleHealth.requestAuthorization() }
-        } label: {
-            Label("请求 Apple 健康权限", systemImage: "heart.text.clipboard")
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(AppColor.mint)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 13)
-                .background(AppColor.paleMint, in: RoundedRectangle(cornerRadius: 8))
-        }
-        .buttonStyle(.plain)
-        .disabled(
-            store.isSimulationEnabled
-                || appleHealth.isRequestingAuthorization
-                || appleHealth.authorizationState == .unavailable
-        )
-        .opacity(store.isSimulationEnabled ? 0.55 : 1)
     }
 
     private func notice(_ text: String, icon: String, color: Color = AppColor.secondary) -> some View {
@@ -394,37 +373,30 @@ struct AppleHealthSettingsView: View {
 
     private var authorizationTitle: String {
         if appleHealth.isRequestingAuthorization { return "正在请求授权" }
-        return switch appleHealth.authorizationState {
+        return switch appleHealth.weightWriteAuthorizationState {
         case .unavailable: "Apple 健康不可用"
         case .notDetermined: "尚未授权"
         case .authorized: "已获写入权限"
         case .denied: "写入权限已关闭"
-        case .failed: "授权请求失败"
         }
     }
 
     private var authorizationDetail: String {
-        switch appleHealth.authorizationState {
-        case .unavailable: "当前设备不支持健康数据。"
-        case .notDetermined: "点击下方按钮，由系统显示读写权限确认。"
-        case .authorized: "本应用可以写入您允许的健康数据类型。"
-        case .denied: "请在系统的健康权限设置中允许本应用写入。"
-        case let .failed(message): message
-        }
+        "开启共享或获取数据时，分别请求所需权限。读取权限状态请在“健康”应用中查看；没有可读取记录不代表授权失败。"
     }
 
     private var authorizationIcon: String {
-        switch appleHealth.authorizationState {
+        switch appleHealth.weightWriteAuthorizationState {
         case .authorized: "checkmark.circle.fill"
-        case .unavailable, .denied, .failed: "exclamationmark.triangle.fill"
+        case .unavailable, .denied: "exclamationmark.triangle.fill"
         case .notDetermined: "heart.circle"
         }
     }
 
     private var authorizationColor: Color {
-        switch appleHealth.authorizationState {
+        switch appleHealth.weightWriteAuthorizationState {
         case .authorized: AppColor.mint
-        case .unavailable, .denied, .failed: AppColor.rose
+        case .unavailable, .denied: AppColor.rose
         case .notDetermined: AppColor.sky
         }
     }
@@ -440,10 +412,13 @@ struct AppleHealthSettingsView: View {
         withAnimation(.easeInOut(duration: 0.16)) { expandedDropdown = nil }
     }
 
-    private func importAppleHealthData() async {
+    private func importAppleHealthData(requestAccess: Bool = true) async {
         guard !store.isSimulationEnabled,
               store.isAppleHealthImportEnabled,
               let currentUser = store.currentUserProfile else { return }
+        if requestAccess {
+            guard await appleHealth.requestAuthorization(for: .importing(store.appleHealthReadTypes)) else { return }
+        }
         let imported = await appleHealth.readMeasurements(
             dataTypes: store.appleHealthReadTypes,
             profileID: currentUser.id
