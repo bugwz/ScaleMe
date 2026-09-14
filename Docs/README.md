@@ -10,6 +10,8 @@ README 负责介绍“观我”是什么、解决什么问题以及项目坚持�
 | [体重秤协议支持矩阵](BluetoothProtocolSupport.md) | 已实现协议、验证层级、覆盖边界、上游研究与引用 |
 | [外部通信规则格式](ExternalCommunicationRules.md) | schema 3 字段、声明式解码、受限操作和安全边界 |
 | [数据、同步与隐私](DataAndPrivacy.md) | 本地存储、系统数据保护、备份、导入导出、HealthKit 和诊断数据 |
+| [隐私政策正文](PrivacyPolicy.md) | 可发布的用户隐私政策，与应用内说明同步 |
+| [发布前验证指南](AppReviewReadiness.md) | 功能、权限、隐私与发布材料的通用检查 |
 | [开发与验证](Development.md) | 开发环境、模拟数据、编译与烟雾测试、真机验证清单 |
 | [Agent 开发约定](../AGENTS.md) | 目录职责、实现规则、视觉语言和协作约束 |
 

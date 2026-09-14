@@ -158,3 +158,15 @@ ATT 成功仅表示外设接受写请求，不等于秤端功能已生效。设�
 - 不提交生成缓存、诊断报告、健康数据、设备密钥或个人档案。
 
 项目提交必须使用 [commit skill](../.agents/skills/commit/SKILL.md)，并在暂存或创建提交前取得用户明确确认。
+
+## 健康权限范围测试
+
+```sh
+swiftc -module-cache-path /tmp/scaleme-swift-module-cache \
+  @Tests/Smoke/Bluetooth/ProtocolSources.rsp \
+  Tests/Smoke/Domain/AppleHealthAccessSmoke.swift \
+  -o /tmp/scaleme-health-smoke
+/tmp/scaleme-health-smoke
+```
+
+验证读取与写入请求互不扩权；系统授权弹窗、部分授权、撤销授权及实际同步仍需按 [发布前验证指南](AppReviewReadiness.md) 在真机检查。
