@@ -105,7 +105,7 @@ ScaleMeWidgetShared/  # 主应用与小组件共享的加密快照数据契约
 - 诊断信息仅由用户主动采集和导出，可能包含设备标识与测量载荷，不应公开分享。
 - 身体成分推导值仅供趋势参考，不用于诊断、治疗或医疗决策。
 
-更多说明见 [数据、同步与隐私](Docs/DataAndPrivacy.md)。
+隐私政策正文见 [隐私政策](Docs/PrivacyPolicy.md)，实现说明见 [数据、同步与隐私](Docs/DataAndPrivacy.md)。
 
 ## 文档
 

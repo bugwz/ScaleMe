@@ -248,6 +248,7 @@ private struct TrendWidgetView: View {
         .widgetURL(URL(string: "scaleme://trends"))
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(accessibilitySummary)
+        .privacySensitive()
     }
 
     private var accessibilitySummary: String {

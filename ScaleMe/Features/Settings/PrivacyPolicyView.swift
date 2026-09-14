@@ -10,6 +10,7 @@ struct PrivacyPolicyView: View {
 
                 SoftCard {
                     VStack(alignment: .leading, spacing: 16) {
+                        AppLocalizedText("小组件会在本机与主应用共享成员名称、设备名称和趋势记录的加密副本，用于显示趋势。移除小组件不会删除主应用中的记录；删除记录后，小组件会在系统刷新时更新。")
                         ForEach(Array(store.appLanguage.text(.privacyPolicyBody).components(separatedBy: "\n").filter { !$0.isEmpty }.enumerated()), id: \.offset) { _, paragraph in
                             Text((try? AttributedString(markdown: paragraph, options: .init(interpretedSyntax: .inlineOnlyPreservingWhitespace))) ?? AttributedString(paragraph))
                                 .accessibilityAddTraits(paragraph.hasPrefix("#") || (paragraph.hasPrefix("**") && !paragraph.contains("\n")) ? .isHeader : [])

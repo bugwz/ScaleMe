@@ -71,7 +71,11 @@ Apple 健康集成是可选的仅写入链路。用户开启后，需要明确�
 - 不为纯体重设备伪造身体成分，也不以占位项目暗示支持。
 - 不记录健康测量、个人档案或蓝牙绑定密钥到普通日志。
 
-正式发布前仍需完成隐私清单、设备兼容矩阵实测和 App Store 隐私申报。
+主应用和小组件包含隐私清单，声明不追踪且无向开发者收集的数据类型。当前源码未发现必需理由 API 的使用；文件导入仅查询所选文件的大小，不访问文件时间戳。未虚构 UserDefaults 等未使用 API 的理由声明。每次新增 API 或依赖后都应重新核查最终归档。小组件趋势视图标记为隐私敏感内容，由系统根据显示环境决定遮挡。
+
+正式发布前仍需发布并核验隐私政策 URL、完成设备兼容矩阵实测、App Store 隐私申报与最终归档隐私报告检查。本地处理不等同于向开发者收集数据，主动导出和系统健康同步仍必须在政策中说明。
+
+参考：[Apple 隐私清单格式检查](https://developer.apple.com/documentation/technotes/tn3181-debugging-invalid-privacy-manifest)、[数据收集声明](https://developer.apple.com/documentation/technotes/tn3184-adding-data-collection-details-to-your-privacy-manifest)。
 
 ### 健康权限请求
 
