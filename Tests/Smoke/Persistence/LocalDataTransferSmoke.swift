@@ -70,7 +70,7 @@ struct LocalDataTransferSmoke {
             keys: ["schemaVersion", "members", "devices", "communication", "general", "measurement", "appleHealth", "dashboard", "widget"]
         )
         let configurationObject = try JSONSerialization.jsonObject(with: configurationData) as? [String: Any]
-        precondition(configurationObject?["schemaVersion"] as? Int == ConfigurationFileCodec.currentSchemaVersion)
+        precondition(configurationObject?["schemaVersion"] as? Int == 1)
         precondition(configurationObject?["members"] is [String: Any])
         precondition(configurationObject?["devices"] is [String: Any])
         precondition(configurationObject?["communication"] is [String: Any])
@@ -138,7 +138,7 @@ struct LocalDataTransferSmoke {
             keys: ["schemaVersion", "updatedAt", "references", "columns", "records", "deletedRecords"]
         )
         let exportedObject = try JSONSerialization.jsonObject(with: recordFile) as? [String: Any]
-        precondition(exportedObject?["schemaVersion"] as? Int == RecordFileCodec.currentSchemaVersion)
+        precondition(exportedObject?["schemaVersion"] as? Int == 1)
         let references = exportedObject?["references"] as? [String: Any]
         let recordProfiles = references?["profiles"] as? [String]
         let recordDevices = references?["devices"] as? [[String: Any]]
