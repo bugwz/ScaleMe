@@ -543,23 +543,3 @@ enum MetricStatus: String {
         switch self { case .standard: "mint"; case .low: "blue"; case .high: "orange" }
     }
 }
-
-struct BodyCompositionEstimator {
-    static func enriching(_ measurement: BodyMeasurement, profile: UserProfile) -> BodyMeasurement {
-        guard let impedance = measurement.impedanceOhm, impedance > 0 else { return measurement }
-        var result = measurement
-        let height = profile.heightCM
-        let age = Double(profile.age)
-        let sexOffset = profile.biologicalSex == .male ? 0.0 : 1.0
-        let lbm = max(0, 0.756 * height * height / impedance + 0.110 * measurement.weightKG + 0.107 * age - 5.463 * sexOffset)
-        let fat = min(60, max(3, (measurement.weightKG - lbm) / measurement.weightKG * 100))
-        result.bodyFatPercent = result.bodyFatPercent ?? fat
-        result.muscleMassKG = result.muscleMassKG ?? max(0, lbm * 0.94)
-        // A commonly used BIA relationship assumes fat-free mass is 73.2% water.
-        result.waterPercent = result.waterPercent ?? min(75, max(30, (100 - fat) * 0.732))
-        result.boneMassKG = result.boneMassKG ?? max(1.5, min(5, lbm * 0.052))
-        result.visceralFat = result.visceralFat ?? max(1, min(30, (fat - 12) * 0.45 + age * 0.03))
-        result.basalMetabolismKCal = result.basalMetabolismKCal ?? (10 * measurement.weightKG + 6.25 * height - 5 * age + (profile.biologicalSex == .male ? 5 : -161))
-        return result
-    }
-}

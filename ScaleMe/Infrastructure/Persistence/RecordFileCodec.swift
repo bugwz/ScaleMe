@@ -1,7 +1,7 @@
 import Foundation
 
 enum RecordFileCodec {
-    static let currentSchemaVersion = 1
+    static let currentSchemaVersion = 2
 
     fileprivate static let columns = [
         "id", "date", "weightKG", "profileRef", "deviceRef", "sourceRef", "isStable",

@@ -390,21 +390,10 @@ enum ParserSmoke {
             // Expected.
         }
 
-        let enriched = BodyCompositionEstimator.enriching(
-            latestCapture.measurement,
-            profile: UserProfile(
-                heightCM: 174,
-                birthDate: Calendar.current.date(byAdding: .year, value: -30, to: .now) ?? .now,
-                biologicalSex: .male
-            )
-        )
-        guard let bodyFatPercent = enriched.bodyFatPercent,
-              let waterPercent = enriched.waterPercent,
-              let proteinMassKG = enriched.proteinMassKG else {
-            preconditionFailure("阻抗测量应生成完整的派生体成分")
-        }
-        precondition(abs(waterPercent - (100 - bodyFatPercent) * 0.732) < 0.000_01)
-        precondition(proteinMassKG > 0)
+        precondition(latestCapture.measurement.bodyFatPercent == nil,
+                     "impedance alone must not manufacture body composition")
+        precondition(latestCapture.measurement.waterPercent == nil)
+        precondition(latestCapture.measurement.boneMassKG == nil)
 
         do {
             var invalidChecksum = hexData(finalFixtures[0].0)

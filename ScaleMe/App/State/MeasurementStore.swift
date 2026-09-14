@@ -44,7 +44,6 @@ final class MeasurementStore: ObservableObject {
 
     private struct PendingMeasurement {
         let raw: BodyMeasurement
-        let enriched: BodyMeasurement
         let mergesContinuousMeasurements: Bool
     }
     @Published private(set) var latestHealthShareCandidate: BodyMeasurement?
@@ -378,7 +377,6 @@ final class MeasurementStore: ObservableObject {
         }
         let pending = PendingMeasurement(
             raw: attributed,
-            enriched: BodyCompositionEstimator.enriching(attributed, profile: selectedProfile),
             mergesContinuousMeasurements: mergeFrequentMeasurements
         )
         if retainForRetry {
@@ -401,21 +399,21 @@ final class MeasurementStore: ObservableObject {
     private func saveMeasurement(_ pending: PendingMeasurement) -> Bool {
         var snapshot = archive
         var candidate = pending.raw
-        let enriched = pending.enriched
-        if let index = snapshot.measurements.firstIndex(where: { $0.id == enriched.id }) {
-            snapshot.measurements[index] = enriched
+        let measurement = pending.raw
+        if let index = snapshot.measurements.firstIndex(where: { $0.id == measurement.id }) {
+            snapshot.measurements[index] = measurement
         } else if pending.mergesContinuousMeasurements,
                   let latest = snapshot.measurements.first,
-                  latest.date <= enriched.date,
-                  let merged = latest.mergingContinuousMeasurement(enriched) {
+                  latest.date <= measurement.date,
+                  let merged = latest.mergingContinuousMeasurement(measurement) {
             snapshot.measurements[0] = merged
             candidate.id = merged.id
         } else {
-            snapshot.measurements.append(enriched)
+            snapshot.measurements.append(measurement)
         }
         snapshot.measurements.sort { $0.date > $1.date }
         snapshot.deletedMeasurements = Set(snapshot.deletedMeasurements.filter {
-            $0.id != enriched.id && $0.id != candidate.id
+            $0.id != measurement.id && $0.id != candidate.id
         })
         snapshot.updatedAt = .now
         do {
@@ -447,7 +445,7 @@ final class MeasurementStore: ObservableObject {
             attributed.profileID = currentUser.id
             attributed.deviceID = nil
             attributed.deviceName = nil
-            return BodyCompositionEstimator.enriching(attributed, profile: currentUser)
+            return attributed
         }
         guard !newMeasurements.isEmpty else { return 0 }
         measurements.append(contentsOf: newMeasurements)
@@ -474,8 +472,8 @@ final class MeasurementStore: ObservableObject {
                 attributed.deviceName = scale.name
             }
             guard let profileID = attributed.profileID,
-                  let profile = profiles.first(where: { $0.id == profileID }) else { continue }
-            measurements.append(BodyCompositionEstimator.enriching(attributed, profile: profile))
+                  profiles.contains(where: { $0.id == profileID }) else { continue }
+            measurements.append(attributed)
         }
         guard !plan.attributedMeasurements.isEmpty else { return plan.summary }
         measurements.sort { $0.date > $1.date }
@@ -1206,20 +1204,20 @@ final class MeasurementStore: ObservableObject {
            let scale = simulationData.pairedScales.first(where: { $0.id == deviceID }) {
             attributed.deviceName = scale.name
         }
-        guard let profile = simulationData.profiles.first(where: { $0.id == simulationSelectedProfileID }) else { return }
-        let enriched = BodyCompositionEstimator.enriching(attributed, profile: profile)
+        guard simulationData.profiles.contains(where: { $0.id == simulationSelectedProfileID }) else { return }
+        let measurement = attributed
 
         if mergeFrequentMeasurements,
            let index = simulationData.measurements.firstIndex(where: {
-               $0.mergingContinuousMeasurement(enriched) != nil
+               $0.mergingContinuousMeasurement(measurement) != nil
            }),
-           let merged = simulationData.measurements[index].mergingContinuousMeasurement(enriched) {
+           let merged = simulationData.measurements[index].mergingContinuousMeasurement(measurement) {
             simulationData.measurements[index] = merged
             attributed.id = merged.id
         } else {
-            simulationData.measurements.append(enriched)
+            simulationData.measurements.append(measurement)
         }
-        simulationDeletedMeasurements = Set(simulationDeletedMeasurements.filter { $0.id != enriched.id && $0.id != attributed.id })
+        simulationDeletedMeasurements = Set(simulationDeletedMeasurements.filter { $0.id != measurement.id && $0.id != attributed.id })
         simulationData.measurements.sort { $0.date > $1.date }
         simulationArchiveUpdatedAt = .now
     }

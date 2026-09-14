@@ -37,9 +37,7 @@ struct MeasureView: View {
         }
         guard isMeasurementViewActive, !store.isUsingPlaceholderData,
               bluetooth.state == .completed else { return nil }
-        return bluetooth.latestMeasurement.map {
-            BodyCompositionEstimator.enriching($0, profile: store.displaySelectedProfile)
-        }
+        return bluetooth.latestMeasurement
     }
 
     private var profileOptions: [TrendDropdownOption<UUID>] {
