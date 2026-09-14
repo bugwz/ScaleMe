@@ -43,6 +43,8 @@ struct RootView: View {
 
     private var rootTabs: some View {
         TabView(selection: $selection) {
+            // Each tab supplies visibility to its enclosing TabView; placing
+            // this preference on TabView itself leaves the system bar visible.
             DashboardView(
                 scrollToTopRequest: scrollToTopRequests[.home, default: 0],
                 onMeasure: { profileID in
@@ -56,11 +58,13 @@ struct RootView: View {
                 onShowTrends: { selection = .trends }
             )
             .onRootNavigationControllerResolved { navigationStore.register($0, for: .home) }
+            .toolbar(.hidden, for: .tabBar)
             .tabItem { Label(RootTab.home.title(in: store.appLanguage), systemImage: RootTab.home.systemImage) }
             .tag(RootTab.home)
 
             MeasureView(scrollToTopRequest: scrollToTopRequests[.measure, default: 0])
             .onRootNavigationControllerResolved { navigationStore.register($0, for: .measure) }
+            .toolbar(.hidden, for: .tabBar)
             .tabItem { Label(RootTab.measure.title(in: store.appLanguage), systemImage: RootTab.measure.systemImage) }
             .tag(RootTab.measure)
 
@@ -69,20 +73,22 @@ struct RootView: View {
                 scrollToTopRequest: scrollToTopRequests[.trends, default: 0]
             )
             .onRootNavigationControllerResolved { navigationStore.register($0, for: .trends) }
+            .toolbar(.hidden, for: .tabBar)
             .tabItem { Label(RootTab.trends.title(in: store.appLanguage), systemImage: RootTab.trends.systemImage) }
             .tag(RootTab.trends)
 
             DevicesView(scrollToTopRequest: scrollToTopRequests[.devices, default: 0])
             .onRootNavigationControllerResolved { navigationStore.register($0, for: .devices) }
+            .toolbar(.hidden, for: .tabBar)
             .tabItem { Label(RootTab.devices.title(in: store.appLanguage), image: "ScaleDeviceTabIcon") }
             .tag(RootTab.devices)
 
             ProfileView(scrollToTopRequest: scrollToTopRequests[.settings, default: 0])
             .onRootNavigationControllerResolved { navigationStore.register($0, for: .settings) }
+            .toolbar(.hidden, for: .tabBar)
             .tabItem { Label(RootTab.settings.title(in: store.appLanguage), systemImage: RootTab.settings.systemImage) }
             .tag(RootTab.settings)
         }
-        .toolbar(.hidden, for: .tabBar)
         .safeAreaInset(edge: .bottom, spacing: 0) {
             if expandedTrend == nil {
                 AppBottomNavigation(
