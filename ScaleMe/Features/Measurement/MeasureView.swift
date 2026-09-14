@@ -740,6 +740,7 @@ struct MeasureView: View {
 
     private var safetyNote: some View {
         VStack(spacing: 8) {
+            HealthSafetyNotice(showsScaleRequirement: true)
             Text("体脂等身体成分为消费级估算，仅用于观察长期趋势。")
             Label("数据默认保存在本机", systemImage: "lock.shield.fill")
         }

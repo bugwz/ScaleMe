@@ -339,6 +339,13 @@ enum DashboardMetricKind: String, Codable, CaseIterable, Identifiable, Hashable 
         }
     }
 
+    var isCalculated: Bool {
+        switch self {
+        case .fatMassKG, .musclePercent, .waterMassKG, .proteinMassKG, .proteinPercent, .bonePercent: true
+        default: false
+        }
+    }
+
     static let defaultVisible: Set<DashboardMetricKind> = [.bodyFatPercent, .muscleMassKG, .waterPercent, .basalMetabolismKCal]
 
     func value(in measurement: BodyMeasurement) -> Double? {

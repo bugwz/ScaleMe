@@ -433,6 +433,7 @@ struct DashboardView: View {
                 .accessibilityLabel("编辑健康指标显示与排序")
             }
             metricsGrid
+            HealthSafetyNotice(showsCalculationMethod: true, showsScaleRequirement: true)
         }
         .sheet(isPresented: $isEditingMetrics) {
             DashboardMetricsEditorView(
@@ -454,7 +455,7 @@ struct DashboardView: View {
                     title: kind.title,
                     value: latest.flatMap { kind.value(in: $0) }.map { $0.formatted(2) } ?? "--",
                     unit: kind.unit,
-                    source: sourceName(for: latest),
+                    source: kind.isCalculated ? store.appLanguage.text("计算值") : sourceName(for: latest),
                     icon: kind.icon,
                     color: kind.themeColor,
                     usesBodyFatRateIcon: kind == .bodyFatPercent,

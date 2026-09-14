@@ -103,6 +103,7 @@ struct HistoryView: View {
                             .foregroundStyle(AppColor.secondary)
                             .padding(.horizontal, 4)
                     }
+                    HealthSafetyNotice()
                     records
                 }
                 .padding(.horizontal, 18)
@@ -571,6 +572,8 @@ struct MeasurementDetailView: View {
                     .disabled(store.isUsingPlaceholderData)
                 }
                 .padding(.vertical, 28)
+                HealthSafetyNotice(showsCalculationMethod: true)
+                    .padding(.horizontal)
                 metricCard(title: "基础指标", metrics: basicMetrics)
                 if currentMeasurement.hasBodyComposition {
                     metricCard(title: "身体成分估算", metrics: compositionMetrics)
