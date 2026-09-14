@@ -81,8 +81,6 @@ enum AppColor {
     static let trendMusclePercent = adaptive(light: 0x1F9E9F, dark: 0x1F9E9F, accessibleLight: 0x8A6300, accessibleDark: 0xF0C04A)
     static let trendWaterPercent = adaptive(light: 0x408FD1, dark: 0x408FD1, accessibleLight: 0x007C91, accessibleDark: 0x66C2D0)
     static let trendWaterMass = adaptive(light: 0x4FB3C7, dark: 0x4FB3C7, accessibleLight: 0x9B4F96, accessibleDark: 0xD89BD3)
-    static let trendProteinPercent = adaptive(light: 0xABB347, dark: 0xABB347, accessibleLight: 0x5E6C84, accessibleDark: 0xB8C4D9)
-    static let trendProteinMass = adaptive(light: 0x78A338, dark: 0x78A338, accessibleLight: 0x8B4A20, accessibleDark: 0xD98C5F)
     static let trendBoneMass = adaptive(light: 0x94A8E0, dark: 0x94A8E0, accessibleLight: 0x2F6F4E, accessibleDark: 0x74C69D)
     static let trendBonePercent = adaptive(light: 0xAB85C9, dark: 0xAB85C9, accessibleLight: 0x6B5B00, accessibleDark: 0xCDBE63)
     static let trendVisceralFat = adaptive(light: 0xF08C9C, dark: 0xF08C9C, accessibleLight: 0x8B3F63, accessibleDark: 0xD989B0)

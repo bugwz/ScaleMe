@@ -1831,8 +1831,6 @@ private func metricTint(_ metric: TrendMetric) -> Color {
     case .musclePercent: AppColor.trendMusclePercent
     case .waterPercent: AppColor.trendWaterPercent
     case .waterMass: AppColor.trendWaterMass
-    case .proteinPercent: AppColor.trendProteinPercent
-    case .proteinMass: AppColor.trendProteinMass
     case .boneMass: AppColor.trendBoneMass
     case .bonePercent: AppColor.trendBonePercent
     case .visceralFat: AppColor.trendVisceralFat

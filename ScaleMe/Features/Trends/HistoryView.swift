@@ -650,8 +650,6 @@ struct MeasurementDetailView: View {
         append(currentMeasurement.muscleMassKG, name: "肌肉量", suffix: " kg", to: &metrics)
         append(currentMeasurement.waterPercent, name: "身体水分", suffix: "%", to: &metrics)
         append(currentMeasurement.waterMassKG, name: "水分量", suffix: " kg", to: &metrics)
-        append(currentMeasurement.proteinPercent, name: "蛋白质占比", suffix: "%", to: &metrics)
-        append(currentMeasurement.proteinMassKG, name: "蛋白质量", suffix: " kg", to: &metrics)
         append(currentMeasurement.bonePercent, name: "骨量占比", suffix: "%", to: &metrics)
         append(currentMeasurement.boneMassKG, name: "骨量", suffix: " kg", to: &metrics)
         append(currentMeasurement.visceralFat, name: "内脏脂肪", suffix: "", to: &metrics)
@@ -733,7 +731,14 @@ struct MeasurementDetailView: View {
             VStack(alignment: .leading, spacing: 0) {
                 AppLocalizedText(title).font(.headline).padding(.bottom, 4)
                 ForEach(Array(metrics.enumerated()), id: \.offset) { index, metric in
-                    DetailRow(name: metric.0, value: metric.1, divider: index < metrics.count - 1)
+                    DetailRow(
+                        name: metric.0,
+                        value: metric.1,
+                        divider: index < metrics.count - 1,
+                        isCalculated: metric.0 == "BMI" || DashboardMetricKind.allCases.contains {
+                            $0.title == metric.0 && $0.isCalculated
+                        }
+                    )
                 }
             }
         }
@@ -745,11 +750,19 @@ private struct DetailRow: View {
 
     let name: String, value: String
     var divider = true
+    var isCalculated = false
 
     var body: some View {
         VStack(spacing: 0) {
             HStack {
-                Text(language.text(name)).foregroundStyle(AppColor.secondary)
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(language.text(name)).foregroundStyle(AppColor.secondary)
+                    if isCalculated {
+                        Text(language.text("计算值"))
+                            .font(.caption)
+                            .foregroundStyle(AppColor.secondary)
+                    }
+                }
                 Spacer()
                 Text(value).fontWeight(.semibold)
             }

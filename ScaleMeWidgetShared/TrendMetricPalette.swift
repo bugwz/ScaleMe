@@ -9,8 +9,6 @@ enum TrendMetricPalette {
     static let musclePercent = Color(red: 0.12, green: 0.62, blue: 0.63)
     static let waterPercent = Color(red: 0.25, green: 0.56, blue: 0.82)
     static let waterMass = Color(red: 0.31, green: 0.70, blue: 0.78)
-    static let proteinPercent = Color(red: 0.67, green: 0.70, blue: 0.29)
-    static let proteinMass = Color(red: 0.47, green: 0.64, blue: 0.22)
     static let boneMass = Color(red: 0.58, green: 0.66, blue: 0.88)
     static let bonePercent = Color(red: 0.67, green: 0.52, blue: 0.79)
     static let visceralFat = Color(red: 0.94, green: 0.55, blue: 0.61)
@@ -26,8 +24,6 @@ enum TrendMetricPalette {
         case "musclePercent": musclePercent
         case "waterPercent": waterPercent
         case "waterMass": waterMass
-        case "proteinPercent": proteinPercent
-        case "proteinMass": proteinMass
         case "boneMass": boneMass
         case "bonePercent": bonePercent
         case "visceralFat": visceralFat

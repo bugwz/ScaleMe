@@ -2,7 +2,7 @@ import CoreFoundation
 import Foundation
 
 enum ConfigurationFileCodec {
-    static let currentSchemaVersion = 2
+    static let currentSchemaVersion = 3
 
     static func encode(_ configuration: AppConfiguration, prettyPrinted: Bool) throws -> Data {
         let value = try orderedValue(for: configuration)

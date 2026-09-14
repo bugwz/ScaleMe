@@ -1022,10 +1022,7 @@ struct ManualEntryView: View {
                     Image(systemName: "function")
                         .font(.caption)
                         .foregroundStyle(AppColor.mint)
-                    Text(store.appLanguage.format(
-                        "BMI、脂肪量、肌肉占比、水分量、骨量占比和蛋白质等指标，将根据测量值与当前成员 %@ 的身体资料自动计算。",
-                        store.displaySelectedProfile.name
-                    ))
+                    HealthSafetyNotice(showsCalculationMethod: true)
                         .font(.caption)
                         .foregroundStyle(AppColor.secondary)
                         .fixedSize(horizontal: false, vertical: true)

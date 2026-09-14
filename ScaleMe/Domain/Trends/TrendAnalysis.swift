@@ -9,8 +9,6 @@ enum TrendMetric: String, CaseIterable, Identifiable {
     case musclePercent
     case waterPercent
     case waterMass
-    case proteinPercent
-    case proteinMass
     case boneMass
     case bonePercent
     case visceralFat
@@ -28,8 +26,6 @@ enum TrendMetric: String, CaseIterable, Identifiable {
         case .musclePercent: "肌肉率"
         case .waterPercent: "身体水分"
         case .waterMass: "水分量"
-        case .proteinPercent: "蛋白质占比"
-        case .proteinMass: "蛋白质量"
         case .boneMass: "骨量"
         case .bonePercent: "骨量占比"
         case .visceralFat: "内脏脂肪"
@@ -47,8 +43,6 @@ enum TrendMetric: String, CaseIterable, Identifiable {
         case .musclePercent: "figure.strengthtraining.functional"
         case .waterPercent: "humidity.fill"
         case .waterMass: "water.waves"
-        case .proteinPercent: "chart.pie.fill"
-        case .proteinMass: "fork.knife"
         case .boneMass: "figure.walk.motion"
         case .bonePercent: "figure.stand"
         case .visceralFat: "circle.circle"
@@ -72,8 +66,6 @@ enum TrendMetric: String, CaseIterable, Identifiable {
         case .musclePercent: measurement.musclePercent
         case .waterPercent: measurement.waterPercent
         case .waterMass: measurement.waterMassKG
-        case .proteinPercent: measurement.proteinPercent
-        case .proteinMass: measurement.proteinMassKG
         case .boneMass: measurement.boneMassKG
         case .bonePercent: measurement.bonePercent
         case .visceralFat: measurement.visceralFat
@@ -83,7 +75,7 @@ enum TrendMetric: String, CaseIterable, Identifiable {
 
     func displayValue(_ value: Double, unit: WeightUnit) -> Double {
         switch self {
-        case .weight, .fatMass, .muscleMass, .waterMass, .proteinMass, .boneMass:
+        case .weight, .fatMass, .muscleMass, .waterMass, .boneMass:
             unit.value(fromKilograms: value)
         default:
             value
@@ -92,8 +84,8 @@ enum TrendMetric: String, CaseIterable, Identifiable {
 
     func unitLabel(weightUnit: WeightUnit) -> String {
         switch self {
-        case .weight, .fatMass, .muscleMass, .waterMass, .proteinMass, .boneMass: weightUnit.symbol
-        case .bodyFat, .musclePercent, .waterPercent, .proteinPercent, .bonePercent: "%"
+        case .weight, .fatMass, .muscleMass, .waterMass, .boneMass: weightUnit.symbol
+        case .bodyFat, .musclePercent, .waterPercent, .bonePercent: "%"
         case .basalMetabolism: "kcal"
         case .bmi, .visceralFat: ""
         }

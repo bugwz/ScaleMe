@@ -484,8 +484,6 @@ private extension DashboardMetricKind {
         case .musclePercent: AppColor.trendMusclePercent
         case .waterPercent: AppColor.trendWaterPercent
         case .waterMassKG: AppColor.trendWaterMass
-        case .proteinPercent: AppColor.trendProteinPercent
-        case .proteinMassKG: AppColor.trendProteinMass
         case .boneMassKG: AppColor.trendBoneMass
         case .bonePercent: AppColor.trendBonePercent
         case .visceralFat: AppColor.trendVisceralFat

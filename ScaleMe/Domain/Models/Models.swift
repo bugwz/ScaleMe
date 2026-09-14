@@ -180,15 +180,7 @@ struct BodyMeasurement: Identifiable, Codable, Hashable {
         boneMassKG.map { $0 / weightKG * 100 }
     }
 
-    var proteinMassKG: Double? {
-        guard let bodyFatPercent, let waterMassKG, let boneMassKG else { return nil }
-        let fatFreeMassKG = weightKG * (100 - bodyFatPercent) / 100
-        return max(0, fatFreeMassKG - waterMassKG - boneMassKG)
-    }
 
-    var proteinPercent: Double? {
-        proteinMassKG.map { $0 / weightKG * 100 }
-    }
 }
 
 struct UserProfile: Identifiable, Codable, Equatable {
@@ -286,8 +278,6 @@ enum DashboardMetricKind: String, Codable, CaseIterable, Identifiable, Hashable 
     case musclePercent
     case waterPercent
     case waterMassKG
-    case proteinPercent
-    case proteinMassKG
     case boneMassKG
     case bonePercent
     case visceralFat
@@ -303,8 +293,6 @@ enum DashboardMetricKind: String, Codable, CaseIterable, Identifiable, Hashable 
         case .musclePercent: "肌肉率"
         case .waterPercent: "身体水分"
         case .waterMassKG: "水分量"
-        case .proteinPercent: "蛋白质占比"
-        case .proteinMassKG: "蛋白质量"
         case .boneMassKG: "骨量"
         case .bonePercent: "骨量占比"
         case .visceralFat: "内脏脂肪"
@@ -314,8 +302,8 @@ enum DashboardMetricKind: String, Codable, CaseIterable, Identifiable, Hashable 
 
     var unit: String {
         switch self {
-        case .bodyFatPercent, .musclePercent, .waterPercent, .proteinPercent, .bonePercent: "%"
-        case .fatMassKG, .muscleMassKG, .waterMassKG, .proteinMassKG, .boneMassKG: "kg"
+        case .bodyFatPercent, .musclePercent, .waterPercent, .bonePercent: "%"
+        case .fatMassKG, .muscleMassKG, .waterMassKG, .boneMassKG: "kg"
         case .basalMetabolismKCal: "kcal"
         case .visceralFat: "级"
         }
@@ -330,8 +318,6 @@ enum DashboardMetricKind: String, Codable, CaseIterable, Identifiable, Hashable 
         case .musclePercent: "figure.strengthtraining.functional"
         case .waterPercent: "humidity.fill"
         case .waterMassKG: "water.waves"
-        case .proteinPercent: "chart.pie.fill"
-        case .proteinMassKG: "fork.knife"
         case .boneMassKG: "figure.walk.motion"
         case .bonePercent: "figure.stand"
         case .visceralFat: "circle.circle"
@@ -341,7 +327,7 @@ enum DashboardMetricKind: String, Codable, CaseIterable, Identifiable, Hashable 
 
     var isCalculated: Bool {
         switch self {
-        case .fatMassKG, .musclePercent, .waterMassKG, .proteinMassKG, .proteinPercent, .bonePercent: true
+        case .fatMassKG, .musclePercent, .waterMassKG, .bonePercent: true
         default: false
         }
     }
@@ -356,8 +342,6 @@ enum DashboardMetricKind: String, Codable, CaseIterable, Identifiable, Hashable 
         case .musclePercent: measurement.musclePercent
         case .waterPercent: measurement.waterPercent
         case .waterMassKG: measurement.waterMassKG
-        case .proteinPercent: measurement.proteinPercent
-        case .proteinMassKG: measurement.proteinMassKG
         case .boneMassKG: measurement.boneMassKG
         case .bonePercent: measurement.bonePercent
         case .visceralFat: measurement.visceralFat
