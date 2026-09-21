@@ -14,14 +14,29 @@ struct AppleHealthSettingsView: View {
         ScrollView {
             SettingsPanel(title: "Apple 健康", icon: "heart.fill") {
                 notice(
-                    "开启后申请体重与体脂率的读写权限，不影响本地测量。",
+                    "此功能通过 HealthKit 读写 Apple 健康中的体重和体脂率，用于同步记录和查看长期变化。同步为可选功能，不授权也可使用本地测量和记录。",
                     icon: "hand.raised"
                 )
                 SettingsSeparator()
-                authorizationStatusRow
-                SettingsSeparator()
-                SettingsSwitch(title: "与 Apple 健康同步数据", isOn: syncBinding)
+                if needsAuthorizationIntroduction {
+                    notice("你可以在接下来的系统页面选择允许访问的数据。", icon: "info.circle")
+                    Button {
+                        Task { await appleHealth.requestAuthorization() }
+                    } label: {
+                        HStack {
+                            AppLocalizedText("继续")
+                            if appleHealth.isRequestingAuthorization { ProgressView() }
+                        }
+                        .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(MintActionButtonStyle())
                     .disabled(isSyncControlUnavailable)
+                } else {
+                    authorizationStatusRow
+                    SettingsSeparator()
+                    SettingsSwitch(title: "与 Apple 健康同步数据", isOn: syncBinding)
+                        .disabled(isSyncControlUnavailable)
+                }
                 if store.displayIsAppleHealthSyncEnabled {
                     sharingSection
                     importSection
@@ -251,6 +266,12 @@ struct AppleHealthSettingsView: View {
 
     private var isSharingControlDisabled: Bool { isSyncControlUnavailable }
 
+    private var needsAuthorizationIntroduction: Bool {
+        !store.isSimulationEnabled
+            && appleHealth.weightWriteAuthorizationState == .notDetermined
+            && appleHealth.bodyFatWriteAuthorizationState == .notDetermined
+    }
+
     private var isImportControlDisabled: Bool {
         isSyncControlUnavailable || (!store.displayIsAppleHealthImportEnabled && store.displayAppleHealthReadTypes.isEmpty)
     }
@@ -275,11 +296,8 @@ struct AppleHealthSettingsView: View {
                     store.setDisplayAppleHealthSyncEnabled(true)
                     return
                 }
-                Task {
-                    guard await appleHealth.requestAuthorization() else { return }
-                    store.setDisplayAppleHealthSyncEnabled(true)
-                    await importAppleHealthData()
-                }
+                store.setDisplayAppleHealthSyncEnabled(true)
+                Task { await importAppleHealthData() }
             }
         )
     }
