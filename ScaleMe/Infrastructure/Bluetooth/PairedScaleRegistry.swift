@@ -21,7 +21,7 @@ struct PairedScaleRegistry {
             scale.communicationRuleID.map { (scale.id, $0) }
         })
         automaticHistoryIDs = Set(
-            scales.lazy.filter(\.isAutomaticHistoryImportEnabled).map(\.id)
+            scales.lazy.filter(\.automaticallyImportsHistory).map(\.id)
         )
     }
 

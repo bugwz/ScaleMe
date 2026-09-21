@@ -27,6 +27,7 @@ struct LocalDataTransferSmoke {
         configuration.isSimulationEnabled = true
         configuration.appleHealthProfileID = configuration.profiles[0].id
         configuration.appleHealthDeviceIDs = [deviceID]
+        configuration.isAppleHealthSyncEnabled = true
         configuration.isAppleHealthImportEnabled = true
         configuration.appleHealthReadTypes = [.bodyMass]
         guard let communicationRule = CommunicationRuleCatalog.builtIn.first else {
@@ -96,6 +97,17 @@ struct LocalDataTransferSmoke {
         let measurementSettings = configurationObject?["measurement"] as? [String: Any]
         precondition(measurementSettings?["unit"] as? String == "jin")
         let appleHealth = configurationObject?["appleHealth"] as? [String: Any]
+        precondition(appleHealth?["isSyncEnabled"] as? Bool == true)
+        var incompleteConfiguration = configurationObject ?? [:]
+        var incompleteHealth = appleHealth ?? [:]
+        incompleteHealth.removeValue(forKey: "isSyncEnabled")
+        incompleteConfiguration["appleHealth"] = incompleteHealth
+        do {
+            let data = try JSONSerialization.data(withJSONObject: incompleteConfiguration)
+            _ = try ConfigurationFileCodec.decode(data)
+            preconditionFailure("version 1 requires the current sync setting")
+        } catch DecodingError.keyNotFound { }
+
         precondition(appleHealth?["isImportEnabled"] as? Bool == true)
         precondition(appleHealth?["readTypes"] as? [String] == [AppleHealthDataType.bodyMass.rawValue])
         let importedConfiguration = try service.importConfiguration(from: configurationData)

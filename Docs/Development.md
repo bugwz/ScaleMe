@@ -169,4 +169,18 @@ swiftc -module-cache-path /tmp/scaleme-swift-module-cache \
 /tmp/scaleme-health-smoke
 ```
 
-验证读取与写入请求互不扩权；系统授权弹窗、部分授权、撤销授权及实际同步仍需按 [发布前验证指南](AppReviewReadiness.md) 在真机检查。
+验证总开关统一请求体重和体脂率的读写权限，且同步、共享与获取默认关闭；系统授权弹窗、部分授权、撤销授权及实际同步仍需按 [发布前验证指南](AppReviewReadiness.md) 在真机检查。
+
+同步总开关状态与导入门控测试：
+
+```sh
+swiftc -module-cache-path /tmp/scaleme-swift-module-cache \
+  @Tests/Smoke/Bluetooth/ProtocolSources.rsp \
+  ScaleMe/Domain/Models/SimulationData.swift \
+  ScaleMe/Domain/Measurements/DeviceHistoryMatcher.swift \
+  ScaleMe/Infrastructure/Persistence/LocalAppRepository.swift \
+  ScaleMe/App/State/MeasurementStore.swift \
+  Tests/Smoke/Persistence/AppleHealthSyncSmoke.swift \
+  -o /tmp/scaleme-health-sync-smoke
+/tmp/scaleme-health-sync-smoke
+```

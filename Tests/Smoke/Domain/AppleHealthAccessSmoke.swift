@@ -3,14 +3,12 @@ import Foundation
 @main
 struct AppleHealthAccessSmoke {
     static func main() {
-        let sharing = AppleHealthAccessRequest.sharing
-        precondition(sharing.readTypes.isEmpty)
-        precondition(sharing.writeTypes == [.bodyMass, .bodyFatPercentage])
-        for types: Set<AppleHealthDataType> in [[], [.bodyMass], [.bodyMass, .bodyFatPercentage]] {
-            let importing = AppleHealthAccessRequest.importing(types)
-            precondition(importing.readTypes == types)
-            precondition(importing.writeTypes.isEmpty)
-        }
+        let request = AppleHealthAccessRequest()
+        precondition(request.readTypes == [.bodyMass, .bodyFatPercentage])
+        precondition(request.writeTypes == request.readTypes)
+        precondition(!AppConfiguration.standard.isAppleHealthSyncEnabled)
+        precondition(!AppConfiguration.standard.isAppleHealthImportEnabled)
+        precondition(AppConfiguration.standard.appleHealthProfileID == nil)
         print("Apple Health access smoke tests passed")
     }
 }

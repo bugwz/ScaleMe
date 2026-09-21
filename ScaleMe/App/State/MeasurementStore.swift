@@ -18,6 +18,7 @@ final class MeasurementStore: ObservableObject {
     @Published var isSimulationEnabled: Bool { didSet { simulationModeDidChange() } }
     @Published var appleHealthProfileID: UUID? { didSet { persistConfigurationIfNeeded() } }
     @Published private(set) var appleHealthDeviceIDs: Set<UUID> { didSet { persistConfigurationIfNeeded() } }
+    @Published private(set) var isAppleHealthSyncEnabled: Bool { didSet { persistConfigurationIfNeeded() } }
     @Published private(set) var isAppleHealthImportEnabled: Bool { didSet { persistConfigurationIfNeeded() } }
     @Published private(set) var appleHealthReadTypes: Set<AppleHealthDataType> { didSet { persistConfigurationIfNeeded() } }
     @Published private(set) var customCommunicationRules: [CommunicationRule] { didSet { persistConfigurationIfNeeded() } }
@@ -62,6 +63,7 @@ final class MeasurementStore: ObservableObject {
     private var simulationSelectedProfileID: UUID
     @Published private var simulationAppleHealthProfileID: UUID?
     @Published private var simulationAppleHealthDeviceIDs: Set<UUID>
+    @Published private var simulationIsAppleHealthSyncEnabled: Bool
     @Published private var simulationIsAppleHealthImportEnabled: Bool
     @Published private var simulationAppleHealthReadTypes: Set<AppleHealthDataType>
     @Published private var simulationDeletedMeasurements: Set<DeletedMeasurementMarker>
@@ -118,6 +120,7 @@ final class MeasurementStore: ObservableObject {
         simulationSelectedProfileID = simulationData.selectedProfileID
         simulationAppleHealthProfileID = nil
         simulationAppleHealthDeviceIDs = []
+        simulationIsAppleHealthSyncEnabled = false
         simulationIsAppleHealthImportEnabled = false
         simulationAppleHealthReadTypes = Set(AppleHealthDataType.allCases)
         simulationDeletedMeasurements = []
@@ -138,6 +141,7 @@ final class MeasurementStore: ObservableObject {
         appleHealthDeviceIDs = loadedConfiguration.appleHealthDeviceIDs.intersection(
             Set(loadedConfiguration.pairedScales.map(\.id))
         )
+        isAppleHealthSyncEnabled = loadedConfiguration.isAppleHealthSyncEnabled
         isAppleHealthImportEnabled = loadedConfiguration.isAppleHealthImportEnabled
         appleHealthReadTypes = loadedConfiguration.appleHealthReadTypes
         customCommunicationRules = loadedConfiguration.customCommunicationRules
@@ -172,6 +176,7 @@ final class MeasurementStore: ObservableObject {
             isSimulationEnabled: isSimulationEnabled,
             appleHealthProfileID: appleHealthProfileID,
             appleHealthDeviceIDs: appleHealthDeviceIDs,
+            isAppleHealthSyncEnabled: isAppleHealthSyncEnabled,
             isAppleHealthImportEnabled: isAppleHealthImportEnabled,
             appleHealthReadTypes: appleHealthReadTypes,
             customCommunicationRules: customCommunicationRules,
@@ -204,6 +209,7 @@ final class MeasurementStore: ObservableObject {
             isSimulationEnabled: true,
             appleHealthProfileID: simulationAppleHealthProfileID,
             appleHealthDeviceIDs: simulationAppleHealthDeviceIDs,
+            isAppleHealthSyncEnabled: simulationIsAppleHealthSyncEnabled,
             isAppleHealthImportEnabled: simulationIsAppleHealthImportEnabled,
             appleHealthReadTypes: simulationAppleHealthReadTypes,
             customCommunicationRules: customCommunicationRules,
@@ -265,6 +271,10 @@ final class MeasurementStore: ObservableObject {
 
     var displayAppleHealthDeviceIDs: Set<UUID> {
         isSimulationEnabled ? simulationAppleHealthDeviceIDs : appleHealthDeviceIDs
+    }
+
+    var displayIsAppleHealthSyncEnabled: Bool {
+        isSimulationEnabled ? simulationIsAppleHealthSyncEnabled : isAppleHealthSyncEnabled
     }
 
     var displayIsAppleHealthImportEnabled: Bool {
@@ -436,6 +446,7 @@ final class MeasurementStore: ObservableObject {
     @discardableResult
     func importAppleHealthMeasurements(_ importedMeasurements: [BodyMeasurement]) -> Int {
         guard !isSimulationEnabled,
+              isAppleHealthSyncEnabled,
               isAppleHealthImportEnabled,
               let currentUser = profiles.first(where: { $0.role == "本人" }) else { return 0 }
         let existingIDs = Set(measurements.map(\.id)).union(deletedMeasurements.map(\.id))
@@ -532,6 +543,14 @@ final class MeasurementStore: ObservableObject {
         } else {
             guard id == nil || profiles.contains(where: { $0.id == id && $0.role == "本人" }) else { return }
             appleHealthProfileID = id
+        }
+    }
+
+    func setDisplayAppleHealthSyncEnabled(_ isEnabled: Bool) {
+        if isSimulationEnabled {
+            simulationIsAppleHealthSyncEnabled = isEnabled
+        } else {
+            isAppleHealthSyncEnabled = isEnabled
         }
     }
 
@@ -898,6 +917,7 @@ final class MeasurementStore: ObservableObject {
         appleHealthDeviceIDs = normalizedConfiguration.appleHealthDeviceIDs.intersection(
             Set(normalizedConfiguration.pairedScales.map(\.id))
         )
+        isAppleHealthSyncEnabled = normalizedConfiguration.isAppleHealthSyncEnabled
         isAppleHealthImportEnabled = normalizedConfiguration.isAppleHealthImportEnabled
         appleHealthReadTypes = normalizedConfiguration.appleHealthReadTypes
         customCommunicationRules = normalizedConfiguration.customCommunicationRules
@@ -986,6 +1006,7 @@ final class MeasurementStore: ObservableObject {
         isSimulationEnabled = false
         appleHealthProfileID = nil
         appleHealthDeviceIDs = []
+        isAppleHealthSyncEnabled = false
         isAppleHealthImportEnabled = false
         appleHealthReadTypes = defaults.appleHealthReadTypes
         customCommunicationRules = []
@@ -1007,6 +1028,7 @@ final class MeasurementStore: ObservableObject {
         simulationSelectedProfileID = simulationData.selectedProfileID
         simulationAppleHealthProfileID = nil
         simulationAppleHealthDeviceIDs = []
+        simulationIsAppleHealthSyncEnabled = false
         simulationIsAppleHealthImportEnabled = false
         simulationAppleHealthReadTypes = defaults.appleHealthReadTypes
         simulationDeletedMeasurements = []
@@ -1038,6 +1060,7 @@ final class MeasurementStore: ObservableObject {
         simulationAppleHealthDeviceIDs = configuration.appleHealthDeviceIDs.intersection(
             Set(configuration.pairedScales.map(\.id))
         )
+        simulationIsAppleHealthSyncEnabled = configuration.isAppleHealthSyncEnabled
         simulationIsAppleHealthImportEnabled = configuration.isAppleHealthImportEnabled
         simulationAppleHealthReadTypes = configuration.appleHealthReadTypes
         customCommunicationRules = configuration.customCommunicationRules

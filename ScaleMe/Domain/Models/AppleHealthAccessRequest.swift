@@ -1,21 +1,7 @@
 import Foundation
 
-/// Read and write permissions are requested only for the selected operation.
-enum AppleHealthAccessRequest {
-    case sharing
-    case importing(Set<AppleHealthDataType>)
-
-    var readTypes: Set<AppleHealthDataType> {
-        switch self {
-        case .sharing: []
-        case let .importing(types): types
-        }
-    }
-
-    var writeTypes: Set<AppleHealthDataType> {
-        switch self {
-        case .sharing: [.bodyMass, .bodyFatPercentage]
-        case .importing: []
-        }
-    }
+/// The sync entry requests both directions; individual switches only configure data flow.
+struct AppleHealthAccessRequest {
+    let readTypes: Set<AppleHealthDataType> = [.bodyMass, .bodyFatPercentage]
+    let writeTypes: Set<AppleHealthDataType> = [.bodyMass, .bodyFatPercentage]
 }

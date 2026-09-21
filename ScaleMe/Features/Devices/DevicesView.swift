@@ -1307,7 +1307,7 @@ private struct ScaleSettingsView: View {
                     title: "自动拉取历史数据",
                     detail: "设备连接后自动读取并合并秤端历史记录。",
                     isOn: Binding(
-                        get: { scale?.isAutomaticHistoryImportEnabled == true },
+                        get: { scale?.automaticallyImportsHistory == true },
                         set: { isEnabled in
                             store.setAutomaticHistoryImportEnabled(isEnabled, for: scaleID)
                             if !store.isSimulationEnabled {

@@ -3,14 +3,15 @@ import HealthKit
 
 @MainActor
 final class AppleHealthManager: ObservableObject {
-    enum WeightWriteAuthorizationState: Equatable {
+    enum WriteAuthorizationState: Equatable {
         case unavailable
         case notDetermined
         case authorized
         case denied
     }
 
-    @Published private(set) var weightWriteAuthorizationState: WeightWriteAuthorizationState = .notDetermined
+    @Published private(set) var weightWriteAuthorizationState: WriteAuthorizationState = .notDetermined
+    @Published private(set) var bodyFatWriteAuthorizationState: WriteAuthorizationState = .notDetermined
     @Published private(set) var isRequestingAuthorization = false
     @Published private(set) var isImporting = false
     @Published private(set) var lastAuthorizationError: String?
@@ -28,13 +29,19 @@ final class AppleHealthManager: ObservableObject {
         HKObjectType.quantityType(forIdentifier: .bodyFatPercentage)
     }
 
-    func refreshWeightWriteAuthorizationState() {
+    func refreshWriteAuthorizationStates() {
         guard HKHealthStore.isHealthDataAvailable(), let bodyMassType else {
+            bodyFatWriteAuthorizationState = .unavailable
             weightWriteAuthorizationState = .unavailable
             return
         }
 
-        weightWriteAuthorizationState = switch healthStore.authorizationStatus(for: bodyMassType) {
+        weightWriteAuthorizationState = writeAuthorizationState(for: bodyMassType)
+        bodyFatWriteAuthorizationState = bodyFatType.map { writeAuthorizationState(for: $0) } ?? .unavailable
+    }
+
+    private func writeAuthorizationState(for type: HKQuantityType) -> WriteAuthorizationState {
+        switch healthStore.authorizationStatus(for: type) {
         case .notDetermined: .notDetermined
         case .sharingAuthorized: .authorized
         case .sharingDenied: .denied
@@ -44,8 +51,9 @@ final class AppleHealthManager: ObservableObject {
 
     /// A completed request does not reveal whether read access was granted.
     @discardableResult
-    func requestAuthorization(for request: AppleHealthAccessRequest) async -> Bool {
+    func requestAuthorization() async -> Bool {
         guard HKHealthStore.isHealthDataAvailable(), !isRequestingAuthorization else { return false }
+        let request = AppleHealthAccessRequest()
         let readTypes = Set<HKObjectType>(request.readTypes.compactMap { healthKitType(for: $0) })
         let writeTypes = Set<HKSampleType>(request.writeTypes.compactMap { healthKitType(for: $0) })
         guard !readTypes.isEmpty || !writeTypes.isEmpty else { return false }
@@ -53,7 +61,7 @@ final class AppleHealthManager: ObservableObject {
         lastAuthorizationError = nil
         defer {
             isRequestingAuthorization = false
-            refreshWeightWriteAuthorizationState()
+            refreshWriteAuthorizationStates()
         }
         do {
             try await healthStore.requestAuthorization(toShare: writeTypes, read: readTypes)
@@ -104,6 +112,7 @@ final class AppleHealthManager: ObservableObject {
     }
 
     func share(_ measurement: BodyMeasurement) {
+        refreshWriteAuthorizationStates()
         guard measurement.isStable,
               measurement.deviceID != nil,
               weightWriteAuthorizationState == .authorized else { return }
@@ -116,7 +125,7 @@ final class AppleHealthManager: ObservableObject {
                 lastShareError = nil
             } catch {
                 lastShareError = error.localizedDescription
-                refreshWeightWriteAuthorizationState()
+                refreshWriteAuthorizationStates()
             }
         }
     }

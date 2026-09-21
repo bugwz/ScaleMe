@@ -81,14 +81,27 @@ enum StorageSmoke {
         let configurationData = try JSONEncoder().encode(configuration)
         let decoded = try JSONDecoder().decode(AppConfiguration.self, from: configurationData)
         precondition(decoded == configuration, "multi-profile and paired-device configuration round trip failed")
-        precondition(decoded.pairedScales[0].isAutomaticHistoryImportEnabled)
-        var legacyObject = try JSONSerialization.jsonObject(with: configurationData) as? [String: Any]
-        var legacyScales = legacyObject?["pairedScales"] as? [[String: Any]] ?? []
-        legacyScales[0].removeValue(forKey: "automaticallyImportsHistory")
-        legacyObject?["pairedScales"] = legacyScales
-        let legacyData = try JSONSerialization.data(withJSONObject: legacyObject ?? [:])
-        let legacyDecoded = try JSONDecoder().decode(AppConfiguration.self, from: legacyData)
-        precondition(!legacyDecoded.pairedScales[0].isAutomaticHistoryImportEnabled)
+        precondition(decoded.pairedScales[0].automaticallyImportsHistory)
+        var incompleteObject = try JSONSerialization.jsonObject(with: configurationData) as? [String: Any] ?? [:]
+        for key in ["languageSelection", "visualTheme", "appearance", "isSimulationEnabled",
+                    "appleHealthDeviceIDs", "isAppleHealthSyncEnabled", "dashboardMetricOrder",
+                    "dashboardVisibleMetrics", "widgetTimeRange", "widgetDisplayStyle"] {
+            var incomplete = incompleteObject
+            incomplete.removeValue(forKey: key)
+            let data = try JSONSerialization.data(withJSONObject: incomplete)
+            do {
+                _ = try JSONDecoder().decode(AppConfiguration.self, from: data)
+                preconditionFailure("missing required configuration field must fail: \(key)")
+            } catch DecodingError.keyNotFound { }
+        }
+        var incompleteScales = incompleteObject["pairedScales"] as? [[String: Any]] ?? []
+        incompleteScales[0].removeValue(forKey: "automaticallyImportsHistory")
+        incompleteObject["pairedScales"] = incompleteScales
+        do {
+            let data = try JSONSerialization.data(withJSONObject: incompleteObject)
+            _ = try JSONDecoder().decode(AppConfiguration.self, from: data)
+            preconditionFailure("missing history preference must fail")
+        } catch DecodingError.keyNotFound { }
         precondition(decoded.profiles[0].avatar == .senior, "member avatar selection must survive configuration round trip")
         precondition(decoded.isSimulationEnabled, "simulation preference must survive configuration round trip")
         precondition(decoded.languageSelection == .system, "language should follow the system by default")

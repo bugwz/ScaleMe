@@ -356,12 +356,9 @@ struct PairedScale: Identifiable, Codable, Equatable, Hashable {
     var modelName: String
     var compatibility: String
     var communicationRuleID: String? = nil
-    var automaticallyImportsHistory: Bool? = nil
+    var automaticallyImportsHistory = false
     var addedAt = Date.now
 
-    var isAutomaticHistoryImportEnabled: Bool {
-        automaticallyImportsHistory == true
-    }
 }
 
 struct AppConfiguration: Codable, Equatable {
@@ -375,6 +372,7 @@ struct AppConfiguration: Codable, Equatable {
     var isSimulationEnabled: Bool
     var appleHealthProfileID: UUID?
     var appleHealthDeviceIDs: Set<UUID>
+    var isAppleHealthSyncEnabled: Bool
     var isAppleHealthImportEnabled: Bool
     var appleHealthReadTypes: Set<AppleHealthDataType>
     var customCommunicationRules: [CommunicationRule]
@@ -395,6 +393,7 @@ struct AppConfiguration: Codable, Equatable {
         isSimulationEnabled: Bool = false,
         appleHealthProfileID: UUID? = nil,
         appleHealthDeviceIDs: Set<UUID> = [],
+        isAppleHealthSyncEnabled: Bool = false,
         isAppleHealthImportEnabled: Bool = false,
         appleHealthReadTypes: Set<AppleHealthDataType> = Set(AppleHealthDataType.allCases),
         customCommunicationRules: [CommunicationRule],
@@ -414,6 +413,7 @@ struct AppConfiguration: Codable, Equatable {
         self.isSimulationEnabled = isSimulationEnabled
         self.appleHealthProfileID = appleHealthProfileID
         self.appleHealthDeviceIDs = appleHealthDeviceIDs
+        self.isAppleHealthSyncEnabled = isAppleHealthSyncEnabled
         self.isAppleHealthImportEnabled = isAppleHealthImportEnabled
         self.appleHealthReadTypes = appleHealthReadTypes
         self.customCommunicationRules = customCommunicationRules
@@ -422,49 +422,6 @@ struct AppConfiguration: Codable, Equatable {
         self.widgetProfileID = widgetProfileID
         self.widgetTimeRange = widgetTimeRange
         self.widgetDisplayStyle = widgetDisplayStyle
-    }
-
-    private enum CodingKeys: String, CodingKey {
-        case profiles
-        case pairedScales
-        case unit
-        case languageSelection
-        case visualTheme
-        case appearance
-        case mergeFrequentMeasurements
-        case isSimulationEnabled
-        case appleHealthProfileID
-        case appleHealthDeviceIDs
-        case isAppleHealthImportEnabled
-        case appleHealthReadTypes
-        case customCommunicationRules
-        case dashboardMetricOrder
-        case dashboardVisibleMetrics
-        case widgetProfileID
-        case widgetTimeRange
-        case widgetDisplayStyle
-    }
-
-    init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        profiles = try container.decode([UserProfile].self, forKey: .profiles)
-        pairedScales = try container.decode([PairedScale].self, forKey: .pairedScales)
-        unit = try container.decode(WeightUnit.self, forKey: .unit)
-        languageSelection = try container.decodeIfPresent(AppLanguageSelection.self, forKey: .languageSelection) ?? .system
-        visualTheme = try container.decodeIfPresent(AppVisualTheme.self, forKey: .visualTheme) ?? .standard
-        appearance = try container.decodeIfPresent(AppAppearance.self, forKey: .appearance) ?? .system
-        mergeFrequentMeasurements = try container.decode(Bool.self, forKey: .mergeFrequentMeasurements)
-        isSimulationEnabled = try container.decodeIfPresent(Bool.self, forKey: .isSimulationEnabled) ?? false
-        appleHealthProfileID = try container.decodeIfPresent(UUID.self, forKey: .appleHealthProfileID)
-        appleHealthDeviceIDs = try container.decodeIfPresent(Set<UUID>.self, forKey: .appleHealthDeviceIDs) ?? []
-        isAppleHealthImportEnabled = try container.decode(Bool.self, forKey: .isAppleHealthImportEnabled)
-        appleHealthReadTypes = try container.decode(Set<AppleHealthDataType>.self, forKey: .appleHealthReadTypes)
-        customCommunicationRules = try container.decode([CommunicationRule].self, forKey: .customCommunicationRules)
-        dashboardMetricOrder = try container.decodeIfPresent([DashboardMetricKind].self, forKey: .dashboardMetricOrder) ?? DashboardMetricKind.allCases
-        dashboardVisibleMetrics = try container.decodeIfPresent(Set<DashboardMetricKind>.self, forKey: .dashboardVisibleMetrics) ?? DashboardMetricKind.defaultVisible
-        widgetProfileID = try container.decodeIfPresent(UUID.self, forKey: .widgetProfileID)
-        widgetTimeRange = try container.decodeIfPresent(WidgetTrendTimeRange.self, forKey: .widgetTimeRange) ?? .month
-        widgetDisplayStyle = try container.decodeIfPresent(WidgetTrendDisplayStyle.self, forKey: .widgetDisplayStyle) ?? .periodFocused
     }
 
     static var standard: AppConfiguration {

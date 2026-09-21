@@ -47,6 +47,7 @@ enum ConfigurationFileCodec {
                     + [("deviceIDs", .array(configuration.appleHealthDeviceIDs
                         .sorted { $0.uuidString < $1.uuidString }
                         .map { .string($0.uuidString) })),
+                        ("isSyncEnabled", .bool(configuration.isAppleHealthSyncEnabled)),
                         ("isImportEnabled", .bool(configuration.isAppleHealthImportEnabled)),
                         ("readTypes", .array(configuration.appleHealthReadTypes
                             .sorted { $0.rawValue < $1.rawValue }
@@ -89,7 +90,7 @@ enum ConfigurationFileCodec {
         if let communicationRuleID = scale.communicationRuleID {
             pairs.append(("communicationRuleID", .string(communicationRuleID)))
         }
-        pairs.append(("automaticallyImportsHistory", .bool(scale.isAutomaticHistoryImportEnabled)))
+        pairs.append(("automaticallyImportsHistory", .bool(scale.automaticallyImportsHistory)))
         pairs.append(("addedAt", .number(numberString(scale.addedAt.timeIntervalSinceReferenceDate))))
         return .object(pairs)
     }
@@ -152,6 +153,7 @@ private struct ConfigurationDocument: Codable {
     struct AppleHealth: Codable {
         var profileID: UUID?
         var deviceIDs: Set<UUID>
+        var isSyncEnabled: Bool
         var isImportEnabled: Bool
         var readTypes: Set<AppleHealthDataType>
     }
@@ -179,6 +181,7 @@ private struct ConfigurationDocument: Codable {
             isSimulationEnabled: general.isSimulationEnabled,
             appleHealthProfileID: appleHealth.profileID,
             appleHealthDeviceIDs: appleHealth.deviceIDs,
+            isAppleHealthSyncEnabled: appleHealth.isSyncEnabled,
             isAppleHealthImportEnabled: appleHealth.isImportEnabled,
             appleHealthReadTypes: appleHealth.readTypes,
             customCommunicationRules: communication.customRules,

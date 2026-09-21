@@ -85,6 +85,7 @@ struct ScaleMeApp: App {
             }
             .onReceive(store.$latestHealthShareCandidate.compactMap { $0 }) { measurement in
                 guard !store.isSimulationEnabled,
+                      store.isAppleHealthSyncEnabled,
                       measurement.profileID == store.appleHealthProfileID,
                       let deviceID = measurement.deviceID,
                       store.appleHealthDeviceIDs.contains(deviceID) else { return }
@@ -93,14 +94,14 @@ struct ScaleMeApp: App {
             .onChange(of: scenePhase) { _, newPhase in
                 if newPhase == .active {
                     store.refreshSystemLanguage()
-                    appleHealth.refreshWeightWriteAuthorizationState()
+                    appleHealth.refreshWriteAuthorizationStates()
                     Task { await syncAppleHealthIfNeeded() }
                 }
             }
             .task {
                 store.prepareSimulationDataIfNeeded()
                 bluetooth.updatePairedScales(store.pairedScales, communicationRules: store.communicationRules)
-                appleHealth.refreshWeightWriteAuthorizationState()
+                appleHealth.refreshWriteAuthorizationStates()
                 await syncAppleHealthIfNeeded()
                 exportWidgetSnapshot()
                 guard isShowingLaunchScreen else { return }
@@ -123,6 +124,8 @@ struct ScaleMeApp: App {
 
     private func syncAppleHealthIfNeeded() async {
         guard !store.isSimulationEnabled,
+              store.isAppleHealthSyncEnabled,
+              !appleHealth.isRequestingAuthorization,
               store.isAppleHealthImportEnabled,
               !appleHealth.isImporting,
               let currentUser = store.currentUserProfile else { return }
