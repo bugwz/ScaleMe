@@ -403,7 +403,9 @@ private struct MeasurementRecordLink: View {
         NavigationLink { MeasurementDetailView(measurement: measurement) } label: {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("\(store.unit.value(fromKilograms: measurement.weightKG).formatted(2)) \(store.unit.symbol)")
+                    Text(
+                        verbatim: "\(store.unit.value(fromKilograms: measurement.weightKG).formatted(2)) \(store.unit.symbol)"
+                    )
                         .font(.body.bold())
                         .foregroundStyle(AppColor.ink)
                     ScaleDeviceLabel(title: sourceName, iconSize: 13)

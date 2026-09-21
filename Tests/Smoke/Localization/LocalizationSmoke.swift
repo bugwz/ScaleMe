@@ -195,6 +195,7 @@ struct LocalizationSmoke {
         }
 
         for (key, rawEntry) in strings {
+            precondition(key != "%@ %@", "number and unit text must be rendered verbatim")
             guard
                 let entry = rawEntry as? [String: Any],
                 let localizations = entry["localizations"] as? [String: Any]

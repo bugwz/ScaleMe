@@ -3,6 +3,10 @@ import Charts
 import SwiftUI
 import WidgetKit
 
+private func verbatimLocalizedResource(_ value: String) -> LocalizedStringResource {
+    LocalizedStringResource(String.LocalizationValue(stringLiteral: value))
+}
+
 enum WidgetTrendMetric: String, AppEnum {
     case weight, bmi, bodyFat, fatMass, muscleMass, musclePercent
     case waterPercent, waterMass, proteinPercent, proteinMass
@@ -56,7 +60,10 @@ struct WidgetProfileEntity: AppEntity, Hashable {
     let relation: String
 
     var displayRepresentation: DisplayRepresentation {
-        DisplayRepresentation(title: "\(name)", subtitle: "\(relation)")
+        DisplayRepresentation(
+            title: verbatimLocalizedResource(name),
+            subtitle: verbatimLocalizedResource(relation)
+        )
     }
 }
 
@@ -95,8 +102,11 @@ struct WidgetDeviceEntity: AppEntity, Hashable {
 
     var displayRepresentation: DisplayRepresentation {
         modelName.isEmpty
-            ? DisplayRepresentation(title: "\(name)")
-            : DisplayRepresentation(title: "\(name)", subtitle: "\(modelName)")
+            ? DisplayRepresentation(title: verbatimLocalizedResource(name))
+            : DisplayRepresentation(
+                title: verbatimLocalizedResource(name),
+                subtitle: verbatimLocalizedResource(modelName)
+            )
     }
 }
 
@@ -315,7 +325,7 @@ private struct TrendWidgetView: View {
             }
 
             VStack(alignment: .leading, spacing: 2) {
-                Text("\(series.profileName) · \(series.rangeTitle)")
+                Text(verbatim: "\(series.profileName) · \(series.rangeTitle)")
                     .lineLimit(1)
                 if series.metadata.isEstimated {
                     estimatedDisclaimer
@@ -357,14 +367,14 @@ private struct TrendWidgetView: View {
             }
 
             HStack(spacing: 4) {
-                Text("\(series.profileName) · \(series.deviceName)").lineLimit(1)
+                Text(verbatim: "\(series.profileName) · \(series.deviceName)").lineLimit(1)
                 Spacer(minLength: 4)
                 if series.metadata.isEstimated {
                     estimatedDisclaimer
-                    Text("·")
+                    Text(verbatim: "·")
                 }
                 Text(entry.displayStyle.shortTitle)
-                Text("·")
+                Text(verbatim: "·")
                 Text(series.rangeTitle)
             }
             .font(.caption2)
@@ -383,7 +393,7 @@ private struct TrendWidgetView: View {
                     Label(series.metadata.title, systemImage: series.metadata.systemImage)
                         .font(.headline)
                         .foregroundStyle(WidgetPalette.ink)
-                    Text("\(series.profileName) · \(series.deviceName)")
+                    Text(verbatim: "\(series.profileName) · \(series.deviceName)")
                         .font(.caption)
                         .foregroundStyle(WidgetPalette.secondary)
                         .lineLimit(1)
@@ -439,7 +449,7 @@ private struct TrendWidgetView: View {
 
             HStack(spacing: 4) {
                 Text(entry.displayStyle.shortTitle)
-                Text("·")
+                Text(verbatim: "·")
                 Text(series.rangeTitle)
                 Spacer(minLength: 4)
                 Text(series.measurementCount, format: .number)

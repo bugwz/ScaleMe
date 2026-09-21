@@ -26,6 +26,12 @@ enum WidgetLocalizationSmoke {
         for key in requiredKeys {
             precondition(strings[key] != nil, "widget localization catalog is missing: \(key)")
         }
+        for nonlinguisticKey in ["%@", "%@ · %@", "·"] {
+            precondition(
+                strings[nonlinguisticKey] == nil,
+                "nonlinguistic widget text must be rendered verbatim: \(nonlinguisticKey)"
+            )
+        }
 
         for (key, rawEntry) in strings {
             guard
