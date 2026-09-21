@@ -655,21 +655,92 @@ private final class DashboardMetricsAutoScroller: ObservableObject {
 
 private struct DashboardScrollViewResolver: UIViewRepresentable {
     let autoScroller: DashboardMetricsAutoScroller
+    let onDragChanged: (CGPoint, Bool) -> Void
+    let onDragEnded: () -> Void
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(parent: self)
+    }
 
     func makeUIView(context: Context) -> UIView {
         let view = UIView(frame: .zero)
-        resolve(from: view)
+        resolve(from: view, coordinator: context.coordinator)
         return view
     }
 
     func updateUIView(_ uiView: UIView, context: Context) {
-        resolve(from: uiView)
+        context.coordinator.parent = self
+        resolve(from: uiView, coordinator: context.coordinator)
     }
 
-    private func resolve(from view: UIView) {
+    static func dismantleUIView(_ uiView: UIView, coordinator: Coordinator) {
+        coordinator.detach()
+    }
+
+    private func resolve(from view: UIView, coordinator: Coordinator) {
         DispatchQueue.main.async { [weak view] in
             guard let view else { return }
             autoScroller.attach(toAncestorOf: view)
+            coordinator.attach(toAncestorOf: view)
+        }
+    }
+
+    final class Coordinator: NSObject, UIGestureRecognizerDelegate {
+        var parent: DashboardScrollViewResolver
+        private weak var scrollView: UIScrollView?
+        private lazy var longPress: UILongPressGestureRecognizer = {
+            let recognizer = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress(_:)))
+            recognizer.minimumPressDuration = 0.55
+            recognizer.allowableMovement = 8
+            recognizer.delegate = self
+            return recognizer
+        }()
+
+        init(parent: DashboardScrollViewResolver) {
+            self.parent = parent
+        }
+
+        func attach(toAncestorOf view: UIView) {
+            var ancestor = view.superview
+            while let current = ancestor {
+                if let scrollView = current as? UIScrollView {
+                    guard self.scrollView !== scrollView else { return }
+                    detach()
+                    self.scrollView = scrollView
+                    scrollView.addGestureRecognizer(longPress)
+                    return
+                }
+                ancestor = current.superview
+            }
+        }
+
+        func detach() {
+            scrollView?.removeGestureRecognizer(longPress)
+            scrollView = nil
+        }
+
+        func gestureRecognizer(
+            _ gestureRecognizer: UIGestureRecognizer,
+            shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer
+        ) -> Bool {
+            // A normal pan must never wait for, or be blocked by, the reorder press.
+            otherGestureRecognizer === scrollView?.panGestureRecognizer
+        }
+
+        @objc private func handleLongPress(_ recognizer: UILongPressGestureRecognizer) {
+            guard let scrollView else { return }
+            switch recognizer.state {
+            case .began, .changed:
+                let point = recognizer.location(in: scrollView)
+                parent.onDragChanged(CGPoint(
+                    x: point.x - scrollView.bounds.minX,
+                    y: point.y - scrollView.bounds.minY
+                ), recognizer.state == .began)
+            case .ended, .cancelled, .failed:
+                parent.onDragEnded()
+            default:
+                break
+            }
         }
     }
 }
@@ -727,7 +798,24 @@ private struct DashboardMetricsEditorView: View {
                 }
                 .padding(.horizontal, 18)
                 .padding(.bottom, 28)
-                .background(DashboardScrollViewResolver(autoScroller: autoScroller))
+                .background(DashboardScrollViewResolver(
+                    autoScroller: autoScroller,
+                    onDragChanged: { location, isBeginning in
+                        guard !isSettlingDrag else { return }
+                        if isBeginning, draggingKind == nil,
+                           let kind = (shown + hidden).first(where: { itemFrames[$0]?.contains(location) == true }) {
+                            activateDragging(kind)
+                        }
+                        if let kind = draggingKind {
+                            updateDragging(kind, at: location)
+                        }
+                    },
+                    onDragEnded: {
+                        if draggingKind != nil, !isSettlingDrag {
+                            finishDragging()
+                        }
+                    }
+                ))
             }
             .scrollDisabled(draggingKind != nil)
             .coordinateSpace(name: Self.coordinateSpaceName)
@@ -882,29 +970,6 @@ private struct DashboardMetricsEditorView: View {
         .accessibilityAction(named: Text(language.text("上移"))) { moveMetric(kind, isShown: isShown, offset: -1) }
         .accessibilityAction(named: Text(language.text("下移"))) { moveMetric(kind, isShown: isShown, offset: 1) }
         .transition(.identity)
-        // Reordering is a strict long-press-then-drag sequence. Ordinary vertical movement
-        // exceeds the long press tolerance first and remains a ScrollView gesture.
-        .simultaneousGesture(
-            LongPressGesture(minimumDuration: 0.55, maximumDistance: 8)
-                .sequenced(
-                    before: DragGesture(
-                        minimumDistance: 0,
-                        coordinateSpace: .named(Self.coordinateSpaceName)
-                    )
-                )
-                .onChanged { value in
-                    guard case .second(true, let drag) = value else { return }
-                    activateDragging(kind)
-                    if let drag {
-                        updateDragging(kind, with: drag)
-                    }
-                }
-                .onEnded { _ in
-                    if draggingKind == kind {
-                        finishDragging()
-                    }
-                }
-        )
     }
 
     private func activateDragging(_ kind: DashboardMetricKind) {
@@ -934,19 +999,19 @@ private struct DashboardMetricsEditorView: View {
         if isShown { shown = items } else { hidden = items }
     }
 
-    private func updateDragging(_ kind: DashboardMetricKind, with drag: DragGesture.Value) {
+    private func updateDragging(_ kind: DashboardMetricKind, at location: CGPoint) {
         guard draggingKind == kind else { return }
         if !hasResolvedDragTouch, let frame = itemFrames[kind] {
             dragGrabOffset = CGSize(
-                width: drag.location.x - frame.minX,
-                height: drag.location.y - frame.minY
+                width: location.x - frame.minX,
+                height: location.y - frame.minY
             )
             hasResolvedDragTouch = true
         }
-        dragLocation = drag.location
-        relocate(kind, to: drag.location, using: itemFrames)
+        dragLocation = location
+        relocate(kind, to: location, using: itemFrames)
         autoScroller.update(
-            fingerY: drag.location.y,
+            fingerY: location.y,
             viewportHeight: scrollViewportHeight
         )
     }
