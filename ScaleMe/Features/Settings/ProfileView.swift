@@ -1189,8 +1189,7 @@ private struct MemberHeightInput: View {
                 isFocused: $isFocused,
                 placeholder: "50–250",
                 keyboardType: .decimalPad,
-                returnKeyType: .done,
-                showsDoneAccessory: true
+                returnKeyType: .done
             )
             .frame(minHeight: 24)
             .accessibilityLabel(language.format("%@，%@", language.text("身高"), "cm"))
@@ -1215,8 +1214,7 @@ private struct MemberWeightInput: View {
                 isFocused: $isFocused,
                 placeholder: "5–350",
                 keyboardType: .decimalPad,
-                returnKeyType: .done,
-                showsDoneAccessory: true
+                returnKeyType: .done
             )
             .frame(minHeight: 24)
             .accessibilityLabel(language.format("%@，%@", language.text("参考体重"), "kg"))
