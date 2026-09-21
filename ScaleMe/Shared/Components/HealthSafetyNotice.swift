@@ -18,7 +18,7 @@ struct HealthSafetyNotice: View {
                 AppLocalizedText("BMI＝体重（kg）÷身高（m）的平方；质量＝体重×比例，比例＝质量÷体重。缺少输入时不计算，结果依赖原始数据的准确性。")
                 if let sourceURL = URL(string: "https://www.cdc.gov/bmi/about/index.html") {
                     Link(destination: sourceURL) {
-                        Text(verbatim: "BMI · CDC")
+                        AppLocalizedText("BMI 计算依据：美国 CDC")
                     }
                     .foregroundStyle(AppColor.mint)
                 }

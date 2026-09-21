@@ -35,12 +35,26 @@ struct AboutView: View {
                     )
                 }
 
-                SettingsPanel(title: "重要说明", icon: "exclamationmark.triangle.fill") {
-                    Text("消费级体脂秤的身体成分结果是估算值，会受到水分、进食、运动和接触状态影响，仅用于日常趋势参考，不构成医疗诊断、治疗建议或临床结论。")
-                        .font(.caption)
-                        .foregroundStyle(AppColor.secondary)
-                        .lineSpacing(4)
+                NavigationLink {
+                    HealthInformationView()
+                } label: {
+                    SettingsPanel(title: "健康说明与来源", icon: "heart.text.clipboard") {
+                        HStack(alignment: .center, spacing: 12) {
+                            AppLocalizedText("查看测量边界、计算方法和 BMI 参考来源。")
+                                .font(.caption)
+                                .foregroundStyle(AppColor.secondary)
+                                .multilineTextAlignment(.leading)
+                                .fixedSize(horizontal: false, vertical: true)
+                            Spacer(minLength: 8)
+                            Image(systemName: "chevron.right")
+                                .font(.caption.bold())
+                                .foregroundStyle(AppColor.mint)
+                                .accessibilityHidden(true)
+                        }
+                        .contentShape(Rectangle())
+                    }
                 }
+                .buttonStyle(.plain)
 
                 NavigationLink {
                     PrivacyPolicyView()

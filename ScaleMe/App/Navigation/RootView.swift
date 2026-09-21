@@ -42,54 +42,55 @@ struct RootView: View {
     }
 
     private var rootTabs: some View {
-        TabView(selection: $selection) {
-            // Each tab supplies visibility to its enclosing TabView; placing
-            // this preference on TabView itself leaves the system bar visible.
-            DashboardView(
-                scrollToTopRequest: scrollToTopRequests[.home, default: 0],
-                onMeasure: { profileID in
-                    guard !store.isUsingPlaceholderData else {
-                        selection = .settings
-                        return
-                    }
-                    store.selectDisplayProfile(profileID)
-                    selection = .measure
-                },
-                onShowTrends: { selection = .trends }
-            )
-            .onRootNavigationControllerResolved { navigationStore.register($0, for: .home) }
-            .toolbar(.hidden, for: .tabBar)
-            .tabItem { Label(RootTab.home.title(in: store.appLanguage), systemImage: RootTab.home.systemImage) }
-            .tag(RootTab.home)
+        VStack(spacing: 0) {
+            TabView(selection: $selection) {
+                // Each tab supplies visibility to its enclosing TabView; placing
+                // this preference on TabView itself leaves the system bar visible.
+                DashboardView(
+                    scrollToTopRequest: scrollToTopRequests[.home, default: 0],
+                    onMeasure: { profileID in
+                        guard !store.isUsingPlaceholderData else {
+                            selection = .settings
+                            return
+                        }
+                        store.selectDisplayProfile(profileID)
+                        selection = .measure
+                    },
+                    onShowTrends: { selection = .trends }
+                )
+                .onRootNavigationControllerResolved { navigationStore.register($0, for: .home) }
+                .toolbar(.hidden, for: .tabBar)
+                .tabItem { Label(RootTab.home.title(in: store.appLanguage), systemImage: RootTab.home.systemImage) }
+                .tag(RootTab.home)
 
-            MeasureView(scrollToTopRequest: scrollToTopRequests[.measure, default: 0])
-            .onRootNavigationControllerResolved { navigationStore.register($0, for: .measure) }
-            .toolbar(.hidden, for: .tabBar)
-            .tabItem { Label(RootTab.measure.title(in: store.appLanguage), systemImage: RootTab.measure.systemImage) }
-            .tag(RootTab.measure)
+                MeasureView(scrollToTopRequest: scrollToTopRequests[.measure, default: 0])
+                .onRootNavigationControllerResolved { navigationStore.register($0, for: .measure) }
+                .toolbar(.hidden, for: .tabBar)
+                .tabItem { Label(RootTab.measure.title(in: store.appLanguage), systemImage: RootTab.measure.systemImage) }
+                .tag(RootTab.measure)
 
-            HistoryView(
-                expandedTrend: expandedTrendBinding,
-                scrollToTopRequest: scrollToTopRequests[.trends, default: 0]
-            )
-            .onRootNavigationControllerResolved { navigationStore.register($0, for: .trends) }
-            .toolbar(.hidden, for: .tabBar)
-            .tabItem { Label(RootTab.trends.title(in: store.appLanguage), systemImage: RootTab.trends.systemImage) }
-            .tag(RootTab.trends)
+                HistoryView(
+                    expandedTrend: expandedTrendBinding,
+                    scrollToTopRequest: scrollToTopRequests[.trends, default: 0]
+                )
+                .onRootNavigationControllerResolved { navigationStore.register($0, for: .trends) }
+                .toolbar(.hidden, for: .tabBar)
+                .tabItem { Label(RootTab.trends.title(in: store.appLanguage), systemImage: RootTab.trends.systemImage) }
+                .tag(RootTab.trends)
 
-            DevicesView(scrollToTopRequest: scrollToTopRequests[.devices, default: 0])
-            .onRootNavigationControllerResolved { navigationStore.register($0, for: .devices) }
-            .toolbar(.hidden, for: .tabBar)
-            .tabItem { Label(RootTab.devices.title(in: store.appLanguage), image: "ScaleDeviceTabIcon") }
-            .tag(RootTab.devices)
+                DevicesView(scrollToTopRequest: scrollToTopRequests[.devices, default: 0])
+                .onRootNavigationControllerResolved { navigationStore.register($0, for: .devices) }
+                .toolbar(.hidden, for: .tabBar)
+                .tabItem { Label(RootTab.devices.title(in: store.appLanguage), image: "ScaleDeviceTabIcon") }
+                .tag(RootTab.devices)
 
-            ProfileView(scrollToTopRequest: scrollToTopRequests[.settings, default: 0])
-            .onRootNavigationControllerResolved { navigationStore.register($0, for: .settings) }
-            .toolbar(.hidden, for: .tabBar)
-            .tabItem { Label(RootTab.settings.title(in: store.appLanguage), systemImage: RootTab.settings.systemImage) }
-            .tag(RootTab.settings)
-        }
-        .safeAreaInset(edge: .bottom, spacing: 0) {
+                ProfileView(scrollToTopRequest: scrollToTopRequests[.settings, default: 0])
+                .onRootNavigationControllerResolved { navigationStore.register($0, for: .settings) }
+                .toolbar(.hidden, for: .tabBar)
+                .tabItem { Label(RootTab.settings.title(in: store.appLanguage), systemImage: RootTab.settings.systemImage) }
+                .tag(RootTab.settings)
+            }
+
             if expandedTrend == nil {
                 AppBottomNavigation(
                     selection: $selection,

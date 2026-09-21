@@ -421,6 +421,15 @@ struct DashboardView: View {
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(AppColor.ink)
                 Spacer()
+                NavigationLink {
+                    HealthInformationView()
+                } label: {
+                    Image(systemName: "info.circle")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(AppColor.secondary)
+                        .padding(8)
+                }
+                .accessibilityLabel(store.appLanguage.text("健康说明与来源"))
                 Button {
                     isEditingMetrics = true
                 } label: {
@@ -428,12 +437,10 @@ struct DashboardView: View {
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(AppColor.secondary)
                         .padding(8)
-                        .background(AppColor.paleMint, in: Circle())
                 }
                 .accessibilityLabel("编辑健康指标显示与排序")
             }
             metricsGrid
-            HealthSafetyNotice(showsCalculationMethod: true, showsScaleRequirement: true)
         }
         .sheet(isPresented: $isEditingMetrics) {
             DashboardMetricsEditorView(
