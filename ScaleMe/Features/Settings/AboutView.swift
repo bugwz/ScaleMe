@@ -36,11 +36,11 @@ struct AboutView: View {
                 }
 
                 NavigationLink {
-                    HealthInformationView()
+                    DataInformationView()
                 } label: {
-                    SettingsPanel(title: "健康说明与来源", icon: "heart.text.clipboard") {
+                    SettingsPanel(title: "数据说明", icon: "heart.text.clipboard") {
                         HStack(alignment: .center, spacing: 12) {
-                            AppLocalizedText("查看测量边界、计算方法和 BMI 参考来源。")
+                            AppLocalizedText("查看数据来源、计算方法、使用边界和参考依据。")
                                 .font(.caption)
                                 .foregroundStyle(AppColor.secondary)
                                 .multilineTextAlignment(.leading)

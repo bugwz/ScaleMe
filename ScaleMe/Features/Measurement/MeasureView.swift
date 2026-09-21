@@ -739,13 +739,7 @@ struct MeasureView: View {
     }
 
     private var safetyNote: some View {
-        VStack(spacing: 8) {
-            HealthSafetyNotice(showsScaleRequirement: true)
-            Text("体脂等身体成分为消费级估算，仅用于观察长期趋势。")
-            Label("数据默认保存在本机", systemImage: "lock.shield.fill")
-        }
-        .font(.caption).foregroundStyle(AppColor.secondary)
-        .multilineTextAlignment(.center)
+        DataInformationLink()
     }
 }
 
@@ -1013,41 +1007,20 @@ struct ManualEntryView: View {
 
     private var calculationNoticePanel: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Label("自动计算与隐私说明", systemImage: "info.circle.fill")
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(AppColor.ink)
+            DataInformationLink()
 
-            VStack(alignment: .leading, spacing: 6) {
-                HStack(alignment: .top, spacing: 8) {
-                    Image(systemName: "function")
-                        .font(.caption)
-                        .foregroundStyle(AppColor.mint)
-                    HealthSafetyNotice(showsCalculationMethod: true)
-                        .font(.caption)
-                        .foregroundStyle(AppColor.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-
-                HStack(alignment: .top, spacing: 8) {
-                    Image(systemName: "lock.shield.fill")
-                        .font(.caption)
-                        .foregroundStyle(AppColor.mint)
-                    AppLocalizedText(store.isSimulationEnabled
-                        ? "当前为模拟数据模式，本次记录仅在本次运行中保留。"
-                        : "手动记录仅保存在本机，并会清晰标记为“手动记录”来源。")
-                        .font(.caption)
-                        .foregroundStyle(AppColor.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
+            HStack(alignment: .top, spacing: 8) {
+                Image(systemName: "lock.shield.fill")
+                    .font(.caption)
+                    .foregroundStyle(AppColor.mint)
+                AppLocalizedText(store.isSimulationEnabled
+                    ? "当前为模拟数据模式，本次记录仅在本次运行中保留。"
+                    : "手动记录仅保存在本机，并会清晰标记为“手动记录”来源。")
+                    .font(.caption)
+                    .foregroundStyle(AppColor.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
         }
-        .padding(16)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(AppColor.paleMint.opacity(0.6), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .stroke(AppColor.mint.opacity(0.12))
-        )
     }
 
     private var saveActionButton: some View {

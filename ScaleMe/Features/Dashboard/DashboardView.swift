@@ -422,14 +422,14 @@ struct DashboardView: View {
                     .foregroundStyle(AppColor.ink)
                 Spacer()
                 NavigationLink {
-                    HealthInformationView()
+                    DataInformationView()
                 } label: {
                     Image(systemName: "info.circle")
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(AppColor.secondary)
                         .padding(8)
                 }
-                .accessibilityLabel(store.appLanguage.text("健康说明与来源"))
+                .accessibilityLabel(store.appLanguage.text("数据说明"))
                 Button {
                     isEditingMetrics = true
                 } label: {

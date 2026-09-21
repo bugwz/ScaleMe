@@ -14,11 +14,7 @@ struct AppleHealthSettingsView: View {
         ScrollView {
             SettingsPanel(title: "Apple 健康", icon: "heart.fill") {
                 notice(
-                    "此功能通过 HealthKit 读写 Apple 健康中的体重和体脂率，帮助你查看长期变化趋势。",
-                    icon: "heart.text.clipboard"
-                )
-                notice(
-                    "同步为可选功能，默认关闭。开启共享或获取数据时才请求相应权限；不授权也可使用本地测量。你可以在“健康”应用中管理权限。",
+                    "同步可选且默认关闭，仅用于体重和体脂率。不授权也可使用本地测量；开启相应功能时才请求权限，并可在“健康”应用中管理。",
                     icon: "hand.raised"
                 )
                 SettingsSeparator()
@@ -29,7 +25,7 @@ struct AppleHealthSettingsView: View {
 
                 if store.isSimulationEnabled {
                     notice(
-                        "模拟数据不会写入 Apple 健康；这里的同步设置仅用于本次运行中的预览。",
+                        "模拟数据不会写入 Apple 健康。",
                         icon: "sparkles"
                     )
                 }
@@ -171,10 +167,6 @@ struct AppleHealthSettingsView: View {
                             .foregroundStyle(AppColor.secondary)
                     }
                 }
-                notice(
-                    "从 Apple 健康获取的记录会标记为 Apple 健康，并归入本人档案。",
-                    icon: "checkmark.shield"
-                )
             }
         }
         .padding(14)
@@ -339,10 +331,6 @@ struct AppleHealthSettingsView: View {
                 AppLocalizedText(authorizationTitle)
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(AppColor.ink)
-                AppLocalizedText(authorizationDetail)
-                    .font(.caption)
-                    .foregroundStyle(AppColor.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
             }
             Spacer()
             if appleHealth.isRequestingAuthorization { ProgressView().tint(AppColor.mint) }
@@ -379,10 +367,6 @@ struct AppleHealthSettingsView: View {
         case .authorized: "已获写入权限"
         case .denied: "写入权限已关闭"
         }
-    }
-
-    private var authorizationDetail: String {
-        "开启共享或获取数据时，分别请求所需权限。读取权限状态请在“健康”应用中查看；没有可读取记录不代表授权失败。"
     }
 
     private var authorizationIcon: String {

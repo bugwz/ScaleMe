@@ -383,6 +383,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = ScaleMe/Resources/Configuration/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "观我";
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "观我需要蓝牙来发现并读取您主动使用的体重体脂秤。";
 				INFOPLIST_KEY_NSBluetoothPeripheralUsageDescription = "观我需要蓝牙连接体重体脂秤。";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "观我读取 Apple 健康中的体重和体脂率，导入本人档案，用于汇总记录和查看长期变化趋势。";
@@ -417,6 +418,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = ScaleMe/Resources/Configuration/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "观我";
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "观我需要蓝牙来发现并读取您主动使用的体重体脂秤。";
 				INFOPLIST_KEY_NSBluetoothPeripheralUsageDescription = "观我需要蓝牙连接体重体脂秤。";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "观我读取 Apple 健康中的体重和体脂率，导入本人档案，用于汇总记录和查看长期变化趋势。";

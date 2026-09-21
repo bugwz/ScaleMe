@@ -97,13 +97,7 @@ struct HistoryView: View {
                             isExpanded: expandedTrend?.context.metric == metric
                         )
                     }
-                    if orderedMetrics.contains(where: \.isEstimatedComposition) {
-                        Text("身体成分指标为消费级估算值，仅用于长期趋势参考，不构成医疗诊断。")
-                            .font(.caption)
-                            .foregroundStyle(AppColor.secondary)
-                            .padding(.horizontal, 4)
-                    }
-                    HealthSafetyNotice()
+                    DataInformationLink()
                     records
                 }
                 .padding(.horizontal, 18)
@@ -574,19 +568,14 @@ struct MeasurementDetailView: View {
                     .disabled(store.isUsingPlaceholderData)
                 }
                 .padding(.vertical, 28)
-                HealthSafetyNotice(showsCalculationMethod: true)
-                    .padding(.horizontal)
                 metricCard(title: "基础指标", metrics: basicMetrics)
                 if currentMeasurement.hasBodyComposition {
                     metricCard(title: "身体成分估算", metrics: compositionMetrics)
-                    Text("体脂及相关指标是基于生物电阻抗和个人资料的消费级估算值，仅用于日常趋势参考，不构成医疗诊断。")
-                        .font(.caption).foregroundStyle(AppColor.secondary).padding(.horizontal)
                 }
                 if !rawMetrics.isEmpty {
                     metricCard(title: "设备原始数据", metrics: rawMetrics)
-                    Text("阻抗通道名称和频率尚未获得厂商定义，因此仅保留原始读数，不据此声称具体频率。")
-                        .font(.caption).foregroundStyle(AppColor.secondary).padding(.horizontal)
                 }
+                DataInformationLink()
             }
             .padding(18)
         }
