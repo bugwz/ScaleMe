@@ -102,6 +102,8 @@ Xiaomi XMTZC04HM（广播名 `MI SCALE2`）的历史通道位于 Weight Service 
 
 ## 研究来源
 
+上游代码许可、固定版本文件映射及 Swift 改编说明见 [许可证与第三方声明](../LICENSES/README.md)。来源链接不能替代许可证和版权声明。
+
 - [Xiaomi XMTZC04HM 广播实现与格式（固定版本）](https://github.com/KristianP26/ble-scale-sync/blob/e5060b4e43e2d08ecace7e327145c777872ea93f/src/scales/xiaomi-mi-scale-legacy.ts)
 - [Xiaomi XMTZC04HM 抓包 fixture（固定版本）](https://github.com/KristianP26/ble-scale-sync/blob/e5060b4e43e2d08ecace7e327145c777872ea93f/tests/scales/xiaomi-mi-scale-legacy.test.ts)
 - [Silvergear 108 广播实现与格式（固定版本）](https://github.com/KristianP26/ble-scale-sync/blob/e5060b4e43e2d08ecace7e327145c777872ea93f/src/scales/silvergear-108.ts)

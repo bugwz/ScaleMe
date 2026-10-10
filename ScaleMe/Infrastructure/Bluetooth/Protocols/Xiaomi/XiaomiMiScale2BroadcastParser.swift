@@ -1,3 +1,10 @@
+// Copyright (C) 2026 Kristián Partl
+// SPDX-License-Identifier: GPL-3.0-or-later
+// ScaleMe adaptations and modifications: Copyright (C) 2026 bugwz
+// Modified 2026-10-10: preserve upstream attribution and identify the license.
+// Adapted/referenced from ble-scale-sync/xiaomi-mi-scale-legacy.ts at e5060b4e43e2d08ecace7e327145c777872ea93f.
+// See LICENSES/ble-scale-sync/NOTICE.md for sources and adaptation details.
+
 import Foundation
 
 /// Xiaomi XMTZC04HM / `MI SCALE2` broadcasts a 10-byte, WSS-shaped payload

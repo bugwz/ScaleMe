@@ -1,3 +1,27 @@
+/*
+ * openScale
+ * Copyright (C) 2025 olie.xdev <olie.xdeveloper@googlemail.com>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+// SPDX-License-Identifier: GPL-3.0-or-later
+// ScaleMe adaptations and modifications: Copyright (C) 2026 bugwz
+// Modified 2026-10-10: preserve upstream attribution and identify the license.
+// Adapted/referenced from openScale/ScaleupHandler.kt at 6613db5838e4674a19652441073f82b3ee3d7009.
+// See LICENSES/openScale/NOTICE.md for sources and adaptation details.
+
 import Foundation
 
 struct ScaleupScaleParser {
