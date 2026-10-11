@@ -494,6 +494,7 @@ final class MeasurementStore: ObservableObject {
 
     @discardableResult
     func addManual(
+        date: Date,
         weightKG: Double,
         impedanceOhm: Double? = nil,
         bodyFatPercent: Double? = nil,
@@ -505,7 +506,7 @@ final class MeasurementStore: ObservableObject {
     ) -> Bool {
         add(
             BodyMeasurement(
-                date: .now,
+                date: date,
                 weightKG: weightKG,
                 impedanceOhm: impedanceOhm,
                 bodyFatPercent: bodyFatPercent,

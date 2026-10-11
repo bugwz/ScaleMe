@@ -755,6 +755,7 @@ struct ManualEntryView: View {
     @EnvironmentObject private var store: MeasurementStore
     @Environment(\.dismiss) private var dismiss
     @State private var saveFailed = false
+    @State private var measurementDate = Date.now
     @State private var weight = ""
     @State private var impedance = ""
     @State private var bodyFat = ""
@@ -798,6 +799,7 @@ struct ManualEntryView: View {
             ScrollView {
                 VStack(spacing: 18) {
                     memberCard
+                    measurementTimePanel
                     basicMeasurementPanel
                     bodyCompositionPanel
                     calculationNoticePanel
@@ -918,6 +920,22 @@ struct ManualEntryView: View {
             ))
             .accessibilityHint(store.appLanguage.text("点击展开选择记录成员"))
             .accessibilityReturnFocus(when: showProfileDropdown)
+        }
+    }
+
+    private var measurementTimePanel: some View {
+        SettingsPanel(title: "测量时间", icon: "calendar") {
+            DatePicker(
+                selection: $measurementDate,
+                in: ...Date.now,
+                displayedComponents: [.date, .hourAndMinute]
+            ) {
+                Text("测量时间")
+            }
+            .datePickerStyle(.compact)
+            .labelsHidden()
+            .tint(AppColor.mint)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 
@@ -1099,6 +1117,7 @@ struct ManualEntryView: View {
         guard let weightKG = parsedWeight, canSave else { return }
         KeyboardFocus.dismiss()
         let saved = store.addManual(
+            date: measurementDate,
             weightKG: weightKG,
             impedanceOhm: numericValue(impedance),
             bodyFatPercent: numericValue(bodyFat),

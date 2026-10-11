@@ -53,16 +53,18 @@ struct MeasurementSaveSmoke {
         precondition(store.retryPendingMeasurements())
         precondition(published.count == 1 && store.measurements.count == 1, "retry must be idempotent")
 
+        let manualDate = Date(timeIntervalSince1970: 1_700_000_000)
         let persisted = store.archive
         try FileManager.default.removeItem(at: archiveURL)
         try FileManager.default.createDirectory(at: archiveURL, withIntermediateDirectories: false)
-        precondition(!store.addManual(weightKG: 72))
+        precondition(!store.addManual(date: manualDate, weightKG: 72))
         precondition(store.archive == persisted && !store.hasPendingMeasurements,
                      "manual failures retain the editable form, not an additional queued copy")
         precondition(published.count == 1)
         try FileManager.default.removeItem(at: archiveURL)
-        precondition(store.addManual(weightKG: 72))
+        precondition(store.addManual(date: manualDate, weightKG: 72))
         precondition(store.measurements.count == 2 && published.count == 2)
+        precondition(store.measurements.last?.date == manualDate, "backdated manual entries retain the selected time and sort chronologically")
         precondition(tryArchive(repository) == store.archive)
 
         let configurationURL = directory.appending(path: AppStorageLayout.configurationFileName)
@@ -70,7 +72,7 @@ struct MeasurementSaveSmoke {
         try FileManager.default.createDirectory(at: configurationURL, withIntermediateDirectories: false)
         store.unit = .kilograms
         precondition(store.configurationStorageError != nil)
-        precondition(store.addManual(weightKG: 73))
+        precondition(store.addManual(date: manualDate.addingTimeInterval(60), weightKG: 73))
         precondition(store.configurationStorageError != nil && store.storageError != nil,
                      "archive success must not clear configuration errors")
         try FileManager.default.removeItem(at: configurationURL)
