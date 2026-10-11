@@ -749,6 +749,7 @@ private struct MemberEditorView: View {
                             draft.biologicalSex = selectedSex
                             draft.birthDate = selectedBirthDate
                             if isNew { store.addProfile(draft) } else { store.updateProfile(draft) }
+                            store.showOperationFeedback(isNew ? "成员已添加" : "成员信息已保存", error: store.configurationStorageError)
                             dismiss()
                         }
                         .fontWeight(.semibold)

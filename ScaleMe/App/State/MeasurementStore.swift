@@ -3,6 +3,21 @@ import SwiftUI
 
 @MainActor
 final class MeasurementStore: ObservableObject {
+    struct OperationFeedback: Identifiable {
+        let id = UUID()
+        let message: String
+        let isError: Bool
+    }
+
+    @Published var operationFeedback: OperationFeedback?
+
+    func showOperationFeedback(_ key: String, error: String? = nil) {
+        operationFeedback = OperationFeedback(
+            message: error.map { appLanguage.text($0) } ?? appLanguage.text(key),
+            isError: error != nil
+        )
+    }
+
     private static let placeholderProfileID = UUID()
     @Published private(set) var measurements: [BodyMeasurement]
     @Published private(set) var deletedMeasurements: Set<DeletedMeasurementMarker>

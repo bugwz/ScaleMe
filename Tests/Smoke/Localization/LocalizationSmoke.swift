@@ -45,6 +45,13 @@ struct LocalizationSmoke {
         precondition(AppLanguageSelection.system.resolvedLanguage == AppLanguage.systemDefault)
 
         let requiredLocalizedKeys = [
+            "成员已添加",
+            "成员信息已保存",
+            "设备已关联",
+            "通信协议已导入",
+            "文件已导出",
+            "导入已完成",
+
             "未保存",
             "重试保存",
             "保存失败，数据尚未写入本机。请重试；退出应用后未保存的数据可能丢失。",

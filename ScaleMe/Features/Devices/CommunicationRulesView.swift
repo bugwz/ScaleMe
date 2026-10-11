@@ -489,6 +489,7 @@ private struct AddExternalProtocolView: View {
         guard let selectedData else { return }
         do {
             _ = try store.importCommunicationRules(selectedData)
+            store.showOperationFeedback("通信协议已导入", error: store.configurationStorageError)
             dismiss()
         } catch {
             self.selectedData = nil

@@ -795,6 +795,7 @@ private struct DeviceScannerView: View {
                 if !store.isSimulationEnabled {
                     bluetooth.updatePairedScales(store.pairedScales, communicationRules: store.communicationRules)
                 }
+                store.showOperationFeedback("设备已关联", error: store.configurationStorageError)
                 dismiss()
             } label: {
                 AppLocalizedText(existing ? "已绑定" : "关联")
@@ -1040,7 +1041,16 @@ private struct ScaleSettingsView: View {
             document: diagnosticReportDocument,
             contentType: .plainText,
             defaultFilename: diagnosticReportFilename
-        ) { _ in }
+        ) { result in
+            switch result {
+            case .success:
+                store.showOperationFeedback("文件已导出")
+            case .failure(let error):
+                guard (error as NSError).code != CocoaError.userCancelled.rawValue
+                    || (error as NSError).domain != NSCocoaErrorDomain else { return }
+                store.showOperationFeedback("导出失败", error: error.localizedDescription)
+            }
+        }
         .interactiveDismissDisabled(confirmDelete || confirmClearHistory || diagnosticExportState != nil)
     }
 

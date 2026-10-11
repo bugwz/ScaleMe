@@ -301,7 +301,11 @@ struct DataManagementSettingsView: View {
             contentType: exportContentType,
             defaultFilename: exportFilename
         ) { result in
-            if case .failure(let error) = result {
+            switch result {
+            case .success:
+                store.showOperationFeedback("文件已导出")
+            case .failure(let error):
+                guard !isUserCancellation(error) else { return }
                 activeAlert = .message(title: "导出失败", message: error.localizedDescription)
             }
         }
@@ -539,7 +543,13 @@ struct DataManagementSettingsView: View {
         }
     }
 
+    private func isUserCancellation(_ error: Error) -> Bool {
+        let error = error as NSError
+        return error.domain == NSCocoaErrorDomain && error.code == CocoaError.userCancelled.rawValue
+    }
+
     private func importFile(_ result: Result<URL, Error>) {
+        if case .failure(let error) = result, isUserCancellation(error) { return }
         switch selectedTransferFileKind {
         case .configuration:
             importConfiguration(result)
@@ -624,6 +634,7 @@ struct DataManagementSettingsView: View {
                 primaryButton: .destructive(Text("导入并替换")) {
                     if let pendingConfiguration {
                         store.apply(configuration: pendingConfiguration)
+                        store.showOperationFeedback("导入已完成", error: store.configurationStorageError)
                     }
                     self.pendingConfiguration = nil
                 },
@@ -641,6 +652,7 @@ struct DataManagementSettingsView: View {
                 primaryButton: .default(Text("合并导入")) {
                     if let pendingRecords {
                         store.apply(archive: store.currentArchive.merging(pendingRecords))
+                        store.showOperationFeedback("导入已完成", error: store.archiveStorageError)
                     }
                     self.pendingRecords = nil
                 },
@@ -660,6 +672,7 @@ struct DataManagementSettingsView: View {
                     let mergedArchive = store.currentArchive.merging(pendingRecords)
                     store.apply(configuration: pendingConfiguration)
                     store.apply(archive: mergedArchive)
+                    store.showOperationFeedback("导入已完成", error: store.storageError)
                     self.pendingConfiguration = nil
                     self.pendingRecords = nil
                 },

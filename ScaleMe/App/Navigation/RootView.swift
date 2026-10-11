@@ -35,6 +35,7 @@ struct RootView: View {
                 .zIndex(1)
             }
         }
+        .operationFeedbackOverlay($store.operationFeedback)
         .statusBarHidden(expandedTrend != nil || isOrientationTransitioning)
         .onDisappear {
             orientationTask?.cancel()
