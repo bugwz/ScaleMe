@@ -756,6 +756,8 @@ struct ManualEntryView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var saveFailed = false
     @State private var measurementDate = Date.now
+    @State private var pendingMeasurementDate = Date.now
+    @State private var isSelectingMeasurementDate = false
     @State private var weight = ""
     @State private var impedance = ""
     @State private var bodyFat = ""
@@ -822,6 +824,9 @@ struct ManualEntryView: View {
                         .foregroundStyle(AppColor.secondary)
                 }
             }
+        }
+        .sheet(isPresented: $isSelectingMeasurementDate) {
+            measurementDatePickerSheet
         }
         .accessibilityAnnounceChanges(saveFailed ? store.appLanguage.text("未保存") : nil)
         .accessibilityHidden(showProfileDropdown)
@@ -925,18 +930,74 @@ struct ManualEntryView: View {
 
     private var measurementTimePanel: some View {
         SettingsPanel(title: "测量时间", icon: "calendar") {
+            Button {
+                KeyboardFocus.dismiss()
+                showProfileDropdown = false
+                pendingMeasurementDate = measurementDate
+                isSelectingMeasurementDate = true
+            } label: {
+                HStack(spacing: 8) {
+                    Text(measurementDate.formatted(
+                        Date.FormatStyle(date: .abbreviated, time: .shortened)
+                            .locale(store.appLanguage.locale)
+                    ))
+                    .font(.body.weight(.medium))
+                    .foregroundStyle(AppColor.ink)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                    Image(systemName: "chevron.right")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(AppColor.secondary)
+                }
+                .frame(minHeight: 24)
+                .modifier(ManualInputSurface(isFocused: isSelectingMeasurementDate))
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(store.appLanguage.text("测量时间"))
+            .accessibilityValue(measurementDate.formatted(
+                Date.FormatStyle(date: .abbreviated, time: .shortened)
+                    .locale(store.appLanguage.locale)
+            ))
+            .accessibilityReturnFocus(when: isSelectingMeasurementDate)
+        }
+    }
+
+    private var measurementDatePickerSheet: some View {
+        NavigationStack {
             DatePicker(
-                selection: $measurementDate,
+                selection: $pendingMeasurementDate,
                 in: ...Date.now,
                 displayedComponents: [.date, .hourAndMinute]
             ) {
-                Text("测量时间")
+                AppLocalizedText("测量时间")
             }
-            .datePickerStyle(.compact)
+            .datePickerStyle(.wheel)
             .labelsHidden()
+            .environment(\.locale, store.appLanguage.locale)
             .tint(AppColor.mint)
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 18)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .pageBackground()
+            .navigationTitle(store.appLanguage.text("测量时间"))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("取消") { isSelectingMeasurementDate = false }
+                        .foregroundStyle(AppColor.secondary)
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("完成") {
+                        measurementDate = min(pendingMeasurementDate, .now)
+                        isSelectingMeasurementDate = false
+                    }
+                    .fontWeight(.semibold)
+                    .foregroundStyle(AppColor.mint)
+                }
+            }
         }
+        .presentationDetents([.medium, .large])
+        .presentationDragIndicator(.visible)
     }
 
     private var basicMeasurementPanel: some View {
@@ -1242,20 +1303,11 @@ private struct ManualNumericInputField: View {
                 }
 
             }
-            .padding(.horizontal, layout == .regular ? 14 : 10)
-            .padding(.vertical, layout == .regular ? 11 : 9)
-            .background(
-                AppColor.surface,
-                in: RoundedRectangle(cornerRadius: layout == .regular ? 12 : 10, style: .continuous)
-            )
-            .overlay {
-                RoundedRectangle(cornerRadius: layout == .regular ? 12 : 10, style: .continuous)
-                    .stroke(
-                        !isValid ? AppColor.rose : (isFocused ? AppColor.mint : AppColor.mint.opacity(0.14)),
-                        lineWidth: isFocused || !isValid ? 1.5 : 1
-                    )
-                    .allowsHitTesting(false)
-            }
+            .modifier(ManualInputSurface(
+                isFocused: isFocused,
+                isValid: isValid,
+                isCompact: layout == .grid
+            ))
             if !isValid {
                 Text(language.format("请检查输入：%@", language.text(placeholder)))
                     .font(.caption)
@@ -1263,5 +1315,29 @@ private struct ManualNumericInputField: View {
             }
         }
         .accessibilityAnnounceChanges(isValid ? nil : language.format("请检查输入：%@", language.text(title)))
+    }
+}
+
+private struct ManualInputSurface: ViewModifier {
+    var isFocused: Bool
+    var isValid = true
+    var isCompact = false
+
+    func body(content: Content) -> some View {
+        content
+            .padding(.horizontal, isCompact ? 10 : 14)
+            .padding(.vertical, isCompact ? 9 : 11)
+            .background(
+                AppColor.surface,
+                in: RoundedRectangle(cornerRadius: isCompact ? 10 : 12, style: .continuous)
+            )
+            .overlay {
+                RoundedRectangle(cornerRadius: isCompact ? 10 : 12, style: .continuous)
+                    .stroke(
+                        !isValid ? AppColor.rose : (isFocused ? AppColor.mint : AppColor.mint.opacity(0.14)),
+                        lineWidth: isFocused || !isValid ? 1.5 : 1
+                    )
+                    .allowsHitTesting(false)
+            }
     }
 }
