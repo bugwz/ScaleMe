@@ -1,0 +1,7 @@
+{
+  "sourceLanguage" : "zh-Hans",
+  "strings" : {
+    "CFBundleDisplayName": {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"观我"}},"en":{"stringUnit":{"state":"translated","value":"ScaleMe"}},"zh-Hant":{"stringUnit":{"state":"translated","value":"觀我"}},"de":{"stringUnit":{"state":"translated","value":"ScaleMe"}},"es":{"stringUnit":{"state":"translated","value":"ScaleMe"}},"fr":{"stringUnit":{"state":"translated","value":"ScaleMe"}},"ja":{"stringUnit":{"state":"translated","value":"ScaleMe"}},"ko":{"stringUnit":{"state":"translated","value":"ScaleMe"}},"pt":{"stringUnit":{"state":"translated","value":"ScaleMe"}},"ru":{"stringUnit":{"state":"translated","value":"ScaleMe"}}}}
+  },
+  "version" : "1.0"
+}

@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		B2000000000000000000000A /* ScaleMeWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = B20000000000000000000001 /* ScaleMeWidget.appex */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		C3000000000000000000000B /* ScaleMeWatch.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = C30000000000000000000001 /* ScaleMeWatch.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -17,6 +18,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = B20000000000000000000005;
 			remoteInfo = ScaleMeWidget;
+		};
+		C3000000000000000000000D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A1000000000000000000000A /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C30000000000000000000004;
+			remoteInfo = ScaleMeWatch;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -32,11 +40,23 @@
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		C3000000000000000000000C /* Embed Watch Content */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(CONTENTS_FOLDER_PATH)/Watch";
+			dstSubfolderSpec = 16;
+			files = (
+				C3000000000000000000000B /* ScaleMeWatch.app in Embed Watch Content */,
+			);
+			name = "Embed Watch Content";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		A10000000000000000000001 /* ScaleMe.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ScaleMe.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B20000000000000000000001 /* ScaleMeWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ScaleMeWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		C30000000000000000000001 /* ScaleMeWatch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ScaleMeWatch.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -78,6 +98,16 @@
 			path = ScaleMeWidgetShared;
 			sourceTree = "<group>";
 		};
+		C30000000000000000000002 /* ScaleMeWatch */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = ScaleMeWatch;
+			sourceTree = "<group>";
+		};
+		C30000000000000000000003 /* ScaleMeWatchShared */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = ScaleMeWatchShared;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -95,6 +125,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		C30000000000000000000007 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -104,6 +141,8 @@
 				A10000000000000000000002 /* ScaleMe */,
 				B20000000000000000000003 /* ScaleMeWidget */,
 				B20000000000000000000004 /* ScaleMeWidgetShared */,
+				C30000000000000000000002 /* ScaleMeWatch */,
+				C30000000000000000000003 /* ScaleMeWatchShared */,
 				A10000000000000000000005 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -112,6 +151,7 @@
 			isa = PBXGroup;
 			children = (
 				A10000000000000000000001 /* ScaleMe.app */,
+				C30000000000000000000001 /* ScaleMeWatch.app */,
 				B20000000000000000000001 /* ScaleMeWidget.appex */,
 			);
 			name = Products;
@@ -128,15 +168,18 @@
 				A10000000000000000000003 /* Frameworks */,
 				A10000000000000000000009 /* Resources */,
 				B20000000000000000000009 /* Embed Foundation Extensions */,
+				C3000000000000000000000C /* Embed Watch Content */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 				B2000000000000000000000B /* PBXTargetDependency */,
+				C3000000000000000000000E /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				A10000000000000000000002 /* ScaleMe */,
 				B20000000000000000000004 /* ScaleMeWidgetShared */,
+				C30000000000000000000003 /* ScaleMeWatchShared */,
 			);
 			name = ScaleMe;
 			packageProductDependencies = (
@@ -167,6 +210,27 @@
 			productName = ScaleMeWidget;
 			productReference = B20000000000000000000001 /* ScaleMeWidget.appex */;
 			productType = "com.apple.product-type.app-extension";
+		};
+		C30000000000000000000004 /* ScaleMeWatch */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C30000000000000000000008 /* Build configuration list for PBXNativeTarget "ScaleMeWatch" */;
+			buildPhases = (
+				C30000000000000000000005 /* Sources */,
+				C30000000000000000000007 /* Frameworks */,
+				C30000000000000000000006 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				C30000000000000000000002 /* ScaleMeWatch */,
+				C30000000000000000000003 /* ScaleMeWatchShared */,
+			);
+			name = ScaleMeWatch;
+			productName = ScaleMeWatch;
+			productReference = C30000000000000000000001 /* ScaleMeWatch.app */;
+			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
 
@@ -209,6 +273,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
+				C30000000000000000000004 /* ScaleMeWatch */,
 				A10000000000000000000006 /* ScaleMe */,
 				B20000000000000000000005 /* ScaleMeWidget */,
 			);
@@ -224,6 +289,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		B20000000000000000000008 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C30000000000000000000006 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -247,6 +319,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		C30000000000000000000005 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -254,6 +333,11 @@
 			isa = PBXTargetDependency;
 			target = B20000000000000000000005 /* ScaleMeWidget */;
 			targetProxy = B2000000000000000000000C /* PBXContainerItemProxy */;
+		};
+		C3000000000000000000000E /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C30000000000000000000004 /* ScaleMeWatch */;
+			targetProxy = C3000000000000000000000D /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -495,6 +579,56 @@
 			};
 			name = Release;
 		};
+		C30000000000000000000009 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 6;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "观我";
+				INFOPLIST_KEY_WKApplication = YES;
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.bugwz.scaleme;
+				INFOPLIST_KEY_WKRunsIndependentlyOfCompanionApp = NO;
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.bugwz.scaleme.watchkitapp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "watchos watchsimulator";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_STRICT_CONCURRENCY = minimal;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 10.0;
+			};
+			name = Debug;
+		};
+		C3000000000000000000000A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 6;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "观我";
+				INFOPLIST_KEY_WKApplication = YES;
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.bugwz.scaleme;
+				INFOPLIST_KEY_WKRunsIndependentlyOfCompanionApp = NO;
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.bugwz.scaleme.watchkitapp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "watchos watchsimulator";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_STRICT_CONCURRENCY = minimal;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 10.0;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -521,6 +655,15 @@
 			buildConfigurations = (
 				B2000000000000000000000E /* Debug */,
 				B2000000000000000000000F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C30000000000000000000008 /* Build configuration list for PBXNativeTarget "ScaleMeWatch" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C30000000000000000000009 /* Debug */,
+				C3000000000000000000000A /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

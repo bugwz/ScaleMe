@@ -211,7 +211,7 @@ enum AppText: CaseIterable {
         case .about: "关于应用"
         case .privacyPolicy: "隐私政策"
         case .privacyPolicyDetail: "了解数据处理、系统权限、导入导出与删除方式"
-        case .privacyPolicyRevision: "更新日期：2026年9月14日"
+        case .privacyPolicyRevision: "更新日期：2026年10月12日"
         case .privacyPolicySummary: "本应用坚持本地优先。我们不会创建用户账号，也不会将你的成员资料或健康测量上传至开发者服务器。"
         case .privacyPolicyBody:
             """

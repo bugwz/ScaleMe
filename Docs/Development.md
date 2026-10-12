@@ -184,3 +184,19 @@ swiftc -module-cache-path /tmp/scaleme-swift-module-cache \
   -o /tmp/scaleme-health-sync-smoke
 /tmp/scaleme-health-sync-smoke
 ```
+
+## Apple Watch 验证
+
+`ScaleMeWatch` 为 watchOS 10+ 只读配套应用；手机 scheme 会构建并嵌入它。独立编译与确定性检查：
+
+```sh
+xcodebuild -project ScaleMe.xcodeproj -scheme ScaleMeWatch -sdk watchos \
+  -configuration Debug -derivedDataPath .build/AgentWatchCheck CODE_SIGNING_ALLOWED=NO build
+
+swiftc -module-cache-path /tmp/scaleme-swift-module-cache \
+  ScaleMeWatchShared/WatchExchange.swift ScaleMeWatchShared/WatchHistoryState.swift \
+  Tests/Smoke/Watch/WatchExchangeSmoke.swift -o /tmp/scaleme-watch-smoke
+/tmp/scaleme-watch-smoke
+```
+
+在真实配对 iPhone / Apple Watch 上还需验收：安装与首次同步、测试标识、详情、超过 20 条的分页、切换成员、单位与语言、删除后刷新、关闭模拟模式、断连及重连。手表不应出现测量或编辑入口。断连可浏览已同步快照，继续加载历史需要手机可达；两端编译通过不代表真机链路已验证。
