@@ -807,7 +807,6 @@ struct ManualEntryView: View {
                     if saveFailed {
                         MeasurementSaveFailureCard(error: store.measurementSaveError, onRetry: save)
                     }
-                    saveActionButton
                 }
                 .padding(.horizontal, 18)
                 .padding(.top, 8)
@@ -821,6 +820,12 @@ struct ManualEntryView: View {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("取消") { dismiss() }
                         .foregroundStyle(AppColor.secondary)
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("保存", action: save)
+                        .fontWeight(.semibold)
+                        .tint(AppColor.mint)
+                        .disabled(!canSave)
                 }
             }
         }
@@ -1098,26 +1103,6 @@ struct ManualEntryView: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
-    }
-
-    private var saveActionButton: some View {
-        Button(action: save) {
-            HStack(spacing: 8) {
-                Image(systemName: "checkmark.circle.fill")
-                Text("保存")
-            }
-            .font(.headline)
-            .foregroundStyle(canSave ? AppColor.onAccent : AppColor.secondary.opacity(0.5))
-            .frame(maxWidth: .infinity)
-            .frame(height: 52)
-            .background(
-                canSave ? AppColor.mint : AppColor.secondary.opacity(0.12),
-                in: RoundedRectangle(cornerRadius: 16, style: .continuous)
-            )
-            .shadow(color: canSave ? AppColor.mint.opacity(0.24) : .clear, radius: 12, y: 4)
-        }
-        .buttonStyle(.plain)
-        .disabled(!canSave)
     }
 
     private func manualInputField(
