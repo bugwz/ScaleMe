@@ -41,7 +41,7 @@ struct EtekcityFit8SScaleParser {
         guard bytes[0] == 0x01 else { throw ScalePayloadError.unsupported }
         let rawWeight = UInt32(bytes[10]) | UInt32(bytes[11]) << 8 | UInt32(bytes[12]) << 16
         let weightKG = Double(rawWeight) / 1_000
-        guard (5...300).contains(weightKG) else { throw ScalePayloadError.unsupported }
+        guard MeasurementLimits.weightKG.contains(weightKG) else { throw ScalePayloadError.unsupported }
         let rawImpedance = UInt16(bytes[13]) | UInt16(bytes[14]) << 8
         return BodyMeasurement(
             date: now,

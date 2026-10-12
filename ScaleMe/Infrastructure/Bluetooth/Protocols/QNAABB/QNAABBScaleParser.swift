@@ -37,7 +37,7 @@ struct QNAABBScaleParser {
 
         let rawWeight = UInt16(bytes[17]) | UInt16(bytes[18]) << 8
         let weightKG = Double(rawWeight) / 100
-        guard (5...300).contains(weightKG) else { throw ScalePayloadError.unsupported }
+        guard MeasurementLimits.weightKG.contains(weightKG) else { throw ScalePayloadError.unsupported }
 
         return BodyMeasurement(
             date: now,

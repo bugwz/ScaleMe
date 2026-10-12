@@ -433,7 +433,7 @@ enum HuaweiHagridProtocol {
         payload[63] = ageYears
         payload[64] = UInt8(heightCM & 0xFF)
         payload[65] = UInt8(heightCM >> 8)
-        let centiKG = weightKG.isFinite && weightKG > 0
+        let centiKG = MeasurementLimits.weightKG.contains(weightKG)
             ? UInt16(clamping: Int((weightKG * 100).rounded()))
             : 0
         payload[66] = UInt8(centiKG & 0xFF)
@@ -516,7 +516,7 @@ enum HuaweiHagridProtocol {
         let baseLength = hasHighFrequency ? 38 : 26
         let weightKG = Double(u16LE(bytes, at: 0)) / 100
         let fatPercent = Double(u16LE(bytes, at: 2)) / 10
-        guard (1...350).contains(weightKG), (0...80).contains(fatPercent) else {
+        guard MeasurementLimits.weightKG.contains(weightKG), (0...80).contains(fatPercent) else {
             throw ScalePayloadError.unsupported
         }
 

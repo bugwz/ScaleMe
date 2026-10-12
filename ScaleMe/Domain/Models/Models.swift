@@ -1,5 +1,11 @@
 import Foundation
 
+/// Application-level weight bounds in kilograms, inclusive of both endpoints.
+/// Protocol status markers and device-specific removal signals remain separate.
+enum MeasurementLimits {
+    static let weightKG: ClosedRange<Double> = 0...500
+}
+
 enum WeightUnit: String, Codable, CaseIterable, Identifiable {
     case kilograms = "kg"
     case jin
@@ -169,7 +175,8 @@ struct BodyMeasurement: Identifiable, Codable, Hashable {
     }
 
     var musclePercent: Double? {
-        muscleMassKG.map { $0 / weightKG * 100 }
+        guard weightKG > 0 else { return nil }
+        return muscleMassKG.map { $0 / weightKG * 100 }
     }
 
     var waterMassKG: Double? {
@@ -177,7 +184,8 @@ struct BodyMeasurement: Identifiable, Codable, Hashable {
     }
 
     var bonePercent: Double? {
-        boneMassKG.map { $0 / weightKG * 100 }
+        guard weightKG > 0 else { return nil }
+        return boneMassKG.map { $0 / weightKG * 100 }
     }
 
 

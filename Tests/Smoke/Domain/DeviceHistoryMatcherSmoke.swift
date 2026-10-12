@@ -53,6 +53,15 @@ enum DeviceHistoryMatcherSmoke {
         precondition(fallback.attributedMeasurements.first?.profileID == heavyID,
                      "没有历史轨迹时应使用成员参考体重")
 
+        for weightKG in [0.0, 500.0] {
+            let boundaryProfile = UserProfile(id: lightID, name: "Boundary", referenceWeightKG: weightKG)
+            let plan = DeviceHistoryMatcher.plan(
+                history: [measurement(date: referenceDate, weightKG: weightKG, deviceID: deviceID)],
+                profiles: [boundaryProfile], existingMeasurements: []
+            )
+            precondition(plan.attributedMeasurements.first?.profileID == lightID)
+        }
+
         let deletedRecord = measurement(
             date: referenceDate.addingTimeInterval(-345_600),
             weightKG: 61.4,

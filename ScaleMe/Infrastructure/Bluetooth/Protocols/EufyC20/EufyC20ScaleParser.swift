@@ -19,7 +19,7 @@ struct EufyC20ScaleParser {
         guard flags & 0x01 != 0 else { throw ScalePayloadError.unsupported }
         let rawWeight = UInt16(bytes[12]) | UInt16(bytes[13]) << 8
         let weightKG = Double(rawWeight) / 100
-        guard (5...300).contains(weightKG) else { throw ScalePayloadError.unsupported }
+        guard MeasurementLimits.weightKG.contains(weightKG) else { throw ScalePayloadError.unsupported }
         var impedanceOhm: Double?
         if flags & 0x40 != 0 {
             guard bytes.count >= 19 else { throw ScalePayloadError.tooShort }

@@ -291,6 +291,30 @@ struct CommunicationRuleSmoke {
         }
         expect(history.count == 1 && abs(history[0].weightKG - 60) < 0.001, "declarative history should decode weight and date")
 
+        for raw: UInt16 in [0, 1, 499, 35_001, 50_000] {
+            let payload = Data([0xA5, 0x5A, UInt8(raw >> 8), UInt8(raw & 0xFF), 0xF4, 0x01])
+            guard case .measurement(let decoded) = try DeclarativeCommunicationRuleParser.parse(payload, rule: rules[0]) else {
+                fatalError("weights within 0...500 kg must decode")
+            }
+            expect(abs(decoded.weightKG - Double(raw) * 0.01) < 0.000_001, "inclusive weight bounds")
+        }
+        for raw: UInt16 in [50_001, 65_535] {
+            do {
+                _ = try DeclarativeCommunicationRuleParser.parse(
+                    Data([0xA5, 0x5A, UInt8(raw >> 8), UInt8(raw & 0xFF), 0xF4, 0x01]), rule: rules[0]
+                )
+                fatalError("weights above 500 kg must be rejected")
+            } catch ScalePayloadError.unsupported {}
+        }
+        var negativeWeightRule = rules[0]
+        negativeWeightRule.decoder?.weight.add = -1
+        do {
+            _ = try DeclarativeCommunicationRuleParser.parse(
+                Data([0xA5, 0x5A, 0, 0, 0xF4, 0x01]), rule: negativeWeightRule
+            )
+            fatalError("negative decoded weights must be rejected")
+        } catch ScalePayloadError.unsupported {}
+
         let payload = Data([0xA5, 0x5A, 0x1B, 0x94, 0xF4, 0x01])
         guard case .measurement(let measurement) = try DeclarativeCommunicationRuleParser.parse(payload, rule: rules[0]) else {
             fatalError("expected measurement")

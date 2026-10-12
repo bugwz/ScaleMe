@@ -46,7 +46,7 @@ struct XiaomiMiScale2BroadcastParser {
         } else {
             weightKG = rawWeight / 200
         }
-        guard (5...350).contains(weightKG) else { throw ScalePayloadError.unsupported }
+        guard MeasurementLimits.weightKG.contains(weightKG) else { throw ScalePayloadError.unsupported }
 
         let isStable = flags & 0x20 != 0
         return .measurement(BodyMeasurement(

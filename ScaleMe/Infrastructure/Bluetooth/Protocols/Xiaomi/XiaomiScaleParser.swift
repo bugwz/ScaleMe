@@ -38,7 +38,7 @@ struct XiaomiScaleParser {
         case 0x20: weightKG = rawWeight / 100 * 0.5
         default: weightKG = rawWeight / 200
         }
-        guard (5...350).contains(weightKG) else { throw ScalePayloadError.unsupported }
+        guard MeasurementLimits.weightKG.contains(weightKG) else { throw ScalePayloadError.unsupported }
 
         let rawImpedance = UInt16(bytes[9]) | UInt16(bytes[10]) << 8
         let impedanceOhm = measurementFlags & 0x02 != 0 && rawImpedance > 0

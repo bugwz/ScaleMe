@@ -41,7 +41,7 @@ struct Silvergear108ScaleParser {
             | Int(payload[3] ^ 0xA0)
         let grams = decodedWeight - 0x8C0000
         let weightKG = Double(grams) / 1_000
-        guard (2...300).contains(weightKG) else { throw ScalePayloadError.unsupported }
+        guard MeasurementLimits.weightKG.contains(weightKG) else { throw ScalePayloadError.unsupported }
 
         return BodyMeasurement(
             date: now,

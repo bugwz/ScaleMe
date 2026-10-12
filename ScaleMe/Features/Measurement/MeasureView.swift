@@ -759,13 +759,13 @@ struct ManualEntryView: View {
     @State private var pendingMeasurementDate = Date.now
     @State private var isSelectingMeasurementDate = false
     @State private var weight = ""
-    @State private var impedance = ""
     @State private var bodyFat = ""
     @State private var muscleMass = ""
     @State private var water = ""
     @State private var visceralFat = ""
     @State private var basalMetabolism = ""
     @State private var boneMass = ""
+    @State private var isDetailDataExpanded = false
     @State private var showProfileDropdown = false
 
     private var profileOptions: [TrendDropdownOption<UUID>] {
@@ -781,13 +781,12 @@ struct ManualEntryView: View {
     }
 
     private var parsedWeight: Double? {
-        guard let value = numericValue(weight), (5...350).contains(value) else { return nil }
+        guard let value = numericValue(weight), MeasurementLimits.weightKG.contains(value) else { return nil }
         return value
     }
 
     private var canSave: Bool {
         parsedWeight != nil
-            && isValidOptional(impedance, range: 50...2_000)
             && isValidOptional(bodyFat, range: 1...75)
             && isValidOptional(muscleMass, range: 1...200)
             && isValidOptional(water, range: 10...85)
@@ -802,8 +801,8 @@ struct ManualEntryView: View {
                 VStack(spacing: 18) {
                     memberCard
                     measurementTimePanel
-                    basicMeasurementPanel
-                    bodyCompositionPanel
+                    basicDataPanel
+                    detailDataPanel
                     calculationNoticePanel
                     if saveFailed {
                         MeasurementSaveFailureCard(error: store.measurementSaveError, onRetry: save)
@@ -1000,32 +999,31 @@ struct ManualEntryView: View {
         .presentationDragIndicator(.visible)
     }
 
-    private var basicMeasurementPanel: some View {
-        SettingsPanel(title: "基础测量", icon: "scalemass.fill") {
-            VStack(spacing: 14) {
-                manualInputField(
-                    title: "体重",
-                    unit: "kg",
-                    placeholder: "必填，5.00 ~ 350.00",
-                    text: $weight,
-                    isRequired: true,
-                    isValid: parsedWeight != nil
-                )
-
-                manualInputField(
-                    title: "生物电阻抗",
-                    unit: "Ω",
-                    placeholder: "可选，50 ~ 2000",
-                    text: $impedance,
-                    isRequired: false,
-                    isValid: isOptionalValid(impedance, range: 50...2_000)
-                )
-            }
+    private var basicDataPanel: some View {
+        SettingsPanel(title: "基础数据", icon: "scalemass.fill") {
+            manualInputField(
+                title: "体重",
+                unit: "kg",
+                placeholder: "必填，0.00 ~ 500.00",
+                text: $weight,
+                isRequired: true,
+                isValid: isOptionalValid(weight, range: MeasurementLimits.weightKG)
+            )
         }
     }
 
-    private var bodyCompositionPanel: some View {
-        SettingsPanel(title: "身体成分指标（可选）", icon: "waveform.path.ecg") {
+    private var detailDataPanel: some View {
+        SettingsPanel(
+            title: "详细数据（可选）",
+            icon: "waveform.path.ecg",
+            isExpanded: Binding(
+                get: { isDetailDataExpanded },
+                set: { expanded in
+                    if !expanded { KeyboardFocus.dismiss() }
+                    isDetailDataExpanded = expanded
+                }
+            )
+        ) {
             VStack(alignment: .leading, spacing: 14) {
                 Text("若体重秤或第三方设备显示了具体数据，可在此补充录入：")
                     .font(.caption)
@@ -1106,7 +1104,7 @@ struct ManualEntryView: View {
         Button(action: save) {
             HStack(spacing: 8) {
                 Image(systemName: "checkmark.circle.fill")
-                Text("保存测量数据")
+                Text("保存")
             }
             .font(.headline)
             .foregroundStyle(canSave ? AppColor.onAccent : AppColor.secondary.opacity(0.5))
@@ -1180,7 +1178,6 @@ struct ManualEntryView: View {
         let saved = store.addManual(
             date: measurementDate,
             weightKG: weightKG,
-            impedanceOhm: numericValue(impedance),
             bodyFatPercent: numericValue(bodyFat),
             muscleMassKG: numericValue(muscleMass),
             waterPercent: numericValue(water),

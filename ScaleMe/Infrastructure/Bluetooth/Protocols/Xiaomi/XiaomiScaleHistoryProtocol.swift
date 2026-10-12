@@ -30,7 +30,7 @@ enum XiaomiScaleHistoryProtocol {
         } else {
             weightKG = nativeWeight
         }
-        guard (5...350).contains(weightKG) else { throw ScalePayloadError.unsupported }
+        guard MeasurementLimits.weightKG.contains(weightKG) else { throw ScalePayloadError.unsupported }
 
         var components = DateComponents()
         components.calendar = Calendar(identifier: .gregorian)

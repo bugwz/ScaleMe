@@ -106,7 +106,7 @@ struct SenssunIF2121ScaleParser {
         // below its documented 2 kg operating range as removal rather than a
         // user measurement.
         guard weightKG >= 2 else { return .weightRemoved }
-        guard weightKG <= 180 else { throw ScalePayloadError.unsupported }
+        guard MeasurementLimits.weightKG.contains(weightKG) else { throw ScalePayloadError.unsupported }
 
         let stable = bytes[15] & 0x80 != 0
         let measurement = BodyMeasurement(
@@ -146,7 +146,7 @@ struct SenssunIF2121ScaleParser {
         let weightKG = Double(readUInt16BE(bytes, at: 10)) / 100
         let weightLB = Double(readUInt16BE(bytes, at: 12)) / 100
         try validateMirroredWeights(weightKG: weightKG, weightLB: weightLB)
-        guard (2...180).contains(weightKG) else { throw ScalePayloadError.unsupported }
+        guard MeasurementLimits.weightKG.contains(weightKG) else { throw ScalePayloadError.unsupported }
 
         // Bytes 22...38 carry body-composition/status data, but the capture is
         // not sufficient to name their units safely. Preserve the confirmed

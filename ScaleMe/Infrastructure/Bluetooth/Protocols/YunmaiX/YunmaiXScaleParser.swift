@@ -42,7 +42,7 @@ struct YunmaiXScaleParser {
         guard (1...3).contains(state) else { throw ScalePayloadError.unsupported }
         let rawWeight = UInt16(bytes[9]) << 8 | UInt16(bytes[10])
         let weightKG = Double(rawWeight) / 100
-        guard (5...300).contains(weightKG) else { throw ScalePayloadError.unsupported }
+        guard MeasurementLimits.weightKG.contains(weightKG) else { throw ScalePayloadError.unsupported }
         let rawImpedance = UInt16(bytes[11]) << 8 | UInt16(bytes[12])
         return BodyMeasurement(
             date: now,

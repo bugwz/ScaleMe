@@ -122,7 +122,7 @@ struct DeviceHistoryMatcher {
         profileHistory: [BodyMeasurement]
     ) -> Candidate? {
         guard profile.referenceWeightKG.isFinite,
-              (5...350).contains(profile.referenceWeightKG) else { return nil }
+              MeasurementLimits.weightKG.contains(profile.referenceWeightKG) else { return nil }
 
         let nearest = profileHistory.min {
             abs($0.date.timeIntervalSince(measurement.date)) < abs($1.date.timeIntervalSince(measurement.date))

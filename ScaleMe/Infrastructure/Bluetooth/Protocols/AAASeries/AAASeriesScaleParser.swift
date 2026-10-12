@@ -52,7 +52,7 @@ struct AAASeriesScaleParser {
             | UInt32(decoded[2]) << 8
             | UInt32(decoded[3])
         let weightKG = Double(value & 0x3_FFFF) / 1_000
-        guard (5...300).contains(weightKG) else { throw ScalePayloadError.unsupported }
+        guard MeasurementLimits.weightKG.contains(weightKG) else { throw ScalePayloadError.unsupported }
 
         return BodyMeasurement(
             date: now,

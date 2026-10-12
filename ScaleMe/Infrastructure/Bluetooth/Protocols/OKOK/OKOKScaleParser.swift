@@ -109,7 +109,7 @@ struct OKOKScaleParser {
         isStable: Bool,
         now: Date
     ) throws -> BodyMeasurement {
-        guard (5...300).contains(weightKG) else { throw ScalePayloadError.unsupported }
+        guard MeasurementLimits.weightKG.contains(weightKG) else { throw ScalePayloadError.unsupported }
         return BodyMeasurement(
             date: now,
             weightKG: weightKG,

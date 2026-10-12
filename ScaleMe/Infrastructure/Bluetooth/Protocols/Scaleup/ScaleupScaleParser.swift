@@ -32,7 +32,7 @@ struct ScaleupScaleParser {
         guard bytes.count >= 9 else { throw ScalePayloadError.tooShort }
         let rawWeight = UInt16(packet.companyID >> 8) << 8 | UInt16(bytes[0])
         let weightKG = Double(rawWeight) / 100
-        guard (5...300).contains(weightKG) else { throw ScalePayloadError.unsupported }
+        guard MeasurementLimits.weightKG.contains(weightKG) else { throw ScalePayloadError.unsupported }
         return BodyMeasurement(
             date: now,
             weightKG: weightKG,

@@ -6,6 +6,34 @@ import Foundation
 @main
 enum ParserSmoke {
     static func main() throws {
+        for weightKG in [0.0, 0.01, 4.99, 350, 499.99, 500] {
+            precondition(MeasurementLimits.weightKG.contains(weightKG))
+        }
+        for weightKG in [-0.01, 500.01, Double.infinity, -Double.infinity, Double.nan] {
+            precondition(!MeasurementLimits.weightKG.contains(weightKG))
+        }
+        for raw: UInt16 in [0, 1, 999, 60_000] {
+            let parsed = try StandardWeightScaleParser.parse(Data([
+                0, UInt8(raw & 0xFF), UInt8(raw >> 8)
+            ]))
+            precondition(abs(parsed.weightKG - Double(raw) * 0.005) < 0.000_001)
+        }
+        let zeroBody = try StandardBodyCompositionParser.parse(Data([
+            0x20, 0x05, // muscle, water and weight present
+            0xFA, 0x00, // body fat
+            0xC8, 0x00, // muscle mass
+            0xC8, 0x00, // water mass
+            0x00, 0x00  // zero weight
+        ]))
+        precondition(zeroBody.weightKG == 0 && zeroBody.waterPercent == nil)
+        precondition(zeroBody.musclePercent == nil && zeroBody.bonePercent == nil)
+        var zeroWithBone = zeroBody
+        zeroWithBone.boneMassKG = 2
+        precondition(zeroWithBone.bonePercent == nil)
+        var positiveBody = zeroWithBone
+        positiveBody.weightKG = 100
+        precondition(positiveBody.musclePercent == 1 && positiveBody.bonePercent == 2)
+
         let huaweiProbe = HuaweiHagridProtocol.makeAuthenticationProbe()
         precondition(huaweiProbe == hexData("DB0300C140"))
         let huaweiChallenge = hexData("BD1300000102030405060708090A0B0C0D0E0F92C5")

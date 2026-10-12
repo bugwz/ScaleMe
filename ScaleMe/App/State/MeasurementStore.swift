@@ -511,7 +511,6 @@ final class MeasurementStore: ObservableObject {
     func addManual(
         date: Date,
         weightKG: Double,
-        impedanceOhm: Double? = nil,
         bodyFatPercent: Double? = nil,
         muscleMassKG: Double? = nil,
         waterPercent: Double? = nil,
@@ -523,7 +522,7 @@ final class MeasurementStore: ObservableObject {
             BodyMeasurement(
                 date: date,
                 weightKG: weightKG,
-                impedanceOhm: impedanceOhm,
+                impedanceOhm: nil,
                 bodyFatPercent: bodyFatPercent,
                 muscleMassKG: muscleMassKG,
                 waterPercent: waterPercent,

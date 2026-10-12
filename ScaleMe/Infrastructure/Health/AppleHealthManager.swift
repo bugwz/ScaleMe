@@ -92,7 +92,7 @@ final class AppleHealthManager: ObservableObject {
             let measurements = bodyMassSamples.compactMap { sample -> BodyMeasurement? in
                 guard sample.metadata?[Self.measurementIDMetadataKey] == nil else { return nil }
                 let weightKG = sample.quantity.doubleValue(for: .gramUnit(with: .kilo))
-                guard (2...500).contains(weightKG) else { return nil }
+                guard MeasurementLimits.weightKG.contains(weightKG) else { return nil }
                 return BodyMeasurement(
                     id: sample.uuid,
                     date: sample.startDate,
@@ -131,7 +131,7 @@ final class AppleHealthManager: ObservableObject {
     }
 
     private func samples(for measurement: BodyMeasurement) -> [HKQuantitySample] {
-        guard let bodyMassType, (2...500).contains(measurement.weightKG) else { return [] }
+        guard let bodyMassType, MeasurementLimits.weightKG.contains(measurement.weightKG) else { return [] }
         let metadata: [String: Any] = [
             Self.measurementIDMetadataKey: measurement.id.uuidString,
             HKMetadataKeyWasUserEntered: measurement.source == .manual

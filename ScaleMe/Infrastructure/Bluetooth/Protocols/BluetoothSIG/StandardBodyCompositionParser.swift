@@ -58,7 +58,7 @@ struct StandardBodyCompositionParser {
         if flags & 0x0400 != 0 {
             weightKG = massKG(try readUInt16(bytes, cursor: &cursor), imperial: imperial)
         }
-        guard let weightKG, (5...350).contains(weightKG) else {
+        guard let weightKG, MeasurementLimits.weightKG.contains(weightKG) else {
             throw ScalePayloadError.unsupported
         }
         return BodyMeasurement(
@@ -67,7 +67,7 @@ struct StandardBodyCompositionParser {
             impedanceOhm: impedanceOhm,
             bodyFatPercent: bodyFatPercent,
             muscleMassKG: muscleMassKG,
-            waterPercent: waterMassKG.map { $0 / weightKG * 100 },
+            waterPercent: weightKG > 0 ? waterMassKG.map { $0 / weightKG * 100 } : nil,
             basalMetabolismKCal: basalMetabolismKCal,
             source: .bluetoothSIG,
             isStable: false

@@ -1039,7 +1039,7 @@ private struct MemberEditorView: View {
             && selectedSex != nil
             && selectedBirthDate != nil
             && parsedHeight.map { (50...250).contains($0) } == true
-            && parsedWeight.map { (5...350).contains($0) } == true
+            && parsedWeight.map { MeasurementLimits.weightKG.contains($0) } == true
     }
 
     private var invalidFieldNames: [String] {
@@ -1050,7 +1050,7 @@ private struct MemberEditorView: View {
         if selectedSex == nil { fields.append("性别") }
         if selectedBirthDate == nil { fields.append("出生日期") }
         if parsedHeight.map({ (50...250).contains($0) }) != true { fields.append("身高") }
-        if parsedWeight.map({ (5...350).contains($0) }) != true { fields.append("参考体重") }
+        if parsedWeight.map({ MeasurementLimits.weightKG.contains($0) }) != true { fields.append("参考体重") }
         return fields.map(store.appLanguage.text)
     }
 
@@ -1213,7 +1213,7 @@ private struct MemberWeightInput: View {
             ResponsiveTextField(
                 text: $text,
                 isFocused: $isFocused,
-                placeholder: "5–350",
+                placeholder: "0–500",
                 keyboardType: .decimalPad,
                 returnKeyType: .done
             )

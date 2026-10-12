@@ -28,7 +28,7 @@ enum WolaiAFUScaleHistoryProtocol {
         let weightRaw = readUInt24BE(bytes, at: 8)
         guard weightRaw >= zeroOffset else { throw ScalePayloadError.unsupported }
         let weightKG = Double(weightRaw - zeroOffset) / 1_000
-        guard (5...350).contains(weightKG) else { throw ScalePayloadError.unsupported }
+        guard MeasurementLimits.weightKG.contains(weightKG) else { throw ScalePayloadError.unsupported }
 
         return BodyMeasurement(
             date: date,

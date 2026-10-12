@@ -372,6 +372,9 @@ enum SettingsPanelIcon {
 }
 
 struct SettingsPanel<Content: View>: View {
+    @Environment(\.appLanguage) private var language
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    let isExpanded: Binding<Bool>?
     let title: String
     let icon: SettingsPanelIcon
     let iconColor: Color
@@ -386,11 +389,13 @@ struct SettingsPanel<Content: View>: View {
         icon: String,
         iconColor: Color = AppColor.mint,
         iconBackgroundColor: Color = AppColor.paleMint,
+        isExpanded: Binding<Bool>? = nil,
         headerValue: String? = nil,
         headerActionTitle: String? = nil,
         headerAction: (() -> Void)? = nil,
         @ViewBuilder content: () -> Content
     ) {
+        self.isExpanded = isExpanded
         self.title = title
         self.icon = .system(icon)
         self.iconColor = iconColor
@@ -406,11 +411,13 @@ struct SettingsPanel<Content: View>: View {
         assetIcon: String,
         iconColor: Color = AppColor.mint,
         iconBackgroundColor: Color = AppColor.paleMint,
+        isExpanded: Binding<Bool>? = nil,
         headerValue: String? = nil,
         headerActionTitle: String? = nil,
         headerAction: (() -> Void)? = nil,
         @ViewBuilder content: () -> Content
     ) {
+        self.isExpanded = isExpanded
         self.title = title
         self.icon = .asset(assetIcon)
         self.iconColor = iconColor
@@ -423,56 +430,25 @@ struct SettingsPanel<Content: View>: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
-            HStack(spacing: 8) {
-                switch icon {
-                case let .system(systemIcon):
-                    Image(systemName: systemIcon)
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(iconColor)
-                        .frame(width: 26, height: 26)
-                        .background(iconBackgroundColor, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
-                        .accessibilityHidden(true)
-                case let .asset(assetName):
-                    Image(assetName)
-                        .renderingMode(.template)
-                        .resizable()
-                        .scaledToFit()
-                        .padding(6)
-                        .foregroundStyle(iconColor)
-                        .frame(width: 26, height: 26)
-                        .background(iconBackgroundColor, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
-                        .accessibilityHidden(true)
-                }
-                AppLocalizedText(title)
-                    .font(.headline)
-                    .foregroundStyle(AppColor.ink)
-                    .accessibilityAddTraits(.isHeader)
-                Spacer()
-                if let headerValue {
-                    Text(headerValue)
-                        .font(.caption.weight(.semibold).monospacedDigit())
-                        .foregroundStyle(AppColor.secondary)
-                        .padding(.horizontal, 9)
-                        .padding(.vertical, 5)
-                        .background(AppColor.canvas, in: Capsule())
-                }
-                if let headerActionTitle, let headerAction {
-                    Button(action: headerAction) {
-                        Label {
-                            AppLocalizedText(headerActionTitle)
-                        } icon: {
-                            Image(systemName: "plus")
-                        }
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(AppColor.mint)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 7)
-                        .background(AppColor.paleMint, in: Capsule())
+            if let isExpanded {
+                Button {
+                    withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.2)) {
+                        isExpanded.wrappedValue.toggle()
                     }
-                    .buttonStyle(.plain)
+                } label: {
+                    header
+                        .frame(minHeight: 44)
+                        .contentShape(Rectangle())
                 }
+                .buttonStyle(.plain)
+                .accessibilityLabel(language.text(title))
+                .accessibilityValue(language.text(isExpanded.wrappedValue ? "已展开" : "已收起"))
+            } else {
+                header
             }
-            content
+            if isExpanded?.wrappedValue ?? true {
+                content
+            }
         }
         .padding(18)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -480,6 +456,65 @@ struct SettingsPanel<Content: View>: View {
         .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
         .overlay(RoundedRectangle(cornerRadius: 24, style: .continuous).stroke(AppColor.mint.opacity(0.08)))
         .shadow(color: AppColor.mint.opacity(0.06), radius: 16, y: 6)
+    }
+
+    private var header: some View {
+        HStack(spacing: 8) {
+            switch icon {
+            case let .system(systemIcon):
+                Image(systemName: systemIcon)
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(iconColor)
+                    .frame(width: 26, height: 26)
+                    .background(iconBackgroundColor, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                    .accessibilityHidden(true)
+            case let .asset(assetName):
+                Image(assetName)
+                    .renderingMode(.template)
+                    .resizable()
+                    .scaledToFit()
+                    .padding(6)
+                    .foregroundStyle(iconColor)
+                    .frame(width: 26, height: 26)
+                    .background(iconBackgroundColor, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                    .accessibilityHidden(true)
+            }
+            AppLocalizedText(title)
+                .font(.headline)
+                .foregroundStyle(AppColor.ink)
+                .accessibilityAddTraits(.isHeader)
+            Spacer()
+            if let headerValue {
+                Text(headerValue)
+                    .font(.caption.weight(.semibold).monospacedDigit())
+                    .foregroundStyle(AppColor.secondary)
+                    .padding(.horizontal, 9)
+                    .padding(.vertical, 5)
+                    .background(AppColor.canvas, in: Capsule())
+            }
+            if let isExpanded {
+                Image(systemName: "chevron.down")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(AppColor.secondary)
+                    .rotationEffect(.degrees(isExpanded.wrappedValue ? 180 : 0))
+                    .accessibilityHidden(true)
+            }
+            if isExpanded == nil, let headerActionTitle, let headerAction {
+                Button(action: headerAction) {
+                    Label {
+                        AppLocalizedText(headerActionTitle)
+                    } icon: {
+                        Image(systemName: "plus")
+                    }
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(AppColor.mint)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 7)
+                    .background(AppColor.paleMint, in: Capsule())
+                }
+                .buttonStyle(.plain)
+            }
+        }
     }
 }
 

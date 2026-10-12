@@ -850,7 +850,7 @@ struct DeclarativeCommunicationRuleParser {
         case .pounds: weightKG = weightRaw * 0.453_592_37
         case .jin: weightKG = weightRaw * 0.5
         }
-        guard (5...350).contains(weightKG) else { throw ScalePayloadError.unsupported }
+        guard MeasurementLimits.weightKG.contains(weightKG) else { throw ScalePayloadError.unsupported }
         let impedance = try decoder.impedance.map { try value($0, bytes: bytes) }
         if let impedance, !(50...3_000).contains(impedance) { throw ScalePayloadError.unsupported }
         let bodyFat = try decoder.bodyFatPercent.map { try value($0, bytes: bytes) }

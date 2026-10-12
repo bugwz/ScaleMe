@@ -44,7 +44,7 @@ struct StandardWeightScaleParser {
             // BMI is intentionally ignored and derived from the selected local profile.
             _ = UInt16(bytes[cursor]) | UInt16(bytes[cursor + 1]) << 8
         }
-        guard (5...350).contains(weightKG) else { throw ScalePayloadError.unsupported }
+        guard MeasurementLimits.weightKG.contains(weightKG) else { throw ScalePayloadError.unsupported }
         return BodyMeasurement(
             date: timestamp ?? now,
             weightKG: weightKG,
