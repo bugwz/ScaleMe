@@ -60,7 +60,7 @@ Classify changes by Conventional Commit prefix and meaning:
 - `fix` or a corrected defect/regression: `🐛 问题修复`
 - `docs`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `style`, release engineering, and other maintenance: `📋 其他`
 
-Translate and synthesize the history into concise, user-facing Chinese. Merge duplicates, omit internal implementation trivia that has no release value, and do not paste raw commit messages. Keep claims consistent with `AGENTS.md`: distinguish fixture-backed support from hardware verification and avoid medical claims.
+Translate and synthesize the history into concise, user-facing Chinese. Merge duplicates, omit internal implementation trivia that has no release value, and do not paste raw commit messages. Keep claims consistent with the dev skill loaded through `AGENTS.md`: distinguish fixture-backed support from hardware verification and avoid medical claims.
 
 ## 3. Prepare release files
 

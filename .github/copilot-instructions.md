@@ -1,5 +1,5 @@
 # GitHub Copilot repository instructions
 
-Read and follow the repository-root [`AGENTS.md`](../AGENTS.md) before proposing or applying changes. It is the single source of truth for product identity, iOS architecture, BLE protocol work, privacy, visual design, verification, and agent workflow.
+Read and follow the repository entry point [AGENTS.md](../AGENTS.md) before working in this repository, including its required dev skill and task-relevant references. Open those Markdown files directly if skill discovery is unavailable.
 
-This project is in rapid pre-release development. Do not introduce legacy wrappers, schema migrations, dual implementations, or backward-compatibility paths for superseded development-only code unless the task explicitly requires them.
+Maintain development rules in `.agents/skills/dev/`; do not duplicate them in this file.

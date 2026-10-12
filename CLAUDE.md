@@ -1,7 +1,5 @@
 # Claude Code instructions
 
-Before doing any work in this repository, read and follow [`AGENTS.md`](AGENTS.md) in full. It is the canonical project specification and overrides generic implementation preferences.
+Read and follow the repository entry point [AGENTS.md](AGENTS.md) before working in this repository, including its required dev skill and task-relevant references. Open those Markdown files directly if skill discovery is unavailable.
 
-In particular, this is a pre-release rapid-development project: replace obsolete implementations cleanly and do not preserve compatibility with earlier development-only code or local data unless the user explicitly requests a compatibility boundary.
-
-Do not duplicate the full rules in this file. Update `AGENTS.md` when project-wide guidance changes.
+Maintain development rules in `.agents/skills/dev/`; do not duplicate them in this file.

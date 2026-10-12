@@ -1,0 +1,32 @@
+## Visual language
+
+- The interface should feel fresh, calm, clean, and health-oriented—not like a dense medical dashboard or a high-contrast sports console.
+- Do not rely on stock iOS system chrome (default `List`/`Form` styling, system edit-mode reorder handles, default navigation bar/list backgrounds, unstyled `Toggle`/`Picker` rows, etc.) for user-facing screens. Compose new UI from this project's own components (`SoftCard`, `SettingsPanel`, `pageBackground()`, custom rows built from `ScrollView`/`VStack`) and the shared palette below, matching the existing screens' look. Reserve system controls for cases with no reasonable custom equivalent (e.g. `DatePicker`, keyboard, share sheet).
+- Selection dropdowns must use the shared anchored-overlay pattern in `ScaleMe/Shared/DesignSystem/DesignSystem.swift` (`AppDropdownField`, `AppDropdownAnchorPreferenceKey`, and `AppDropdownMenuLayer`) so their appearance, positioning, dismissal, and animation remain consistent. Extend the shared component when a new selection mode is needed instead of building a screen-local dropdown.
+- Dropdown options must be presented as an overlay anchored to the field. Do not conditionally insert an options `VStack`, `List`, or other expanded content into the surrounding card or scroll layout, because opening a dropdown must not resize the panel, move adjacent content, or change the page's scroll position.
+- Preserve the shared dropdown transition and field-chevron animation. The menu must choose above or below the anchor based on available space, remain inside horizontal screen bounds, scroll when its content is taller than the available area, and dismiss when the user taps outside it.
+- Single-choice menus should dismiss after selection. Multi-choice menus should remain open while options are toggled, show every selected option with the shared selected styling and accessibility trait, and dismiss through the field or outside-tap layer. Only one dropdown may be expanded on a screen at a time.
+- While a dropdown overlay is visible, hide the obscured underlying page from accessibility and expose the menu as a modal container. If no options are available, keep the field collapsed and disabled, visually communicate the disabled state, and show a localized explanation near the field rather than presenting an empty menu.
+- Use the centralized palette in `ScaleMe/Shared/DesignSystem/DesignSystem.swift`; do not scatter new literal brand colors through views.
+- Core palette:
+  - Ink `#12332E`
+  - Secondary text `#5C7873`
+  - Canvas `#F6FCFA`
+  - Mint `#14AD8C`
+  - Pale mint `#E6FAF2`
+  - Leaf `#BDE8A3`
+  - Sky `#6DC2E6`
+  - Muted lavender `#94A8E0`
+  - Apricot and rose are limited semantic accents.
+- Favor mist-white surfaces, generous spacing, restrained gradients, soft corners, subtle mint shadows, and strong readable text contrast.
+- Reference screenshots define useful information hierarchy, not pixel-perfect appearance. Do not clone another product's branding or layout.
+- The canonical logo is `Design/Logo/logo.svg`: an opaque white canvas with a centered mint circle and a soft white M-shaped mark. Preserve this identity across app-icon formats; do not replace the M with scale sensing points or another center symbol. Let iOS apply the final app-icon corner mask.
+- `Design/Logo/readme-logo.svg` is the dedicated transparent, tightly cropped README mark. Do not add an outer canvas or safe-area padding to it.
+- Keep these generated application resources synchronized with the canonical logo:
+  - `ScaleMe/Resources/Assets.xcassets/AppLogo.imageset/AppLogo.svg` for in-app vector rendering.
+  - `ScaleMe/AppIcon.icon` for the iOS 26 layered app icon. Keep the mint circle and white M at scale `0.875`, with glass, specular, blur, translucency, refraction, and shadow disabled so the brand mark remains flat and crisp.
+  - `ScaleMe/Resources/Assets.xcassets/AppIcon.appiconset/AppIcon-1024.png` as the opaque fallback app icon for iOS 17 and iOS 18.
+  - `Design/Logo/logo-preview.png` for documentation preview.
+- Follow Apple asset naming conventions: PascalCase asset catalog names (`AppIcon`, `AppLogo`, `AccentColor`) and concise, role-based file names. Do not add version suffixes to active production assets.
+- Regenerate the opaque iOS icon with `Tools/AssetGeneration/GenerateAppIcon.swift` after updating `logo-preview.png`; do not use lossy conversion or commit an app icon with an alpha channel.
+- The custom SwiftUI launch animation lives in `ScaleMe/App/Launch/AnimatedLaunchView.swift`. Keep it visually aligned with the mint-circle-and-M logo, honor Reduce Motion, block interaction only while visible, and transition cleanly into the real root view. Do not use launch animation time to delay required initialization.

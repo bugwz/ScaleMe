@@ -1,0 +1,17 @@
+## Localization
+
+- Simplified Chinese is the source language. Put localizable user-facing text in the role-based String Catalogs under `ScaleMe/Resources/Localization`; use SwiftUI localizable APIs for view literals and `AppText` for text selected by the in-app language setting. Do not reintroduce per-language Swift switches or scattered `.lproj/Localizable.strings` files.
+- String Catalog entries must use the complete Simplified Chinese source text as the key. Do not use semantic or machine-style identifiers such as `settings.language.title`, including for `AppText`; its `rawValue` must resolve to the Chinese source text. Required platform keys in `InfoPlist.xcstrings` such as `CFBundleDisplayName` and `NSBluetoothAlwaysUsageDescription`, literal product/model names, and format-only keys are the only exceptions.
+- Keep each String Catalog entry on exactly one physical line: one key followed by one compact JSON object containing `"extractionState":"manual"` and the complete `localizations` object. Keep the catalog wrapper readable on separate lines. Do not expand one language or one `stringUnit` across multiple lines.
+- Preserve this compact format in `ScaleMe/Resources/Localization/Localizable.xcstrings` and all other application catalogs after editing or building. Do not run whole-file pretty-printing. If Xcode or another tool expands a catalog, restore the compact layout without changing its parsed JSON content or discarding existing translation edits; verify both content equality and the final diff.
+- Every maintained entry must include nonempty `translated` `stringUnit` values for all supported languages: `de`, `en`, `es`, `fr`, `ja`, `ko`, `pt`, `ru`, `zh-Hans`, and `zh-Hant`. Preserve equivalent printf placeholders and value types in every translation; positional placeholders such as `%1$@` are allowed.
+- A localization key may exist in only one application String Catalog. Before adding or moving text, check all catalogs for the same key and for entries whose `zh-Hans` value is the same. Merge true duplicates into the appropriate role-based catalog instead of retaining automatic and manual copies.
+- Remove stale or obsolete entries when their production references are removed, and update localization smoke fixtures in the same change. Do not delete a dynamically resolved key merely because Xcode marks a manually maintained catalog entry as `stale`; verify Swift source, `AppText`, domain enum values, format calls, and deterministic fixtures first.
+- If identical Chinese wording has different meanings that require different translations, improve the Chinese source wording so each meaning has a unique key; do not reintroduce opaque IDs to disambiguate it. Nonlinguistic UI literals such as `--`, `%`, `*`, `cm`, and `kg` should use verbatim SwiftUI text and must not occupy String Catalog entries.
+
+## Catalog editing workflow
+
+- Before editing, record the current file or parsed JSON to distinguish existing changes from this task. Preserve key order and unrelated translations.
+- After building, inspect catalog diffs for automatic extraction, duplicate keys, empty entries, and expanded formatting.
+- Restore formatting from the current file, never by overwriting it with a Git revision. Check parsed JSON equality before and after a formatting-only repair.
+- For translation changes, run the localization smoke check in [verification.md](verification.md). For whitespace-only repairs, JSON equality and `git diff --check` are sufficient.
