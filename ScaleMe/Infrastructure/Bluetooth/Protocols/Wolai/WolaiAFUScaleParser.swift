@@ -26,7 +26,11 @@ struct WolaiAFUScaleParser {
 
         switch (bytes[2], bytes[18]) {
         case (0x00, 0xD5), (0x80, 0xD5):
-            guard Array(bytes[6...16]) == [0x02, 0x00, 0x05, 0x40, 0x00, 0x64, 0, 0, 0, 0, 0] else {
+            // Both values at offset 11 occur in captured D5 notifications,
+            // including within one session. Its meaning is not yet established.
+            guard Array(bytes[6...10]) == [0x02, 0x00, 0x05, 0x40, 0x00],
+                  bytes[11] == 0x64 || bytes[11] == 0x0A,
+                  bytes[12...16].allSatisfy({ $0 == 0 }) else {
                 throw ScalePayloadError.unsupported
             }
             let phase: Phase = bytes[2] == 0x80 ? .stable : .live

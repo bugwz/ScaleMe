@@ -330,6 +330,33 @@ enum ParserSmoke {
         precondition(abs(wolaiStable.measurement.weightKG - 60.0) < 0.000_01)
         precondition(wolaiStable.measurement.isStable)
 
+        // Captured AFU D5 variants also use 0x0A at offset 11.
+        // Preserve that layout with synthetic weights, not personal samples.
+        for (hex, phase) in [
+            ("AC290068EA6002000540000A000000000029D501", WolaiAFUScaleParser.Phase.live),
+            ("AC298068EA6002000540000A000000000029D501", WolaiAFUScaleParser.Phase.stable)
+        ] {
+            let data = hexData(hex)
+            let packet = try WolaiAFUScaleParser.parse(data)
+            precondition(packet.phase == phase)
+            precondition(packet.measurement.weightKG == 60)
+            precondition(packet.measurement.isStable == (phase == .stable))
+            precondition(packet.measurement.impedanceOhm == nil)
+            for offset in [6, 7, 8, 9, 10, 11, 12, 16, 19] {
+                var malformed = data
+                malformed[offset] ^= 1
+                if offset != 19 {
+                    malformed[19] = UInt8(malformed[2...18].reduce(0) { $0 + Int($1) } & 0x1F)
+                }
+                do {
+                    _ = try WolaiAFUScaleParser.parse(malformed)
+                    preconditionFailure("AFU variant must retain metadata and checksum validation")
+                } catch ScalePayloadError.unsupported {
+                    // Expected, even for malformed metadata with a valid checksum.
+                }
+            }
+        }
+
         let finalFixtures = [
             ("AC29020001F40258018068EA600000000029D603", 500.0, 600.0),
             ("AC29020001FE0262018068EA600000000029D617", 510.0, 610.0),

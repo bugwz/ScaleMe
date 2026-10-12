@@ -391,14 +391,22 @@ enum ProtocolSessionSmoke {
             preconditionFailure("Wolai live frame should report protocol-managed live weight")
         }
         precondition(liveWeight.weightKG == 20, "First live frame must immediately expose weight")
-        let stable = try session.handle(wolaiNotification("AC298068EA60020005400064000000000029D51B"))
+        // The captured session switches offset 11 from 0x64 to 0x0A before
+        // reporting live/stable weight. Measurements here are synthetic.
+        let nextWeight = try session.handle(wolaiNotification("AC290068EA6002000540000A000000000029D501"))
+        guard nextWeight.count == 1,
+              case .reportLiveMeasurement(let updatedWeight, .measuringWeight, .protocolManaged) = nextWeight.first else {
+            preconditionFailure("0x0A live frame must update weight before the final result")
+        }
+        precondition(updatedWeight.weightKG == 60)
+        let stable = try session.handle(wolaiNotification("AC298068EA6002000540000A000000000029D501"))
         guard stable.count == 1,
               case .reportLiveMeasurement(let stableWeight, .measuringBodyComposition, .protocolManaged) = stable.first else {
             preconditionFailure("Wolai stable frame should enter body-composition phase")
         }
         precondition(stableWeight.weightKG == 60)
         for _ in 0..<5 {
-            let repeated = try session.handle(wolaiNotification("AC298068EA60020005400064000000000029D51B"))
+            let repeated = try session.handle(wolaiNotification("AC298068EA6002000540000A000000000029D501"))
             guard repeated.count == 1,
                   case .reportLiveMeasurement(_, .measuringBodyComposition, .protocolManaged) = repeated.first else {
                 preconditionFailure("Repeated stable weights must not finish AFU before impedance arrives")

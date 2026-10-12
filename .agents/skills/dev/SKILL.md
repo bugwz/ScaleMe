@@ -50,6 +50,9 @@ This project is pre-release and in rapid development. Optimize for a clean curre
 
 ## Data, health, and privacy
 
+- This repository is public. Apply the following disclosure rules to documentation, code comments, fixtures, screenshots, generated artifacts, and proposed commit/PR/release text; a user's diagnostic upload authorizes investigation, not publication of its contents.
+- Do not copy personal measurements, profile attributes, capture dates/times, local paths, account names, device UUIDs/MAC addresses/serial numbers, credentials, or a user's specific device/firmware/hardware combination into repository content. Describe general protocol behavior and validation coverage without linking it to an individual device or measurement session. Public model names and protocol identifiers may remain when needed to define compatibility, without personal ownership or capture context.
+- Derive public fixtures from synthetic measurements, dates, device identifiers, and credentials. Preserve the relevant framing, state transitions, and validation conditions, recalculate dependent lengths/checksums, and label synthetic examples. Keep original diagnostic files outside the repository and inspect the final diff for identifying details before handoff.
 - Default to local-first storage. Do not add accounts, analytics, advertising identifiers, or cloud upload without an explicit requirement.
 - Request Bluetooth or HealthKit permissions only at the moment their feature is used, with accurate Chinese usage descriptions.
 - Do not display an enabled control for an integration that is not functional. Label unfinished integrations clearly or omit them.
