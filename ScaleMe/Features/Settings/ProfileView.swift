@@ -682,6 +682,11 @@ private struct MemberEditorView: View {
     @State private var isSelectingBirthDate = false
     @State private var usesCustomRole: Bool
     @State private var isRoleFocused = false
+    @State private var isNameFocused = false
+    @State private var isHeightFocused = false
+    @State private var isWeightFocused = false
+    @State private var validatedFields: Set<String> = []
+    @State private var attemptedSave = false
     @State private var confirmDelete = false
     @State private var expandedDropdown: MemberEditorDropdown?
 
@@ -718,11 +723,6 @@ private struct MemberEditorView: View {
                         avatarPanel
                         informationPanel
                         usagePanel
-                        if !canSave {
-                            Text(store.appLanguage.format("请检查输入：%@", invalidFieldNames.joined(separator: ", ")))
-                                .font(.caption)
-                                .foregroundStyle(AppColor.rose)
-                        }
                         deletePanel
                     }
                     .padding(.horizontal, 18)
@@ -736,7 +736,9 @@ private struct MemberEditorView: View {
                     ToolbarItem(placement: .cancellationAction) { Button("取消") { dismiss() } }
                     ToolbarItem(placement: .confirmationAction) {
                         Button("保存") {
+                            attemptedSave = true
                             KeyboardFocus.dismiss()
+                            guard canSave else { return }
                             draft.name = draft.name.trimmingCharacters(in: .whitespacesAndNewlines)
                             draft.role = draft.role.trimmingCharacters(in: .whitespacesAndNewlines)
                             if isOwner { draft.role = "本人" }
@@ -754,7 +756,6 @@ private struct MemberEditorView: View {
                         }
                         .fontWeight(.semibold)
                         .tint(AppColor.mint)
-                        .disabled(!canSave)
                     }
                 }
                 .accessibilityHidden(confirmDelete || expandedDropdown != nil)
@@ -828,7 +829,18 @@ private struct MemberEditorView: View {
             }
         }
         .interactiveDismissDisabled(confirmDelete || expandedDropdown != nil)
-        .accessibilityAnnounceChanges(invalidFieldNames.isEmpty ? nil : store.appLanguage.format("请检查输入：%@", invalidFieldNames.joined(separator: ", ")))
+        .onChange(of: isNameFocused) { wasFocused, isFocused in
+            if wasFocused && !isFocused { validatedFields.insert("名称") }
+        }
+        .onChange(of: isRoleFocused) { wasFocused, isFocused in
+            if wasFocused && !isFocused { validatedFields.insert("角色") }
+        }
+        .onChange(of: isHeightFocused) { wasFocused, isFocused in
+            if wasFocused && !isFocused { validatedFields.insert("身高") }
+        }
+        .onChange(of: isWeightFocused) { wasFocused, isFocused in
+            if wasFocused && !isFocused { validatedFields.insert("参考体重") }
+        }
     }
 
     private func hideDeleteConfirmation() {
@@ -860,6 +872,7 @@ private struct MemberEditorView: View {
         SettingsPanel(title: "人物形象", icon: "person.crop.rectangle.stack") {
             MemberAvatarPicker(selection: selectedAvatar) { selectedAvatar = $0 }
                 .equatable()
+            validationMessage(for: "人物形象")
         }
     }
 
@@ -867,7 +880,8 @@ private struct MemberEditorView: View {
         SettingsPanel(title: "成员信息", icon: "person.text.rectangle") {
             VStack(alignment: .leading, spacing: 8) {
                 fieldLabel("名称")
-                MemberNameInput(text: $draft.name)
+                MemberNameInput(text: $draft.name, isFocused: $isNameFocused)
+                validationMessage(for: "名称")
             }
 
             SettingsSeparator()
@@ -911,6 +925,7 @@ private struct MemberEditorView: View {
                         onToggle: { toggleDropdown(.role) }
                     )
                 }
+                validationMessage(for: "角色")
             }
 
             SettingsSeparator()
@@ -925,6 +940,7 @@ private struct MemberEditorView: View {
                     appearance: .compact,
                     onToggle: { toggleDropdown(.biologicalSex) }
                 )
+                validationMessage(for: "性别")
             }
 
             SettingsSeparator()
@@ -953,31 +969,37 @@ private struct MemberEditorView: View {
                 .accessibilityLabel(store.appLanguage.text("出生日期"))
                 .accessibilityValue(selectedBirthDate?.formatted(.dateTime.year().month().day()) ?? store.appLanguage.text("未选择"))
                 .accessibilityReturnFocus(when: isSelectingBirthDate)
+                validationMessage(for: "出生日期")
             }
 
             SettingsSeparator()
 
             VStack(alignment: .leading, spacing: 9) {
                 fieldLabel("身高")
-                MemberHeightInput(text: $heightText)
+                MemberHeightInput(text: $heightText, isFocused: $isHeightFocused)
+                validationMessage(for: "身高", range: "50–250 cm")
             }
 
             SettingsSeparator()
 
             VStack(alignment: .leading, spacing: 9) {
                 fieldLabel("参考体重")
-                MemberWeightInput(text: $weightText)
+                MemberWeightInput(text: $weightText, isFocused: $isWeightFocused)
+                validationMessage(for: "参考体重", range: "0–500 kg")
             }
         }
     }
 
     private var usagePanel: some View {
-        SettingsPanel(title: "资料用途", icon: "shield.lefthalf.filled") {
-            Text("资料仅用于日常指标估算。生物电阻抗与推导结果不具备医疗诊断用途。")
-                .font(.caption)
-                .foregroundStyle(AppColor.secondary)
-                .lineSpacing(3)
+        HStack(alignment: .top, spacing: 6) {
+            Image(systemName: "shield.lefthalf.filled")
+                .accessibilityHidden(true)
+            AppLocalizedText("资料仅用于日常指标估算。生物电阻抗与推导结果不具备医疗诊断用途。")
+                .fixedSize(horizontal: false, vertical: true)
         }
+        .font(.caption2)
+        .foregroundStyle(AppColor.secondary)
+        .padding(.horizontal, 4)
     }
 
     private var birthDatePickerSheet: some View {
@@ -1032,14 +1054,7 @@ private struct MemberEditorView: View {
     }
 
     private var canSave: Bool {
-        !draft.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-            && !draft.role.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-            && (isOwner || draft.role != "本人")
-            && selectedAvatar != nil
-            && selectedSex != nil
-            && selectedBirthDate != nil
-            && parsedHeight.map { (50...250).contains($0) } == true
-            && parsedWeight.map { MeasurementLimits.weightKG.contains($0) } == true
+        invalidFieldNames.isEmpty
     }
 
     private var invalidFieldNames: [String] {
@@ -1051,7 +1066,17 @@ private struct MemberEditorView: View {
         if selectedBirthDate == nil { fields.append("出生日期") }
         if parsedHeight.map({ (50...250).contains($0) }) != true { fields.append("身高") }
         if parsedWeight.map({ MeasurementLimits.weightKG.contains($0) }) != true { fields.append("参考体重") }
-        return fields.map(store.appLanguage.text)
+        return fields
+    }
+
+    @ViewBuilder
+    private func validationMessage(for field: String, range: String? = nil) -> some View {
+        if (attemptedSave || validatedFields.contains(field)), invalidFieldNames.contains(field) {
+            let detail = store.appLanguage.text(field) + (range.map { " \($0)" } ?? "")
+            Text(store.appLanguage.format("请检查输入：%@", detail))
+                .font(.caption)
+                .foregroundStyle(AppColor.rose)
+        }
     }
 
     private var parsedHeight: Double? {
@@ -1160,7 +1185,7 @@ private struct MemberAvatarPicker: View, Equatable {
 
 private struct MemberNameInput: View {
     @Binding var text: String
-    @State private var isFocused = false
+    @Binding var isFocused: Bool
 
     var body: some View {
         HStack(spacing: 10) {
@@ -1180,7 +1205,7 @@ private struct MemberNameInput: View {
 private struct MemberHeightInput: View {
     @Environment(\.appLanguage) private var language
     @Binding var text: String
-    @State private var isFocused = false
+    @Binding var isFocused: Bool
 
     var body: some View {
         HStack(spacing: 10) {
@@ -1190,7 +1215,8 @@ private struct MemberHeightInput: View {
                 isFocused: $isFocused,
                 placeholder: "50–250",
                 keyboardType: .decimalPad,
-                returnKeyType: .done
+                returnKeyType: .done,
+                showsDoneAccessory: true
             )
             .frame(minHeight: 24)
             .accessibilityLabel(language.format("%@，%@", language.text("身高"), "cm"))
@@ -1205,7 +1231,7 @@ private struct MemberHeightInput: View {
 private struct MemberWeightInput: View {
     @Environment(\.appLanguage) private var language
     @Binding var text: String
-    @State private var isFocused = false
+    @Binding var isFocused: Bool
 
     var body: some View {
         HStack(spacing: 10) {
@@ -1215,7 +1241,8 @@ private struct MemberWeightInput: View {
                 isFocused: $isFocused,
                 placeholder: "0–500",
                 keyboardType: .decimalPad,
-                returnKeyType: .done
+                returnKeyType: .done,
+                showsDoneAccessory: true
             )
             .frame(minHeight: 24)
             .accessibilityLabel(language.format("%@，%@", language.text("参考体重"), "kg"))
