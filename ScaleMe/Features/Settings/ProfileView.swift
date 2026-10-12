@@ -130,7 +130,7 @@ struct ProfileView: View {
                 NavigationLink {
                     AppleHealthSettingsView()
                 } label: {
-                    settingsRow(store.appLanguage.text(.appleHealthSync), icon: "heart.fill", color: AppColor.rose)
+                    settingsRow(store.appLanguage.text(.appleHealthSync), icon: "arrow.triangle.2.circlepath", color: AppColor.rose)
                 }
                 SettingsSeparator().padding(.leading, 68)
                 NavigationLink {
