@@ -253,7 +253,13 @@ final class BluetoothScaleCoordinator: NSObject, ObservableObject {
     }
 
     private func allowsBuiltInParser(_ parser: String, for deviceID: UUID) -> Bool {
-        guard let selected = selectedRule(for: deviceID) else { return true }
+        // Automatically resolved connected sessions own their measurement input,
+        // just like an explicit choice. Keep SIG's automatic weight/body pairing.
+        let connectedRule = effectiveRule(for: deviceID).flatMap { rule in
+            protocolRegistry.descriptor(protocolID: rule.id)?.transport == .characteristicNotification
+                ? rule : nil
+        }
+        guard let selected = selectedRule(for: deviceID) ?? connectedRule else { return true }
         return selected.builtInParser == parser
     }
 

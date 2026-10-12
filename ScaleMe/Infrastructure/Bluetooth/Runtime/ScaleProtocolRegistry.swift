@@ -42,6 +42,13 @@ struct ScaleProtocolRegistry {
         let preferredAdapter = preferredProtocolID.flatMap { protocolID in
             advertisementAdapters.first { $0.descriptor.id == protocolID }
         }
+        // A connected-only protocol owns the complete measurement lifecycle.
+        // A broadly matching weight advertisement must not bypass its GATT stages.
+        if preferredAdapter == nil,
+           let preferredProtocolID,
+           connectedDescriptors[preferredProtocolID] != nil {
+            return nil
+        }
         if let preferredAdapter,
            let packet = try? preferredAdapter.decodeAdvertisement(input) {
             return ScaleProtocolMatch(descriptor: preferredAdapter.descriptor, packet: packet)

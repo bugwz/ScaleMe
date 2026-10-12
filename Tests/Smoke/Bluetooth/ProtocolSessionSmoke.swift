@@ -386,12 +386,23 @@ enum ProtocolSessionSmoke {
         precondition(repeatedInitialization.isEmpty)
 
         let live = try session.handle(wolaiNotification("AC2900684E20020005400064000000000029D51F"))
-        guard case .reportLiveMeasurement(_, .measuringWeight, .protocolManaged) = live.first else {
+        guard live.count == 1,
+              case .reportLiveMeasurement(let liveWeight, .measuringWeight, .protocolManaged) = live.first else {
             preconditionFailure("Wolai live frame should report protocol-managed live weight")
         }
+        precondition(liveWeight.weightKG == 20, "First live frame must immediately expose weight")
         let stable = try session.handle(wolaiNotification("AC298068EA60020005400064000000000029D51B"))
-        guard case .reportLiveMeasurement(_, .measuringBodyComposition, .protocolManaged) = stable.first else {
+        guard stable.count == 1,
+              case .reportLiveMeasurement(let stableWeight, .measuringBodyComposition, .protocolManaged) = stable.first else {
             preconditionFailure("Wolai stable frame should enter body-composition phase")
+        }
+        precondition(stableWeight.weightKG == 60)
+        for _ in 0..<5 {
+            let repeated = try session.handle(wolaiNotification("AC298068EA60020005400064000000000029D51B"))
+            guard repeated.count == 1,
+                  case .reportLiveMeasurement(_, .measuringBodyComposition, .protocolManaged) = repeated.first else {
+                preconditionFailure("Repeated stable weights must not finish AFU before impedance arrives")
+            }
         }
         let finalEvent = wolaiNotification("AC29020001F40258018068EA600000000029D603")
         let final = try session.handle(finalEvent)
@@ -406,6 +417,9 @@ enum ProtocolSessionSmoke {
         )
         precondition(renderedAcknowledgement == WolaiAFUScaleAdapter.makeFinalAcknowledgement())
         precondition(abs(measurement.weightKG - 60.0) < 0.001)
+        precondition(measurement.impedanceOhm == 500)
+        precondition(measurement.secondaryImpedanceOhm == 600)
+        precondition(measurement.bodyFatPercent == nil, "Raw impedance is not a device-supplied fat percentage")
         let duplicateFinal = try session.handle(finalEvent)
         precondition(duplicateFinal.isEmpty)
 

@@ -584,6 +584,21 @@ enum ParserSmoke {
             advertisedServiceUUIDs: ["FFB0"]
         ))
         precondition(silvergearRegistryMatch?.descriptor.id == "protocol.builtin.silvergear-108")
+        // Synthetic routing collision: this valid weight-only advertisement must
+        // not take over a scale whose resolved protocol is connected Wolai AFU.
+        let overlappingAdvertisement = ScaleAdvertisementInput(
+            name: "AFU-WL-TZ-A1",
+            manufacturerData: Data([0xAC, 0xA0]) + silvergearPayload,
+            advertisedServiceUUIDs: ["FFB0"]
+        )
+        precondition(ScaleProtocolRegistry.builtIn.decodeAdvertisement(
+            overlappingAdvertisement
+        )?.descriptor.id == Silvergear108ScaleParser.descriptor.id)
+        precondition(ScaleProtocolRegistry.builtIn.decodeAdvertisement(
+            overlappingAdvertisement,
+            preferredProtocolID: WolaiAFUProtocolSession.protocolDescriptor.id
+        ) == nil, "Connected AFU must wait for its GATT final frame, not a weight advertisement")
+
         let silvergearSettling = try Silvergear108ScaleParser.parse(.init(
             companyID: 0xA0AC,
             payload: hexData("030000000002A02C4AC00DA3")
