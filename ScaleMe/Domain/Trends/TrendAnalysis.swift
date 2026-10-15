@@ -3,12 +3,12 @@ import Foundation
 enum TrendMetric: String, CaseIterable, Identifiable {
     case weight
     case bmi
-    case bodyFat
     case fatMass
+    case bodyFat
     case muscleMass
     case musclePercent
-    case waterPercent
     case waterMass
+    case waterPercent
     case boneMass
     case bonePercent
     case visceralFat
@@ -24,12 +24,25 @@ enum TrendMetric: String, CaseIterable, Identifiable {
         case .fatMass: "脂肪量"
         case .muscleMass: "肌肉量"
         case .musclePercent: "肌肉率"
-        case .waterPercent: "身体水分"
-        case .waterMass: "水分量"
+        case .waterPercent: "体水分率"
+        case .waterMass: "体水分量"
         case .boneMass: "骨量"
         case .bonePercent: "骨量占比"
-        case .visceralFat: "内脏脂肪"
+        case .visceralFat: "内脏脂肪等级"
         case .basalMetabolism: "基础代谢"
+        }
+    }
+
+    var iconAsset: String {
+        switch self {
+        case .weight: "MetricWeight"
+        case .bmi: "MetricBMI"
+        case .bodyFat, .fatMass: "MetricFat"
+        case .muscleMass, .musclePercent: "MetricMuscle"
+        case .waterPercent, .waterMass: "MetricWater"
+        case .boneMass, .bonePercent: "MetricBone"
+        case .visceralFat: "MetricVisceral"
+        case .basalMetabolism: "MetricMetabolism"
         }
     }
 
@@ -60,17 +73,21 @@ enum TrendMetric: String, CaseIterable, Identifiable {
         switch self {
         case .weight: measurement.weightKG
         case .bmi: measurement.bmi(heightCM: profile.heightCM)
-        case .bodyFat: measurement.bodyFatPercent
+        case .bodyFat: measurement.displayedBodyFatPercent
         case .fatMass: measurement.fatMassKG
-        case .muscleMass: measurement.muscleMassKG
+        case .muscleMass: measurement.displayedMuscleMassKG
         case .musclePercent: measurement.musclePercent
-        case .waterPercent: measurement.waterPercent
+        case .waterPercent: measurement.displayedWaterPercent
         case .waterMass: measurement.waterMassKG
-        case .boneMass: measurement.boneMassKG
+        case .boneMass: measurement.displayedBoneMassKG
         case .bonePercent: measurement.bonePercent
-        case .visceralFat: measurement.visceralFat
-        case .basalMetabolism: measurement.basalMetabolismKCal
+        case .visceralFat: measurement.displayedVisceralFat
+        case .basalMetabolism: measurement.displayedBasalMetabolismKCal
         }
+    }
+
+    func usesApplicationEstimate(in measurement: BodyMeasurement) -> Bool {
+        DashboardMetricKind.allCases.first(where: { $0.title == title })?.usesApplicationEstimate(in: measurement) ?? false
     }
 
     func displayValue(_ value: Double, unit: WeightUnit) -> Double {

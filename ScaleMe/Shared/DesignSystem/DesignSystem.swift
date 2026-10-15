@@ -1153,77 +1153,18 @@ struct PulsingRing: View {
     }
 }
 
-struct BodyFatRateIcon: View {
-    var size: CGFloat = 16
+/// Category artwork shares a 24-point grid and rounded strokes. Labels supply semantics.
+struct HealthMetricIcon: View {
+    let asset: String
+    var size: CGFloat = 20
 
     var body: some View {
-        ZStack {
-            Image(systemName: "drop.fill")
-                .resizable()
-                .scaledToFit()
-                .frame(width: size * 0.78, height: size)
-
-            Text(verbatim: "%")
-                .font(.system(size: max(5, size * 0.30), weight: .black, design: .rounded))
-                .foregroundStyle(AppColor.onAccent)
-                .offset(y: size * 0.08)
-        }
-        .frame(width: size, height: size)
-        .accessibilityHidden(true)
-    }
-}
-
-struct VisceralFatIcon: View {
-    var size: CGFloat = 16
-
-    var body: some View {
-        GeometryReader { proxy in
-            let side = min(proxy.size.width, proxy.size.height)
-            ZStack {
-                Circle()
-                    .fill()
-                    .frame(width: side * 0.20, height: side * 0.20)
-                    .position(x: side * 0.50, y: side * 0.13)
-
-                Path { path in
-                    path.move(to: CGPoint(x: side * 0.24, y: side * 0.34))
-                    path.addQuadCurve(
-                        to: CGPoint(x: side * 0.35, y: side * 0.92),
-                        control: CGPoint(x: side * 0.27, y: side * 0.64)
-                    )
-                    path.move(to: CGPoint(x: side * 0.76, y: side * 0.34))
-                    path.addQuadCurve(
-                        to: CGPoint(x: side * 0.65, y: side * 0.92),
-                        control: CGPoint(x: side * 0.73, y: side * 0.64)
-                    )
-                    path.move(to: CGPoint(x: side * 0.24, y: side * 0.34))
-                    path.addQuadCurve(
-                        to: CGPoint(x: side * 0.76, y: side * 0.34),
-                        control: CGPoint(x: side * 0.50, y: side * 0.24)
-                    )
-                }
-                .stroke(
-                    style: StrokeStyle(
-                        lineWidth: max(1, side * 0.075),
-                        lineCap: .round,
-                        lineJoin: .round
-                    )
-                )
-
-                Circle()
-                    .strokeBorder(lineWidth: max(1, side * 0.065))
-                    .frame(width: side * 0.31, height: side * 0.31)
-                    .position(x: side * 0.50, y: side * 0.62)
-
-                Circle()
-                    .fill()
-                    .frame(width: side * 0.09, height: side * 0.09)
-                    .position(x: side * 0.50, y: side * 0.62)
-            }
-            .frame(width: side, height: side)
-        }
-        .frame(width: size, height: size)
-        .accessibilityHidden(true)
+        Image(asset)
+            .renderingMode(.template)
+            .resizable()
+            .scaledToFit()
+            .frame(width: size, height: size)
+            .accessibilityHidden(true)
     }
 }
 

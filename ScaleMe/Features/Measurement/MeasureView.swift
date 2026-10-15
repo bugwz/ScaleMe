@@ -37,7 +37,9 @@ struct MeasureView: View {
         }
         guard isMeasurementViewActive, !store.isUsingPlaceholderData,
               bluetooth.state == .completed else { return nil }
-        return bluetooth.latestMeasurement
+        return bluetooth.latestMeasurement.map {
+            store.displayMeasurement(id: $0.id) ?? store.calculatedDisplayMeasurement($0)
+        }
     }
 
     private var profileOptions: [TrendDropdownOption<UUID>] {
@@ -675,7 +677,7 @@ struct MeasureView: View {
                     )
                     measurementSummaryRow(
                         "体脂率",
-                        value: measurement?.bodyFatPercent.map { "\($0.formatted(2))%" } ?? "--",
+                        value: measurement?.displayedBodyFatPercent.map { "\($0.formatted(2))%" } ?? "--",
                         showsDivider: false
                     )
                 }
@@ -1052,7 +1054,7 @@ struct ManualEntryView: View {
                     )
 
                     manualGridField(
-                        title: "身体水分",
+                        title: "体水分率",
                         unit: "%",
                         placeholder: "10 ~ 85",
                         text: $water,
@@ -1060,7 +1062,15 @@ struct ManualEntryView: View {
                     )
 
                     manualGridField(
-                        title: "内脏脂肪",
+                        title: "骨量",
+                        unit: "kg",
+                        placeholder: "0.5 ~ 10",
+                        text: $boneMass,
+                        isValid: isOptionalValid(boneMass, range: 0.5...10)
+                    )
+
+                    manualGridField(
+                        title: "内脏脂肪等级",
                         unit: "级",
                         placeholder: "1 ~ 60",
                         text: $visceralFat,
@@ -1075,13 +1085,7 @@ struct ManualEntryView: View {
                         isValid: isOptionalValid(basalMetabolism, range: 300...5_000)
                     )
 
-                    manualGridField(
-                        title: "骨量",
-                        unit: "kg",
-                        placeholder: "0.5 ~ 10",
-                        text: $boneMass,
-                        isValid: isOptionalValid(boneMass, range: 0.5...10)
-                    )
+
                 }
             }
         }

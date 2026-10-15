@@ -21,9 +21,14 @@ struct DashboardView: View {
     @State private var selectedProfileID: UUID?
     @State private var profileSelectionCommitTask: Task<Void, Never>?
     @State private var isEditingMetrics = false
+    @State private var selectedMetric: DashboardMetricKind?
 
     private var visibleProfileID: UUID {
         selectedProfileID ?? store.displaySelectedProfileID
+    }
+
+    private var metricProfile: UserProfile {
+        store.displayProfiles.first(where: { $0.id == visibleProfileID }) ?? store.displaySelectedProfile
     }
 
     private var latest: BodyMeasurement? {
@@ -76,6 +81,9 @@ struct DashboardView: View {
                     .ignoresSafeArea()
             )
             .toolbar(.hidden, for: .navigationBar)
+            .sheet(item: $selectedMetric) { kind in
+                MetricInformationView(kind: kind, measurement: latest, profile: metricProfile)
+            }
         }
     }
 
@@ -92,7 +100,7 @@ struct DashboardView: View {
                 Text(store.appLanguage.text(profile.role))
                 Text(store.appLanguage.format("%@：%@", store.appLanguage.text("最近体重"), latest.map { "\(store.unit.value(fromKilograms: $0.weightKG).formatted(2)) \(store.unit.symbol)" } ?? "--"))
                 Text(verbatim: "BMI \(latest.map { $0.bmi(heightCM: profile.heightCM).formatted(2) } ?? "--")")
-                Text(store.appLanguage.format("%@：%@", store.appLanguage.text("体脂率"), latest?.bodyFatPercent.map { "\($0.formatted(2))%" } ?? "--"))
+                Text(store.appLanguage.format("%@：%@", store.appLanguage.text("体脂率"), latest?.displayedBodyFatPercent.map { "\($0.formatted(2))%" } ?? "--"))
                 if let latest { Text(latest.date, format: .dateTime.year().month().day().hour().minute()) }
                 Button(store.appLanguage.text("查看近期趋势"), action: onShowTrends)
                 Button(store.appLanguage.text(store.isUsingPlaceholderData ? "添加成员" : "开始测量")) { onMeasure(profile.id) }
@@ -251,12 +259,11 @@ struct DashboardView: View {
                     VStack(alignment: .leading, spacing: 7) {
                         memberInfoRow(
                             "BMI \(current.map { $0.bmi(heightCM: profile.heightCM).formatted(2) } ?? "--")",
-                            systemImage: "figure.stand"
+                            metric: .bmi
                         )
                         memberInfoRow(
-                            "\(store.appLanguage.text("体脂率")) \(current?.bodyFatPercent.map { "\($0.formatted(2))%" } ?? "--")",
-                            systemImage: "drop.fill",
-                            usesBodyFatRateIcon: true
+                            "\(store.appLanguage.text("体脂率")) \(current?.displayedBodyFatPercent.map { "\($0.formatted(2))%" } ?? "--")",
+                            metric: .bodyFatPercent
                         )
                         memberInfoRow(
                             current.map { Self.localMeasurementDateFormatter.string(from: $0.date) } ?? "--",
@@ -306,13 +313,13 @@ struct DashboardView: View {
 
     private func memberInfoRow(
         _ text: String,
-        systemImage: String,
-        usesBodyFatRateIcon: Bool = false
+        systemImage: String = "clock",
+        metric: DashboardMetricKind? = nil
     ) -> some View {
         HStack(spacing: 6) {
             Group {
-                if usesBodyFatRateIcon {
-                    BodyFatRateIcon(size: 14)
+                if let metric {
+                    HealthMetricIcon(asset: metric.icon, size: 14)
                 } else {
                     Image(systemName: systemImage)
                         .font(.system(size: 12, weight: .regular))
@@ -326,9 +333,7 @@ struct DashboardView: View {
     }
 
     private func cardMeasurements(for profileID: UUID) -> [BodyMeasurement] {
-        store.isShowingDemoData
-            ? store.displayMeasurements(for: profileID)
-            : store.measurements(for: profileID)
+        store.displayMeasurements(for: profileID)
     }
 
     private func compactTrend(
@@ -447,6 +452,7 @@ struct DashboardView: View {
                 order: store.dashboardMetricOrder,
                 visible: store.dashboardVisibleMetrics,
                 measurement: latest,
+                profile: metricProfile,
                 source: sourceName(for: latest)
             ) { newOrder, newVisible in
                 store.updateDashboardMetrics(order: newOrder, visible: newVisible)
@@ -458,16 +464,20 @@ struct DashboardView: View {
         let visibleMetrics = store.dashboardMetricOrder.filter { store.dashboardVisibleMetrics.contains($0) }
         return LazyVGrid(columns: [.init(.flexible()), .init(.flexible())], spacing: 12) {
             ForEach(visibleMetrics) { kind in
-                MetricTile(
-                    title: kind.title,
-                    value: latest.flatMap { kind.value(in: $0) }.map { $0.formatted(2) } ?? "--",
-                    unit: kind.unit,
-                    source: kind.isCalculated ? store.appLanguage.text("计算值") : sourceName(for: latest),
-                    icon: kind.icon,
-                    color: kind.themeColor,
-                    usesBodyFatRateIcon: kind == .bodyFatPercent,
-                    usesVisceralFatIcon: kind == .visceralFat
-                )
+                Button {
+                    selectedMetric = kind
+                } label: {
+                    MetricTile(
+                        title: kind.title,
+                        value: latest.flatMap { kind.value(in: $0, profile: metricProfile) }.map { $0.formatted(2) } ?? "--",
+                        unit: kind.unit,
+                        source: sourceName(for: latest),
+                        assessment: kind.assessment(in: latest, profile: metricProfile),
+                        icon: kind.icon,
+                        color: kind.themeColor
+                    )
+                }
+                .buttonStyle(.plain)
             }
         }
     }
@@ -482,9 +492,14 @@ struct DashboardView: View {
     }
 }
 
-private extension DashboardMetricKind {
+extension DashboardMetricKind {
     var themeColor: Color {
         switch self {
+        case .subcutaneousFatPercent, .subcutaneousFatMassKG: AppColor.trendBodyFat
+        case .proteinPercent, .proteinMassKG: AppColor.mint
+        case .skeletalMusclePercent, .skeletalMuscleMassKG: AppColor.trendMuscleMass
+        case .fatFreeMassKG: AppColor.trendMuscleMass
+        case .bmi: AppColor.trendBMI
         case .bodyFatPercent: AppColor.trendBodyFat
         case .fatMassKG: AppColor.trendFatMass
         case .muscleMassKG: AppColor.trendMuscleMass
@@ -766,6 +781,7 @@ private struct DashboardMetricsEditorView: View {
     @State private var isDragLifted = false
     @State private var isSettlingDrag = false
     let measurement: BodyMeasurement?
+    let metricProfile: UserProfile
     let source: String
     let onSave: ([DashboardMetricKind], Set<DashboardMetricKind>) -> Void
 
@@ -773,12 +789,14 @@ private struct DashboardMetricsEditorView: View {
         order: [DashboardMetricKind],
         visible: Set<DashboardMetricKind>,
         measurement: BodyMeasurement?,
+        profile: UserProfile,
         source: String,
         onSave: @escaping ([DashboardMetricKind], Set<DashboardMetricKind>) -> Void
     ) {
         _shown = State(initialValue: order.filter { visible.contains($0) })
         _hidden = State(initialValue: order.filter { !visible.contains($0) })
         self.measurement = measurement
+        self.metricProfile = profile
         self.source = source
         self.onSave = onSave
     }
@@ -869,13 +887,12 @@ private struct DashboardMetricsEditorView: View {
            let location = dragLocation {
             MetricTile(
                 title: kind.title,
-                value: measurement.flatMap { kind.value(in: $0) }.map { $0.formatted(2) } ?? "--",
+                value: measurement.flatMap { kind.value(in: $0, profile: metricProfile) }.map { $0.formatted(2) } ?? "--",
                 unit: kind.unit,
                 source: source,
+                assessment: kind.assessment(in: measurement, profile: metricProfile),
                 icon: kind.icon,
-                color: kind.themeColor,
-                usesBodyFatRateIcon: kind == .bodyFatPercent,
-                usesVisceralFatIcon: kind == .visceralFat
+                color: kind.themeColor
             )
             .opacity(isShown ? 1 : 0.55)
             .overlay(
@@ -922,13 +939,12 @@ private struct DashboardMetricsEditorView: View {
 
         return MetricTile(
             title: kind.title,
-            value: measurement.flatMap { kind.value(in: $0) }.map { $0.formatted(2) } ?? "--",
+            value: measurement.flatMap { kind.value(in: $0, profile: metricProfile) }.map { $0.formatted(2) } ?? "--",
             unit: kind.unit,
             source: source,
+            assessment: kind.assessment(in: measurement, profile: metricProfile),
             icon: kind.icon,
-            color: kind.themeColor,
-            usesBodyFatRateIcon: kind == .bodyFatPercent,
-            usesVisceralFatIcon: kind == .visceralFat
+            color: kind.themeColor
         )
         .overlay(
             RoundedRectangle(cornerRadius: 22, style: .continuous)
@@ -1106,26 +1122,30 @@ private struct DashboardMetricsEditorView: View {
 }
 
 private struct MetricTile: View {
-    let title: String, value: String, unit: String, source: String, icon: String
+    private var assessmentColor: Color {
+        switch assessment {
+        case .normal: AppColor.mint
+        case .low: AppColor.sky
+        case .high, .overweight, .overweightRisk: AppColor.apricot
+        case .veryHigh, .obesity, .severelyLow: AppColor.rose
+        case .notLow, .noReference, .notApplicable, .noData, .invalid: AppColor.secondary
+        }
+    }
+
+    let title: String, value: String, unit: String, source: String
+    let assessment: MetricAssessment
+    let icon: String
     let color: Color
-    var usesBodyFatRateIcon = false
-    var usesVisceralFatIcon = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
-                Group {
-                    if usesBodyFatRateIcon {
-                        BodyFatRateIcon(size: 17)
-                    } else if usesVisceralFatIcon {
-                        VisceralFatIcon(size: 17)
-                    } else {
-                        Image(systemName: icon)
-                    }
-                }
+                HealthMetricIcon(asset: icon, size: 20)
                 .foregroundStyle(color)
                 Spacer()
-                StatusPill(text: "标准")
+                if assessment != .noReference {
+                    StatusPill(text: assessment.rawValue, color: assessmentColor)
+                }
             }
             HStack(alignment: .firstTextBaseline, spacing: 4) {
                 Text(value).font(.title2.bold()).foregroundStyle(AppColor.ink)

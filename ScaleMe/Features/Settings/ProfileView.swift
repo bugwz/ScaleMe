@@ -977,7 +977,7 @@ private struct MemberEditorView: View {
             VStack(alignment: .leading, spacing: 9) {
                 fieldLabel("身高")
                 MemberHeightInput(text: $heightText, isFocused: $isHeightFocused)
-                validationMessage(for: "身高", range: "50–250 cm")
+                validationMessage(for: "身高", range: "20–250 cm")
             }
 
             SettingsSeparator()
@@ -1064,7 +1064,7 @@ private struct MemberEditorView: View {
         if selectedAvatar == nil { fields.append("人物形象") }
         if selectedSex == nil { fields.append("性别") }
         if selectedBirthDate == nil { fields.append("出生日期") }
-        if parsedHeight.map({ (50...250).contains($0) }) != true { fields.append("身高") }
+        if parsedHeight.map({ (20...250).contains($0) }) != true { fields.append("身高") }
         if parsedWeight.map({ MeasurementLimits.weightKG.contains($0) }) != true { fields.append("参考体重") }
         return fields
     }
@@ -1213,7 +1213,7 @@ private struct MemberHeightInput: View {
             ResponsiveTextField(
                 text: $text,
                 isFocused: $isFocused,
-                placeholder: "50–250",
+                placeholder: "20–250",
                 keyboardType: .decimalPad,
                 returnKeyType: .done,
                 showsDoneAccessory: true

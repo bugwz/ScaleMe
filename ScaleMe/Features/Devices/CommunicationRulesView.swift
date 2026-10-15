@@ -505,8 +505,8 @@ private struct AddExternalProtocolView: View {
             (decoder.impedance, "阻抗"),
             (decoder.bodyFatPercent, "体脂率"),
             (decoder.muscleMassKG, "肌肉量"),
-            (decoder.waterPercent, "身体水分"),
-            (decoder.visceralFat, "内脏脂肪"),
+            (decoder.waterPercent, "体水分率"),
+            (decoder.visceralFat, "内脏脂肪等级"),
             (decoder.basalMetabolismKCal, "基础代谢"),
             (decoder.boneMassKG, "骨量")
         ]

@@ -97,8 +97,8 @@ struct HistoryView: View {
                             isExpanded: expandedTrend?.context.metric == metric
                         )
                     }
-                    DataInformationLink()
                     records
+                    DataInformationLink()
                 }
                 .padding(.horizontal, 18)
                 .padding(.bottom, 28)
@@ -569,9 +569,7 @@ struct MeasurementDetailView: View {
                 }
                 .padding(.vertical, 28)
                 metricCard(title: "基础指标", metrics: basicMetrics)
-                if currentMeasurement.hasBodyComposition {
-                    metricCard(title: "身体成分估算", metrics: compositionMetrics)
-                }
+                metricCard(title: "健康指标", metrics: compositionMetrics)
                 if !rawMetrics.isEmpty {
                     metricCard(title: "设备原始数据", metrics: rawMetrics)
                 }
@@ -635,18 +633,24 @@ struct MeasurementDetailView: View {
 
     private var compositionMetrics: [(String, String)] {
         var metrics: [(String, String)] = []
-        append(currentMeasurement.bodyFatPercent, name: "体脂率", suffix: "%", to: &metrics)
         append(currentMeasurement.fatMassKG, name: "脂肪量", suffix: " kg", to: &metrics)
+        append(currentMeasurement.displayedBodyFatPercent, name: "体脂率", suffix: "%", to: &metrics)
+        append(currentMeasurement.displayedMuscleMassKG, name: "肌肉量", suffix: " kg", to: &metrics)
         append(currentMeasurement.musclePercent, name: "肌肉率", suffix: "%", to: &metrics)
-        append(currentMeasurement.muscleMassKG, name: "肌肉量", suffix: " kg", to: &metrics)
-        append(currentMeasurement.waterPercent, name: "身体水分", suffix: "%", to: &metrics)
-        append(currentMeasurement.waterMassKG, name: "水分量", suffix: " kg", to: &metrics)
+        append(currentMeasurement.waterMassKG, name: "体水分量", suffix: " kg", to: &metrics)
+        append(currentMeasurement.displayedWaterPercent, name: "体水分率", suffix: "%", to: &metrics)
+        append(currentMeasurement.displayedBoneMassKG, name: "骨量", suffix: " kg", to: &metrics)
         append(currentMeasurement.bonePercent, name: "骨量占比", suffix: "%", to: &metrics)
-        append(currentMeasurement.boneMassKG, name: "骨量", suffix: " kg", to: &metrics)
-        append(currentMeasurement.visceralFat, name: "内脏脂肪", suffix: "", to: &metrics)
-        if let value = currentMeasurement.basalMetabolismKCal {
-            metrics.append(("基础代谢", "\(value.formatted(2)) kcal"))
-        }
+        append(currentMeasurement.displayedVisceralFat, name: "内脏脂肪等级", suffix: "", to: &metrics)
+        append(currentMeasurement.applicationEstimate?.fatFreeMassKG, name: "去脂体重", suffix: " kg", to: &metrics)
+        append(currentMeasurement.displayedSkeletalMuscleMassKG, name: "骨骼肌量", suffix: " kg", to: &metrics)
+        append(currentMeasurement.displayedSkeletalMusclePercent, name: "骨骼肌率", suffix: "%", to: &metrics)
+        append(currentMeasurement.displayedSubcutaneousFatMassKG, name: "皮下脂肪量", suffix: " kg", to: &metrics)
+        append(currentMeasurement.displayedSubcutaneousFatPercent, name: "皮下脂肪率", suffix: "%", to: &metrics)
+        append(currentMeasurement.displayedProteinMassKG, name: "蛋白质含量", suffix: " kg", to: &metrics)
+        append(currentMeasurement.displayedProteinPercent, name: "蛋白质占比", suffix: "%", to: &metrics)
+        append(currentMeasurement.displayedBasalMetabolismKCal, name: "基础代谢", suffix: " kcal", to: &metrics)
+        append(currentMeasurement.applicationEstimate?.restingEnergyKCal, name: "静息能量消耗", suffix: " kcal", to: &metrics)
         return metrics
     }
 
@@ -713,8 +717,7 @@ struct MeasurementDetailView: View {
         suffix: String,
         to metrics: inout [(String, String)]
     ) {
-        guard let value else { return }
-        metrics.append((name, "\(value.formatted(2))\(suffix)"))
+        metrics.append((name, value.map { "\($0.formatted(2))\(suffix)" } ?? "--"))
     }
 
     private func metricCard(title: String, metrics: [(String, String)]) -> some View {
@@ -725,10 +728,7 @@ struct MeasurementDetailView: View {
                     DetailRow(
                         name: metric.0,
                         value: metric.1,
-                        divider: index < metrics.count - 1,
-                        isCalculated: metric.0 == "BMI" || DashboardMetricKind.allCases.contains {
-                            $0.title == metric.0 && $0.isCalculated
-                        }
+                        divider: index < metrics.count - 1
                     )
                 }
             }
@@ -741,19 +741,11 @@ private struct DetailRow: View {
 
     let name: String, value: String
     var divider = true
-    var isCalculated = false
 
     var body: some View {
         VStack(spacing: 0) {
             HStack {
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(language.text(name)).foregroundStyle(AppColor.secondary)
-                    if isCalculated {
-                        Text(language.text("计算值"))
-                            .font(.caption)
-                            .foregroundStyle(AppColor.secondary)
-                    }
-                }
+                Text(language.text(name)).foregroundStyle(AppColor.secondary)
                 Spacer()
                 Text(value).fontWeight(.semibold)
             }

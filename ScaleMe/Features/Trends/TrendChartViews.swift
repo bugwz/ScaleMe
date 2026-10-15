@@ -1838,14 +1838,6 @@ private func metricTint(_ metric: TrendMetric) -> Color {
     }
 }
 
-@ViewBuilder
 private func trendMetricIcon(_ metric: TrendMetric, size: CGFloat) -> some View {
-    if metric == .bodyFat {
-        BodyFatRateIcon(size: size)
-    } else if metric == .visceralFat {
-        VisceralFatIcon(size: size)
-    } else {
-        Image(systemName: metric.systemImage)
-            .font(.system(size: size, weight: .semibold))
-    }
+    HealthMetricIcon(asset: metric.iconAsset, size: size)
 }
