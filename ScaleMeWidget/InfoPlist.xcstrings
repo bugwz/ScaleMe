@@ -1,83 +1,8 @@
 {
-  "sourceLanguage" : "zh-Hans",
-  "strings" : {
-    "CFBundleDisplayName" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ScaleMe-Trends"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ScaleMe Trends"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tendencias de ScaleMe"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tendances ScaleMe"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ScaleMeトレンド"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ScaleMe 추세"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tendências ScaleMe"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Тренды ScaleMe"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "观我趋势"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "觀我趨勢"
-          }
-        }
-      }
-    },
-    "CFBundleName" : {
-      "comment" : "Bundle name",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "ScaleMeWidget"
-          }
-        }
-      }
-    }
+  "sourceLanguage": "zh-Hans",
+  "strings": {
+    "CFBundleDisplayName": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"ScaleMe-Trends"}},"en":{"stringUnit":{"state":"translated","value":"ScaleMe Trends"}},"es":{"stringUnit":{"state":"translated","value":"Tendencias de ScaleMe"}},"fr":{"stringUnit":{"state":"translated","value":"Tendances ScaleMe"}},"ja":{"stringUnit":{"state":"translated","value":"ScaleMeトレンド"}},"ko":{"stringUnit":{"state":"translated","value":"ScaleMe 추세"}},"pt":{"stringUnit":{"state":"translated","value":"Tendências ScaleMe"}},"ru":{"stringUnit":{"state":"translated","value":"Тренды ScaleMe"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"观我趋势"}},"zh-Hant":{"stringUnit":{"state":"translated","value":"觀我趨勢"}}}},
+    "CFBundleName": {"comment":"Bundle name","extractionState":"extracted_with_value","localizations":{"zh-Hans":{"stringUnit":{"state":"new","value":"ScaleMeWidget"}}}}
   },
-  "version" : "1.0"
+  "version": "1.0"
 }

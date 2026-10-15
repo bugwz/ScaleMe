@@ -63,7 +63,7 @@ enum WatchExchangeSmoke {
 
     private static func record() -> WatchRecord {
         WatchRecord(id: UUID(), date: Date(timeIntervalSince1970: 100), weight: "60.25 kg",
-            details: (0..<11).map { _ in WatchMetric(title: "身体水分", value: "55.00 %") },
+            details: (0..<11).map { _ in WatchMetric(title: "体水分率", value: "55.00 %") },
             device: String(repeating: "秤", count: 160))
     }
 
