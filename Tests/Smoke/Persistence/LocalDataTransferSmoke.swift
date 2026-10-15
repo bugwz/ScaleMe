@@ -161,7 +161,7 @@ struct LocalDataTransferSmoke {
         precondition(recordSources == ["bluetoothSIG", "manual"])
         let columns = exportedObject?["columns"] as? [String]
         precondition(columns?.first == "id")
-        precondition(columns?.last == "boneMassKG")
+        precondition(columns?.last == "skeletalMuscleMassKG")
         let exportedRecords = exportedObject?["records"] as? [[Any]]
         precondition(isHyphenatedUUID(exportedRecords?.first?[0] as? String))
         precondition(exportedRecords?.first?[3] as? Int == 0)

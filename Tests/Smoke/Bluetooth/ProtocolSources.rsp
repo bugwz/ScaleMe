@@ -1,5 +1,8 @@
 ScaleMe/Core/Localization/AppLanguage.swift
 ScaleMe/Domain/Models/Models.swift
+ScaleMe/Domain/Models/AgeSpecificCalculations.swift
+ScaleMe/Domain/Models/ImpedanceCompositionRules.swift
+ScaleMe/Domain/Models/WHOBodyMassReferenceData.swift
 ScaleMe/Infrastructure/Persistence/ConfigurationFileCodec.swift
 ScaleMe/Infrastructure/Persistence/RecordFileCodec.swift
 ScaleMe/Infrastructure/Persistence/LocalDataTransferService.swift

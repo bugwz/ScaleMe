@@ -6,7 +6,8 @@ enum RecordFileCodec {
     fileprivate static let columns = [
         "id", "date", "weightKG", "profileRef", "deviceRef", "sourceRef", "isStable",
         "impedanceOhm", "secondaryImpedanceOhm", "bodyFatPercent", "muscleMassKG",
-        "waterPercent", "visceralFat", "basalMetabolismKCal", "boneMassKG"
+        "waterPercent", "visceralFat", "basalMetabolismKCal", "boneMassKG",
+        "subcutaneousFatPercent", "subcutaneousFatMassKG", "proteinPercent", "proteinMassKG", "skeletalMusclePercent", "skeletalMuscleMassKG"
     ]
 
     static func encode(_ archive: MeasurementArchive, prettyPrinted: Bool) throws -> Data {
@@ -131,7 +132,13 @@ private struct References {
             try RecordFileCodec.numberValue(record.waterPercent),
             try RecordFileCodec.numberValue(record.visceralFat),
             try RecordFileCodec.numberValue(record.basalMetabolismKCal),
-            try RecordFileCodec.numberValue(record.boneMassKG)
+            try RecordFileCodec.numberValue(record.boneMassKG),
+            try RecordFileCodec.numberValue(record.subcutaneousFatPercent),
+            try RecordFileCodec.numberValue(record.subcutaneousFatMassKG),
+            try RecordFileCodec.numberValue(record.proteinPercent),
+            try RecordFileCodec.numberValue(record.proteinMassKG),
+            try RecordFileCodec.numberValue(record.skeletalMusclePercent),
+            try RecordFileCodec.numberValue(record.skeletalMuscleMassKG)
         ]
         while case .null? = values.last { values.removeLast() }
         return .inlineArray(values)
@@ -147,7 +154,8 @@ private struct RecordDocument: Decodable {
     var deletedRecords: Set<DeletedMeasurementMarker>
 
     func archive() throws -> MeasurementArchive {
-        guard columns == RecordFileCodec.columns else {
+        // Preserve the released 15-column archive; new optional columns append only.
+        guard columns == RecordFileCodec.columns || columns == Array(RecordFileCodec.columns.prefix(15)) else {
             throw dataCorrupted("Unsupported record columns")
         }
         let entries = try records.map { row in
@@ -168,6 +176,13 @@ private struct RecordDocument: Decodable {
                 visceralFat: row.visceralFat,
                 basalMetabolismKCal: row.basalMetabolismKCal,
                 boneMassKG: row.boneMassKG,
+                subcutaneousFatPercent: row.subcutaneousFatPercent,
+                subcutaneousFatMassKG: row.subcutaneousFatMassKG,
+                proteinPercent: row.proteinPercent,
+                proteinMassKG: row.proteinMassKG,
+                skeletalMusclePercent: row.skeletalMusclePercent,
+                skeletalMuscleMassKG: row.skeletalMuscleMassKG,
+
                 source: references.sources[row.sourceRef],
                 isStable: row.isStable,
                 profileID: profileID,
@@ -217,6 +232,12 @@ private struct RecordRow: Decodable {
     var visceralFat: Double?
     var basalMetabolismKCal: Double?
     var boneMassKG: Double?
+    var subcutaneousFatPercent: Double?
+    var subcutaneousFatMassKG: Double?
+    var proteinPercent: Double?
+    var proteinMassKG: Double?
+    var skeletalMusclePercent: Double?
+    var skeletalMuscleMassKG: Double?
 
     init(from decoder: Decoder) throws {
         var values = try decoder.unkeyedContainer()
@@ -235,6 +256,13 @@ private struct RecordRow: Decodable {
         visceralFat = try Self.trailing(Double.self, from: &values)
         basalMetabolismKCal = try Self.trailing(Double.self, from: &values)
         boneMassKG = try Self.trailing(Double.self, from: &values)
+        subcutaneousFatPercent = try Self.trailing(Double.self, from: &values)
+        subcutaneousFatMassKG = try Self.trailing(Double.self, from: &values)
+        proteinPercent = try Self.trailing(Double.self, from: &values)
+        proteinMassKG = try Self.trailing(Double.self, from: &values)
+        skeletalMusclePercent = try Self.trailing(Double.self, from: &values)
+        skeletalMuscleMassKG = try Self.trailing(Double.self, from: &values)
+
         guard values.isAtEnd else {
             throw DecodingError.dataCorruptedError(
                 in: values,

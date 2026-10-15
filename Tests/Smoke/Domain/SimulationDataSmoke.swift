@@ -99,7 +99,14 @@ enum SimulationDataSmoke {
                 precondition(abs((interactive.bodyFatPercent ?? 0) - (profileBodyCompositionRecent.bodyFatPercent ?? 0)) <= 0.1,
                              "interactive simulation must follow the selected member's recent body-fat trend")
             }
-            precondition(DashboardMetricKind.allCases.allSatisfy { $0.value(in: interactive) != nil },
+            let calculated = BodyCompositionCalculation.applying(to: interactive, profile: profile)
+            precondition(calculated.applicationEstimate?.fatFreeMassKG != nil)
+            precondition(calculated.bodyFatPercent == interactive.bodyFatPercent)
+            let availableMetrics = DashboardMetricKind.allCases.filter {
+                ![DashboardMetricKind.subcutaneousFatMassKG, .subcutaneousFatPercent,
+                  .proteinMassKG, .proteinPercent, .skeletalMuscleMassKG, .skeletalMusclePercent].contains($0)
+            }
+            precondition(availableMetrics.allSatisfy { $0.value(in: calculated, profile: profile) != nil },
                          "interactive simulation must produce a complete, internally consistent result")
 
             let weightOnlyInteractive = SimulationMeasurementGenerator.make(
@@ -111,8 +118,9 @@ enum SimulationDataSmoke {
             )
             precondition(!weightOnlyInteractive.hasBodyComposition,
                          "interactive weight-only scale measurements must not contain body composition")
+            precondition(BodyCompositionCalculation.applying(to: weightOnlyInteractive, profile: profile).applicationEstimate == nil)
             precondition(weightOnlyInteractive.impedanceOhm == nil
-                            && DashboardMetricKind.allCases.allSatisfy { $0.value(in: weightOnlyInteractive) == nil },
+                            && DashboardMetricKind.allCases.filter { $0 != .bmi }.allSatisfy { $0.value(in: weightOnlyInteractive, profile: profile) == nil },
                          "interactive weight-only scale measurements must contain weight only")
         }
 
@@ -227,9 +235,12 @@ enum SimulationDataSmoke {
             }
             for measurement in measurements {
                 if measurement.deviceID == first.pairedScales.first?.id {
-                    for metric in DashboardMetricKind.allCases {
+                    let calculated = BodyCompositionCalculation.applying(to: measurement, profile: profile)
+                    for metric in DashboardMetricKind.allCases where ![DashboardMetricKind.subcutaneousFatMassKG,
+                        .subcutaneousFatPercent, .proteinMassKG, .proteinPercent,
+                        .skeletalMuscleMassKG, .skeletalMusclePercent].contains(metric) {
                         precondition(
-                            metric.value(in: measurement) != nil,
+                            metric.value(in: calculated, profile: profile) != nil,
                             "模拟体脂秤记录缺少 \(metric.title)：\(profile.name)"
                         )
                     }
@@ -238,7 +249,7 @@ enum SimulationDataSmoke {
                 } else {
                     precondition(!measurement.hasBodyComposition && measurement.impedanceOhm == nil,
                                  "模拟体重秤记录只能包含体重：\(profile.name)")
-                    precondition(DashboardMetricKind.allCases.allSatisfy { $0.value(in: measurement) == nil },
+                    precondition(DashboardMetricKind.allCases.filter { $0 != .bmi }.allSatisfy { $0.value(in: measurement, profile: profile) == nil },
                                  "模拟体重秤记录不能包含衍生身体成分：\(profile.name)")
                 }
             }

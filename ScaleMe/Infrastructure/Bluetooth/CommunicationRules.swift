@@ -141,6 +141,12 @@ struct CommunicationRuleDecoder: Codable, Equatable, Hashable {
     var visceralFat: CommunicationField?
     var basalMetabolismKCal: CommunicationField?
     var boneMassKG: CommunicationField?
+    var subcutaneousFatPercent: CommunicationField? = nil
+    var subcutaneousFatMassKG: CommunicationField? = nil
+    var proteinPercent: CommunicationField? = nil
+    var proteinMassKG: CommunicationField? = nil
+    var skeletalMusclePercent: CommunicationField? = nil
+    var skeletalMuscleMassKG: CommunicationField? = nil
     var stableWhen: CommunicationFlag?
     var removedWhen: CommunicationFlag?
     var date: CommunicationDateDecoder? = nil
@@ -693,7 +699,7 @@ enum CommunicationRuleCodec {
                 [$0.year, $0.month, $0.day, $0.hour, $0.minute, $0.second].compactMap { $0 }
             } ?? []
             let fields = [decoder.weight, decoder.impedance, decoder.bodyFatPercent, decoder.muscleMassKG,
-                          decoder.waterPercent, decoder.visceralFat, decoder.basalMetabolismKCal, decoder.boneMassKG].compactMap { $0 } + dateFields
+                          decoder.waterPercent, decoder.visceralFat, decoder.basalMetabolismKCal, decoder.boneMassKG, decoder.subcutaneousFatPercent, decoder.subcutaneousFatMassKG, decoder.proteinPercent, decoder.proteinMassKG, decoder.skeletalMusclePercent, decoder.skeletalMuscleMassKG].compactMap { $0 } + dateFields
             for field in fields {
                 guard field.offset >= 0, field.offset <= rule.match.minimumLength,
                       (1...8).contains(field.length),
@@ -861,6 +867,19 @@ struct DeclarativeCommunicationRuleParser {
         let visceral = try decoder.visceralFat.map { try value($0, bytes: bytes) }
         let metabolism = try decoder.basalMetabolismKCal.map { try value($0, bytes: bytes) }
         let bone = try decoder.boneMassKG.map { try value($0, bytes: bytes) }
+        let subcutaneousFatPercent = try decoder.subcutaneousFatPercent.map { try value($0, bytes: bytes) }
+        if let value = subcutaneousFatPercent, !value.isFinite || !(0...100).contains(value) { throw ScalePayloadError.unsupported }
+        let subcutaneousFatMassKG = try decoder.subcutaneousFatMassKG.map { try value($0, bytes: bytes) }
+        if let value = subcutaneousFatMassKG, !value.isFinite || !(0...weightKG).contains(value) { throw ScalePayloadError.unsupported }
+        let proteinPercent = try decoder.proteinPercent.map { try value($0, bytes: bytes) }
+        if let value = proteinPercent, !value.isFinite || !(0...100).contains(value) { throw ScalePayloadError.unsupported }
+        let proteinMassKG = try decoder.proteinMassKG.map { try value($0, bytes: bytes) }
+        if let value = proteinMassKG, !value.isFinite || !(0...weightKG).contains(value) { throw ScalePayloadError.unsupported }
+        let skeletalMusclePercent = try decoder.skeletalMusclePercent.map { try value($0, bytes: bytes) }
+        if let value = skeletalMusclePercent, !value.isFinite || !(0...100).contains(value) { throw ScalePayloadError.unsupported }
+        let skeletalMuscleMassKG = try decoder.skeletalMuscleMassKG.map { try value($0, bytes: bytes) }
+        if let value = skeletalMuscleMassKG, !value.isFinite || !(0...weightKG).contains(value) { throw ScalePayloadError.unsupported }
+
         guard muscle.map({ (0...350).contains($0) }) ?? true,
               water.map({ (1...100).contains($0) }) ?? true,
               visceral.map({ (0...100).contains($0) }) ?? true,
@@ -896,6 +915,13 @@ struct DeclarativeCommunicationRuleParser {
             visceralFat: visceral,
             basalMetabolismKCal: metabolism,
             boneMassKG: bone,
+            subcutaneousFatPercent: subcutaneousFatPercent,
+            subcutaneousFatMassKG: subcutaneousFatMassKG,
+            proteinPercent: proteinPercent,
+            proteinMassKG: proteinMassKG,
+            skeletalMusclePercent: skeletalMusclePercent,
+            skeletalMuscleMassKG: skeletalMuscleMassKG,
+
             source: .customProtocol,
             isStable: stable
         ))

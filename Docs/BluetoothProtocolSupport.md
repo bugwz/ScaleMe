@@ -68,7 +68,7 @@
 
 自动识别和手动指定的连接协议均不允许其他广播解析器接管测量。回归测试使用合成的重叠广播验证路由隔离，并用已有 AFU 报文 fixture 验证实时、锁定、最终阶段；合成重叠广播不代表已确认该 AFU 真机会广播这些字节，端到端行为仍需真机回归。
 
-AFU 当前已确认的字段是体重与双阻抗，不包含设备直接报告的体脂率。历史版本曾由应用推算体脂等指标，`eee4add` 已移除这项逻辑；恢复测量阶段不等于恢复这些推算值。
+AFU 当前已确认的字段是体重与双阻抗，不包含设备直接报告的体脂率。历史版本曾由应用推算体脂等指标，`eee4add` 已移除这项逻辑；目前展示层在 3.9–94 岁内按测量时小数年龄选择 Schaefer、Tyrrell、Sun 或 Wu 阻抗模型，均为设备适配尚未验证的应用估算。模型分别涉及足间或全身阻抗，AFU 通道类型、频率及不同路径间的对应关系尚未确认，因此不能声称已经匹配官方算法。第二路阻抗不参与混合计算；主阻抗缺失或无效时不退回身体质量指数估算。展示层按指标分别处理年龄：基础代谢采用 FAO/WHO/UNU 婴幼儿至老年人的分段公式；阻抗体脂在分段模型范围内估算，Sun 分支独立补算缺失水分；其他成人分支的水合比例及骨量、肌肉量、内脏脂肪经验规则不用于儿童；其中骨量、肌肉量、内脏脂肪属于未经验证的应用经验规则，不是蓝牙上报值或官方算法。公式、范围与映射假设见[数据说明](DataAndPrivacy.md)。
 
 ### Silvergear Smart Scale 108
 
@@ -131,3 +131,5 @@ Xiaomi XMTZC04HM（广播名 `MI SCALE2`）的历史通道位于 Weight Service 
 - [Bluetooth SIG Weight Scale Service 1.0.1](https://www.bluetooth.com/wp-content/uploads/Files/Specification/HTML/WSS_v1.0.1/out/en/index-en.html)
 - [Bluetooth SIG Body Composition Service 1.0](https://www.bluetooth.com/specifications/specs/body-composition-service-1-0/)
 - [Xiaomi Bluetooth Mi Scale reverse engineering](https://github.com/oliexdev/openScale/wiki/Xiaomi-Bluetooth-Mi-Scale)
+
+默认身体成分补算统一要求有效主阻抗，包含基础代谢补算；仅声明体脂能力、只有第二路阻抗或缺少阻抗时均不触发。设备/协议直接提供的指标保留，不使用 BMI 兜底。

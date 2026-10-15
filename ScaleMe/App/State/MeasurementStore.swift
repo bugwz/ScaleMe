@@ -324,10 +324,10 @@ final class MeasurementStore: ObservableObject {
 
     func displayMeasurements(for profileID: UUID) -> [BodyMeasurement] {
         if isSimulationEnabled {
-            return simulationData.measurements.filter { $0.profileID == profileID }
+            return simulationData.measurements.filter { $0.profileID == profileID }.map { calculatedDisplayMeasurement($0) }
         }
         guard isUsingPlaceholderData, profileID == Self.placeholderProfileID else {
-            return measurements(for: profileID)
+            return measurements(for: profileID).map { calculatedDisplayMeasurement($0) }
         }
         return Self.demoMeasurements.map {
             var value = $0
@@ -336,12 +336,20 @@ final class MeasurementStore: ObservableObject {
         }
     }
 
+    func calculatedDisplayMeasurement(_ measurement: BodyMeasurement) -> BodyMeasurement {
+        let profileID = measurement.profileID ?? displaySelectedProfileID
+        guard let profile = displayProfiles.first(where: { $0.id == profileID }) else { return measurement }
+        let scale = displayPairedScales.first(where: { $0.id == measurement.deviceID })
+        let decoder = scale.flatMap { effectiveCommunicationRule(for: $0)?.decoder }
+        return BodyCompositionCalculation.applying(to: measurement, profile: profile, decoder: decoder)
+    }
+
     func displayMeasurement(id: UUID) -> BodyMeasurement? {
         if isSimulationEnabled {
-            return simulationData.measurements.first(where: { $0.id == id })
+            return simulationData.measurements.first(where: { $0.id == id }).map { calculatedDisplayMeasurement($0) }
         }
         if let measurement = measurements.first(where: { $0.id == id }) {
-            return measurement
+            return calculatedDisplayMeasurement(measurement)
         }
         guard isUsingPlaceholderData else { return nil }
         return Self.demoMeasurements.first(where: { $0.id == id })

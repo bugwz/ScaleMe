@@ -161,6 +161,24 @@ private struct ConfigurationDocument: Codable {
     struct Dashboard: Codable {
         var metricOrder: [DashboardMetricKind]
         var visibleMetrics: Set<DashboardMetricKind>
+
+        private enum CodingKeys: String, CodingKey { case metricOrder, visibleMetrics }
+
+        init(from decoder: Decoder) throws {
+            let values = try decoder.container(keyedBy: CodingKeys.self)
+            metricOrder = try values.decode([DashboardMetricKind].self, forKey: .metricOrder)
+            visibleMetrics = try values.decode(Set<DashboardMetricKind>.self, forKey: .visibleMetrics)
+            for metric in DashboardMetricKind.additionalCompositionMetrics where !metricOrder.contains(metric) {
+                metricOrder.append(metric)
+                visibleMetrics.insert(metric)
+            }
+            // Released configurations predate BMI. Add it once; preserve an explicit
+            // hide on subsequent launches and every existing visibility/order choice.
+            if !metricOrder.contains(.bmi) {
+                metricOrder.insert(.bmi, at: 0)
+                visibleMetrics.insert(.bmi)
+            }
+        }
     }
 
     struct Widget: Codable {
