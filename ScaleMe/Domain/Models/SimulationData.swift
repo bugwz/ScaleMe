@@ -283,7 +283,7 @@ struct SimulationDataSnapshot {
         let deviceID = random.nextUnit() < 0.84 ? primaryScaleID : secondaryScaleID
 
         let supportsBodyComposition = deviceID == primaryScaleID
-        result.append(BodyMeasurement(
+        result.append(BodyCompositionCalculation.recording(BodyMeasurement(
             id: random.uuid(),
             date: date,
             weightKG: weightKG,
@@ -304,7 +304,7 @@ struct SimulationDataSnapshot {
             profileID: profile.id,
             deviceID: deviceID,
             deviceName: deviceID == primaryScaleID ? primaryScaleName : secondaryScaleName
-        ))
+        ), profile: profile))
     }
 
     private static func measurementMinute(

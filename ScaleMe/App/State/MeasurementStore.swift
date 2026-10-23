@@ -55,11 +55,11 @@ final class MeasurementStore: ObservableObject {
     var hasPendingMeasurements: Bool { !pendingMeasurements.isEmpty }
 
     func isMeasurementPending(_ id: UUID) -> Bool {
-        pendingMeasurements.contains { $0.raw.id == id }
+        pendingMeasurements.contains { $0.record.id == id }
     }
 
     private struct PendingMeasurement {
-        let raw: BodyMeasurement
+        let record: BodyMeasurement
         let mergesContinuousMeasurements: Bool
     }
     @Published private(set) var latestHealthShareCandidate: BodyMeasurement?
@@ -171,6 +171,11 @@ final class MeasurementStore: ObservableObject {
         configurationStorageError = configurationError
         archiveStorageError = archiveError
         latestHealthShareCandidate = nil
+        let completedRecords = fillingMissingMetricSnapshots(in: measurements, profiles: profiles, scales: pairedScales)
+        if completedRecords != measurements {
+            measurements = completedRecords
+            persistArchive()
+        }
         if isSimulationEnabled {
             var baseline = loadedConfiguration
             baseline.isSimulationEnabled = false
@@ -324,10 +329,10 @@ final class MeasurementStore: ObservableObject {
 
     func displayMeasurements(for profileID: UUID) -> [BodyMeasurement] {
         if isSimulationEnabled {
-            return simulationData.measurements.filter { $0.profileID == profileID }.map { calculatedDisplayMeasurement($0) }
+            return simulationData.measurements.filter { $0.profileID == profileID }
         }
         guard isUsingPlaceholderData, profileID == Self.placeholderProfileID else {
-            return measurements(for: profileID).map { calculatedDisplayMeasurement($0) }
+            return measurements(for: profileID)
         }
         return Self.demoMeasurements.map {
             var value = $0
@@ -337,19 +342,36 @@ final class MeasurementStore: ObservableObject {
     }
 
     func calculatedDisplayMeasurement(_ measurement: BodyMeasurement) -> BodyMeasurement {
+        if measurement.calculatedMetrics != nil { return measurement }
+        return calculatedRecord(measurement)
+    }
+
+    private func calculatedRecord(_ measurement: BodyMeasurement) -> BodyMeasurement {
         let profileID = measurement.profileID ?? displaySelectedProfileID
         guard let profile = displayProfiles.first(where: { $0.id == profileID }) else { return measurement }
         let scale = displayPairedScales.first(where: { $0.id == measurement.deviceID })
         let decoder = scale.flatMap { effectiveCommunicationRule(for: $0)?.decoder }
-        return BodyCompositionCalculation.applying(to: measurement, profile: profile, decoder: decoder)
+        return BodyCompositionCalculation.recording(measurement, profile: profile, decoder: decoder)
+    }
+
+    private func fillingMissingMetricSnapshots(
+        in records: [BodyMeasurement], profiles: [UserProfile], scales: [PairedScale]
+    ) -> [BodyMeasurement] {
+        records.map { record in
+            guard record.calculatedMetrics == nil,
+                  let profile = profiles.first(where: { $0.id == record.profileID }) else { return record }
+            let decoder = scales.first(where: { $0.id == record.deviceID })
+                .flatMap { effectiveCommunicationRule(for: $0)?.decoder }
+            return BodyCompositionCalculation.recording(record, profile: profile, decoder: decoder)
+        }
     }
 
     func displayMeasurement(id: UUID) -> BodyMeasurement? {
         if isSimulationEnabled {
-            return simulationData.measurements.first(where: { $0.id == id }).map { calculatedDisplayMeasurement($0) }
+            return simulationData.measurements.first(where: { $0.id == id })
         }
         if let measurement = measurements.first(where: { $0.id == id }) {
-            return calculatedDisplayMeasurement(measurement)
+            return measurement
         }
         guard isUsingPlaceholderData else { return nil }
         return Self.demoMeasurements.first(where: { $0.id == id })
@@ -362,6 +384,7 @@ final class MeasurementStore: ObservableObject {
                   let index = simulationData.measurements.firstIndex(where: { $0.id == measurementID }),
                   simulationData.measurements[index].profileID != profileID else { return false }
             simulationData.measurements[index].profileID = profileID
+            simulationData.measurements[index] = calculatedRecord(simulationData.measurements[index])
             simulationArchiveUpdatedAt = .now
             return true
         }
@@ -370,6 +393,7 @@ final class MeasurementStore: ObservableObject {
               let index = measurements.firstIndex(where: { $0.id == measurementID }),
               measurements[index].profileID != profileID else { return false }
         measurements[index].profileID = profileID
+        measurements[index] = calculatedRecord(measurements[index])
         persistArchive()
         return true
     }
@@ -409,11 +433,11 @@ final class MeasurementStore: ObservableObject {
             attributed.deviceName = scale.name
         }
         let pending = PendingMeasurement(
-            raw: attributed,
+            record: calculatedRecord(attributed),
             mergesContinuousMeasurements: mergeFrequentMeasurements
         )
         if retainForRetry {
-            pendingMeasurements.removeAll { $0.raw.id == attributed.id }
+            pendingMeasurements.removeAll { $0.record.id == attributed.id }
             pendingMeasurements.append(pending)
             return retryPendingMeasurements()
         }
@@ -431,8 +455,8 @@ final class MeasurementStore: ObservableObject {
 
     private func saveMeasurement(_ pending: PendingMeasurement) -> Bool {
         var snapshot = archive
-        var candidate = pending.raw
-        let measurement = pending.raw
+        var candidate = pending.record
+        let measurement = pending.record
         if let index = snapshot.measurements.firstIndex(where: { $0.id == measurement.id }) {
             snapshot.measurements[index] = measurement
         } else if pending.mergesContinuousMeasurements,
@@ -458,7 +482,7 @@ final class MeasurementStore: ObservableObject {
         measurements = snapshot.measurements
         deletedMeasurements = snapshot.deletedMeasurements
         archiveUpdatedAt = snapshot.updatedAt
-        pendingMeasurements.removeAll { $0.raw.id == pending.raw.id }
+        pendingMeasurements.removeAll { $0.record.id == pending.record.id }
         if pendingMeasurements.isEmpty { measurementSaveError = nil }
         archiveStorageError = nil
         // Only durable measurements may be published to Apple Health.
@@ -479,7 +503,7 @@ final class MeasurementStore: ObservableObject {
             attributed.profileID = currentUser.id
             attributed.deviceID = nil
             attributed.deviceName = nil
-            return attributed
+            return calculatedRecord(attributed)
         }
         guard !newMeasurements.isEmpty else { return 0 }
         measurements.append(contentsOf: newMeasurements)
@@ -507,7 +531,7 @@ final class MeasurementStore: ObservableObject {
             }
             guard let profileID = attributed.profileID,
                   profiles.contains(where: { $0.id == profileID }) else { continue }
-            measurements.append(attributed)
+            measurements.append(calculatedRecord(attributed))
         }
         guard !plan.attributedMeasurements.isEmpty else { return plan.summary }
         measurements.sort { $0.date > $1.date }
@@ -972,7 +996,7 @@ final class MeasurementStore: ObservableObject {
             deletedMeasurements: archive.deletedMeasurements
         )
         guard normalized != self.archive else { return }
-        measurements = normalized.measurements
+        measurements = fillingMissingMetricSnapshots(in: normalized.measurements, profiles: profiles, scales: pairedScales)
         deletedMeasurements = normalized.deletedMeasurements
         archiveUpdatedAt = normalized.updatedAt
         persistArchive(markAsChanged: false)
@@ -1106,7 +1130,8 @@ final class MeasurementStore: ObservableObject {
             deletedMeasurements: archive.deletedMeasurements
         )
         guard normalized != currentArchive else { return }
-        simulationData.measurements = normalized.measurements
+        simulationData.measurements = fillingMissingMetricSnapshots(in: normalized.measurements,
+            profiles: simulationData.profiles, scales: simulationData.pairedScales)
         simulationDeletedMeasurements = normalized.deletedMeasurements
         simulationArchiveUpdatedAt = normalized.updatedAt
         isSimulationHistoryLoaded = true
@@ -1248,7 +1273,7 @@ final class MeasurementStore: ObservableObject {
             attributed.deviceName = scale.name
         }
         guard simulationData.profiles.contains(where: { $0.id == simulationSelectedProfileID }) else { return }
-        let measurement = attributed
+        let measurement = calculatedRecord(attributed)
 
         if mergeFrequentMeasurements,
            let index = simulationData.measurements.firstIndex(where: {

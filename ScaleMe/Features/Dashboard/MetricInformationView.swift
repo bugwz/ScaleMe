@@ -60,9 +60,6 @@ struct MetricInformationView: View {
 
     private var explanation: String {
         switch kind {
-        case .subcutaneousFatPercent, .subcutaneousFatMassKG: "皮下脂肪是皮肤下的脂肪，比例和质量可以相互换算；不能把总脂肪量直接当作皮下脂肪量。当前没有适配本指标的全年龄统一分级。"
-        case .proteinPercent, .proteinMassKG: "蛋白质参考 PHICOMM S7 的 16%–20% 区间，本应用仅用于成人；不代表饮食摄入或血液蛋白水平。"
-        case .skeletalMusclePercent, .skeletalMuscleMassKG: "骨骼肌是参与身体运动的肌肉，与总肌肉量不同。采用 OMRON 的 18–80 岁性别和年龄参考表，按一位小数分级；其他年龄保留数值供参考。偏高不等同于优，也不是诊断结论。"
         case .fatFreeMassKG: "去脂体重采用成人 FFMI 低值参考：男性 17、女性 15 kg/m²，乘以身高平方换算质量。未偏低不代表营养正常。"
         case .bmi: "BMI 是体重与身高平方的比值，用于描述体重相对身高的水平，不能直接区分脂肪和肌肉。"
         case .bodyFatPercent, .fatMassKG: "体脂率是脂肪占体重的比例；脂肪量是对应的质量。质量范围随体重变化，状态按同次体脂率判断。"

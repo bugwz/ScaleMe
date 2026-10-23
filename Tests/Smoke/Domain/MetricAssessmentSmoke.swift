@@ -75,7 +75,7 @@ struct MetricAssessmentSmoke {
             profile.biologicalSex = sex
             for age in [17, 18, 19, 20, 39, 40, 59, 60, 79, 80, 95] {
                 profile.birthDate = calendar.date(byAdding: .year, value: -age, to: date)!
-                for kind in [DashboardMetricKind.muscleMassKG, .musclePercent, .boneMassKG, .bonePercent, .proteinMassKG, .proteinPercent] {
+                for kind in [DashboardMetricKind.muscleMassKG, .musclePercent, .boneMassKG, .bonePercent] {
                     let bands = kind.referenceBands(in: record, profile: profile)
                     let supported = [.muscleMassKG, .musclePercent].contains(kind) ? (20...79).contains(age) : age >= 18
                     precondition(bands.isEmpty != supported)
@@ -84,8 +84,6 @@ struct MetricAssessmentSmoke {
                     for (value, expected): (Double, MetricAssessment) in [(lo - 0.01, .low), (lo, .normal), (hi, .normal), (hi + 0.01, .high)] {
                         record.muscleMassKG = value
                         record.boneMassKG = value
-                        record.proteinPercent = value
-                        record.proteinMassKG = value
                         precondition(kind.assessment(in: record, profile: profile) == expected)
                     }
                 }
@@ -108,7 +106,7 @@ struct MetricAssessmentSmoke {
         record.weightKG = 80
         profile.biologicalSex = .male
         profile.birthDate = calendar.date(byAdding: .year, value: -30, to: date)!
-        for (mass, rate) in [(DashboardMetricKind.muscleMassKG, DashboardMetricKind.musclePercent), (.boneMassKG, .bonePercent), (.proteinMassKG, .proteinPercent)] {
+        for (mass, rate) in [(DashboardMetricKind.muscleMassKG, DashboardMetricKind.musclePercent), (.boneMassKG, .bonePercent)] {
             let m = mass.referenceBands(in: record, profile: profile)
             let r = rate.referenceBands(in: record, profile: profile)
             precondition(abs(m[1].lower! - r[1].lower! * 0.8) < 0.000001)
@@ -116,8 +114,6 @@ struct MetricAssessmentSmoke {
         }
         record.muscleMassKG = .infinity
         precondition(DashboardMetricKind.muscleMassKG.assessment(in: record, profile: profile) == .invalid)
-        record.proteinPercent = 101
-        precondition(DashboardMetricKind.proteinPercent.assessment(in: record, profile: profile) == .invalid)
         record.boneMassKG = nil
         precondition(DashboardMetricKind.boneMassKG.assessment(in: record, profile: profile) == .noData)
         profile.heightCM = .nan
@@ -135,6 +131,19 @@ struct MetricAssessmentSmoke {
         let reloaded = try ConfigurationFileCodec.decode(ConfigurationFileCodec.encode(hidden, prettyPrinted: false))
         precondition(reloaded.dashboardVisibleMetrics == Set([.waterPercent] + DashboardMetricKind.additionalCompositionMetrics))
         precondition(reloaded.dashboardMetricOrder == hidden.dashboardMetricOrder)
+        // Removing unsupported UI metrics must preserve the rest of a saved configuration.
+        var document = try JSONSerialization.jsonObject(with: ConfigurationFileCodec.encode(hidden, prettyPrinted: false)) as! [String: Any]
+        var dashboard = document["dashboard"] as! [String: Any]
+        let removed = ["skeletalMuscleMassKG", "skeletalMusclePercent", "subcutaneousFatMassKG",
+                       "subcutaneousFatPercent", "proteinMassKG", "proteinPercent"]
+        dashboard["metricOrder"] = (dashboard["metricOrder"] as! [String]) + removed
+        dashboard["visibleMetrics"] = (dashboard["visibleMetrics"] as! [String]) + removed
+        document["dashboard"] = dashboard
+        let cleaned = try ConfigurationFileCodec.decode(JSONSerialization.data(withJSONObject: document))
+        precondition(cleaned.dashboardMetricOrder == reloaded.dashboardMetricOrder)
+        precondition(cleaned.dashboardVisibleMetrics == reloaded.dashboardVisibleMetrics)
+        precondition(cleaned.profiles == reloaded.profiles)
+        precondition(DashboardMetricKind.allCases.count == 12)
         // Graphic boundaries must agree with status assessment, including exact cutoffs.
         profile.heightCM = 200
         for sex in UserProfile.BiologicalSex.allCases {

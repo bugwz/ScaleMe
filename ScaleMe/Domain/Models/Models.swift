@@ -155,38 +155,63 @@ struct BodyMeasurement: Identifiable, Codable, Hashable {
     var deviceID: UUID? = nil
     var deviceName: String? = nil
 
-    /// Presentation-only estimates; the record codec persists hardware/input fields only.
+    /// Saved separately from hardware/input fields to preserve measurement provenance.
     var applicationEstimate: BodyCompositionEstimate? = nil
+    var calculatedMetrics: MeasurementMetricSnapshot? = nil
 
-    var displayedBodyFatPercent: Double? { bodyFatPercent ?? applicationEstimate?.bodyFatPercent }
-    var displayedMuscleMassKG: Double? { muscleMassKG ?? applicationEstimate?.muscleMassKG }
-    var displayedWaterPercent: Double? { waterPercent ?? applicationEstimate?.waterPercent }
-    var displayedBoneMassKG: Double? { boneMassKG ?? applicationEstimate?.boneMassKG }
-    var displayedVisceralFat: Double? { visceralFat ?? applicationEstimate?.visceralFat }
-    var displayedBasalMetabolismKCal: Double? { basalMetabolismKCal ?? applicationEstimate?.basalMetabolismKCal }
+    var displayedBodyFatPercent: Double? {
+        if let snapshot = calculatedMetrics { return snapshot.values["bodyFatPercent"] }
+        return bodyFatPercent ?? applicationEstimate?.bodyFatPercent
+    }
+    var displayedMuscleMassKG: Double? {
+        if let snapshot = calculatedMetrics { return snapshot.values["muscleMassKG"] }
+        return muscleMassKG ?? applicationEstimate?.muscleMassKG
+    }
+    var displayedWaterPercent: Double? {
+        if let snapshot = calculatedMetrics { return snapshot.values["waterPercent"] }
+        return waterPercent ?? applicationEstimate?.waterPercent
+    }
+    var displayedBoneMassKG: Double? {
+        if let snapshot = calculatedMetrics { return snapshot.values["boneMassKG"] }
+        return boneMassKG ?? applicationEstimate?.boneMassKG
+    }
+    var displayedVisceralFat: Double? {
+        if let snapshot = calculatedMetrics { return snapshot.values["visceralFat"] }
+        return visceralFat ?? applicationEstimate?.visceralFat
+    }
+    var displayedBasalMetabolismKCal: Double? {
+        if let snapshot = calculatedMetrics { return snapshot.values["basalMetabolismKCal"] }
+        return basalMetabolismKCal ?? applicationEstimate?.basalMetabolismKCal
+    }
     var displayedSubcutaneousFatPercent: Double? {
+        if let snapshot = calculatedMetrics { return snapshot.values["subcutaneousFatPercent"] }
         if let subcutaneousFatPercent { return subcutaneousFatPercent }
         guard weightKG > 0 else { return nil }
         return subcutaneousFatMassKG.map { $0 / weightKG * 100 }
     }
     var displayedSubcutaneousFatMassKG: Double? {
-        subcutaneousFatMassKG ?? subcutaneousFatPercent.map { weightKG * $0 / 100 }
+        if let snapshot = calculatedMetrics { return snapshot.values["subcutaneousFatMassKG"] }
+        return subcutaneousFatMassKG ?? subcutaneousFatPercent.map { weightKG * $0 / 100 }
     }
     var displayedProteinPercent: Double? {
+        if let snapshot = calculatedMetrics { return snapshot.values["proteinPercent"] }
         if let proteinPercent { return proteinPercent }
         guard weightKG > 0 else { return nil }
         return proteinMassKG.map { $0 / weightKG * 100 }
     }
     var displayedProteinMassKG: Double? {
-        proteinMassKG ?? proteinPercent.map { weightKG * $0 / 100 }
+        if let snapshot = calculatedMetrics { return snapshot.values["proteinMassKG"] }
+        return proteinMassKG ?? proteinPercent.map { weightKG * $0 / 100 }
     }
     var displayedSkeletalMusclePercent: Double? {
+        if let snapshot = calculatedMetrics { return snapshot.values["skeletalMusclePercent"] }
         if let skeletalMusclePercent { return skeletalMusclePercent }
         guard weightKG > 0 else { return nil }
         return skeletalMuscleMassKG.map { $0 / weightKG * 100 }
     }
     var displayedSkeletalMuscleMassKG: Double? {
-        skeletalMuscleMassKG ?? skeletalMusclePercent.map { weightKG * $0 / 100 }
+        if let snapshot = calculatedMetrics { return snapshot.values["skeletalMuscleMassKG"] }
+        return skeletalMuscleMassKG ?? skeletalMusclePercent.map { weightKG * $0 / 100 }
     }
     var hasApplicationEstimates: Bool {
         DashboardMetricKind.allCases.contains { $0.usesApplicationEstimate(in: self) }
@@ -205,7 +230,17 @@ struct BodyMeasurement: Identifiable, Codable, Hashable {
         return merged
     }
 
+    func calculationProfile(fallback: UserProfile) -> UserProfile {
+        guard let snapshot = calculatedMetrics else { return fallback }
+        var profile = fallback
+        profile.heightCM = snapshot.heightCM
+        profile.birthDate = snapshot.birthDate
+        profile.biologicalSex = snapshot.sex
+        return profile
+    }
+
     func bmi(heightCM: Double) -> Double {
+        if let calculatedMetrics { return calculatedMetrics.values[DashboardMetricKind.bmi.rawValue] ?? 0 }
         guard heightCM > 0 else { return 0 }
         return weightKG / pow(heightCM / 100, 2)
     }
@@ -218,23 +253,26 @@ struct BodyMeasurement: Identifiable, Codable, Hashable {
     }
 
     var fatMassKG: Double? {
-        displayedBodyFatPercent.map { weightKG * $0 / 100 }
+        if let snapshot = calculatedMetrics { return snapshot.values["fatMassKG"] }
+        return displayedBodyFatPercent.map { weightKG * $0 / 100 }
     }
 
     var musclePercent: Double? {
+        if let snapshot = calculatedMetrics { return snapshot.values["musclePercent"] }
         guard weightKG > 0 else { return nil }
         return displayedMuscleMassKG.map { $0 / weightKG * 100 }
     }
 
     var waterMassKG: Double? {
-        displayedWaterPercent.map { weightKG * $0 / 100 }
+        if let snapshot = calculatedMetrics { return snapshot.values["waterMassKG"] }
+        return displayedWaterPercent.map { weightKG * $0 / 100 }
     }
 
     var bonePercent: Double? {
+        if let snapshot = calculatedMetrics { return snapshot.values["bonePercent"] }
         guard weightKG > 0 else { return nil }
         return displayedBoneMassKG.map { $0 / weightKG * 100 }
     }
-
 
 }
 
@@ -338,12 +376,6 @@ enum DashboardMetricKind: String, Codable, CaseIterable, Identifiable, Hashable 
     case bonePercent
     case visceralFat
     case fatFreeMassKG
-    case skeletalMuscleMassKG
-    case skeletalMusclePercent
-    case subcutaneousFatMassKG
-    case subcutaneousFatPercent
-    case proteinMassKG
-    case proteinPercent
     case basalMetabolismKCal
 
     var id: String { rawValue }
@@ -352,13 +384,6 @@ enum DashboardMetricKind: String, Codable, CaseIterable, Identifiable, Hashable 
         switch self {
         case .fatFreeMassKG: "去脂体重"
         case .bmi: "BMI"
-        case .subcutaneousFatPercent: "皮下脂肪率"
-        case .subcutaneousFatMassKG: "皮下脂肪量"
-        case .proteinPercent: "蛋白质占比"
-        case .proteinMassKG: "蛋白质含量"
-        case .skeletalMusclePercent: "骨骼肌率"
-        case .skeletalMuscleMassKG: "骨骼肌量"
-
         case .bodyFatPercent: "体脂率"
         case .fatMassKG: "脂肪量"
         case .muscleMassKG: "肌肉量"
@@ -375,8 +400,8 @@ enum DashboardMetricKind: String, Codable, CaseIterable, Identifiable, Hashable 
     var unit: String {
         switch self {
         case .bmi: "kg/m²"
-        case .bodyFatPercent, .musclePercent, .waterPercent, .bonePercent, .subcutaneousFatPercent, .proteinPercent, .skeletalMusclePercent: "%"
-        case .fatFreeMassKG, .fatMassKG, .muscleMassKG, .waterMassKG, .boneMassKG, .subcutaneousFatMassKG, .proteinMassKG, .skeletalMuscleMassKG: "kg"
+        case .bodyFatPercent, .musclePercent, .waterPercent, .bonePercent: "%"
+        case .fatFreeMassKG, .fatMassKG, .muscleMassKG, .waterMassKG, .boneMassKG: "kg"
         case .basalMetabolismKCal: "kcal"
         case .visceralFat: "级"
         }
@@ -392,30 +417,22 @@ enum DashboardMetricKind: String, Codable, CaseIterable, Identifiable, Hashable 
         case .waterPercent, .waterMassKG: "MetricWater"
         case .boneMassKG, .bonePercent: "MetricBone"
         case .visceralFat: "MetricVisceral"
-        case .subcutaneousFatPercent, .subcutaneousFatMassKG: "MetricSubcutaneous"
-        case .proteinPercent, .proteinMassKG: "MetricProtein"
-        case .skeletalMusclePercent, .skeletalMuscleMassKG: "MetricSkeletalMuscle"
         case .basalMetabolismKCal: "MetricMetabolism"
         }
     }
 
-    static let additionalCompositionMetrics: [Self] = [.fatFreeMassKG, .skeletalMuscleMassKG, .skeletalMusclePercent, .subcutaneousFatMassKG, .subcutaneousFatPercent, .proteinMassKG, .proteinPercent]
+    static let additionalCompositionMetrics: [Self] = [.fatFreeMassKG]
 
     static let defaultVisible: Set<DashboardMetricKind> = Set([.bmi, .bodyFatPercent, .muscleMassKG, .waterPercent, .basalMetabolismKCal] + additionalCompositionMetrics)
 
     func value(in measurement: BodyMeasurement, profile: UserProfile) -> Double? {
+        if let snapshot = measurement.calculatedMetrics { return snapshot.values[rawValue] }
         switch self {
         case .bmi:
             guard profile.heightCM.isFinite, profile.heightCM > 0,
                   measurement.weightKG.isFinite, measurement.weightKG > 0 else { return nil }
             let value = measurement.bmi(heightCM: profile.heightCM)
             return value.isFinite ? value : nil
-        case .subcutaneousFatPercent: return measurement.displayedSubcutaneousFatPercent
-        case .subcutaneousFatMassKG: return measurement.displayedSubcutaneousFatMassKG
-        case .proteinPercent: return measurement.displayedProteinPercent
-        case .proteinMassKG: return measurement.displayedProteinMassKG
-        case .skeletalMusclePercent: return measurement.displayedSkeletalMusclePercent
-        case .skeletalMuscleMassKG: return measurement.displayedSkeletalMuscleMassKG
         case .fatFreeMassKG: return measurement.applicationEstimate?.fatFreeMassKG
         case .bodyFatPercent: return measurement.displayedBodyFatPercent
         case .fatMassKG: return measurement.fatMassKG
@@ -434,7 +451,7 @@ enum DashboardMetricKind: String, Codable, CaseIterable, Identifiable, Hashable 
         guard let estimate = measurement.applicationEstimate else { return false }
         switch self {
         case .fatFreeMassKG: return estimate.fatFreeMassKG != nil
-        case .bmi, .subcutaneousFatPercent, .subcutaneousFatMassKG, .proteinPercent, .proteinMassKG, .skeletalMusclePercent, .skeletalMuscleMassKG: return false
+        case .bmi: return false
         case .bodyFatPercent, .fatMassKG: return measurement.usesEstimatedBodyFat
         case .muscleMassKG, .musclePercent: return measurement.muscleMassKG == nil && estimate.muscleMassKG != nil
         case .waterPercent, .waterMassKG: return measurement.waterPercent == nil && estimate.waterPercent != nil
@@ -464,10 +481,11 @@ enum MetricAssessment: String {
 
 extension DashboardMetricKind {
     func assessment(in measurement: BodyMeasurement?, profile: UserProfile) -> MetricAssessment {
+        let profile = measurement?.calculationProfile(fallback: profile) ?? profile
         guard let measurement, let value = value(in: measurement, profile: profile) else { return .noData }
         guard value.isFinite, value > 0 else { return .invalid }
         switch self {
-        case .visceralFat, .basalMetabolismKCal, .subcutaneousFatPercent, .subcutaneousFatMassKG:
+        case .visceralFat, .basalMetabolismKCal:
             // Total muscle is not appendicular skeletal muscle; scale bone mass is not
             // DXA density. Proprietary visceral indices and BMR lack transferable cutoffs.
             return .noReference
@@ -477,7 +495,7 @@ extension DashboardMetricKind {
         let age = measuredAge.years
         // Assess these references from the very same intervals drawn in the UI.
         if [.muscleMassKG, .musclePercent, .boneMassKG, .bonePercent,
-            .proteinMassKG, .proteinPercent, .fatFreeMassKG].contains(self) {
+            .fatFreeMassKG].contains(self) {
             if self != .fatFreeMassKG {
                 guard measurement.weightKG.isFinite, measurement.weightKG > 0,
                       value < (unit == "%" ? 100 : measurement.weightKG) else { return .invalid }
@@ -493,17 +511,6 @@ extension DashboardMetricKind {
             }?.status ?? .invalid
         }
         switch self {
-        case .skeletalMusclePercent, .skeletalMuscleMassKG:
-            guard (18...80).contains(age) else { return .notApplicable }
-            guard let percentage = measurement.displayedSkeletalMusclePercent,
-                  percentage.isFinite, percentage > 0, percentage < 100 else { return .invalid }
-            // OMRON's table is published to one decimal place; round before categorization.
-            let rounded = (percentage * 10).rounded() / 10
-            let cuts = Self.skeletalMuscleCutoffs(age: age, sex: profile.biologicalSex)
-            if rounded < cuts[0] { return .low }
-            if rounded < cuts[1] { return .normal }
-            if rounded < cuts[2] { return .high }
-            return .veryHigh
         case .bmi:
             return AgeSpecificBMI.assessment(bmi: value, age: measuredAge, sex: profile.biologicalSex)
         case .bodyFatPercent, .fatMassKG:
@@ -710,7 +717,32 @@ struct BodyCompositionEstimate: Codable, Hashable {
     var fractionalAge: Double? = nil
 }
 
+struct MeasurementMetricSnapshot: Codable, Hashable {
+    let heightCM: Double
+    let birthDate: Date
+    let sex: UserProfile.BiologicalSex
+    let values: [String: Double]
+}
+
 enum BodyCompositionCalculation {
+    /// Capture the values once, before the record is committed to local storage.
+    static func recording(_ measurement: BodyMeasurement, profile: UserProfile,
+                          decoder: CommunicationRuleDecoder? = nil) -> BodyMeasurement {
+        var result = applying(to: measurement, profile: profile, decoder: decoder)
+        guard result.isStable, profile.heightCM.isFinite,
+              profile.birthDate.timeIntervalSinceReferenceDate.isFinite else { return result }
+        var values: [String: Double] = [:]
+        for metric in DashboardMetricKind.allCases {
+            if let value = metric.value(in: result, profile: profile), value.isFinite {
+                values[metric.rawValue] = value
+            }
+        }
+        if let energy = result.applicationEstimate?.restingEnergyKCal { values["restingEnergyKCal"] = energy }
+        result.calculatedMetrics = MeasurementMetricSnapshot(heightCM: profile.heightCM,
+            birthDate: profile.birthDate, sex: profile.biologicalSex, values: values)
+        return result
+    }
+
     static func supportsEstimation(_ measurement: BodyMeasurement, decoder: CommunicationRuleDecoder? = nil) -> Bool {
         // A product name alone is not evidence of body-composition capability.
         guard ![MeasurementSource.manual, .appleHealth].contains(measurement.source) else { return false }
@@ -726,7 +758,8 @@ enum BodyCompositionCalculation {
     static func applying(to measurement: BodyMeasurement, profile: UserProfile,
                          decoder: CommunicationRuleDecoder? = nil) -> BodyMeasurement {
         var result = measurement
-        // Recompute from raw data after profile changes; never reuse another owner's estimates.
+        // Explicit calculation starts from raw values, never another owner's snapshot.
+        result.calculatedMetrics = nil
         result.applicationEstimate = nil
         guard measurement.isStable, supportsEstimation(measurement, decoder: decoder),
               measurement.weightKG.isFinite, measurement.weightKG > 0,
@@ -829,6 +862,7 @@ struct MetricReferenceBand {
 
 extension DashboardMetricKind {
     func referenceBands(in measurement: BodyMeasurement?, profile: UserProfile) -> [MetricReferenceBand] {
+        let profile = measurement?.calculationProfile(fallback: profile) ?? profile
         guard let measurement,
               let age = MeasurementAge(birthDate: profile.birthDate, measurementDate: measurement.date) else { return [] }
         var cuts: [Double]
@@ -852,12 +886,6 @@ extension DashboardMetricKind {
             // not a claim that the manufacturer validated every adult age.
             guard age.years >= 18 else { return [] }
             cuts = profile.biologicalSex == .male ? [3, 5] : [2.5, 4]
-            statuses = [.low, .normal, .high]
-            upperInclusiveFrom = 1
-        case .proteinMassKG, .proteinPercent:
-            // PHICOMM S7 product reference, restricted to adults by this app.
-            guard age.years >= 18 else { return [] }
-            cuts = [16, 20]
             statuses = [.low, .normal, .high]
             upperInclusiveFrom = 1
         case .fatFreeMassKG:
@@ -889,11 +917,6 @@ extension DashboardMetricKind {
             case (.female, _): cuts = [24, 36, 42]
             }
             statuses = [.low, .normal, .high, .veryHigh]
-        case .skeletalMusclePercent, .skeletalMuscleMassKG:
-            guard (18...80).contains(age.years) else { return [] }
-            // Half-step cutoffs match one-decimal rounding in the assessment table.
-            cuts = Self.skeletalMuscleCutoffs(age: age.years, sex: profile.biologicalSex).map { $0 - 0.05 }
-            statuses = [.low, .normal, .high, .veryHigh]
         case .waterPercent, .waterMassKG:
             guard age.years >= 18 else { return [] }
             cuts = profile.biologicalSex == .male ? [50, 65] : [45, 60]
@@ -901,7 +924,7 @@ extension DashboardMetricKind {
             upperInclusiveFrom = 1
         default: return []
         }
-        if [.fatMassKG, .waterMassKG, .skeletalMuscleMassKG, .muscleMassKG, .boneMassKG, .proteinMassKG].contains(self) {
+        if [.fatMassKG, .waterMassKG, .muscleMassKG, .boneMassKG].contains(self) {
             guard measurement.weightKG.isFinite, measurement.weightKG > 0 else { return [] }
             cuts = cuts.map { $0 * measurement.weightKG / 100 }
         }
@@ -911,19 +934,6 @@ extension DashboardMetricKind {
                 upper: index == cuts.count ? nil : cuts[index],
                 includesLower: upperInclusiveFrom.map { index <= $0 } ?? true,
                 includesUpper: upperInclusiveFrom.map { index >= $0 } ?? false)
-        }
-    }
-}
-
-extension DashboardMetricKind {
-    private static func skeletalMuscleCutoffs(age: Int, sex: UserProfile.BiologicalSex) -> [Double] {
-        switch (sex, age) {
-        case (.male, 18...39): [33.3, 39.4, 44.1]
-        case (.male, 40...59): [33.1, 39.2, 43.9]
-        case (.male, _): [32.9, 39.0, 43.7]
-        case (.female, 18...39): [24.3, 30.4, 35.4]
-        case (.female, 40...59): [24.1, 30.2, 35.2]
-        case (.female, _): [23.9, 30.0, 35.0]
         }
     }
 }

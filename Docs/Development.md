@@ -81,6 +81,7 @@ swiftc -module-cache-path /tmp/scaleme-swift-module-cache \
 | 发现分类 | `Tests/Smoke/Bluetooth/DiscoveryClassifierSmoke.swift` |
 | 设备设置命令 | `Tests/Smoke/Bluetooth/DeviceConfigurationSmoke.swift` |
 | 趋势分析 | `Tests/Smoke/Domain/TrendAnalysisSmoke.swift` |
+| AFU 最终包补齐阻抗、计算、落盘与导出 | `Tests/Smoke/Persistence/AFUMeasurementSaveSmoke.swift` |
 | 测量保存失败、重试与健康共享时序 | `Tests/Smoke/Persistence/MeasurementSaveSmoke.swift` |
 | 本地受保护存储 | `Tests/Smoke/Persistence/StorageSmoke.swift` |
 | 本地数据传输 | `Tests/Smoke/Persistence/LocalDataTransferSmoke.swift` |

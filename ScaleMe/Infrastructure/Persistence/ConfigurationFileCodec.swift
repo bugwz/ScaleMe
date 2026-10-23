@@ -166,8 +166,8 @@ private struct ConfigurationDocument: Codable {
 
         init(from decoder: Decoder) throws {
             let values = try decoder.container(keyedBy: CodingKeys.self)
-            metricOrder = try values.decode([DashboardMetricKind].self, forKey: .metricOrder)
-            visibleMetrics = try values.decode(Set<DashboardMetricKind>.self, forKey: .visibleMetrics)
+            metricOrder = try values.decode([String].self, forKey: .metricOrder).compactMap(DashboardMetricKind.init(rawValue:))
+            visibleMetrics = Set(try values.decode([String].self, forKey: .visibleMetrics).compactMap(DashboardMetricKind.init(rawValue:)))
             for metric in DashboardMetricKind.additionalCompositionMetrics where !metricOrder.contains(metric) {
                 metricOrder.append(metric)
                 visibleMetrics.insert(metric)
@@ -220,6 +220,7 @@ indirect enum OrderedJSONValue {
     case number(String)
     case bool(Bool)
     case null
+    case encodedJSON(String)
 
     static func encoded<T: Encodable>(_ value: T) throws -> OrderedJSONValue {
         let encoder = JSONEncoder()
@@ -248,6 +249,7 @@ indirect enum OrderedJSONValue {
 
     func rendered(prettyPrinted: Bool, depth: Int = 0) -> String {
         switch self {
+        case .encodedJSON(let json): return json
         case .object(let pairs):
             guard !pairs.isEmpty else { return "{}" }
             if !prettyPrinted {

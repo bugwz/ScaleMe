@@ -40,7 +40,7 @@ struct DataInformationView: View {
                 SettingsPanel(title: "计算方法", icon: "function") {
                     CalculationText("优先展示设备经通信协议解析的数据，以及手动录入或导入的原始值；同一成分的质量与比例可按体重换算。")
                     CalculationText("仍缺少的指标，仅在体脂秤提供有效主阻抗且满足年龄、资料条件时按应用规则补算。普通体重秤或无主阻抗时不补算身体成分；BMI 单独按体重和身高计算。")
-                    CalculationText("估算按当前成员身高、性别和测量时年龄重算，不覆盖原始记录，也不作为设备体脂率同步到 Apple 健康。")
+                    CalculationText("测量保存时计算并保存指标，导出 JSON 包含计算结果。修改成员资料不会自动重算历史结果；估算不作为设备体脂率同步到 Apple 健康。")
                     ForEach(CalculationMethod.all) { method in
                         Divider()
                         NavigationLink {

@@ -102,10 +102,7 @@ enum SimulationDataSmoke {
             let calculated = BodyCompositionCalculation.applying(to: interactive, profile: profile)
             precondition(calculated.applicationEstimate?.fatFreeMassKG != nil)
             precondition(calculated.bodyFatPercent == interactive.bodyFatPercent)
-            let availableMetrics = DashboardMetricKind.allCases.filter {
-                ![DashboardMetricKind.subcutaneousFatMassKG, .subcutaneousFatPercent,
-                  .proteinMassKG, .proteinPercent, .skeletalMuscleMassKG, .skeletalMusclePercent].contains($0)
-            }
+            let availableMetrics = DashboardMetricKind.allCases
             precondition(availableMetrics.allSatisfy { $0.value(in: calculated, profile: profile) != nil },
                          "interactive simulation must produce a complete, internally consistent result")
 
@@ -236,9 +233,7 @@ enum SimulationDataSmoke {
             for measurement in measurements {
                 if measurement.deviceID == first.pairedScales.first?.id {
                     let calculated = BodyCompositionCalculation.applying(to: measurement, profile: profile)
-                    for metric in DashboardMetricKind.allCases where ![DashboardMetricKind.subcutaneousFatMassKG,
-                        .subcutaneousFatPercent, .proteinMassKG, .proteinPercent,
-                        .skeletalMuscleMassKG, .skeletalMusclePercent].contains(metric) {
+                    for metric in DashboardMetricKind.allCases {
                         precondition(
                             metric.value(in: calculated, profile: profile) != nil,
                             "模拟体脂秤记录缺少 \(metric.title)：\(profile.name)"

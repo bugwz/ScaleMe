@@ -82,7 +82,7 @@ final class WolaiAFUProtocolSession: ScaleConnectedProtocolSession,
     }
 
     private var didInitialize = false
-    private var didCompleteFinal = false
+    private var completedFinal: BodyMeasurement?
     private var historySession: WolaiAFUScaleHistorySession?
     private var didStartHistoryRequest = false
 
@@ -194,8 +194,8 @@ final class WolaiAFUProtocolSession: ScaleConnectedProtocolSession,
         switch packet.phase {
         case .live:
             var actions: [ScaleProtocolAction] = []
-            if didCompleteFinal {
-                didCompleteFinal = false
+            if completedFinal != nil {
+                completedFinal = nil
                 actions.append(.resetMeasurement)
             }
             actions.append(.reportLiveMeasurement(
@@ -205,18 +205,32 @@ final class WolaiAFUProtocolSession: ScaleConnectedProtocolSession,
             ))
             return actions
         case .stable:
-            guard !didCompleteFinal else { return [] }
+            guard completedFinal == nil else { return [] }
             return [.reportLiveMeasurement(
                 packet.measurement,
                 phase: .measuringBodyComposition,
                 loadCycle: .protocolManaged
             )]
         case .final:
-            guard !didCompleteFinal else { return [] }
-            didCompleteFinal = true
+            var measurement = packet.measurement
+            if let previous = completedFinal {
+                // D6 may first report zero impedance. Accept newly available channels
+                // for this result without creating another record or copying values
+                // between load cycles. A live frame explicitly starts the next cycle.
+                guard abs(previous.weightKG - measurement.weightKG) < 0.001,
+                      (0...20).contains(measurement.date.timeIntervalSince(previous.date)),
+                      (previous.impedanceOhm == nil && measurement.impedanceOhm != nil)
+                        || (previous.secondaryImpedanceOhm == nil && measurement.secondaryImpedanceOhm != nil)
+                else { return [] }
+                measurement.id = previous.id
+                measurement.date = previous.date
+                measurement.impedanceOhm = previous.impedanceOhm ?? measurement.impedanceOhm
+                measurement.secondaryImpedanceOhm = previous.secondaryImpedanceOhm ?? measurement.secondaryImpedanceOhm
+            }
+            completedFinal = measurement
             return [
                 .write(command(payload: WolaiAFUScaleAdapter.makeFinalAcknowledgement())),
-                .emit(.measurement(packet.measurement), reliability: .protocolFinal)
+                .emit(.measurement(measurement), reliability: .protocolFinal)
             ]
         }
     }
@@ -267,7 +281,7 @@ final class WolaiAFUProtocolSession: ScaleConnectedProtocolSession,
 
     private func reset() {
         didInitialize = false
-        didCompleteFinal = false
+        completedFinal = nil
         resetHistory()
     }
 

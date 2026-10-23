@@ -643,12 +643,6 @@ struct MeasurementDetailView: View {
         append(currentMeasurement.bonePercent, name: "骨量占比", suffix: "%", to: &metrics)
         append(currentMeasurement.displayedVisceralFat, name: "内脏脂肪等级", suffix: "", to: &metrics)
         append(currentMeasurement.applicationEstimate?.fatFreeMassKG, name: "去脂体重", suffix: " kg", to: &metrics)
-        append(currentMeasurement.displayedSkeletalMuscleMassKG, name: "骨骼肌量", suffix: " kg", to: &metrics)
-        append(currentMeasurement.displayedSkeletalMusclePercent, name: "骨骼肌率", suffix: "%", to: &metrics)
-        append(currentMeasurement.displayedSubcutaneousFatMassKG, name: "皮下脂肪量", suffix: " kg", to: &metrics)
-        append(currentMeasurement.displayedSubcutaneousFatPercent, name: "皮下脂肪率", suffix: "%", to: &metrics)
-        append(currentMeasurement.displayedProteinMassKG, name: "蛋白质含量", suffix: " kg", to: &metrics)
-        append(currentMeasurement.displayedProteinPercent, name: "蛋白质占比", suffix: "%", to: &metrics)
         append(currentMeasurement.displayedBasalMetabolismKCal, name: "基础代谢", suffix: " kcal", to: &metrics)
         append(currentMeasurement.applicationEstimate?.restingEnergyKCal, name: "静息能量消耗", suffix: " kcal", to: &metrics)
         return metrics

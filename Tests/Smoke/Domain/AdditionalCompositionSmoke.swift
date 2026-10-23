@@ -47,32 +47,6 @@ struct AdditionalCompositionSmoke {
                 preconditionFailure("Invalid new field accepted")
             } catch ScalePayloadError.unsupported { }
         }
-        let calendar = Calendar.current
-        record.isStable = true
-        for sex in UserProfile.BiologicalSex.allCases {
-            for age in [0, 17, 18, 39, 40, 59, 60, 80, 81, 100] {
-                let profile = UserProfile(birthDate: calendar.date(byAdding: .year, value: -age, to: record.date)!, biologicalSex: sex)
-                record.skeletalMuscleMassKG = nil
-                record.skeletalMusclePercent = 35
-                let bands = DashboardMetricKind.skeletalMusclePercent.referenceBands(in: record, profile: profile)
-                if !(18...80).contains(age) {
-                    precondition(bands.isEmpty)
-                    precondition(DashboardMetricKind.skeletalMusclePercent.assessment(in: record, profile: profile) == .notApplicable)
-                    continue
-                }
-                precondition(bands.count == 4)
-                for cutoff in bands.compactMap(\.upper) {
-                    for percentage in [cutoff - 0.001, cutoff + 0.001] {
-                        record.skeletalMusclePercent = percentage
-                        let band = bands.first { ($0.lower ?? 0) <= percentage && percentage < ($0.upper ?? 100) }!
-                        precondition(DashboardMetricKind.skeletalMusclePercent.assessment(in: record, profile: profile) == band.status)
-                        precondition(DashboardMetricKind.skeletalMuscleMassKG.assessment(in: record, profile: profile) == band.status)
-                    }
-                }
-                record.skeletalMusclePercent = nil
-                precondition(DashboardMetricKind.skeletalMusclePercent.assessment(in: record, profile: profile) == .noData)
-            }
-        }
         print("Additional composition smoke checks passed")
     }
 }

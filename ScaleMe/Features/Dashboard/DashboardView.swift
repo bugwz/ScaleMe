@@ -495,9 +495,6 @@ struct DashboardView: View {
 extension DashboardMetricKind {
     var themeColor: Color {
         switch self {
-        case .subcutaneousFatPercent, .subcutaneousFatMassKG: AppColor.trendBodyFat
-        case .proteinPercent, .proteinMassKG: AppColor.mint
-        case .skeletalMusclePercent, .skeletalMuscleMassKG: AppColor.trendMuscleMass
         case .fatFreeMassKG: AppColor.trendMuscleMass
         case .bmi: AppColor.trendBMI
         case .bodyFatPercent: AppColor.trendBodyFat

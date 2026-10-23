@@ -7,7 +7,8 @@ enum RecordFileCodec {
         "id", "date", "weightKG", "profileRef", "deviceRef", "sourceRef", "isStable",
         "impedanceOhm", "secondaryImpedanceOhm", "bodyFatPercent", "muscleMassKG",
         "waterPercent", "visceralFat", "basalMetabolismKCal", "boneMassKG",
-        "subcutaneousFatPercent", "subcutaneousFatMassKG", "proteinPercent", "proteinMassKG", "skeletalMusclePercent", "skeletalMuscleMassKG"
+        "subcutaneousFatPercent", "subcutaneousFatMassKG", "proteinPercent", "proteinMassKG", "skeletalMusclePercent", "skeletalMuscleMassKG",
+        "applicationEstimate", "calculatedMetrics"
     ]
 
     static func encode(_ archive: MeasurementArchive, prettyPrinted: Bool) throws -> Data {
@@ -34,6 +35,15 @@ enum RecordFileCodec {
             ))
         }
         return try document.archive()
+    }
+
+    // Keep JSONEncoder's exact Double representation. Bridging through NSNumber
+    // can round calculated values, changing the saved snapshot on a round trip.
+    fileprivate static func snapshotValue<T: Encodable>(_ value: T?) throws -> OrderedJSONValue {
+        guard let value else { return .null }
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.sortedKeys]
+        return .encodedJSON(String(decoding: try encoder.encode(value), as: UTF8.self))
     }
 
     fileprivate static func dateValue(_ value: Date) throws -> OrderedJSONValue {
@@ -138,7 +148,9 @@ private struct References {
             try RecordFileCodec.numberValue(record.proteinPercent),
             try RecordFileCodec.numberValue(record.proteinMassKG),
             try RecordFileCodec.numberValue(record.skeletalMusclePercent),
-            try RecordFileCodec.numberValue(record.skeletalMuscleMassKG)
+            try RecordFileCodec.numberValue(record.skeletalMuscleMassKG),
+            try RecordFileCodec.snapshotValue(record.applicationEstimate),
+            try RecordFileCodec.snapshotValue(record.calculatedMetrics)
         ]
         while case .null? = values.last { values.removeLast() }
         return .inlineArray(values)
@@ -155,7 +167,7 @@ private struct RecordDocument: Decodable {
 
     func archive() throws -> MeasurementArchive {
         // Preserve the released 15-column archive; new optional columns append only.
-        guard columns == RecordFileCodec.columns || columns == Array(RecordFileCodec.columns.prefix(15)) else {
+        guard columns == RecordFileCodec.columns || columns == Array(RecordFileCodec.columns.prefix(21)) || columns == Array(RecordFileCodec.columns.prefix(15)) else {
             throw dataCorrupted("Unsupported record columns")
         }
         let entries = try records.map { row in
@@ -187,7 +199,9 @@ private struct RecordDocument: Decodable {
                 isStable: row.isStable,
                 profileID: profileID,
                 deviceID: device?.id,
-                deviceName: device?.name
+                deviceName: device?.name,
+                applicationEstimate: row.applicationEstimate,
+                calculatedMetrics: row.calculatedMetrics
             )
         }
         return MeasurementArchive(
@@ -239,6 +253,9 @@ private struct RecordRow: Decodable {
     var skeletalMusclePercent: Double?
     var skeletalMuscleMassKG: Double?
 
+    var applicationEstimate: BodyCompositionEstimate?
+    var calculatedMetrics: MeasurementMetricSnapshot?
+
     init(from decoder: Decoder) throws {
         var values = try decoder.unkeyedContainer()
         id = try values.decode(UUID.self)
@@ -262,6 +279,8 @@ private struct RecordRow: Decodable {
         proteinMassKG = try Self.trailing(Double.self, from: &values)
         skeletalMusclePercent = try Self.trailing(Double.self, from: &values)
         skeletalMuscleMassKG = try Self.trailing(Double.self, from: &values)
+        applicationEstimate = try Self.trailing(BodyCompositionEstimate.self, from: &values)
+        calculatedMetrics = try Self.trailing(MeasurementMetricSnapshot.self, from: &values)
 
         guard values.isAtEnd else {
             throw DecodingError.dataCorruptedError(

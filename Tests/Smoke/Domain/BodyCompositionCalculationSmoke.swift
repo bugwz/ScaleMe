@@ -78,7 +78,7 @@ struct BodyCompositionCalculationSmoke {
         precondition(suppliedDisplay.displayedMuscleMassKG == 55 && suppliedDisplay.displayedWaterPercent == 54)
         precondition(suppliedDisplay.displayedBoneMassKG == 3 && suppliedDisplay.displayedVisceralFat == 8)
         precondition(suppliedDisplay.displayedBasalMetabolismKCal == 1700)
-        precondition(!suppliedDisplay.hasApplicationEstimates)
+        precondition(!suppliedDisplay.usesEstimatedBodyFat)
         // A supplied bone value takes precedence when deriving missing muscle mass.
         supplied.muscleMassKG = nil
         let mixed = BodyCompositionCalculation.applying(to: supplied, profile: profile)
@@ -146,7 +146,7 @@ struct BodyCompositionCalculationSmoke {
         }
         let archive = MeasurementArchive(updatedAt: date, measurements: [display], deletedMeasurements: [])
         let restored = try RecordFileCodec.decode(RecordFileCodec.encode(archive, prettyPrinted: true))
-        precondition(restored.measurements[0].applicationEstimate == nil)
+        precondition(restored.measurements[0].applicationEstimate == display.applicationEstimate)
         precondition(restored.measurements[0].bodyFatPercent == nil)
         precondition(restored.measurements[0].impedanceOhm == 500)
         precondition(restored.measurements[0].muscleMassKG == nil && restored.measurements[0].waterPercent == nil)
