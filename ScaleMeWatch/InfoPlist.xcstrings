@@ -1,8 +1,0 @@
-{
-  "sourceLanguage": "zh-Hans",
-  "strings": {
-    "CFBundleDisplayName": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"ScaleMe"}},"en":{"stringUnit":{"state":"translated","value":"ScaleMe"}},"es":{"stringUnit":{"state":"translated","value":"ScaleMe"}},"fr":{"stringUnit":{"state":"translated","value":"ScaleMe"}},"ja":{"stringUnit":{"state":"translated","value":"ScaleMe"}},"ko":{"stringUnit":{"state":"translated","value":"ScaleMe"}},"pt":{"stringUnit":{"state":"translated","value":"ScaleMe"}},"ru":{"stringUnit":{"state":"translated","value":"ScaleMe"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"观我"}},"zh-Hant":{"stringUnit":{"state":"translated","value":"觀我"}}}},
-    "CFBundleName": {"comment":"Bundle name","extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"ScaleMeWatch"}},"de":{"stringUnit":{"state":"translated","value":"ScaleMeWatch"}},"en":{"stringUnit":{"state":"translated","value":"ScaleMeWatch"}},"es":{"stringUnit":{"state":"translated","value":"ScaleMeWatch"}},"fr":{"stringUnit":{"state":"translated","value":"ScaleMeWatch"}},"ja":{"stringUnit":{"state":"translated","value":"ScaleMeWatch"}},"ko":{"stringUnit":{"state":"translated","value":"ScaleMeWatch"}},"pt":{"stringUnit":{"state":"translated","value":"ScaleMeWatch"}},"ru":{"stringUnit":{"state":"translated","value":"ScaleMeWatch"}},"zh-Hant":{"stringUnit":{"state":"translated","value":"ScaleMeWatch"}}}}
-  },
-  "version": "1.0"
-}

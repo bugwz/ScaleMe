@@ -33,7 +33,6 @@ struct ScaleMeApp: App {
     @Environment(\.scenePhase) private var scenePhase
     @StateObject private var store = MeasurementStore()
     @StateObject private var bluetooth = BluetoothScaleCoordinator()
-    @StateObject private var watchBridge = PhoneWatchBridge()
     @StateObject private var appleHealth = AppleHealthManager()
     @State private var isShowingLaunchScreen = true
     @State private var isLeavingLaunchScreen = false
@@ -100,7 +99,6 @@ struct ScaleMeApp: App {
                 }
             }
             .task {
-                watchBridge.configure(store: store)
                 store.prepareSimulationDataIfNeeded()
                 bluetooth.updatePairedScales(store.pairedScales, communicationRules: store.communicationRules)
                 appleHealth.refreshWriteAuthorizationStates()
