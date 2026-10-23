@@ -45,6 +45,8 @@ struct LocalizationSmoke {
         precondition(AppLanguageSelection.system.resolvedLanguage == AppLanguage.systemDefault)
 
         let requiredLocalizedKeys = [
+            "年龄范围按测量当天计算：阻抗体脂估算支持 3.9–94 岁（含边界，按小数年龄）；肌肉、骨量和内脏脂肪估算限 18 岁及以上；静息能量消耗估算限 19–78 周岁。",
+            "BMI 计算不设年龄限制；基础代谢公式从 0 岁起分段，未设年龄上限。以上补算仍需满足数据条件，不保证每个年龄都能获得全部指标。计算与评价范围不同，例如体脂率状态仅评价 20–79 周岁。",
             "儿童阻抗研究 · Schaefer",
             "儿童足间阻抗研究 · Tyrrell",
             "宽年龄阻抗研究 · Sun",

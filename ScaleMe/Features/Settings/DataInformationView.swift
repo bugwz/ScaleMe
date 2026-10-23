@@ -41,6 +41,8 @@ struct DataInformationView: View {
                     CalculationText("优先展示设备经通信协议解析的数据，以及手动录入或导入的原始值；同一成分的质量与比例可按体重换算。")
                     CalculationText("仍缺少的指标，仅在体脂秤提供有效主阻抗且满足年龄、资料条件时按应用规则补算。普通体重秤或无主阻抗时不补算身体成分；BMI 单独按体重和身高计算。")
                     CalculationText("测量保存时计算并保存指标，导出 JSON 包含计算结果。修改成员资料不会自动重算历史结果；估算不作为设备体脂率同步到 Apple 健康。")
+                    CalculationText("年龄范围按测量当天计算：阻抗体脂估算支持 3.9–94 岁（含边界，按小数年龄）；肌肉、骨量和内脏脂肪估算限 18 岁及以上；静息能量消耗估算限 19–78 周岁。")
+                    CalculationText("BMI 计算不设年龄限制；基础代谢公式从 0 岁起分段，未设年龄上限。以上补算仍需满足数据条件，不保证每个年龄都能获得全部指标。计算与评价范围不同，例如体脂率状态仅评价 20–79 周岁。")
                     ForEach(CalculationMethod.all) { method in
                         Divider()
                         NavigationLink {
