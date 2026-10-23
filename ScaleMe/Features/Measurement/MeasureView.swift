@@ -28,18 +28,14 @@ struct MeasureView: View {
     @State private var simulatedWeightKG: Double?
     @State private var simulationMeasurementTask: Task<Void, Never>?
     @State private var detailMeasurement: BodyMeasurement?
+    @State private var completedMeasurement: BodyMeasurement?
+    @State private var hasRestoredMeasurement = false
     let scrollToTopRequest: Int
 
     private var liveMeasurement: BodyMeasurement? {
-        if store.isSimulationEnabled {
-            guard simulationState == .completed else { return nil }
-            return store.latest
-        }
-        guard isMeasurementViewActive, !store.isUsingPlaceholderData,
-              bluetooth.state == .completed else { return nil }
-        return bluetooth.latestMeasurement.map {
-            store.displayMeasurement(id: $0.id) ?? store.calculatedDisplayMeasurement($0)
-        }
+        guard let completedMeasurement else { return nil }
+        return store.displayMeasurement(id: completedMeasurement.id)
+            ?? store.calculatedDisplayMeasurement(completedMeasurement)
     }
 
     private var profileOptions: [TrendDropdownOption<UUID>] {
@@ -110,6 +106,7 @@ struct MeasureView: View {
             }
             .onAppear {
                 isPulsing = true
+                restoreLastMeasurementIfNeeded()
                 selectFirstScaleIfNeeded()
                 isMeasurementViewActive = true
                 if store.isSimulationEnabled {
@@ -124,6 +121,12 @@ struct MeasureView: View {
                 simulationMeasurementTask?.cancel()
                 bluetooth.stopMeasurementMonitoring()
             }
+            .onReceive(bluetooth.$latestMeasurement) { measurement in
+                guard isMeasurementViewActive, !store.isSimulationEnabled,
+                      let measurement,
+                      completedMeasurement == nil || completedMeasurement?.id == measurement.id else { return }
+                completedMeasurement = measurement
+            }
             .onChange(of: store.pairedScales) {
                 guard !store.isSimulationEnabled else { return }
                 bluetooth.updatePairedScales(store.pairedScales, communicationRules: store.communicationRules)
@@ -131,6 +134,7 @@ struct MeasureView: View {
                 startMeasurementMonitoring()
             }
             .onChange(of: store.isSimulationEnabled) { _, isEnabled in
+                completedMeasurement = nil
                 selectFirstScaleIfNeeded()
                 if isEnabled {
                     bluetooth.stopMeasurementMonitoring()
@@ -295,6 +299,8 @@ struct MeasureView: View {
                 .offset(y: -8)
             }
             .frame(maxWidth: .infinity)
+            .contentShape(Circle())
+            .onTapGesture(perform: beginNewMeasurement)
 
             AppLocalizedText(statusText)
                 .font(.subheadline)
@@ -308,10 +314,10 @@ struct MeasureView: View {
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(store.appLanguage.text(.measure))
         .accessibilityValue(measurementStageAccessibilityValue)
+        .accessibilityAddTraits(.isButton)
+        .accessibilityAction { beginNewMeasurement() }
         .accessibilityActions {
-            if store.isSimulationEnabled {
-                Button(store.appLanguage.text("模拟一次测量"), action: runSimulatedMeasurement)
-            }
+            Button(store.appLanguage.text(store.isSimulationEnabled ? "模拟一次测量" : "开始测量"), action: beginNewMeasurement)
         }
     }
 
@@ -405,7 +411,37 @@ struct MeasureView: View {
         .accessibilityReturnFocus(when: showScaleDropdown)
     }
 
+    private func restoreLastMeasurementIfNeeded() {
+        guard !hasRestoredMeasurement else { return }
+        hasRestoredMeasurement = true
+        guard !store.isSimulationEnabled, !store.isUsingPlaceholderData else { return }
+        completedMeasurement = store.measurements
+            .filter { record in
+                guard record.isStable else { return false }
+                switch record.source {
+                case .manual, .appleHealth, .demo: return false
+                default: return true
+                }
+            }
+            .max(by: { $0.date < $1.date })
+        if let deviceID = completedMeasurement?.deviceID,
+           store.pairedScales.contains(where: { $0.id == deviceID }) {
+            selectedScaleID = deviceID
+        }
+    }
+
+    private func beginNewMeasurement() {
+        guard isMeasurementViewActive, !store.isUsingPlaceholderData else { return }
+        completedMeasurement = nil
+        if store.isSimulationEnabled {
+            runSimulatedMeasurement()
+        } else {
+            startMeasurementMonitoring()
+        }
+    }
+
     private func startMeasurementMonitoring() {
+        guard isMeasurementViewActive, completedMeasurement == nil else { return }
         guard !store.isUsingPlaceholderData,
               let selectedScaleID,
               store.pairedScales.contains(where: { $0.id == selectedScaleID }) else {
@@ -427,6 +463,7 @@ struct MeasureView: View {
     }
 
     private var displayedWeightKG: Double? {
+        if let completedMeasurement { return completedMeasurement.weightKG }
         if store.isSimulationEnabled { return simulatedDisplayWeightKG }
         guard isMeasurementViewActive, !store.isUsingPlaceholderData else { return nil }
         return bluetooth.liveWeightKG
@@ -438,12 +475,13 @@ struct MeasureView: View {
     }
 
     private var isCurrentMeasurementPending: Bool {
-        guard !store.isSimulationEnabled, let measurement = bluetooth.latestMeasurement else { return false }
+        guard !store.isSimulationEnabled, let measurement = completedMeasurement else { return false }
         return store.isMeasurementPending(measurement.id)
     }
 
     private var statusText: String {
         if isCurrentMeasurementPending { return "未保存" }
+        if completedMeasurement != nil { return "点击上方圆环，重新测量" }
         if store.isSimulationEnabled { return simulationState.title(in: store.appLanguage) }
         if store.isUsingPlaceholderData { return "需要成员资料" }
         if store.pairedScales.isEmpty { return "请先在“设备”页添加体重秤" }
@@ -451,6 +489,7 @@ struct MeasureView: View {
     }
 
     private var displayedMeasurementState: BluetoothScaleState {
+        if completedMeasurement != nil { return .completed }
         if store.isSimulationEnabled { return simulationState }
         guard isMeasurementViewActive, !store.isUsingPlaceholderData else { return .idle }
         return bluetooth.state
@@ -498,20 +537,8 @@ struct MeasureView: View {
         }
     }
 
-    @ViewBuilder
     private var stageIcon: some View {
-        if store.isSimulationEnabled {
-            Button(action: runSimulatedMeasurement) {
-                stageIconContent
-                    .frame(width: 44, height: 44)
-                    .contentShape(Circle())
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel(store.appLanguage.text("模拟一次测量"))
-        } else {
-            stageIconContent
-                .frame(width: 44, height: 44)
-        }
+        stageIconContent.frame(width: 44, height: 44)
     }
 
     @ViewBuilder
@@ -597,14 +624,17 @@ struct MeasureView: View {
             updateSimulation(state: .confirmingMeasurement, weightKG: finalWeightKG)
             guard await waitForSimulation(milliseconds: supportsBodyComposition ? 1_000 : 2_500) else { return }
             store.add(completedMeasurement)
+            self.completedMeasurement = completedMeasurement
             updateSimulation(state: .completed, weightKG: finalWeightKG)
         }
     }
 
     private func resetSimulatedMeasurement() {
+        guard completedMeasurement == nil else { return }
         simulationMeasurementTask?.cancel()
         simulationState = .completed
-        simulatedWeightKG = store.latest?.weightKG
+        completedMeasurement = store.latest
+        simulatedWeightKG = completedMeasurement?.weightKG
     }
 
     @MainActor
@@ -648,7 +678,7 @@ struct MeasureView: View {
             VStack(alignment: .leading, spacing: 16) {
                 HStack {
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("本次测量").font(.headline)
+                        Text("测量信息").font(.headline)
                         if let measurement {
                             Text(measurement.date, format: .dateTime.year().month().day().hour().minute())
                                 .font(.caption).foregroundStyle(AppColor.secondary)
