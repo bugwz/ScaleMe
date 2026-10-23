@@ -52,6 +52,7 @@ Message rules:
 - Use lowercase English `- ` bullets for concrete change details.
 - Prefer specific outcomes over generic phrases such as “update files” or “make changes.”
 - Cover the complete change set with the smallest useful number of bullets.
+- For build-number changes, include both the resulting marketing version and build number in the title, for example `chore: bump build to 2 for version 1.1.0`. Read both values from the final Xcode configuration; the Chinese summary must also show the pair as `1.1.0 (2)`.
 
 When the working tree contains multiple kinds of changes, use the type that represents the primary product outcome and describe supporting work in the body. This skill creates one commit containing all non-ignored changes unless the user explicitly requests a split.
 
