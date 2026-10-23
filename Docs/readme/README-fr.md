@@ -27,7 +27,7 @@ Aucun compte n’est nécessaire. Profils, réglages des appareils et mesures so
 <div align="center">
 
 <a href="https://apps.apple.com/app/id6808930548">
-  <img src="../../Design/Download/AppStoreQRCode.png" width="100%" alt="Scannez le QR code pour télécharger ScaleMe sur l’App Store">
+  <img src="../../Design/Download/AppStoreBanner.png" width="100%" alt="Présentation de ScaleMe et téléchargement sur l’App Store">
 </a>
 
 </div>

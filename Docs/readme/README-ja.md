@@ -27,7 +27,7 @@
 <div align="center">
 
 <a href="https://apps.apple.com/app/id6808930548">
-  <img src="../../Design/Download/AppStoreQRCode.png" width="100%" alt="QR コードを読み取り、App Store から ScaleMe をダウンロード">
+  <img src="../../Design/Download/AppStoreBanner.png" width="100%" alt="ScaleMe 製品紹介と App Store ダウンロード">
 </a>
 
 </div>

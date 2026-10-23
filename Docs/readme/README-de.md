@@ -27,7 +27,7 @@ Eine Registrierung ist nicht nötig. Profile, Geräteeinstellungen und Messungen
 <div align="center">
 
 <a href="https://apps.apple.com/app/id6808930548">
-  <img src="../../Design/Download/AppStoreQRCode.png" width="100%" alt="QR-Code scannen und ScaleMe im App Store laden">
+  <img src="../../Design/Download/AppStoreBanner.png" width="100%" alt="ScaleMe-Produktübersicht und Download im App Store">
 </a>
 
 </div>

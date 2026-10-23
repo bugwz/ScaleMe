@@ -27,7 +27,7 @@ No requiere registrar una cuenta. Los perfiles, ajustes y mediciones se guardan 
 <div align="center">
 
 <a href="https://apps.apple.com/app/id6808930548">
-  <img src="../../Design/Download/AppStoreQRCode.png" width="100%" alt="Escanea el código QR para descargar ScaleMe en el App Store">
+  <img src="../../Design/Download/AppStoreBanner.png" width="100%" alt="Presentación de ScaleMe y descarga en el App Store">
 </a>
 
 </div>

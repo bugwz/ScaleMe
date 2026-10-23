@@ -27,7 +27,7 @@ Não é necessário criar uma conta. Perfis, configurações dos dispositivos e 
 <div align="center">
 
 <a href="https://apps.apple.com/app/id6808930548">
-  <img src="../../Design/Download/AppStoreQRCode.png" width="100%" alt="Leia o QR code para baixar o ScaleMe na App Store">
+  <img src="../../Design/Download/AppStoreBanner.png" width="100%" alt="Apresentação do ScaleMe e download na App Store">
 </a>
 
 </div>
